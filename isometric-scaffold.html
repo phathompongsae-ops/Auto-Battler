@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<title>Isometric Tactical Auto-Battler - Scaffold</title>
+<style>
+  html, body { margin: 0; padding: 0; overflow: hidden; background: #1a1612; }
+  canvas { display: block; }
+  #hud {
+    position: fixed; top: 8px; left: 8px; color: #d7c9a7;
+    font-family: monospace; font-size: 12px; background: rgba(0,0,0,0.5);
+    padding: 6px 10px; border-radius: 4px; pointer-events: none;
+  }
+</style>
+</head>
+<body>
+<div id="hud">Isometric grid scaffold — click a tile to test grid→world conversion</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// ============================================================
+// CONFIG
+// ============================================================
+const GRID_COLS = 10;
+const GRID_ROWS = 10;
+const TILE_SIZE = 1;        // world units per grid cell
+// --- Auto chess style camera (แทน isometric แท้ 35.264°) ---
+// เหตุผล: มุมสูงขึ้น (55°) ทำให้เห็นสนามชัดแบบ TFT/Auto Chess
+// และ yaw ต่ำลง (15° แทน 45°) ทำให้กล้องมองเกือบตรงหน้ากระดาน
+// → สไปรท์ตัวละครสัดส่วนปกติแบบ FF จะโชว์หน้า/ลำตัวชัด ไม่โดนมุมเอียงบัง
+const CAMERA_ANGLE_DEG = 55;  // pitch: มุมกดลงจากแนวราบ (auto chess ≈ 50-60°)
+const CAMERA_YAW_DEG = 15;    // yaw: หมุนรอบแกนตั้งเล็กน้อยให้ฉากมีมิติ ไม่แบนเป็น top-down
+const CAMERA_ZOOM = 6;      // orthographic zoom (world units visible vertically / 2)
+
+// ============================================================
+// RENDERER
+// ============================================================
+const renderer = new THREE.WebGLRenderer({ antialias: false });
+renderer.setPixelRatio(1); // keep 1:1 for crisp pixel art, scale via CSS if needed
+renderer.setSize(window.innerWidth, window.innerHeight);
+document.body.appendChild(renderer.domElement);
+
+// ============================================================
+// SCENE
+// ============================================================
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x2b2420); // earthy dark backdrop
+
+// ============================================================
+// ORTHOGRAPHIC ISOMETRIC CAMERA
+// ============================================================
+const aspect = window.innerWidth / window.innerHeight;
+const camera = new THREE.OrthographicCamera(
+  -CAMERA_ZOOM * aspect, CAMERA_ZOOM * aspect,
+  CAMERA_ZOOM, -CAMERA_ZOOM,
+  0.1, 1000
+);
+
+// Position camera at a 45° horizontal rotation + isometric tilt looking at origin
+const camDistance = 20;
+const angleRad = THREE.MathUtils.degToRad(CAMERA_ANGLE_DEG);
+const yawRad = THREE.MathUtils.degToRad(CAMERA_YAW_DEG);
+camera.position.set(
+  camDistance * Math.cos(angleRad) * Math.cos(yawRad),
+  camDistance * Math.sin(angleRad),
+  camDistance * Math.cos(angleRad) * Math.sin(yawRad)
+);
+camera.lookAt(0, 0, 0);
+
+// ============================================================
+// LIGHTING (simple — mostly for prototyping, sprites won't need much)
+// ============================================================
+scene.add(new THREE.AmbientLight(0xffffff, 0.9));
+const dirLight = new THREE.DirectionalLight(0xffe8c2, 0.6);
+dirLight.position.set(5, 10, 5);
+scene.add(dirLight);
+
+// ============================================================
+// GRID <-> WORLD CONVERSION
+// ============================================================
+// Grid coords (col, row) are integers, origin at back-left corner of the board.
+// World coords are centered on the board so the camera looks at its middle.
+function gridToWorld(col, row) {
+  const x = (col - GRID_COLS / 2) * TILE_SIZE + TILE_SIZE / 2;
+  const z = (row - GRID_ROWS / 2) * TILE_SIZE + TILE_SIZE / 2;
+  return new THREE.Vector3(x, 0, z);
+}
+
+function worldToGrid(worldPos) {
+  const col = Math.floor(worldPos.x / TILE_SIZE + GRID_COLS / 2);
+  const row = Math.floor(worldPos.z / TILE_SIZE + GRID_ROWS / 2);
+  return { col, row };
+}
+
+// Depth/Z-sort key: characters further "back" (higher col+row) should draw
+// on top of tiles behind them. Use this to set renderOrder per unit.
+function depthSortKey(col, row) {
+  return col + row;
+}
+
+// ============================================================
+// BUILD GRID (placeholder tiles — swap for pixel-art tile sprites later)
+// ============================================================
+const tileGeo = new THREE.PlaneGeometry(TILE_SIZE * 0.96, TILE_SIZE * 0.96);
+const tiles = [];
+for (let row = 0; row < GRID_ROWS; row++) {
+  for (let col = 0; col < GRID_COLS; col++) {
+    const isAlt = (col + row) % 2 === 0;
+    const mat = new THREE.MeshBasicMaterial({
+      color: isAlt ? 0x5a5142 : 0x6b6252,
+      side: THREE.DoubleSide
+    });
+    const tile = new THREE.Mesh(tileGeo, mat);
+    tile.rotation.x = -Math.PI / 2; // lay flat on XZ plane
+    const worldPos = gridToWorld(col, row);
+    tile.position.set(worldPos.x, 0, worldPos.z);
+    tile.userData = { col, row };
+    scene.add(tile);
+    tiles.push(tile);
+  }
+}
+
+// ============================================================
+// PLACEHOLDER UNIT (stand-in for a 16-bit sprite billboard)
+// A real unit would use THREE.Sprite or a plane facing the camera
+// with a pixel-art texture (NearestFilter, see loadPixelTexture below).
+// ============================================================
+// สัดส่วนตัวละครแบบ FF ปกติ (ไม่ chibi): สูงประมาณ 1.6 หน่วย ต่อ tile 1 หน่วย
+// กว้าง 0.7 → สัดส่วนใกล้เคียงคน 1:4-1:5 หัวต่อตัว เมื่อใส่สไปรท์จริง
+function createPlaceholderUnit(col, row, color) {
+  const geo = new THREE.PlaneGeometry(0.7, 1.6);
+  const mat = new THREE.MeshBasicMaterial({ color, side: THREE.DoubleSide, transparent: true });
+  const mesh = new THREE.Mesh(geo, mat);
+  const worldPos = gridToWorld(col, row);
+  mesh.position.set(worldPos.x, 0.8, worldPos.z); // ครึ่งความสูง → เท้าติดพื้น
+  mesh.renderOrder = depthSortKey(col, row);
+  scene.add(mesh);
+  return mesh;
+}
+
+// วางสองตัวคนละแถวเพื่อเช็คว่า Z-sort และการบังกันถูกต้องในมุมกล้องใหม่
+const unit = createPlaceholderUnit(3, 4, 0xc9986a);
+const unit2 = createPlaceholderUnit(3, 6, 0x8a6d9c);
+
+// Billboard: keep the sprite plane facing the camera every frame
+// (this is what you'd do for real pixel-art character sprites)
+function billboard(mesh) {
+  mesh.quaternion.copy(camera.quaternion);
+}
+
+// ============================================================
+// LOADING A PIXEL-ART TEXTURE (reference — uncomment when you have assets)
+// ============================================================
+// const loader = new THREE.TextureLoader();
+// loader.load('character_idle.png', (texture) => {
+//   texture.magFilter = THREE.NearestFilter; // keep pixels crisp, no blur
+//   texture.minFilter = THREE.NearestFilter;
+//   const mat = new THREE.SpriteMaterial({ map: texture });
+//   const sprite = new THREE.Sprite(mat);
+//   sprite.scale.set(1, 1.5, 1);
+//   scene.add(sprite);
+// });
+
+// ============================================================
+// CLICK TO TEST GRID CONVERSION
+// ============================================================
+const raycaster = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
+const hud = document.getElementById('hud');
+
+renderer.domElement.addEventListener('click', (event) => {
+  mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+  mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+  raycaster.setFromCamera(mouse, camera);
+  const hits = raycaster.intersectObjects(tiles);
+  if (hits.length > 0) {
+    const { col, row } = hits[0].object.userData;
+    hud.textContent = `Clicked tile → col: ${col}, row: ${row} (depth key: ${depthSortKey(col, row)})`;
+  }
+});
+
+// ============================================================
+// RENDER LOOP
+// ============================================================
+function animate() {
+  requestAnimationFrame(animate);
+  billboard(unit);
+  billboard(unit2);
+  renderer.render(scene, camera);
+}
+animate();
+
+// ============================================================
+// RESIZE HANDLING
+// ============================================================
+window.addEventListener('resize', () => {
+  const aspect = window.innerWidth / window.innerHeight;
+  camera.left = -CAMERA_ZOOM * aspect;
+  camera.right = CAMERA_ZOOM * aspect;
+  camera.top = CAMERA_ZOOM;
+  camera.bottom = -CAMERA_ZOOM;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+</script>
+</body>
+</html>
