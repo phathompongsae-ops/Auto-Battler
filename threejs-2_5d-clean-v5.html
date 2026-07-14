@@ -14,11 +14,11 @@
        board always keeps the majority of the screen on any device/viewer */
     --slot:clamp(34px,8.5vh,58px);
     --round:clamp(44px,11vh,88px);
-    --pic:clamp(34px,13vh,150px);
+    --pic:clamp(32px,11vh,140px);
     --side:clamp(64px,9vw,118px);
     position:fixed;inset:0;
     display:grid;
-    grid-template-rows:auto minmax(34vh,1fr) auto auto;
+    grid-template-rows:auto minmax(38vh,1fr) auto auto;
     grid-template-areas:"hud" "battle" "bench" "shop";
     row-gap:4px;
     padding-top:max(6px,env(safe-area-inset-top));
@@ -756,11 +756,13 @@
       scene.background = new THREE_.Color(0x0d1d13);
       scene.fog = new THREE_.Fog(0x0d1d13, 26, 44);
 
-      // steeper, more top-down "auto chess" camera angle.
+      // tilted "auto chess" camera (~45°): depth foreshortening makes the square
+      // board project wide-and-short like the reference art, so it fills
+      // landscape screens instead of sitting as a small square in a wide strip.
       // Orthographic + a dynamic contain-fit in resize() keeps the whole board
       // visible and tappable on any aspect ratio (very wide/short phones included).
       const camera = new THREE_.OrthographicCamera(-1, 1, 1, -1, .1, 100);
-      camera.position.set(0, 14.5, 9.5);
+      camera.position.set(0, 11, 11);
       camera.lookAt(0, 0, .4);
       camera.updateMatrixWorld(true);
 
@@ -918,6 +920,10 @@
         camera.left = -halfW; camera.right = halfW;
         camera.top = halfH; camera.bottom = -halfH;
         camera.updateProjectionMatrix();
+        // bench pedestals track the on-screen tile size (like the reference,
+        // where bench slots match board cells)
+        const tilePx = TILE * (w/(2*halfW));
+        q('app').style.setProperty('--slot', Math.max(26, Math.min(58, tilePx*1.05))+'px');
       }
       new ResizeObserver(resize).observe(wrap);
       resize();
