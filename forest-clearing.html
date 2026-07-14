@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Auto Battler — ลานรบป่าเขียว (Forest Clearing)</title>
+<style>
+  html, body { margin: 0; padding: 0; overflow: hidden; background: #bcd4e8; }
+  canvas { display: block; }
+  #hud {
+    position: fixed; top: 8px; left: 8px; color: #3a2f20;
+    font-family: monospace; font-size: 14px; background: rgba(255,250,238,0.75);
+    padding: 8px 12px; border-radius: 4px; border: 1px solid #b8a878;
+    pointer-events: none; line-height: 1.6; max-width: 60vw;
+  }
+  #banner {
+    position: fixed; top: 40%; left: 50%; transform: translate(-50%,-50%);
+    color: #3a2f20; font-family: monospace; font-size: 32px; font-weight: bold;
+    background: rgba(255,250,238,0.95); padding: 20px 40px; border-radius: 8px;
+    border: 2px solid #b8a878; display: none; text-align: center;
+  }
+  #restart {
+    position: fixed; top: 58%; left: 50%; transform: translateX(-50%);
+    font-family: monospace; font-size: 16px; padding: 10px 24px;
+    background: #6b8f42; color: #fbf6e6; border: 1px solid #4a6b2a;
+    border-radius: 6px; cursor: pointer; display: none;
+  }
+  #back {
+    position: fixed; top: 8px; right: 8px; font-family: monospace; font-size: 13px;
+    color: #3a2f20; background: rgba(255,250,238,0.75); padding: 6px 12px;
+    border-radius: 4px; border: 1px solid #b8a878; text-decoration: none;
+  }
+  #loading {
+    position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
+    color: #3a2f20; font-family: monospace; font-size: 18px; background: #bcd4e8; z-index: 10;
+  }
+</style>
+</head>
+<body>
+<div id="loading">กำลังปลูกป่า...</div>
+<div id="hud"></div>
+<a id="back" href="index.html">&larr; กลับเมนู</a>
+<div id="banner"></div>
+<button id="restart" onclick="location.reload()">สู้อีกครั้ง</button>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// ============================================================
+// CONFIG — "ลานรบป่าเขียว" (Forest Clearing)
+// กระดาน 8x6 ตามสเปกในภาพอ้างอิง (ขนาดและมุมมอง), ยูนิตสูง ~1.2 หน่วย
+// ธีม/props/แสง เป็นเวอร์ชัน low-poly ที่ทำได้จริงด้วย Three.js — ไม่ใช่ภาพเพนต์
+// ============================================================
+const COLS = 8, ROWS = 6;
+const TILE = 1;
+const STAGE_TIME = 75;
+const CAMERA_ANGLE_DEG = 55;
+const CAMERA_YAW_DEG = 15;
+const CAMERA_ZOOM = 7.0;
+
+// ============================================================
+// RENDERER / SCENE / CAMERA
+// ============================================================
+const renderer = new THREE.WebGLRenderer({ antialias: false });
+renderer.setPixelRatio(1);
+renderer.setSize(window.innerWidth, window.innerHeight);
+document.body.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0xaed0ea);       // ฟ้ากลางวัน
+scene.fog = new THREE.Fog(0xaed0ea, 24, 42);
+
+const aspect = window.innerWidth / window.innerHeight;
+const camera = new THREE.OrthographicCamera(
+  -CAMERA_ZOOM * aspect, CAMERA_ZOOM * aspect, CAMERA_ZOOM, -CAMERA_ZOOM, 0.1, 1000);
+const camDist = 24;
+const aR = THREE.MathUtils.degToRad(CAMERA_ANGLE_DEG);
+const yR = THREE.MathUtils.degToRad(CAMERA_YAW_DEG);
+camera.position.set(camDist*Math.cos(aR)*Math.cos(yR), camDist*Math.sin(aR), camDist*Math.cos(aR)*Math.sin(yR));
+camera.lookAt(0, 0, 0);
+
+scene.add(new THREE.AmbientLight(0xcfe4c8, 0.85));
+const sun = new THREE.DirectionalLight(0xfff2c8, 0.85);
+sun.position.set(8, 14, 6);
+scene.add(sun);
+
+function gridToWorld(c, r) {
+  return new THREE.Vector3((c - COLS/2)*TILE + TILE/2, 0, (r - ROWS/2)*TILE + TILE/2);
+}
+
+// ============================================================
+// พื้นหญ้า — ลายพิกเซลผ้าใบแบบเดียวกับพื้นหินเดิม แต่โทนหญ้า/ดิน/ดอกไม้
+// ============================================================
+function makeCanvas(w, h) { const cv = document.createElement('canvas'); cv.width = w; cv.height = h; return cv; }
+function toTexture(cv) { const t = new THREE.CanvasTexture(cv); t.magFilter = THREE.NearestFilter; t.minFilter = THREE.NearestFilter; return t; }
+function grassTexture(base, seed, flowers) {
+  const cv = makeCanvas(32, 32), g = cv.getContext('2d');
+  g.fillStyle = base; g.fillRect(0, 0, 32, 32);
+  let s = seed;
+  const rnd = () => (s = (s * 16807) % 2147483647) / 2147483647;
+  for (let i = 0; i < 70; i++) {
+    const v = rnd();
+    g.fillStyle = v < 0.5 ? 'rgba(0,0,0,0.08)' : 'rgba(220,255,190,0.10)';
+    g.fillRect((rnd()*32)|0, (rnd()*32)|0, 1 + (rnd()*2|0), 1 + (rnd()*3|0));
+  }
+  if (flowers) {
+    const cols = ['#f4f1e0', '#f0c04a', '#e0708a'];
+    for (let i = 0; i < 3; i++) {
+      g.fillStyle = cols[i % cols.length];
+      const x = (rnd()*28)|0, y = (rnd()*28)|0;
+      g.fillRect(x, y, 2, 2);
+    }
+  }
+  g.strokeStyle = 'rgba(0,0,0,0.15)'; g.lineWidth = 1; g.strokeRect(0.5, 0.5, 31, 31);
+  return toTexture(cv);
+}
+function dirtTexture(seed) {
+  const cv = makeCanvas(32, 32), g = cv.getContext('2d');
+  g.fillStyle = '#b89768'; g.fillRect(0, 0, 32, 32);
+  let s = seed;
+  const rnd = () => (s = (s * 16807) % 2147483647) / 2147483647;
+  for (let i = 0; i < 60; i++) {
+    g.fillStyle = rnd() < 0.5 ? 'rgba(0,0,0,0.10)' : 'rgba(255,240,210,0.10)';
+    g.fillRect((rnd()*32)|0, (rnd()*32)|0, 1 + (rnd()*2|0), 1 + (rnd()*2|0));
+  }
+  return toTexture(cv);
+}
+const texGrassA = grassTexture('#6f9a4c', 41, false);
+const texGrassB = grassTexture('#628a44', 977, false);
+const texGrassFlower = grassTexture('#6f9a4c', 233, true);
+const texDirt = dirtTexture(512);
+const tileGeo = new THREE.PlaneGeometry(TILE*0.98, TILE*0.98);
+let seedCounter = 7;
+function rndTile() { seedCounter = (seedCounter * 16807) % 2147483647; return seedCounter / 2147483647; }
+for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
+  let tex = (c+r)%2===0 ? texGrassA : texGrassB;
+  const roll = rndTile();
+  if (roll < 0.08) tex = texGrassFlower;
+  else if (roll > 0.94) tex = texDirt;
+  const m = new THREE.Mesh(tileGeo, new THREE.MeshBasicMaterial({ map: tex, side: THREE.DoubleSide }));
+  m.rotation.x = -Math.PI/2;
+  const p = gridToWorld(c, r);
+  m.position.set(p.x, 0, p.z);
+  scene.add(m);
+}
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(70, 70), new THREE.MeshBasicMaterial({ color: 0x4c6e38 }));
+ground.rotation.x = -Math.PI/2; ground.position.y = -0.02;
+scene.add(ground);
+
+// ============================================================
+// PROPS — ธีมลานรบป่าเขียว: ต้นสน รั้วไม้ ธงประจำทีม คริสตัล กองไฟ ลำธาร+สะพาน
+// ============================================================
+function pineTree(x, z, scale) {
+  const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.1*scale, 0.14*scale, 0.5*scale, 6),
+    new THREE.MeshLambertMaterial({ color: 0x6b4a30 }));
+  trunk.position.set(x, 0.25*scale, z); scene.add(trunk);
+  const tiers = [0.65, 0.5, 0.35];
+  tiers.forEach((r, i) => {
+    const cone = new THREE.Mesh(new THREE.ConeGeometry(r*scale, 0.7*scale, 7),
+      new THREE.MeshLambertMaterial({ color: i % 2 === 0 ? 0x2f5e34 : 0x386b3c }));
+    cone.position.set(x, (0.55 + i*0.42)*scale, z);
+    scene.add(cone);
+  });
+}
+function bush(x, z, s) {
+  const m = new THREE.Mesh(new THREE.DodecahedronGeometry(s, 0), new THREE.MeshLambertMaterial({ color: 0x4a7a3e }));
+  m.position.set(x, s*0.6, z); m.rotation.set(Math.random()*3, Math.random()*3, 0); scene.add(m);
+}
+function rock(x, z, s) {
+  const m = new THREE.Mesh(new THREE.DodecahedronGeometry(s, 0), new THREE.MeshLambertMaterial({ color: 0x8a8272 }));
+  m.position.set(x, s*0.5, z); m.rotation.set(Math.random()*3, Math.random()*3, 0); scene.add(m);
+}
+function stump(x, z) {
+  const m = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.26, 0.3, 8), new THREE.MeshLambertMaterial({ color: 0x6b4a30 }));
+  m.position.set(x, 0.15, z); scene.add(m);
+  const top = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 0.03, 8), new THREE.MeshLambertMaterial({ color: 0x9a7850 }));
+  top.position.set(x, 0.31, z); scene.add(top);
+}
+function fence(x, z, rotY) {
+  const g = new THREE.Group();
+  for (const dx of [-0.35, 0.35]) {
+    const post = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.5, 0.06), new THREE.MeshLambertMaterial({ color: 0x7a5c3a }));
+    post.position.set(dx, 0.25, 0); g.add(post);
+  }
+  for (const dy of [0.18, 0.36]) {
+    const rail = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.05, 0.03), new THREE.MeshLambertMaterial({ color: 0x8a6c48 }));
+    rail.position.set(0, dy, 0); g.add(rail);
+  }
+  g.position.set(x, 0, z); g.rotation.y = rotY;
+  scene.add(g);
+}
+function banner(x, z, color) {
+  const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, 1.6, 6), new THREE.MeshLambertMaterial({ color: 0x5a4530 }));
+  pole.position.set(x, 0.8, z); scene.add(pole);
+  const cloth = new THREE.Mesh(new THREE.PlaneGeometry(0.34, 0.6), new THREE.MeshBasicMaterial({ color, side: THREE.DoubleSide }));
+  cloth.position.set(x + 0.19, 1.25, z); scene.add(cloth);
+  const cap = new THREE.Mesh(new THREE.ConeGeometry(0.05, 0.12, 6), new THREE.MeshLambertMaterial({ color: 0xc8a850 }));
+  cap.position.set(x, 1.66, z); scene.add(cap);
+}
+function crystalCluster(x, z) {
+  const base = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.4, 0.14, 8), new THREE.MeshLambertMaterial({ color: 0x7a7060 }));
+  base.position.set(x, 0.07, z); scene.add(base);
+  const cols = [0x4fd0e8, 0x6fe0f0, 0x3ab8d0];
+  for (let i = 0; i < 5; i++) {
+    const h = 0.35 + Math.random()*0.4;
+    const cr = new THREE.Mesh(new THREE.ConeGeometry(0.07, h, 5),
+      new THREE.MeshBasicMaterial({ color: cols[i % cols.length], transparent: true, opacity: 0.85 }));
+    const ang = (i / 5) * Math.PI * 2;
+    cr.position.set(x + Math.cos(ang)*0.12, 0.14 + h/2, z + Math.sin(ang)*0.12);
+    cr.rotation.z = (Math.random()-0.5)*0.3;
+    scene.add(cr);
+  }
+  const glow = new THREE.PointLight(0x6fe0f0, 0.9, 4);
+  glow.position.set(x, 0.6, z); scene.add(glow);
+}
+function campfire(x, z) {
+  const logs = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.5, 6), new THREE.MeshLambertMaterial({ color: 0x5a4028 }));
+  logs.position.set(x, 0.08, z); logs.rotation.z = Math.PI/2.4; scene.add(logs);
+  const flame = new THREE.Mesh(new THREE.ConeGeometry(0.14, 0.36, 6),
+    new THREE.MeshBasicMaterial({ color: 0xffa840, transparent: true, opacity: 0.9 }));
+  flame.position.set(x, 0.22, z); scene.add(flame);
+  const glow = new THREE.PointLight(0xff9840, 1.1, 4.5);
+  glow.position.set(x, 0.4, z); scene.add(glow);
+}
+function signpost(x, z) {
+  const post = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.045, 0.9, 6), new THREE.MeshLambertMaterial({ color: 0x6b4a30 }));
+  post.position.set(x, 0.45, z); scene.add(post);
+  const board = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.22, 0.04), new THREE.MeshLambertMaterial({ color: 0x9a7850 }));
+  board.position.set(x, 0.78, z); scene.add(board);
+}
+function stream() {
+  const water = new THREE.Mesh(new THREE.PlaneGeometry(1.6, 12), new THREE.MeshBasicMaterial({ color: 0x4a8fc0, transparent: true, opacity: 0.85 }));
+  water.rotation.x = -Math.PI/2; water.position.set(-COLS/2 - 1.1, 0.005, 0);
+  scene.add(water);
+  const bridge = new THREE.Mesh(new THREE.BoxGeometry(1.9, 0.06, 0.9), new THREE.MeshLambertMaterial({ color: 0x8a6c48 }));
+  bridge.position.set(-COLS/2 - 1.1, 0.05, 0.2);
+  scene.add(bridge);
+  for (const bz of [-0.35, 0.75]) {
+    for (const bx of [-1.85, -0.35]) {
+      const rail = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.24, 0.05), new THREE.MeshLambertMaterial({ color: 0x6b4a30 }));
+      rail.position.set(-COLS/2 - 1.1 + bx, 0.17, bz);
+      scene.add(rail);
+    }
+  }
+}
+
+// ล้อมรอบกระดาน: แถวต้นสน + พุ่มไม้ + หิน มุมสี่ด้าน
+for (let i = 0; i < COLS; i++) {
+  pineTree(gridToWorld(i, -1.6).x, gridToWorld(i, -1.6).z, 0.9 + (i%3)*0.15);
+  pineTree(gridToWorld(i, ROWS + 0.6).x, gridToWorld(i, ROWS + 0.6).z, 0.9 + (i%2)*0.2);
+}
+for (let i = -1; i <= ROWS; i++) {
+  bush(gridToWorld(COLS + 1.2, i).x, gridToWorld(COLS + 1.2, i).z, 0.22 + (i%2)*0.06);
+}
+rock(gridToWorld(-1.3, -1.2).x, gridToWorld(-1.3, -1.2).z, 0.3);
+rock(gridToWorld(COLS + 0.6, ROWS + 0.4).x, gridToWorld(COLS + 0.6, ROWS + 0.4).z, 0.26);
+stump(gridToWorld(-1.2, ROWS - 0.5).x, gridToWorld(-1.2, ROWS - 0.5).z);
+stump(gridToWorld(COLS + 0.4, 1).x, gridToWorld(COLS + 0.4, 1).z);
+fence(gridToWorld(2.5, -0.9).x, gridToWorld(2.5, -0.9).z, 0);
+fence(gridToWorld(4.5, -0.9).x, gridToWorld(4.5, -0.9).z, 0);
+fence(gridToWorld(-0.9, 4.5).x, gridToWorld(-0.9, 4.5).z, Math.PI/2);
+banner(gridToWorld(-1.1, ROWS - 1).x, gridToWorld(-1.1, ROWS - 1).z, 0x3a66c0);   // ธงฝั่งฮีโร่
+banner(gridToWorld(COLS + 0.1, 0.2).x, gridToWorld(COLS + 0.1, 0.2).z, 0xb03434); // ธงฝั่งศัตรู
+crystalCluster(gridToWorld(COLS + 0.6, ROWS - 1).x, gridToWorld(COLS + 0.6, ROWS - 1).z);
+campfire(gridToWorld(-1.4, 1).x, gridToWorld(-1.4, 1).z);
+signpost(gridToWorld(-1.3, 2.6).x, gridToWorld(-1.3, 2.6).z);
+stream();
+
+// ============================================================
+// SPRITES — สไปรท์ชีต 8 เฟรมของฮีโร่ + สไปรท์นิ่งของมอนสเตอร์แมพ 1
+// (ใช้โรสเตอร์เดิม — คำขอรอบนี้เน้นฉาก/สนามรบเท่านั้น มอนสเตอร์ป่าเขียวชุดใหม่ยังไม่ทำ)
+// ============================================================
+const ASSET_META = {
+  BladeMaster:  { path: 'assets/heroes/blademaster_sheet.png',  frames: 8 },
+  BeastLord:    { path: 'assets/heroes/beastlord_sheet.png',    frames: 8 },
+  Trickster:    { path: 'assets/heroes/trickster_sheet.png',    frames: 8 },
+  Duelist:      { path: 'assets/heroes/duelist_sheet.png',      frames: 8 },
+  Archmage:     { path: 'assets/heroes/archmage_sheet.png',     frames: 8 },
+  FrostWeaver:  { path: 'assets/heroes/frostweaver_sheet.png',  frames: 8 },
+  Summoner:     { path: 'assets/heroes/summoner_sheet.png',     frames: 8 },
+  Sniper:       { path: 'assets/heroes/sniper_sheet.png',       frames: 8 },
+  Skeleton:     { path: 'assets/mon_skeleton.png',      frames: 1 },
+  StoneWolf:    { path: 'assets/mon_stonewolf.png',     frames: 1 },
+  SpiritArcher: { path: 'assets/mon_spiritarcher.png',  frames: 1 },
+  Warden:       { path: 'assets/miniboss_warden.png',   frames: 1 },
+};
+const SPRITES = {};
+function loadAllSprites(onDone) {
+  const loader = new THREE.TextureLoader();
+  const names = Object.keys(ASSET_META);
+  let loaded = 0;
+  names.forEach((name) => {
+    loader.load(ASSET_META[name].path, (tex) => {
+      tex.magFilter = THREE.NearestFilter;
+      tex.minFilter = THREE.NearestFilter;
+      if (ASSET_META[name].frames > 1) tex.repeat.set(1 / ASSET_META[name].frames, 1);
+      SPRITES[name] = tex;
+      loaded++;
+      if (loaded === names.length) onDone();
+    }, undefined, (err) => { console.error('โหลดสไปรท์ไม่สำเร็จ:', ASSET_META[name].path, err); });
+  });
+}
+
+// ============================================================
+// UNITS
+// ============================================================
+const units = [];
+const occupied = new Set();
+function key(c, r) { return c + ',' + r; }
+
+function makeUnit(cfg) {
+  const group = new THREE.Group();
+  const meta = ASSET_META[cfg.sprite];
+  const frames = meta.frames;
+  let tex = SPRITES[cfg.sprite];
+  if (frames > 1) { tex = tex.clone(); tex.needsUpdate = true; tex.repeat.set(1/frames, 1); tex.offset.set(0, 0); }
+
+  const w = frames > 1 ? 0.8 : 1.1;
+  const h = frames > 1 ? 1.4 : 1.6;
+  const body = new THREE.Mesh(
+    new THREE.PlaneGeometry(w, h),
+    new THREE.MeshBasicMaterial({ map: tex, side: THREE.DoubleSide, transparent: true, alphaTest: 0.5 }));
+  body.position.y = h / 2;
+  group.add(body);
+
+  const shadow = new THREE.Mesh(new THREE.CircleGeometry(0.26, 12), new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.35 }));
+  shadow.rotation.x = -Math.PI/2; shadow.position.y = 0.01; group.add(shadow);
+
+  const barY = h + 0.14;
+  const hpBg = new THREE.Mesh(new THREE.PlaneGeometry(0.72, 0.08), new THREE.MeshBasicMaterial({ color: 0x2a1410, side: THREE.DoubleSide }));
+  hpBg.position.y = barY; group.add(hpBg);
+  const hpBar = new THREE.Mesh(new THREE.PlaneGeometry(0.72, 0.08), new THREE.MeshBasicMaterial({ color: cfg.team === 'player' ? 0x66c25a : 0xc25a44, side: THREE.DoubleSide }));
+  hpBar.position.y = barY; hpBar.position.z = 0.001; group.add(hpBar);
+
+  const p = gridToWorld(cfg.c, cfg.r);
+  group.position.set(p.x, 0, p.z);
+  scene.add(group);
+  occupied.add(key(cfg.c, cfg.r));
+
+  const u = { ...cfg, group, body, hpBar, shadow, tex, frames,
+    maxHp: cfg.hp, alive: true, atkCooldown: 0,
+    moving: false, moveFrom: null, moveTo: null, moveT: 0,
+    animState: 'idle', animTimer: 0, animFrame: 0, baseSpeed: cfg.moveSpeed };
+  units.push(u);
+  return u;
+}
+
+function setupRoster() {
+  makeUnit({ team:'player', name:'Blade Master', sprite:'BladeMaster', c:1, r:4, hp:170, pAtk:23, atkSpeed:1.3, range:1, moveSpeed:2.4, trait:'none' });
+  makeUnit({ team:'player', name:'Duelist',      sprite:'Duelist',     c:3, r:4, hp:135, pAtk:20, atkSpeed:1.5, range:1, moveSpeed:2.6, trait:'crit' });
+  makeUnit({ team:'player', name:'Beast Lord',   sprite:'BeastLord',   c:0, r:5, hp:155, pAtk:15, atkSpeed:1.0, range:1, moveSpeed:2.1, trait:'none' });
+  makeUnit({ team:'player', name:'Trickster',    sprite:'Trickster',   c:2, r:5, hp:100, pAtk:16, atkSpeed:1.3, range:3, moveSpeed:2.2, trait:'weaken' });
+  makeUnit({ team:'player', name:'Archmage',     sprite:'Archmage',    c:5, r:5, hp:95,  pAtk:25, atkSpeed:0.8, range:4, moveSpeed:1.8, trait:'none' });
+  makeUnit({ team:'player', name:'Frost Weaver', sprite:'FrostWeaver', c:6, r:5, hp:110, pAtk:15, atkSpeed:1.0, range:4, moveSpeed:1.8, trait:'slow' });
+  makeUnit({ team:'player', name:'Summoner',     sprite:'Summoner',    c:4, r:5, hp:105, pAtk:13, atkSpeed:1.0, range:3, moveSpeed:1.9, trait:'none' });
+  makeUnit({ team:'player', name:'Sniper',       sprite:'Sniper',      c:7, r:4, hp:90,  pAtk:24, atkSpeed:0.9, range:5, moveSpeed:1.7, trait:'longshot' });
+
+  makeUnit({ team:'enemy', name:'Skeleton A',    sprite:'Skeleton',     c:1, r:0, hp:135, pAtk:15, atkSpeed:0.95, range:1, moveSpeed:1.8 });
+  makeUnit({ team:'enemy', name:'Skeleton B',    sprite:'Skeleton',     c:4, r:0, hp:135, pAtk:15, atkSpeed:0.95, range:1, moveSpeed:1.8 });
+  makeUnit({ team:'enemy', name:'Skeleton C',    sprite:'Skeleton',     c:6, r:0, hp:135, pAtk:15, atkSpeed:0.95, range:1, moveSpeed:1.8 });
+  makeUnit({ team:'enemy', name:'Stone Wolf A',  sprite:'StoneWolf',    c:0, r:1, hp:105, pAtk:14, atkSpeed:1.4,  range:1, moveSpeed:2.8 });
+  makeUnit({ team:'enemy', name:'Stone Wolf B',  sprite:'StoneWolf',    c:7, r:1, hp:105, pAtk:14, atkSpeed:1.4,  range:1, moveSpeed:2.8 });
+  makeUnit({ team:'enemy', name:'Spirit Archer A', sprite:'SpiritArcher', c:2, r:1, hp:95, pAtk:16, atkSpeed:1.0, range:3, moveSpeed:1.7 });
+  makeUnit({ team:'enemy', name:'Spirit Archer B', sprite:'SpiritArcher', c:5, r:1, hp:95, pAtk:16, atkSpeed:1.0, range:3, moveSpeed:1.7 });
+  makeUnit({ team:'enemy', name:'Warden',        sprite:'Warden',       c:3, r:0, hp:340, pAtk:23, atkSpeed:0.8, range:1, moveSpeed:1.5 });
+}
+
+// ============================================================
+// A* PATHFINDING
+// ============================================================
+function astar(sc, sr, tc, tr, ignoreKey) {
+  const open = [{ c:sc, r:sr, g:0, f:0, parent:null }];
+  const closed = new Set();
+  const h = (c, r) => Math.abs(c-tc) + Math.abs(r-tr);
+  open[0].f = h(sc, sr);
+  while (open.length) {
+    open.sort((a,b) => a.f - b.f);
+    const cur = open.shift();
+    if (cur.c === tc && cur.r === tr) {
+      const path = [];
+      let n = cur;
+      while (n.parent) { path.unshift({ c:n.c, r:n.r }); n = n.parent; }
+      return path;
+    }
+    closed.add(key(cur.c, cur.r));
+    for (const [dc, dr] of [[1,0],[-1,0],[0,1],[0,-1]]) {
+      const nc = cur.c + dc, nr = cur.r + dr;
+      if (nc < 0 || nr < 0 || nc >= COLS || nr >= ROWS) continue;
+      const k = key(nc, nr);
+      if (closed.has(k)) continue;
+      if (occupied.has(k) && k !== ignoreKey && !(nc===tc && nr===tr)) continue;
+      const g = cur.g + 1;
+      const exist = open.find(o => o.c===nc && o.r===nr);
+      if (exist && exist.g <= g) continue;
+      if (exist) { exist.g = g; exist.f = g + h(nc,nr); exist.parent = cur; }
+      else open.push({ c:nc, r:nr, g, f: g + h(nc,nr), parent: cur });
+    }
+  }
+  return null;
+}
+
+function gridDist(a, b) { return Math.abs(a.c-b.c) + Math.abs(a.r-b.r); }
+
+function selectTarget(u) {
+  let best = null, bd = Infinity;
+  for (const o of units) {
+    if (!o.alive || o.team === u.team) continue;
+    const d = gridDist(u, o);
+    if (d < bd) { bd = d; best = o; }
+  }
+  return best;
+}
+
+function stepToward(u, target) {
+  const path = astar(u.c, u.r, target.c, target.r, key(u.c, u.r));
+  if (path && path.length > 0) {
+    const next = path[0];
+    const nk = key(next.c, next.r);
+    if (!occupied.has(nk)) {
+      occupied.delete(key(u.c, u.r));
+      occupied.add(nk);
+      u.moving = true; u.moveT = 0;
+      u.moveFrom = { c:u.c, r:u.r };
+      u.moveTo = next;
+      u.body.scale.x = (next.c < u.c) ? -1 : (next.c > u.c ? 1 : u.body.scale.x);
+    }
+  }
+}
+
+// ============================================================
+// ANIMATION
+// ============================================================
+const WALK_SEQ = [1, 2, 3, 4];
+const ATTACK_SEQ = [5, 6, 7];
+const ATTACK_FRAME_DUR = 0.12;
+
+function updateAnim(u, dt) {
+  if (u.frames <= 1) return;
+  if (u.animState === 'attack') {
+    u.animTimer += dt;
+    const idx = Math.min(ATTACK_SEQ.length - 1, Math.floor(u.animTimer / ATTACK_FRAME_DUR));
+    u.animFrame = ATTACK_SEQ[idx];
+    if (u.animTimer >= ATTACK_FRAME_DUR * ATTACK_SEQ.length) {
+      u.animState = u.moving ? 'walk' : 'idle';
+      u.animTimer = 0;
+    }
+  } else if (u.moving) {
+    u.animState = 'walk';
+    u.animTimer += dt * 6;
+    u.animFrame = WALK_SEQ[Math.floor(u.animTimer) % WALK_SEQ.length];
+  } else {
+    u.animState = 'idle';
+    u.animFrame = 0;
+  }
+  u.tex.offset.x = u.animFrame / u.frames;
+}
+
+// ============================================================
+// CLASS TRAITS
+// ============================================================
+function applyTrait(u, target, dmg) {
+  if (u.trait === 'crit' && Math.random() < 0.2) {
+    dmg *= 1.8;
+    target.body.material.color.set(0xffe066);
+    setTimeout(() => target.alive && target.body.material.color.set(0xffffff), 100);
+  } else if (u.trait === 'longshot' && gridDist(u, target) >= 4) {
+    dmg *= 1.3;
+  } else if (u.trait === 'slow') {
+    target._baseSpeed = target._baseSpeed || target.moveSpeed;
+    target.moveSpeed = target._baseSpeed * 0.6;
+    clearTimeout(target._slowTimer);
+    target._slowTimer = setTimeout(() => { target.moveSpeed = target._baseSpeed; }, 1500);
+  } else if (u.trait === 'weaken' && Math.random() < 0.3) {
+    target._baseAtk = target._baseAtk || target.pAtk;
+    target.pAtk = target._baseAtk * 0.8;
+    clearTimeout(target._weakenTimer);
+    target._weakenTimer = setTimeout(() => { target.pAtk = target._baseAtk; }, 2000);
+  }
+  return dmg;
+}
+
+// ============================================================
+// GAME LOOP
+// ============================================================
+let timeLeft = STAGE_TIME;
+let gameOver = false;
+const hud = document.getElementById('hud');
+const banner_ = document.getElementById('banner');
+const restartBtn = document.getElementById('restart');
+
+function endGame(msg) {
+  gameOver = true;
+  banner_.textContent = msg;
+  banner_.style.display = 'block';
+  restartBtn.style.display = 'block';
+}
+
+function updateUnit(u, dt) {
+  if (!u.alive) return;
+
+  if (u.moving) {
+    u.moveT += dt * u.moveSpeed;
+    if (u.moveT >= 1) {
+      u.moveT = 1; u.moving = false;
+      u.c = u.moveTo.c; u.r = u.moveTo.r;
+    }
+    const a = gridToWorld(u.moveFrom.c, u.moveFrom.r);
+    const b = gridToWorld(u.moveTo.c, u.moveTo.r);
+    u.group.position.lerpVectors(a, b, u.moveT);
+    u.body.position.y = (u.frames > 1 ? 0.7 : 0.8) + Math.abs(Math.sin(u.moveT * Math.PI * 2)) * 0.06;
+    updateAnim(u, dt);
+    return;
+  }
+  u.body.position.y = u.frames > 1 ? 0.7 : 0.8;
+
+  const target = selectTarget(u);
+  if (!target) { updateAnim(u, dt); return; }
+
+  const d = gridDist(u, target);
+  if (d <= u.range) {
+    u.atkCooldown -= dt;
+    if (u.atkCooldown <= 0) {
+      u.atkCooldown = 1 / u.atkSpeed;
+      u.animState = 'attack'; u.animTimer = 0;
+      let dmg = applyTrait(u, target, u.pAtk);
+      target.hp -= dmg;
+      const dir = gridToWorld(target.c, target.r).sub(u.group.position).normalize().multiplyScalar(0.12);
+      u.body.position.x += dir.x;
+      setTimeout(() => { if (u.alive) u.body.position.x = 0; }, 90);
+      target.body.material.color.set(0xff8866);
+      setTimeout(() => target.alive && target.body.material.color.set(0xffffff), 80);
+      target.hpBar.scale.x = Math.max(0, target.hp / target.maxHp);
+      target.hpBar.position.x = -0.36 * (1 - target.hpBar.scale.x);
+      if (target.hp <= 0) {
+        target.alive = false;
+        occupied.delete(key(target.c, target.r));
+        target.deathT = 0;
+      }
+    }
+    u.body.scale.x = (gridToWorld(target.c,target.r).x < u.group.position.x) ? -1 : 1;
+  } else {
+    stepToward(u, target);
+  }
+  updateAnim(u, dt);
+}
+
+let last = performance.now();
+function animate(now) {
+  requestAnimationFrame(animate);
+  const dt = Math.min((now - last) / 1000, 0.05);
+  last = now;
+
+  if (!gameOver) {
+    timeLeft -= dt;
+    for (const u of units) updateUnit(u, dt);
+
+    const pAlive = units.filter(u => u.alive && u.team==='player').length;
+    const eAlive = units.filter(u => u.alive && u.team==='enemy').length;
+    hud.innerHTML = `🌲 ลานรบป่าเขียว — ฮีโร่ 8 คน vs กองทัพซากอารีน่า<br>⏱ ${Math.max(0,timeLeft).toFixed(1)} วิ<br>🟩 ฮีโร่: ${pAlive} | 🟥 ศัตรู: ${eAlive}`;
+
+    if (eAlive === 0) endGame('🏆 ฮีโร่ชนะ!');
+    else if (pAlive === 0) endGame('💀 ฮีโร่พ่ายแพ้');
+    else if (timeLeft <= 0) endGame('⏱ หมดเวลา — เสมอ');
+  }
+
+  for (const u of units) {
+    if (!u.alive && u.deathT !== undefined && u.deathT < 1) {
+      u.deathT = Math.min(1, u.deathT + dt * 2);
+      u.body.rotation.z = -u.deathT * Math.PI / 2;
+      u.body.material.opacity = 1 - u.deathT;
+      u.hpBar.visible = false;
+      u.group.children[2].visible = false;
+      u.shadow.material.opacity = 0.35 * (1 - u.deathT);
+      if (u.deathT >= 1) u.group.visible = false;
+    }
+  }
+
+  for (const u of units) u.group.quaternion.copy(camera.quaternion);
+  renderer.render(scene, camera);
+}
+
+// ============================================================
+// START
+// ============================================================
+loadAllSprites(() => {
+  document.getElementById('loading').style.display = 'none';
+  setupRoster();
+  requestAnimationFrame(animate);
+});
+
+window.addEventListener('resize', () => {
+  const asp = window.innerWidth / window.innerHeight;
+  camera.left = -CAMERA_ZOOM*asp; camera.right = CAMERA_ZOOM*asp;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+</script>
+</body>
+</html>
