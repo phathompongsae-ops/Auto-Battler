@@ -39,7 +39,7 @@ html,body{margin:0;min-height:100%;background:#14100c;color:#f0e6c8;font-family:
       'สถานะ target/threat ของยูนิต',
       /maxHp: cfg\.hp, alive: true, atkCooldown: 0,\n\s*moving: false, moveFrom: null, moveTo: null, moveT: 0,/,
       `maxHp: cfg.hp, alive: true, atkCooldown: 0,
-    target: null, targetRecheck: 0,
+    target: null, targetRecheck: 0, blockedTime: 0,
     threat: cfg.threat || defaultThreat(cfg),
     moving: false, moveFrom: null, moveTo: null, moveT: 0,`
     );
@@ -48,7 +48,7 @@ html,body{margin:0;min-height:100%;background:#14100c;color:#f0e6c8;font-family:
       'รีเซ็ต target ระหว่างด่าน',
       /u\.deathT = undefined;\n\s*u\.animState = 'idle'; u\.animFrame = 0;/,
       `u.deathT = undefined;
-  u.target = null; u.targetRecheck = 0;
+  u.target = null; u.targetRecheck = 0; u.blockedTime = 0;
   u.animState = 'idle'; u.animFrame = 0;`
     );
 
@@ -65,12 +65,16 @@ function defaultThreat(cfg) {
 }
 
 function attackTiles(target, u) {
-  if (u.range > 1) return [{ c:target.c, r:target.r }];
   const result = [];
-  for (const [dc,dr] of [[1,0],[-1,0],[0,1],[0,-1]]) {
-    const c=target.c+dc, r=target.r+dr;
-    if (c<0||r<0||c>=GRID||r>=GRID) continue;
-    if (!occupied.has(key(c,r)) || (c===u.c && r===u.r)) result.push({c,r});
+  const radius = Math.max(1, u.range || 1);
+  for (let dr=-radius; dr<=radius; dr++) {
+    for (let dc=-radius; dc<=radius; dc++) {
+      if (dc===0 && dr===0) continue;
+      if (Math.max(Math.abs(dc),Math.abs(dr)) > radius) continue;
+      const c=target.c+dc, r=target.r+dr;
+      if (c<0||r<0||c>=GRID||r>=GRID) continue;
+      if (!occupied.has(key(c,r)) || (c===u.c && r===u.r)) result.push({c,r});
+    }
   }
   return result;
 }
@@ -189,7 +193,7 @@ function clearProjectiles() {
 function updateProjectiles(dt) {
   for (let i=projectiles.length-1;i>=0;i--) {
     const p=projectiles[i];
-    if (!p.source.alive || !p.target || !p.target.alive) {
+    if (!p.target || !p.target.alive) {
       scene.remove(p.mesh); projectiles.splice(i,1); continue;
     }
     const dest=p.target.group.position.clone(); dest.y=p.target.halfH;
@@ -215,6 +219,7 @@ function updateUnit(u, dt) {
   if (!target) { updateAnim(u,dt); return; }
   const d = combatDist(u,target);
   if (d<=u.range) {
+    u.blockedTime = 0;
     u.atkCooldown -= dt;
     if (u.atkCooldown<=0) {
       const buffs = u.team==='player' ? getTeamBuffs() : null;
@@ -227,8 +232,13 @@ function updateUnit(u, dt) {
       setTimeout(()=>{ if (u.alive) u.body.position.x=0; }, 90);
     }
     u.body.scale.x = (gridToWorld(target.c,target.r).x < u.group.position.x) ? -1 : 1;
-  } else if (!stepToward(u,target)) {
-    u.target=null; u.targetRecheck=0;
+  } else if (stepToward(u,target)) {
+    u.blockedTime = 0;
+  } else {
+    u.blockedTime = (u.blockedTime || 0) + dt;
+    if (u.blockedTime >= 0.35) {
+      u.target=null; u.targetRecheck=0; u.blockedTime=0;
+    }
   }
   updateAnim(u, dt);
 }
