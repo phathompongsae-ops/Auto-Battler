@@ -14,12 +14,13 @@
        board always keeps the majority of the screen on any device/viewer */
     --slot:clamp(34px,8.5vh,58px);
     --round:clamp(44px,11vh,88px);
-    --pic:clamp(28px,9vh,96px);
+    --pic:clamp(34px,13vh,150px);
     --side:clamp(64px,9vw,118px);
     position:fixed;inset:0;
     display:grid;
     grid-template-rows:auto minmax(34vh,1fr) auto auto;
     grid-template-areas:"hud" "battle" "bench" "shop";
+    row-gap:4px;
     padding-top:max(6px,env(safe-area-inset-top));
     padding-left:max(6px,env(safe-area-inset-left));
     padding-right:max(6px,env(safe-area-inset-right));
@@ -58,9 +59,9 @@
   .board-hint{position:absolute;left:0;right:0;bottom:6px;text-align:center;font-size:9px;color:#d8c894;pointer-events:none;text-shadow:0 1px 2px #000}
 
   /* ---------- Bench row ---------- */
-  .bench-row{grid-area:bench;display:flex;justify-content:center}
-  .bench{display:grid;grid-template-columns:repeat(6,var(--slot));gap:5px;padding:5px 8px;border:1px solid #8a6c39;border-radius:12px;background:#15120edc;pointer-events:auto}
-  .slot{width:var(--slot);height:calc(var(--slot)*1.12);border-radius:50%;background:radial-gradient(circle at 50% 35%,#4a4030,#241d13 70%);position:relative;border:2px solid #4a3c24}
+  .bench-row{grid-area:bench;display:flex;justify-content:center;margin-top:-2px}
+  .bench{display:grid;grid-template-columns:repeat(6,var(--slot));gap:8px;padding:0;border:0;background:transparent;pointer-events:auto}
+  .slot{width:var(--slot);height:calc(var(--slot)*1.12);border-radius:50%;background:radial-gradient(ellipse at 50% 32%,#7a7160,#4a443a 55%,#332e26 78%);position:relative;border:2px solid #5c5443;box-shadow:0 3px 6px #000a,inset 0 -3px 5px #0007}
   .slot.filled{border-color:#d0a052}
   .slot.selected{box-shadow:0 0 0 3px #ffe178}
   .slot canvas{position:absolute;left:50%;top:38%;transform:translate(-50%,-52%);width:74%;aspect-ratio:1;object-fit:cover;border-radius:50%;pointer-events:none}
@@ -74,7 +75,7 @@
   .shop{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px}
   .card{pointer-events:auto;border:1px solid #80643a;border-radius:8px;background:linear-gradient(#1c2320,#12100c);text-align:center;padding:3px;overflow:hidden;display:flex;flex-direction:column}
   .card .pic{position:relative;height:var(--pic);border-radius:6px;background:#1c2b20;overflow:hidden}
-  .card .pic canvas{width:100%;height:100%;object-fit:cover;object-position:50% 45%}
+  .card .pic canvas{width:100%;height:100%;object-fit:contain;object-position:50% 100%}
   .card b{display:block;font-size:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
   .card .tags{display:flex;gap:2px;justify-content:center;flex-wrap:wrap;min-height:10px}
   .card .tags span{font-size:6px;padding:1px 3px;border-radius:4px;background:#00000055;color:#d8c894}
@@ -476,10 +477,11 @@
     state.offers.forEach((hero, idx)=>{
       const d = document.createElement('div');
       d.className = 'card';
-      const pic = document.createElement('div'); pic.className='pic';
-      pic.appendChild(cloneCanvas(facePortrait(hero,80)));
-      d.appendChild(pic);
       const name = document.createElement('b'); name.textContent = hero.name; d.appendChild(name);
+      const pic = document.createElement('div'); pic.className='pic';
+      pic.style.background = 'linear-gradient('+shade(hero.color,5)+','+shade(hero.color,-45)+')';
+      pic.appendChild(cloneCanvas(bodyPortrait(hero)));
+      d.appendChild(pic);
       const tags = document.createElement('div'); tags.className='tags';
       hero.tags.forEach(t=>{ const sp=document.createElement('span'); sp.textContent=t; tags.appendChild(sp); });
       d.appendChild(tags);
@@ -888,7 +890,7 @@
          that rectangle into whatever aspect ratio the container has. This
          keeps the full board visible & tappable on any device/orientation
          instead of shrinking to a thin strip on very wide/short screens. */
-      const playHalf = BOARD_N/2*TILE + .8;
+      const playHalf = BOARD_N/2*TILE + .25;
       const corners = [
         new THREE_.Vector3(-playHalf, 0, -playHalf),
         new THREE_.Vector3( playHalf, 0, -playHalf),
@@ -901,7 +903,7 @@
         contentHalfW = Math.max(contentHalfW, Math.abs(local.x));
         contentHalfH = Math.max(contentHalfH, Math.abs(local.y));
       });
-      const PADDING = 1.08;
+      const PADDING = 1.02;
       contentHalfW *= PADDING; contentHalfH *= PADDING;
 
       function resize(){
