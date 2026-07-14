@@ -217,7 +217,11 @@
     Acolyte:{face:'assets/v5/face_acolyte.png', body:'assets/v5/body_acolyte.png'},
     Priestess:{face:'assets/v5/face_priestess.png', body:'assets/v5/body_priestess.png'}
   };
+  const MON_ASSETS = {
+    Slime:'assets/v5/mon_slime.png'
+  };
   const heroBitmaps = {}; // name -> {face:ImageBitmap, body:ImageBitmap}
+  const monBitmaps = {};  // type -> ImageBitmap
   function loadHeroAssets(){
     Object.entries(HERO_ASSETS).forEach(([name, paths])=>{
       heroBitmaps[name] = heroBitmaps[name] || {};
@@ -232,6 +236,13 @@
           })
           .catch(()=>{}); // keep placeholder art
       });
+    });
+    Object.entries(MON_ASSETS).forEach(([type, url])=>{
+      fetch(url)
+        .then(r=>{ if(!r.ok) throw new Error(r.status); return r.blob(); })
+        .then(b=>createImageBitmap(b))
+        .then(bmp=>{ monBitmaps[type] = bmp; })
+        .catch(()=>{}); // keep placeholder art
     });
   }
 
@@ -328,8 +339,16 @@
 
   // forest-themed monster sprites, drawn with canvas like the hero bodies
   function monsterBody(type){
-    const key = 'mon|'+type;
+    const bmp = monBitmaps[type];
+    const key = 'mon|'+type+(bmp?'|a':'');
     if(portraitCache.has(key)) return portraitCache.get(key);
+    if(bmp){
+      const W=256, H=Math.round(256*bmp.height/bmp.width);
+      const c2 = document.createElement('canvas'); c2.width=W; c2.height=H;
+      c2.getContext('2d').drawImage(bmp, 0, 0, W, H);
+      portraitCache.set(key,c2);
+      return c2;
+    }
     const w=96,h=140;
     const c = document.createElement('canvas'); c.width=w; c.height=h;
     const ctx = c.getContext('2d');
@@ -1210,9 +1229,11 @@
           const monCv = monsterBody(type);
           const tex = new THREE_.CanvasTexture(monCv);
           const spr = new THREE_.Sprite(new THREE_.SpriteMaterial({map:tex, transparent:true}));
-          spr.scale.set(1.4*monCv.width/monCv.height, 1.4, 1);
+          let sprW = 1.4*monCv.width/monCv.height, sprH = 1.4;
+          if(sprW > 1.15){ sprH *= 1.15/sprW; sprW = 1.15; } // squat monsters (slime) stay tile-sized
+          spr.scale.set(sprW, sprH, 1);
           const p = tilePos(r,c2);
-          spr.position.set(p.x,.78,p.z);
+          spr.position.set(p.x, .07 + sprH/2, p.z);
           const sh = new THREE_.Mesh(new THREE_.CircleGeometry(.32,20), new THREE_.MeshBasicMaterial({color:0x000000, transparent:true, opacity:.35}));
           sh.rotation.x=-Math.PI/2; sh.position.set(p.x,.07,p.z);
           scene.add(spr, sh);
