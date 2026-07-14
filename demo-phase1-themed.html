@@ -119,50 +119,21 @@ function stoneTileTexture(base, seed) {
 const texA = stoneTileTexture('#6e6552', 41);   // หินเทาอุ่น
 const texB = stoneTileTexture('#5d5645', 977);  // หินเข้มสลับ
 
-// --- สไปรท์ตัวละครพิกเซล (16x24 → ขยายคมๆ) ---
-// spec: { skin, cloth, weapon:'sword'|'shield'|'bow'|'none', bone:boolean }
-function characterSprite(spec) {
-  const cv = makeCanvas(16, 24), g = cv.getContext('2d');
-  const P = (x, y, w, h, col) => { g.fillStyle = col; g.fillRect(x, y, w, h); };
-  const skin = spec.bone ? '#d8d2c0' : spec.skin;
-  const dark = 'rgba(0,0,0,0.85)';
-
-  // หัว (สัดส่วน FF ปกติ: หัว ~5px จากตัว 24px)
-  P(6, 1, 5, 5, skin);
-  if (spec.bone) { P(7, 3, 1, 1, dark); P(9, 3, 1, 1, dark); P(7, 5, 3, 1, dark); } // ตาโหว่+ปากโครง
-  else { P(7, 3, 1, 1, dark); P(9, 3, 1, 1, dark); }
-  if (spec.helm) { P(5, 0, 7, 2, spec.helm); P(5, 0, 1, 4, spec.helm); P(11, 0, 1, 4, spec.helm); }
-
-  // ลำตัว
-  P(5, 6, 7, 8, spec.cloth);
-  P(5, 6, 7, 1, 'rgba(255,255,255,0.12)'); // ไฮไลท์ไหล่
-  // แขน
-  P(4, 7, 1, 5, skin); P(12, 7, 1, 5, skin);
-  // ขา
-  P(6, 14, 2, 7, spec.pants || '#3a3226');
-  P(9, 14, 2, 7, spec.pants || '#3a3226');
-  // เท้า
-  P(5, 21, 3, 2, '#241c12'); P(9, 21, 3, 2, '#241c12');
-
-  // อาวุธ
-  if (spec.weapon === 'sword') { P(13, 3, 1, 10, '#c8c8d2'); P(12, 12, 3, 1, '#7a5c30'); }
-  if (spec.weapon === 'shield') { P(1, 6, 3, 7, '#8a7444'); P(2, 7, 1, 5, '#c2a860'); }
-  if (spec.weapon === 'bow') {
-    g.strokeStyle = '#7a5c30'; g.lineWidth = 1;
-    g.beginPath(); g.arc(14, 9, 4, -Math.PI/2, Math.PI/2); g.stroke();
-    g.strokeStyle = '#d8d2c0';
-    g.beginPath(); g.moveTo(14, 5); g.lineTo(14, 13); g.stroke();
-  }
-  if (spec.weapon === 'club') { P(13, 4, 2, 8, '#6a5236'); P(12, 3, 4, 3, '#7d6242'); }
-  return toTexture(cv);
+// --- สไปรท์ตัวละคร: โหลดจาก assets/*.png (สร้างโดย tools/gen_sprites.py, tools/gen_bosses.py) ---
+const spriteLoader = new THREE.TextureLoader();
+function loadSprite(file) {
+  const tex = spriteLoader.load(`assets/${file}`);
+  tex.magFilter = THREE.NearestFilter; // คมแบบพิกเซลอาร์ต ไม่เบลอ
+  tex.minFilter = THREE.NearestFilter;
+  return tex;
 }
 
 const SPRITES = {
-  Fighter:  characterSprite({ skin:'#d9a878', cloth:'#4a5a8a', helm:'#8a92a8', weapon:'shield', pants:'#33405e' }),
-  Swordman: characterSprite({ skin:'#d9a878', cloth:'#3e6e60', weapon:'sword', pants:'#2e4a40' }),
-  Archer:   characterSprite({ skin:'#c98f62', cloth:'#7a5c34', weapon:'bow',  pants:'#4a3a22' }),
-  Skeleton: characterSprite({ bone:true, cloth:'#5a544a', weapon:'club', pants:'#46413a' }),
-  SkeletonBig: characterSprite({ bone:true, cloth:'#6a4a3a', helm:'#5a5a62', weapon:'sword', pants:'#46413a' }),
+  Fighter:     loadSprite('fighter.png'),
+  Swordman:    loadSprite('swordman.png'),
+  Archer:      loadSprite('archer.png'),
+  Skeleton:    loadSprite('mon_skeleton.png'),
+  SkeletonBig: loadSprite('miniboss_warden.png'),
 };
 
 // ============================================================
