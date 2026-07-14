@@ -1,0 +1,177 @@
+*** Begin Patch
+*** Update File: autochess.html
+@@
+-  beastlord:   { title:'Beast Lord',   sprite:'BeastLord',   cost:4, hp:155, pAtk:15, atkSpeed:1.0, range:1, moveSpeed:2.1, trait:'none' },
++  beastlord:   { title:'Beast Lord',   sprite:'BeastLord',   cost:4, hp:155, pAtk:15, atkSpeed:1.0, range:3, moveSpeed:2.1, trait:'none' },
+@@
+-  const u = { ...cfg, group, body, hpBar, shadow, tex, frames, halfH: h/2,
++  const u = { ...cfg, group, body, hpBar, shadow, tex, frames, halfH: h/2,
+     maxHp: cfg.hp, alive: true, atkCooldown: 0,
++    target: null, targetRecheck: 0,
+     moving: false, moveFrom: null, moveTo: null, moveT: 0,
+@@
+   u.deathT = undefined;
++  u.target = null; u.targetRecheck = 0;
+@@
+-function gridDist(a,b) { return Math.abs(a.c-b.c)+Math.abs(a.r-b.r); }
+-function selectTarget(u) {
+-  let best=null, bd=Infinity;
+-  for (const o of units) { if (!o.alive||o.team===u.team) continue; const d=gridDist(u,o); if (d<bd){bd=d;best=o;} }
+-  return best;
+-}
+-function stepToward(u, target) {
+-  const path = astar(u.c, u.r, target.c, target.r, key(u.c,u.r));
+-  if (path && path.length>0) {
+-    const next = path[0], nk = key(next.c,next.r);
+-    if (!occupied.has(nk)) {
+-      occupied.delete(key(u.c,u.r)); occupied.add(nk);
+-      u.moving=true; u.moveT=0; u.moveFrom={c:u.c,r:u.r}; u.moveTo=next;
+-      u.body.scale.x = (next.c<u.c)?-1:(next.c>u.c?1:u.body.scale.x);
+-    }
+-  }
+-}
++function gridDist(a,b) { return Math.abs(a.c-b.c)+Math.abs(a.r-b.r); }
++function combatDist(a,b) { return Math.max(Math.abs(a.c-b.c), Math.abs(a.r-b.r)); }
++
++function attackTiles(target, u) {
++  if (u.range > 1) return [{ c:target.c, r:target.r }];
++  const result = [];
++  for (const [dc,dr] of [[1,0],[-1,0],[0,1],[0,-1]]) {
++    const c=target.c+dc, r=target.r+dr;
++    if (c<0||r<0||c>=GRID||r>=GRID) continue;
++    if (!occupied.has(key(c,r)) || (c===u.c && r===u.r)) result.push({c,r});
++  }
++  return result;
++}
++
++function pathToAttackPosition(u, target) {
++  if (combatDist(u,target) <= u.range) return [];
++  let best = null;
++  for (const tile of attackTiles(target,u)) {
++    const path = astar(u.c,u.r,tile.c,tile.r,key(u.c,u.r));
++    if (path && (!best || path.length < best.length)) best = path;
++  }
++  return best;
++}
++
++function selectTarget(u) {
++  const candidates = [];
++  for (const o of units) {
++    if (!o.alive || o.team===u.team) continue;
++    const path = pathToAttackPosition(u,o);
++    if (path === null) continue;
++    candidates.push({
++      unit:o,
++      pathLen:path.length,
++      hpPct:o.hp/o.maxHp,
++      row:o.r,
++      col:o.c,
++    });
++  }
++  candidates.sort((a,b)=>a.pathLen-b.pathLen || a.hpPct-b.hpPct || a.row-b.row || a.col-b.col);
++  return candidates.length ? candidates[0].unit : null;
++}
++
++function getLockedTarget(u, dt) {
++  u.targetRecheck = Math.max(0, (u.targetRecheck||0)-dt);
++  const invalid = !u.target || !u.target.alive || u.target.team===u.team || pathToAttackPosition(u,u.target)===null;
++  if (invalid || u.targetRecheck<=0) {
++    if (invalid) u.target = selectTarget(u);
++    u.targetRecheck = 0.4;
++  }
++  return u.target;
++}
++
++function stepToward(u, target) {
++  const path = pathToAttackPosition(u,target);
++  if (!path || path.length===0) return false;
++  const next=path[0], nk=key(next.c,next.r);
++  if (occupied.has(nk)) return false;
++  occupied.delete(key(u.c,u.r)); occupied.add(nk);
++  u.moving=true; u.moveT=0; u.moveFrom={c:u.c,r:u.r}; u.moveTo=next;
++  u.body.scale.x = (next.c<u.c)?-1:(next.c>u.c?1:u.body.scale.x);
++  return true;
++}
++
++const projectiles = [];
++function projectileColor(u) {
++  if (u.heroKey==='frostweaver') return 0x8edbff;
++  if (u.heroKey==='archmage'||u.heroKey==='summoner') return 0xb48cff;
++  if (u.heroKey==='trickster') return 0x62e0bd;
++  if (u.heroKey==='sniper') return 0xe8f4ff;
++  if (u.heroKey==='beastlord') return 0x91cf68;
++  return 0xffd37a;
++}
++
++function dealDamage(u,target) {
++  if (!target || !target.alive) return;
++  const buffs = u.team==='player' ? getTeamBuffs() : null;
++  let dmg = applyTrait(u,target,u.pAtk);
++  if (buffs) {
++    dmg *= (1 + buffs.dmgPct/100);
++    const effArmor = Math.max(0,(target.armor||0)-buffs.armorPenPct);
++    dmg *= (1-effArmor/100);
++  } else if (target.armor) dmg *= (1-target.armor/100);
++  target.hp -= dmg;
++  target.body.material.color.set(0xff8866);
++  setTimeout(()=>target.alive&&target.body.material.color.set(0xffffff),80);
++  target.hpBar.scale.x=Math.max(0,target.hp/target.maxHp);
++  target.hpBar.position.x=-0.36*(1-target.hpBar.scale.x);
++  if (target.hp<=0) {
++    target.alive=false; target.target=null;
++    occupied.delete(key(target.c,target.r)); target.deathT=0;
++  }
++}
++
++function launchProjectile(u,target) {
++  const mesh = new THREE.Mesh(new THREE.SphereGeometry(0.08,8,8),new THREE.MeshBasicMaterial({color:projectileColor(u)}));
++  mesh.position.copy(u.group.position); mesh.position.y=u.halfH;
++  scene.add(mesh); projectiles.push({mesh,source:u,target,speed:5.5});
++}
++
++function updateProjectiles(dt) {
++  for (let i=projectiles.length-1;i>=0;i--) {
++    const p=projectiles[i];
++    if (!p.target||!p.target.alive) { scene.remove(p.mesh); projectiles.splice(i,1); continue; }
++    const dest=p.target.group.position.clone(); dest.y=p.target.halfH;
++    const delta=dest.sub(p.mesh.position), step=p.speed*dt;
++    if (delta.length()<=step) {
++      dealDamage(p.source,p.target); scene.remove(p.mesh); projectiles.splice(i,1);
++    } else p.mesh.position.add(delta.normalize().multiplyScalar(step));
++  }
++}
+@@
+-  const target = selectTarget(u);
++  const target = getLockedTarget(u,dt);
+@@
+-  const d = gridDist(u,target);
++  const d = combatDist(u,target);
+@@
+-      let dmg = applyTrait(u, target, u.pAtk);
+-      if (buffs) {
+-        dmg *= (1 + buffs.dmgPct/100);
+-        const effArmor = Math.max(0, (target.armor||0) - buffs.armorPenPct);
+-        dmg *= (1 - effArmor/100);
+-      } else if (target.armor) {
+-        dmg *= (1 - target.armor/100);
+-      }
+-      target.hp -= dmg;
++      if (u.range>1) launchProjectile(u,target);
++      else dealDamage(u,target);
+@@
+-      target.body.material.color.set(0xff8866);
+-      setTimeout(()=> target.alive && target.body.material.color.set(0xffffff), 80);
+-      target.hpBar.scale.x = Math.max(0, target.hp/target.maxHp);
+-      target.hpBar.position.x = -0.36*(1-target.hpBar.scale.x);
+-      if (target.hp<=0) { target.alive=false; occupied.delete(key(target.c,target.r)); target.deathT=0; }
+@@
+-  } else stepToward(u, target);
++  } else if (!stepToward(u,target)) {
++    u.target=null; u.targetRecheck=0;
++  }
+@@
+   if (phase === 'battle' && !paused) {
+     dt *= speedMul;
+     waveTimer += dt;
++    updateProjectiles(dt);
+*** End Patch
