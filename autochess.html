@@ -52,14 +52,15 @@
     box-shadow: 0 4px 14px rgba(0,0,0,0.5); pointer-events: auto; color: #3a2b18;
     padding: 8px 10px; overflow-y: auto;
   }
-  #shopPanel, #benchPanel { flex: 1 1 0; min-width: 0; }
-  #shopPanel h3, #benchPanel h3 { margin: 0 0 6px; font-size: 13px; display: flex; justify-content: space-between; align-items: center; }
+  #shopPanel, #benchPanel, #fieldPanel { flex: 1 1 0; min-width: 0; }
+  #shopPanel h3, #benchPanel h3, #fieldPanel h3 { margin: 0 0 6px; font-size: 13px; display: flex; justify-content: space-between; align-items: center; }
   #shopPanel h3 button {
     background: #6b8f42; color: #fbf6e6; border: 1px solid #4a6b2a; border-radius: 6px;
     padding: 4px 10px; cursor: pointer; font-size: 12px;
   }
   #shopPanel h3 button:disabled { background: #999; border-color: #777; cursor: not-allowed; }
-  #shopCards, #benchCards { display: flex; gap: 6px; flex-wrap: wrap; }
+  #shopCards, #benchCards, #fieldCards { display: flex; gap: 6px; flex-wrap: wrap; }
+  .subcount { font-weight: normal; color: #6b5a3a; font-size: 11px; }
   .card {
     width: 62px; background: #fbf6e6; border: 2px solid #b89858; border-radius: 6px; overflow: hidden;
     text-align: center; cursor: pointer; font-size: 10px; user-select: none; flex-shrink: 0;
@@ -70,7 +71,10 @@
   .card .cost { padding: 0 2px 3px; color: #a8843c; font-weight: bold; }
   .card.disabled { opacity: 0.45; cursor: not-allowed; }
   .card.selected { border-color: #c0392b; box-shadow: 0 0 0 2px #c0392b; }
-  #hint { color: #6b5a3a; font-size: 11px; margin-top: 4px; }
+  .card.linked { border-color: #2f9e44; box-shadow: 0 0 0 2px #2f9e44; }
+  .card .linkBadge { display: none; padding: 0 2px 3px; color: #2f9e44; font-weight: bold; font-size: 9px; }
+  .card.linked .linkBadge { display: block; }
+  #hint, #linkHint { color: #6b5a3a; font-size: 11px; margin-top: 4px; }
   #startCol { flex: 0 0 150px; display: flex; align-items: center; justify-content: center; }
   #startBattleBtn {
     pointer-events: auto; background: linear-gradient(#e0c060, #a8843c); color: #2a1e10;
@@ -117,9 +121,14 @@
     <div id="shopCards"></div>
   </div>
   <div class="panel" id="benchPanel">
-    <h3>ม้านั่งสำรอง <span id="fieldCount" style="font-weight:normal;color:#6b5a3a;"></span></h3>
+    <h3>ม้านั่งสำรอง <span id="benchCount" class="subcount"></span></h3>
     <div id="benchCards"></div>
     <div id="hint"></div>
+  </div>
+  <div class="panel" id="fieldPanel">
+    <h3>ทีมในสนาม <span id="fieldCount" class="subcount"></span></h3>
+    <div id="fieldCards"></div>
+    <div id="linkHint">คลิกฮีโร่เพื่อเลือกเข้า Link (สูงสุด 3 ตัว)</div>
   </div>
   <div id="startCol"><button id="startBattleBtn">⚔ เริ่มการต่อสู้</button></div>
 </div>
@@ -141,6 +150,8 @@ const GRID = 8;
 const TILE = 1;
 const PLAYER_ROWS = [5, 6, 7];       // แถวที่วางฮีโร่ได้
 const MAX_FIELD = 5;                 // ลงสนามพร้อมกันได้สูงสุด 5 ตัว ที่เหลือรอในม้านั่งสำรอง
+const MAX_LINK = 3;                  // จากฮีโร่ในสนาม เลือกได้สูงสุด 3 ตัวให้นับเข้าระบบ Link
+const MAX_BENCH = 6;                 // ม้านั่งสำรองเก็บได้สูงสุด 6 ตัว (กันไว้เผื่อรอสเตอร์โตขึ้น/ระบบเปลี่ยนคลาส)
 const WAVE_TOTAL = 15;
 const CAMERA_ANGLE_DEG = 55, CAMERA_YAW_DEG = 15, CAMERA_ZOOM = 7.2;
 // เลื่อนจุดที่กล้องมองไปทาง "แถวผู้เล่น" เล็กน้อยให้อยู่กลางพื้นที่ 3D ที่เหลือพอดี
@@ -302,12 +313,21 @@ const SYNERGIES = [
     requires:{ physical:3 },
     atkSpeedPct:10 },
 ];
+function getLinkedUnits() { return placedUnits.filter((u) => u.linked); }
 function getActiveSynergies() {
+  // นับเฉพาะฮีโร่ที่ถูก "เลือกเข้า Link" (สูงสุด 3 ตัวจากที่วางในสนาม) ไม่ใช่ทุกตัวในสนาม
   const tagCount = {};
-  placedUnits.forEach((u) => {
+  getLinkedUnits().forEach((u) => {
     (HERO_TAGS[u.heroKey] || []).forEach((t) => { tagCount[t] = (tagCount[t] || 0) + 1; });
   });
   return SYNERGIES.filter((s) => Object.entries(s.requires).every(([tag, n]) => (tagCount[tag] || 0) >= n));
+}
+function toggleLink(u) {
+  if (phase !== 'shop') return;
+  if (u.linked) { u.linked = false; renderUI(); return; }
+  if (getLinkedUnits().length >= MAX_LINK) return; // เลือกได้สูงสุด 3 ตัว
+  u.linked = true;
+  renderUI();
 }
 function getTeamBuffs() {
   const buffs = { dmgPct:0, armorPenPct:0, atkSpeedPct:0, goldPerWave:0 };
@@ -646,14 +666,16 @@ function renderUI() {
   document.getElementById('bottomUI').style.display = phase==='shop' ? 'flex' : 'none';
   startBattleBtn.disabled = placedUnits.length === 0;
   const fieldFull = placedUnits.length >= MAX_FIELD;
+  const benchFull = benchHeroes.length >= MAX_BENCH;
   if (fieldFull) selectedBenchIdx = -1;
-  document.getElementById('fieldCount').textContent = `(ลงสนามแล้ว ${placedUnits.length}/${MAX_FIELD})`;
+  document.getElementById('fieldCount').textContent = `(${placedUnits.length}/${MAX_FIELD})`;
+  document.getElementById('benchCount').textContent = `(${benchHeroes.length}/${MAX_BENCH})`;
 
   shopCardsEl.innerHTML = '';
   shopOffers.forEach((hkey) => {
     const def = HERO_DEFS[hkey];
     const div = document.createElement('div');
-    div.className = 'card' + (gold < def.cost ? ' disabled' : '');
+    div.className = 'card' + (gold < def.cost || benchFull ? ' disabled' : '');
     div.innerHTML = `<img src="assets/portraits/${hkey}.png"><div class="name">${def.title}</div><div class="tags">${tagLabel(hkey)}</div><div class="cost">💰${def.cost}</div>`;
     div.onclick = () => buyHero(hkey);
     shopCardsEl.appendChild(div);
@@ -673,12 +695,27 @@ function renderUI() {
     ? `สนามเต็มแล้ว (${MAX_FIELD}/${MAX_FIELD}) — คลิกฮีโร่บนกระดานเพื่อถอนกลับม้านั่งก่อนวางตัวใหม่`
     : selectedBenchIdx>=0
     ? `เลือก ${HERO_DEFS[benchHeroes[selectedBenchIdx]].title} แล้ว — คลิกช่องหญ้าเขียวบนกระดาน`
-    : (placedUnits.length===0 ? 'ยังไม่ได้วางฮีโร่ลงกระดาน' : '');
+    : (placedUnits.length===0 ? 'ยังไม่ได้วางฮีโร่ลงกระดาน' : benchFull ? 'ม้านั่งสำรองเต็มแล้ว — ซื้อฮีโร่เพิ่มไม่ได้จนกว่าจะวางลงกระดาน' : '');
+
+  const linkedCount = getLinkedUnits().length;
+  const fieldCardsEl = document.getElementById('fieldCards');
+  fieldCardsEl.innerHTML = '';
+  placedUnits.forEach((u) => {
+    const def = HERO_DEFS[u.heroKey];
+    const div = document.createElement('div');
+    const linkFull = linkedCount >= MAX_LINK && !u.linked;
+    div.className = 'card' + (u.linked ? ' linked' : '') + (linkFull ? ' disabled' : '');
+    div.innerHTML = `<img src="assets/portraits/${u.heroKey}.png"><div class="name">${def.title}</div><div class="tags">${tagLabel(u.heroKey)}</div><div class="linkBadge">🔗 Link</div>`;
+    div.onclick = () => toggleLink(u);
+    fieldCardsEl.appendChild(div);
+  });
+  document.getElementById('linkHint').textContent = `เลือกฮีโร่ในสนามเข้า Link ได้สูงสุด ${MAX_LINK} ตัว (${linkedCount}/${MAX_LINK}) — คลิกซ้ำเพื่อยกเลิก`;
 }
 
 function buyHero(hkey) {
   const def = HERO_DEFS[hkey];
   if (gold < def.cost) return;
+  if (benchHeroes.length >= MAX_BENCH) return; // ม้านั่งสำรองเต็ม ต้องวางลงกระดานหรือรอก่อน
   gold -= def.cost;
   ownedPool = ownedPool.filter(k => k !== hkey);
   shopOffers = shopOffers.filter(k => k !== hkey);
@@ -704,6 +741,7 @@ function placeHeroAt(hkey, c, r) {
   const u = makeUnit({ team:'player', name:def.title, sprite:def.sprite, c, r,
     hp:def.hp, pAtk:def.pAtk, atkSpeed:def.atkSpeed, range:def.range, moveSpeed:def.moveSpeed, trait:def.trait, heroKey:hkey });
   u.origC = c; u.origR = r;   // ไทล์ที่วางไว้ตอนแรก — ใช้สแนปกลับระหว่างด่าน (ดู resetForWave)
+  u.linked = false;           // ต้องเลือกเข้า Link เองทีหลัง (ดู toggleLink) ไม่ใช่นับอัตโนมัติ
   placedUnits.push(u);
   selectedBenchIdx = -1;
   renderUI();
