@@ -303,7 +303,7 @@ const SYNERGIES = [
 ];
 function getActiveSynergies() {
   const tagCount = {};
-  Object.values(placedUnits).forEach((u) => {
+  placedUnits.forEach((u) => {
     (HERO_TAGS[u.heroKey] || []).forEach((t) => { tagCount[t] = (tagCount[t] || 0) + 1; });
   });
   return SYNERGIES.filter((s) => Object.entries(s.requires).every(([tag, n]) => (tagCount[tag] || 0) >= n));
@@ -329,7 +329,7 @@ const ENEMY_BASE = {
 const ENEMY_SLOTS = [ [3,0],[1,1],[6,1],[0,0],[7,0],[2,1],[5,1],[4,0] ];
 function scaledStat(type, stage) {
   const b = ENEMY_BASE[type];
-  const mul = 1 + (stage - 1) * 0.08;   // ด่านหลังยากขึ้นทีละ ~8%
+  const mul = 1 + (stage - 1) * 0.12;   // ด่านหลังยากขึ้นทีละ ~12%
   return { hp: Math.round(b.hp*mul), pAtk: Math.round(b.pAtk*mul), atkSpeed: b.atkSpeed, range: b.range, moveSpeed: b.moveSpeed, armor: b.armor };
 }
 function fillerWave(stage, comp) {
@@ -369,21 +369,21 @@ function bossWave(stage) {
     { name:'Skeleton Guard B', sprite:'Skeleton', c:5, r:1, hp:100, pAtk:13, atkSpeed:0.9, range:1, moveSpeed:1.8, armor:5 },
   ];
   if (stage === 10) return [
-    { name:'โกเลมหินอารีน่า', sprite:'Golem', c:3, r:0, hp:560, pAtk:26, atkSpeed:0.6, range:1, moveSpeed:1.1, frameSize:{ w:1.4, h:1.7 }, armor:25 },
-    { name:'Stone Wolf A', sprite:'StoneWolf', c:1, r:1, hp:150, pAtk:17, atkSpeed:1.4, range:1, moveSpeed:2.6, armor:10 },
-    { name:'Stone Wolf B', sprite:'StoneWolf', c:6, r:1, hp:150, pAtk:17, atkSpeed:1.4, range:1, moveSpeed:2.6, armor:10 },
-    { name:'Spirit Archer', sprite:'SpiritArcher', c:3, r:1, hp:130, pAtk:20, atkSpeed:1.0, range:3, moveSpeed:1.7, armor:0 },
+    { name:'โกเลมหินอารีน่า', sprite:'Golem', c:3, r:0, hp:680, pAtk:31, atkSpeed:0.6, range:1, moveSpeed:1.1, frameSize:{ w:1.4, h:1.7 }, armor:28 },
+    { name:'Stone Wolf A', sprite:'StoneWolf', c:1, r:1, hp:175, pAtk:20, atkSpeed:1.4, range:1, moveSpeed:2.6, armor:10 },
+    { name:'Stone Wolf B', sprite:'StoneWolf', c:6, r:1, hp:175, pAtk:20, atkSpeed:1.4, range:1, moveSpeed:2.6, armor:10 },
+    { name:'Spirit Archer', sprite:'SpiritArcher', c:3, r:1, hp:150, pAtk:23, atkSpeed:1.0, range:3, moveSpeed:1.7, armor:0 },
   ];
   if (stage === 13) return [
-    { name:'มังกรกระดูก', sprite:'BoneDragon', c:3, r:0, hp:680, pAtk:30, atkSpeed:0.85, range:2, moveSpeed:1.3, frameSize:{ w:2.0, h:1.6 }, armor:15 },
-    { name:'Spirit Archer A', sprite:'SpiritArcher', c:1, r:1, hp:140, pAtk:21, atkSpeed:1.0, range:3, moveSpeed:1.7, armor:0 },
-    { name:'Spirit Archer B', sprite:'SpiritArcher', c:6, r:1, hp:140, pAtk:21, atkSpeed:1.0, range:3, moveSpeed:1.7, armor:0 },
+    { name:'มังกรกระดูก', sprite:'BoneDragon', c:3, r:0, hp:840, pAtk:36, atkSpeed:0.85, range:2, moveSpeed:1.3, frameSize:{ w:2.0, h:1.6 }, armor:18 },
+    { name:'Spirit Archer A', sprite:'SpiritArcher', c:1, r:1, hp:165, pAtk:25, atkSpeed:1.0, range:3, moveSpeed:1.7, armor:0 },
+    { name:'Spirit Archer B', sprite:'SpiritArcher', c:6, r:1, hp:165, pAtk:25, atkSpeed:1.0, range:3, moveSpeed:1.7, armor:0 },
   ];
   if (stage === 15) return [
-    { name:'แชมเปี้ยนอมตะ', sprite:'ChampionBig', c:3, r:0, hp:950, pAtk:34, atkSpeed:0.85, range:1, moveSpeed:1.3, frameSize:{ w:1.9, h:2.6 }, armor:20 },
-    { name:'Skeleton Honor Guard A', sprite:'Skeleton', c:1, r:1, hp:170, pAtk:22, atkSpeed:0.9, range:1, moveSpeed:1.8, armor:5 },
-    { name:'Skeleton Honor Guard B', sprite:'Skeleton', c:6, r:1, hp:170, pAtk:22, atkSpeed:0.9, range:1, moveSpeed:1.8, armor:5 },
-    { name:'Shadow Assassin', sprite:'ShadowAssassin', c:4, r:1, hp:150, pAtk:24, atkSpeed:1.3, range:1, moveSpeed:3.0, armor:5 },
+    { name:'แชมเปี้ยนอมตะ', sprite:'ChampionBig', c:3, r:0, hp:1200, pAtk:42, atkSpeed:0.9, range:1, moveSpeed:1.3, frameSize:{ w:1.9, h:2.6 }, armor:24 },
+    { name:'Skeleton Honor Guard A', sprite:'Skeleton', c:1, r:1, hp:200, pAtk:27, atkSpeed:0.9, range:1, moveSpeed:1.8, armor:5 },
+    { name:'Skeleton Honor Guard B', sprite:'Skeleton', c:6, r:1, hp:200, pAtk:27, atkSpeed:0.9, range:1, moveSpeed:1.8, armor:5 },
+    { name:'Shadow Assassin', sprite:'ShadowAssassin', c:4, r:1, hp:175, pAtk:29, atkSpeed:1.3, range:1, moveSpeed:3.0, armor:5 },
   ];
   return null;
 }
@@ -408,7 +408,8 @@ let speedMul = 1;
 let paused = false;
 let ownedPool = Object.keys(HERO_DEFS);   // ฮีโร่ที่ยังไม่ได้ซื้อ
 let benchHeroes = [];                      // key[] ที่ซื้อแล้วแต่ยังไม่วาง
-let placedUnits = {};                      // key(c,r) -> unit (ฝั่งผู้เล่น)
+let placedUnits = [];                      // unit[] ฝั่งผู้เล่นที่วางแล้ว (อ้างอิงตัวยูนิตตรงๆ ไม่ใช่ตำแหน่ง
+                                            // เพราะยูนิตขยับระหว่างต่อสู้ได้ ผูกกับพิกัดจะหลุดการติดตาม)
 let shopOffers = [];
 let selectedBenchIdx = -1;
 
@@ -459,6 +460,12 @@ function removeUnit(u) {
   if (idx >= 0) units.splice(idx, 1);
 }
 function resetForWave(u) {
+  // สแนปกลับไทล์ที่วางไว้ตอนแรกเสมอ — ระหว่างต่อสู้ยูนิตอาจไล่ล่าศัตรูจนขยับออกจากไทล์เดิม
+  occupied.delete(key(u.c, u.r));
+  u.c = u.origC; u.r = u.origR;
+  const p = gridToWorld(u.c, u.r);
+  u.group.position.set(p.x, 0, p.z);
+  u.moving = false; u.moveT = 0; u.body.position.x = 0;
   u.alive = true; u.hp = u.maxHp; u.atkCooldown = 0;
   u.body.rotation.z = 0; u.body.material.opacity = 1; u.body.material.color.set(0xffffff);
   u.hpBar.visible = true; u.hpBar.scale.x = 1; u.hpBar.position.x = 0;
@@ -636,7 +643,7 @@ function renderUI() {
     linkRowEl.appendChild(pill);
   });
   document.getElementById('bottomUI').style.display = phase==='shop' ? 'flex' : 'none';
-  startBattleBtn.disabled = Object.keys(placedUnits).length === 0;
+  startBattleBtn.disabled = placedUnits.length === 0;
 
   shopCardsEl.innerHTML = '';
   shopOffers.forEach((hkey) => {
@@ -660,7 +667,7 @@ function renderUI() {
   });
   hintEl.textContent = selectedBenchIdx>=0
     ? `เลือก ${HERO_DEFS[benchHeroes[selectedBenchIdx]].title} แล้ว — คลิกช่องหญ้าเขียวบนกระดาน`
-    : (Object.keys(placedUnits).length===0 ? 'ยังไม่ได้วางฮีโร่ลงกระดาน' : '');
+    : (placedUnits.length===0 ? 'ยังไม่ได้วางฮีโร่ลงกระดาน' : '');
 }
 
 function buyHero(hkey) {
@@ -688,16 +695,16 @@ function placeHeroAt(hkey, c, r) {
   const def = HERO_DEFS[hkey];
   const u = makeUnit({ team:'player', name:def.title, sprite:def.sprite, c, r,
     hp:def.hp, pAtk:def.pAtk, atkSpeed:def.atkSpeed, range:def.range, moveSpeed:def.moveSpeed, trait:def.trait, heroKey:hkey });
-  placedUnits[key(c,r)] = u;
+  u.origC = c; u.origR = r;   // ไทล์ที่วางไว้ตอนแรก — ใช้สแนปกลับระหว่างด่าน (ดู resetForWave)
+  placedUnits.push(u);
   selectedBenchIdx = -1;
   renderUI();
 }
-function unplaceUnitAt(c, r) {
-  const k = key(c,r);
-  const u = placedUnits[k];
-  if (!u) return;
+function unplaceUnit(u) {
+  const idx = placedUnits.indexOf(u);
+  if (idx < 0) return;
   removeUnit(u);
-  delete placedUnits[k];
+  placedUnits.splice(idx, 1);
   benchHeroes.push(u.heroKey);
   renderUI();
 }
@@ -717,7 +724,7 @@ renderer.domElement.addEventListener('click', (ev) => {
   const obj = hits[0].object;
   if (obj.userData.isUnit) {
     const u = obj.userData.unit;
-    if (u.team === 'player') unplaceUnitAt(u.c, u.r);
+    if (u.team === 'player') unplaceUnit(u);
     return;
   }
   if (obj.userData.isTile) {
@@ -746,11 +753,11 @@ function clearEnemies() {
   units.filter(u => u.team==='enemy').forEach(removeUnit);
 }
 function healPlayerTeam() {
-  Object.values(placedUnits).forEach(resetForWave);
+  placedUnits.forEach(resetForWave);
 }
 
 startBattleBtn.onclick = () => {
-  if (Object.keys(placedUnits).length === 0) return;
+  if (placedUnits.length === 0) return;
   phase = 'battle';
   waveTimer = 0;
   spawnWave(wave);
