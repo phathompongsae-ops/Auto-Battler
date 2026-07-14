@@ -36,30 +36,40 @@ html,body{margin:0;min-height:100%;background:#14100c;color:#f0e6c8;font-family:
     );
 
     replaceRequired(
-      'สถานะ target/threat ของยูนิต',
+      'สถานะ combat ของยูนิต',
       /maxHp: cfg\.hp, alive: true, atkCooldown: 0,\n\s*moving: false, moveFrom: null, moveTo: null, moveT: 0,/,
       `maxHp: cfg.hp, alive: true, atkCooldown: 0,
     target: null, targetRecheck: 0, blockedTime: 0,
     threat: cfg.threat || defaultThreat(cfg),
+    tauntCooldown: 0, tauntDRTimer: 0, tauntedBy: null, tauntTimer: 0,
+    openingWarpDone: false,
     moving: false, moveFrom: null, moveTo: null, moveT: 0,`
     );
 
     replaceRequired(
-      'รีเซ็ต target ระหว่างด่าน',
+      'รีเซ็ต combat ระหว่างด่าน',
       /u\.deathT = undefined;\n\s*u\.animState = 'idle'; u\.animFrame = 0;/,
       `u.deathT = undefined;
   u.target = null; u.targetRecheck = 0; u.blockedTime = 0;
+  u.tauntCooldown = 0; u.tauntDRTimer = 0; u.tauntedBy = null; u.tauntTimer = 0;
+  u.openingWarpDone = false;
   u.animState = 'idle'; u.animFrame = 0;`
     );
 
     const combatBlock = String.raw`function gridDist(a,b) { return Math.abs(a.c-b.c)+Math.abs(a.r-b.r); }
 function combatDist(a,b) { return Math.max(Math.abs(a.c-b.c), Math.abs(a.r-b.r)); }
 
+function isTank(u) {
+  return u.sprite === 'BladeMaster' || u.sprite === 'Warden' || u.sprite === 'Golem' || u.sprite === 'ChampionBig';
+}
+
+function isAssassin(u) { return u.sprite === 'ShadowAssassin'; }
+
 function defaultThreat(cfg) {
-  if (cfg.sprite === 'BladeMaster') return 1.55;
+  if (cfg.sprite === 'BladeMaster') return 1.7;
   if (cfg.sprite === 'BeastLord') return 1.35;
   if (cfg.sprite === 'Duelist') return 1.15;
-  if (cfg.sprite === 'Warden' || cfg.sprite === 'Golem' || cfg.sprite === 'ChampionBig') return 1.5;
+  if (cfg.sprite === 'Warden' || cfg.sprite === 'Golem' || cfg.sprite === 'ChampionBig') return 1.7;
   if ((cfg.range || 1) > 1) return 0.8;
   return 1.0;
 }
@@ -89,16 +99,54 @@ function pathToAttackPosition(u, target) {
   return best;
 }
 
+function backlineScore(team, unit) {
+  return team === 'player' ? unit.r : (GRID - 1 - unit.r);
+}
+
+function findWarpDestination(u, target) {
+  const towardEnemyBack = u.team === 'player' ? 1 : -1;
+  const candidates = [
+    {c:target.c, r:target.r+towardEnemyBack},
+    {c:target.c-1, r:target.r},
+    {c:target.c+1, r:target.r},
+    {c:target.c, r:target.r-towardEnemyBack},
+    {c:target.c-1, r:target.r+towardEnemyBack},
+    {c:target.c+1, r:target.r+towardEnemyBack},
+  ];
+  return candidates.find(tile => tile.c>=0 && tile.r>=0 && tile.c<GRID && tile.r<GRID && !occupied.has(key(tile.c,tile.r))) || null;
+}
+
+function tryOpeningWarp(u) {
+  if (!isAssassin(u) || u.openingWarpDone) return;
+  u.openingWarpDone = true;
+  const enemies = units.filter(o => o.alive && o.team !== u.team)
+    .sort((a,b) => {
+      const rangedA = a.range > 1 ? 1 : 0;
+      const rangedB = b.range > 1 ? 1 : 0;
+      return rangedB-rangedA || backlineScore(u.team,b)-backlineScore(u.team,a) || (a.hp/a.maxHp)-(b.hp/b.maxHp);
+    });
+  for (const target of enemies) {
+    const tile = findWarpDestination(u,target);
+    if (!tile) continue;
+    occupied.delete(key(u.c,u.r));
+    u.c=tile.c; u.r=tile.r;
+    occupied.add(key(u.c,u.r));
+    u.group.position.copy(gridToWorld(u.c,u.r));
+    u.target=target; u.targetRecheck=0.4;
+    return;
+  }
+}
+
 function targetPriority(u, o, pathLen) {
+  if (u.tauntedBy && u.tauntTimer > 0) return o === u.tauntedBy ? -9999 : 9999;
   const hpPct = o.hp / o.maxHp;
-  const threatBonus = (o.threat || 1) * 0.7;
-  const assassinBacklineBonus = u.sprite === 'ShadowAssassin'
-    ? (o.team === 'player' ? o.r : (GRID - 1 - o.r)) * 0.45
-    : 0;
+  const threatBonus = (o.threat || 1) * 0.8;
+  const assassinBacklineBonus = isAssassin(u) ? backlineScore(u.team,o) * 0.45 : 0;
   return pathLen - threatBonus - assassinBacklineBonus + hpPct * 0.15;
 }
 
 function selectTarget(u) {
+  if (u.tauntedBy && u.tauntTimer > 0 && u.tauntedBy.alive && u.tauntedBy.team !== u.team) return u.tauntedBy;
   const candidates = [];
   for (const o of units) {
     if (!o.alive || o.team===u.team) continue;
@@ -119,6 +167,10 @@ function selectTarget(u) {
 
 function getLockedTarget(u, dt) {
   u.targetRecheck = Math.max(0, (u.targetRecheck||0)-dt);
+  if (u.tauntedBy && u.tauntTimer > 0 && u.tauntedBy.alive) {
+    u.target = u.tauntedBy;
+    return u.target;
+  }
   const invalid = !u.target || !u.target.alive || u.target.team===u.team || pathToAttackPosition(u,u.target)===null;
   if (invalid) {
     u.target = selectTarget(u);
@@ -146,6 +198,21 @@ function stepToward(u, target) {
   return true;
 }
 
+function triggerTaunt(u) {
+  if (!isTank(u) || u.tauntCooldown > 0) return false;
+  const affected = units.filter(o => o.alive && o.team !== u.team && combatDist(u,o) <= 3);
+  if (!affected.length) return false;
+  u.tauntCooldown = 8;
+  u.tauntDRTimer = 3;
+  for (const enemy of affected) {
+    enemy.tauntedBy = u;
+    enemy.tauntTimer = 3;
+    enemy.target = u;
+    enemy.targetRecheck = 0.4;
+  }
+  return true;
+}
+
 const projectiles = [];
 function projectileColor(u) {
   if (u.heroKey==='frostweaver') return 0x8edbff;
@@ -165,6 +232,7 @@ function dealDamage(u,target) {
     const effArmor = Math.max(0,(target.armor||0)-buffs.armorPenPct);
     dmg *= (1-effArmor/100);
   } else if (target.armor) dmg *= (1-target.armor/100);
+  if (target.tauntDRTimer > 0) dmg *= 0.65;
   target.hp -= dmg;
   target.body.material.color.set(0xff8866);
   setTimeout(()=>target.alive&&target.body.material.color.set(0xffffff),80);
@@ -172,6 +240,7 @@ function dealDamage(u,target) {
   target.hpBar.position.x=-0.36*(1-target.hpBar.scale.x);
   if (target.hp<=0) {
     target.alive=false; target.target=null;
+    for (const o of units) if (o.tauntedBy===target) { o.tauntedBy=null; o.tauntTimer=0; }
     occupied.delete(key(target.c,target.r)); target.deathT=0;
   }
 }
@@ -206,6 +275,12 @@ function updateProjectiles(dt) {
 
 function updateUnit(u, dt) {
   if (!u.alive) return;
+  u.tauntCooldown=Math.max(0,(u.tauntCooldown||0)-dt);
+  u.tauntDRTimer=Math.max(0,(u.tauntDRTimer||0)-dt);
+  u.tauntTimer=Math.max(0,(u.tauntTimer||0)-dt);
+  if (u.tauntTimer<=0) u.tauntedBy=null;
+  tryOpeningWarp(u);
+  triggerTaunt(u);
   if (u.moving) {
     u.moveT += dt*u.moveSpeed;
     if (u.moveT>=1) { u.moveT=1; u.moving=false; u.c=u.moveTo.c; u.r=u.moveTo.r; }
@@ -245,7 +320,7 @@ function updateUnit(u, dt) {
 `;
 
     replaceRequired(
-      'ระบบ targeting/projectile/threat',
+      'ระบบ targeting/projectile/threat/taunt/warp',
       /function gridDist\(a,b\)[\s\S]*?function updateUnit\(u, dt\) \{[\s\S]*?\n\}\n\n(?=\/\/ ============================================================\n\/\/ UI)/,
       combatBlock + '\n'
     );
@@ -273,7 +348,7 @@ function updateUnit(u, dt) {
     );
     source = source.replace(
       '<div class="pill" id="phaseLabel">เตรียมทีม</div>',
-      '<div class="pill" id="phaseLabel">เตรียมทีม</div><div class="pill" title="Target lock + threat + projectile">⚙ Combat Next</div>'
+      '<div class="pill" id="phaseLabel">เตรียมทีม</div><div class="pill" title="Target lock + threat + taunt + assassin warp + projectile">⚙ Combat Next</div>'
     );
 
     console.info('Combat Next patches:', applied);
