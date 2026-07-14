@@ -3,28 +3,32 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-<title>Auto Battler — Mobile Asset Test</title>
+<title>Auto Battler — Mobile Safe Test</title>
 <style>
 html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#080604;touch-action:none}
 #stage{position:fixed;left:50%;top:50%;width:960px;height:540px;transform-origin:center center;background:#14100c;box-shadow:0 0 40px rgba(0,0,0,.8)}
 iframe{display:block;width:960px;height:540px;border:0;background:#14100c}
 #rotate{display:none;position:fixed;inset:0;z-index:10;align-items:center;justify-content:center;text-align:center;padding:30px;background:#14100c;color:#f0e6c8;font:700 22px/1.5 sans-serif}
-@media (orientation:portrait){#stage{display:none}#rotate{display:flex}}
+#loading{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:5;color:#f0e6c8;font:700 16px sans-serif;text-align:center}
+@media (orientation:portrait){#stage{display:none}#rotate{display:flex}#loading{display:none}}
 </style>
 </head>
 <body>
-<div id="stage"><iframe id="game" src="autochess-tutorial-assets.html" allow="fullscreen"></iframe></div>
+<div id="loading">กำลังเปิดเกม…</div>
+<div id="stage"><iframe id="game" src="autochess.html?v=mobile-safe-1" allow="fullscreen"></iframe></div>
 <div id="rotate">กรุณาหมุนมือถือเป็นแนวนอน<br>เพื่อเห็นสนามและแผงจัดทีมครบ</div>
 <script>
 (function(){
   const stage=document.getElementById('stage');
+  const game=document.getElementById('game');
+  const loading=document.getElementById('loading');
   const virtualW=960, virtualH=540;
   function fit(){
-    const safeW=window.innerWidth;
-    const safeH=window.innerHeight;
-    const scale=Math.min(safeW/virtualW,safeH/virtualH);
+    const scale=Math.min(window.innerWidth/virtualW,window.innerHeight/virtualH);
     stage.style.transform=`translate(-50%,-50%) scale(${scale})`;
   }
+  game.addEventListener('load',()=>{loading.style.display='none';});
+  setTimeout(()=>{loading.textContent='หากยังไม่เข้าเกม ให้แตะรีเฟรชหน้าเว็บหนึ่งครั้ง';},8000);
   addEventListener('resize',fit,{passive:true});
   addEventListener('orientationchange',()=>setTimeout(fit,150),{passive:true});
   fit();
