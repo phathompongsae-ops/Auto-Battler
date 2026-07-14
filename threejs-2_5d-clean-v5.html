@@ -74,13 +74,15 @@
   .round small{font-size:9px;color:#ffd873}
   /* compact centered card strip like the reference — not edge-to-edge */
   .shop{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;width:min(100%,62vw,860px);margin:0 auto}
-  .card{pointer-events:auto;border:1px solid #80643a;border-radius:10px;background:linear-gradient(#1c2320,#12100c);text-align:center;padding:4px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 3px 8px #0008}
-  .card .pic{position:relative;height:var(--pic);border-radius:6px;background:#1c2b20;overflow:hidden}
-  .card .pic canvas{width:100%;height:100%;object-fit:contain;object-position:50% 100%}
-  .card b{display:block;font-size:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
-  .card .tags{display:flex;gap:2px;justify-content:center;flex-wrap:wrap;min-height:10px}
-  .card .tags span{font-size:6px;padding:1px 3px;border-radius:4px;background:#00000055;color:#d8c894}
-  .card button{margin-top:2px;width:100%;border:0;border-radius:5px;background:linear-gradient(#e0b04c,#a97a24);color:#2a1a05;font-size:8px;font-weight:900;padding:2px 0}
+  .card{pointer-events:auto;border:1px solid #80643a;border-radius:9px;background:#14161a;text-align:center;padding:0;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 3px 8px #0009,inset 0 0 0 1px #0006}
+  .card>b{display:block;font-size:9px;font-weight:800;color:#f3ead2;padding:3px 2px;background:#0000004f;border-bottom:1px solid #ffffff12;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:.03em}
+  .card .pic{position:relative;height:var(--pic);overflow:hidden}
+  .card .pic canvas{width:100%;height:100%;object-fit:contain;object-position:50% 100%;filter:drop-shadow(0 3px 3px #0008)}
+  .card .tags{display:flex;flex-direction:column;align-items:flex-start;gap:1px;padding:2px 7px 1px;min-height:10px}
+  .card .tags span{display:flex;align-items:center;gap:4px;font-size:7px;font-weight:700;color:#d8cfae}
+  .card .tags i{width:8px;height:8px;border-radius:3px;flex:none;box-shadow:inset 0 -1px 1px #0007}
+  .card button{display:flex;align-items:center;justify-content:center;gap:4px;margin:2px 5px 5px;border:1px solid #8a6c39;border-radius:6px;background:linear-gradient(#3d3016,#241c0e);color:#ffd873;font-size:9px;font-weight:900;padding:3px 0}
+  .card button .coin{width:10px;height:10px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ffeaa6,#e3b34d 55%,#8a5c14);border:1px solid #6e4c12;display:inline-block}
   .card button:disabled{opacity:.4}
   .card.empty{visibility:hidden}
 
@@ -169,6 +171,14 @@
     r=Math.max(0,Math.min(255,r));g=Math.max(0,Math.min(255,g));b=Math.max(0,Math.min(255,b));
     return '#'+(1<<24|r<<16|g<<8|b).toString(16).slice(1);
   }
+
+  function mixHex(a, b, t){ // blend hex color a toward b by fraction t
+    const pa = parseInt(a.slice(1),16), pb = parseInt(b.slice(1),16);
+    const ch = s => Math.round(((pa>>s)&255)*(1-t) + ((pb>>s)&255)*t);
+    return '#'+(1<<24|ch(16)<<16|ch(8)<<8|ch(0)).toString(16).slice(1);
+  }
+
+  const TAG_COLORS = {Warrior:'#e0665a', Ranger:'#6fce8f', Mage:'#8ab6ff', Forest:'#8fd16a'};
 
   function roundRect(ctx,x,y,w,h,r){
     ctx.beginPath();
@@ -501,16 +511,28 @@
     state.offers.forEach((hero, idx)=>{
       const d = document.createElement('div');
       d.className = 'card';
+      // reference-style frame: deep dark panel tinted with the class color
+      d.style.background = 'linear-gradient('+mixHex('#181b20',hero.color,.24)+' 0%,'+mixHex('#0d0f12',hero.color,.10)+' 100%)';
+      d.style.borderColor = mixHex('#b08d4a',hero.color,.38);
       const name = document.createElement('b'); name.textContent = hero.name; d.appendChild(name);
       const pic = document.createElement('div'); pic.className='pic';
-      pic.style.background = 'linear-gradient('+shade(hero.color,5)+','+shade(hero.color,-45)+')';
+      pic.style.background = 'radial-gradient(ellipse at 50% 74%,'+mixHex('#181b20',hero.color,.5)+' 0%,transparent 72%)';
       pic.appendChild(cloneCanvas(bodyPortrait(hero)));
       d.appendChild(pic);
       const tags = document.createElement('div'); tags.className='tags';
-      hero.tags.forEach(t=>{ const sp=document.createElement('span'); sp.textContent=t; tags.appendChild(sp); });
+      hero.tags.forEach(t=>{
+        const sp = document.createElement('span');
+        const dot = document.createElement('i');
+        dot.style.background = TAG_COLORS[t] || '#999';
+        sp.appendChild(dot);
+        sp.appendChild(document.createTextNode(t));
+        tags.appendChild(sp);
+      });
       d.appendChild(tags);
       const btn = document.createElement('button');
-      btn.textContent = 'ซื้อ 2💰';
+      const coin = document.createElement('span'); coin.className='coin';
+      btn.appendChild(coin);
+      btn.appendChild(document.createTextNode('2'));
       const benchFull = state.bench.every(x=>x!==null);
       btn.disabled = state.gold<2 || benchFull;
       btn.onclick = ()=>buyHero(idx);
@@ -534,11 +556,10 @@
       if(cell) cell.hero.tags.forEach(t=>{ counts[t]=(counts[t]||0)+1; });
     }
     const order = ['Warrior','Ranger','Mage','Forest'];
-    const colors = {Warrior:'#e0665a',Ranger:'#6fce8f',Mage:'#8ab6ff',Forest:'#8fd16a'};
     order.forEach(tag=>{
       const row = document.createElement('div'); row.className='syn-row';
       const icon = document.createElement('div'); icon.className='syn-icon';
-      icon.style.background = colors[tag];
+      icon.style.background = TAG_COLORS[tag];
       row.appendChild(icon);
       const info = document.createElement('div'); info.className='syn-info';
       const b = document.createElement('b'); b.textContent = tag;
