@@ -29,6 +29,11 @@
     pointer-events: auto; background: #4a3a24; color: #f0e6c8; border: 1px solid #a8843c;
     border-radius: 6px; padding: 6px 12px; cursor: pointer; font-size: 14px;
   }
+  #linkRow { display: flex; gap: 6px; flex-wrap: wrap; }
+  .linkPill {
+    background: rgba(70,120,60,0.85); border: 1px solid #7fbf5f; border-radius: 20px;
+    padding: 6px 12px; pointer-events: auto; font-size: 13px; cursor: help;
+  }
   #topbar button.active { background: #a8843c; color: #241c10; }
   a#back { text-decoration: none; }
 
@@ -61,6 +66,7 @@
   }
   .card img { width: 100%; height: 56px; object-fit: cover; display: block; background: #333; }
   .card .name { padding: 2px 2px 0; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 9px; }
+  .card .tags { padding: 0 2px; color: #6b8f42; font-size: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .card .cost { padding: 0 2px 3px; color: #a8843c; font-weight: bold; }
   .card.disabled { opacity: 0.45; cursor: not-allowed; }
   .card.selected { border-color: #c0392b; box-shadow: 0 0 0 2px #c0392b; }
@@ -99,6 +105,7 @@
   <div class="pill">🌊 ด่าน <span id="waveLabel">1</span>/<span id="waveTotal">3</span></div>
   <div class="pill" id="phaseLabel">เตรียมทีม</div>
   <div class="pill" id="stageLabel" style="display:none"></div>
+  <div id="linkRow"></div>
   <div class="spacer"></div>
   <button id="speedBtn">x1</button>
   <button id="pauseBtn">⏸ หยุด</button>
@@ -262,19 +269,68 @@ const HERO_DEFS = {
   summoner:    { title:'Summoner',     sprite:'Summoner',    cost:4, hp:105, pAtk:13, atkSpeed:1.0, range:3, moveSpeed:1.9, trait:'none' },
   sniper:      { title:'Sniper',       sprite:'Sniper',      cost:5, hp:90,  pAtk:24, atkSpeed:0.9, range:5, moveSpeed:1.7, trait:'longshot' },
 };
-// สถิติพื้นฐานของศัตรูทั่วไป (ก่อนสเกลตามด่าน) — ธีมกองทัพซากอารีน่าหิน
+// แท็กสาย/Role ของฮีโร่แต่ละคน (อ้างอิงคอลัมน์ "สาย/Role" ใน GDD ข้อ 6) — ใช้คำนวณระบบ Link ด้านล่าง
+const HERO_TAGS = {
+  blademaster: ['physical'],
+  duelist:     ['physical'],
+  beastlord:   ['summoner', 'physical'],
+  trickster:   ['merchant'],
+  archmage:    ['mage'],
+  frostweaver: ['mage'],
+  summoner:    ['summoner'],
+  sniper:      ['archer', 'physical'],
+};
+
+const TAG_LABEL_TH = { mage:'นักเวท', merchant:'พ่อค้า', archer:'นักธนู', physical:'กายภาพ', summoner:'ผู้เรียก' };
+function tagLabel(heroKey) { return (HERO_TAGS[heroKey] || []).map(t => TAG_LABEL_TH[t] || t).join(' · '); }
+
+// ============================================================
+// ระบบ LINK (ซินเนอร์จีทีม) — มีฮีโร่ตามแท็กที่กำหนดครบบนกระดาน = ได้บัฟทั้งทีม
+// ============================================================
+const SYNERGIES = [
+  { id:'trade_route', name:'สายสัมพันธ์ นักเวท–พ่อค้า–นักธนู',
+    desc:'มีฮีโร่สาย Mage + Merchant + Archer อย่างละ 1 ตัวบนกระดาน',
+    requires:{ mage:1, merchant:1, archer:1 },
+    dmgPct:10, armorPenPct:10, goldPerWave:3 },
+  { id:'arcane_duo', name:'คู่นักเวทอาร์เคน',
+    desc:'มีฮีโร่สาย Mage อย่างน้อย 2 ตัวบนกระดาน',
+    requires:{ mage:2 },
+    dmgPct:15 },
+  { id:'warband', name:'หมู่นักรบกายภาพ',
+    desc:'มีฮีโร่สาย Physical อย่างน้อย 3 ตัวบนกระดาน',
+    requires:{ physical:3 },
+    atkSpeedPct:10 },
+];
+function getActiveSynergies() {
+  const tagCount = {};
+  Object.values(placedUnits).forEach((u) => {
+    (HERO_TAGS[u.heroKey] || []).forEach((t) => { tagCount[t] = (tagCount[t] || 0) + 1; });
+  });
+  return SYNERGIES.filter((s) => Object.entries(s.requires).every(([tag, n]) => (tagCount[tag] || 0) >= n));
+}
+function getTeamBuffs() {
+  const buffs = { dmgPct:0, armorPenPct:0, atkSpeedPct:0, goldPerWave:0 };
+  getActiveSynergies().forEach((s) => {
+    buffs.dmgPct += s.dmgPct || 0;
+    buffs.armorPenPct += s.armorPenPct || 0;
+    buffs.atkSpeedPct += s.atkSpeedPct || 0;
+    buffs.goldPerWave += s.goldPerWave || 0;
+  });
+  return buffs;
+}
+// สถิติพื้นฐานของศัตรูทั่วไป (ก่อนสเกลตามด่าน) — ธีมกองทัพซากอารีน่าหิน + ค่าเกราะ (ลดดาเมจ %)
 const ENEMY_BASE = {
-  Skeleton:       { hp:90, pAtk:12, atkSpeed:0.9, range:1, moveSpeed:1.8 },
-  StoneWolf:      { hp:75, pAtk:11, atkSpeed:1.4, range:1, moveSpeed:2.6 },
-  SpiritArcher:   { hp:80, pAtk:14, atkSpeed:1.0, range:3, moveSpeed:1.7 },
-  ShadowAssassin: { hp:70, pAtk:18, atkSpeed:1.3, range:1, moveSpeed:3.0 },
+  Skeleton:       { hp:90, pAtk:12, atkSpeed:0.9, range:1, moveSpeed:1.8, armor:5 },
+  StoneWolf:      { hp:75, pAtk:11, atkSpeed:1.4, range:1, moveSpeed:2.6, armor:10 },
+  SpiritArcher:   { hp:80, pAtk:14, atkSpeed:1.0, range:3, moveSpeed:1.7, armor:0 },
+  ShadowAssassin: { hp:70, pAtk:18, atkSpeed:1.3, range:1, moveSpeed:3.0, armor:5 },
 };
 // ช่องวางศัตรูฝั่งบนกระดาน (แถว 0-1) — วนใช้ซ้ำถ้าจำนวนตัวเกินจำนวนช่อง
 const ENEMY_SLOTS = [ [3,0],[1,1],[6,1],[0,0],[7,0],[2,1],[5,1],[4,0] ];
 function scaledStat(type, stage) {
   const b = ENEMY_BASE[type];
   const mul = 1 + (stage - 1) * 0.08;   // ด่านหลังยากขึ้นทีละ ~8%
-  return { hp: Math.round(b.hp*mul), pAtk: Math.round(b.pAtk*mul), atkSpeed: b.atkSpeed, range: b.range, moveSpeed: b.moveSpeed };
+  return { hp: Math.round(b.hp*mul), pAtk: Math.round(b.pAtk*mul), atkSpeed: b.atkSpeed, range: b.range, moveSpeed: b.moveSpeed, armor: b.armor };
 }
 function fillerWave(stage, comp) {
   const units = []; let slot = 0;
@@ -308,26 +364,26 @@ const STAGE_LABEL = {
 };
 function bossWave(stage) {
   if (stage === 5) return [
-    { name:'หัวหน้าผู้คุมสังเวียน', sprite:'Warden', c:3, r:0, hp:340, pAtk:20, atkSpeed:0.8, range:1, moveSpeed:1.4 },
-    { name:'Skeleton Guard A', sprite:'Skeleton', c:1, r:1, hp:100, pAtk:13, atkSpeed:0.9, range:1, moveSpeed:1.8 },
-    { name:'Skeleton Guard B', sprite:'Skeleton', c:5, r:1, hp:100, pAtk:13, atkSpeed:0.9, range:1, moveSpeed:1.8 },
+    { name:'หัวหน้าผู้คุมสังเวียน', sprite:'Warden', c:3, r:0, hp:340, pAtk:20, atkSpeed:0.8, range:1, moveSpeed:1.4, armor:15 },
+    { name:'Skeleton Guard A', sprite:'Skeleton', c:1, r:1, hp:100, pAtk:13, atkSpeed:0.9, range:1, moveSpeed:1.8, armor:5 },
+    { name:'Skeleton Guard B', sprite:'Skeleton', c:5, r:1, hp:100, pAtk:13, atkSpeed:0.9, range:1, moveSpeed:1.8, armor:5 },
   ];
   if (stage === 10) return [
-    { name:'โกเลมหินอารีน่า', sprite:'Golem', c:3, r:0, hp:560, pAtk:26, atkSpeed:0.6, range:1, moveSpeed:1.1, frameSize:{ w:1.4, h:1.7 } },
-    { name:'Stone Wolf A', sprite:'StoneWolf', c:1, r:1, hp:150, pAtk:17, atkSpeed:1.4, range:1, moveSpeed:2.6 },
-    { name:'Stone Wolf B', sprite:'StoneWolf', c:6, r:1, hp:150, pAtk:17, atkSpeed:1.4, range:1, moveSpeed:2.6 },
-    { name:'Spirit Archer', sprite:'SpiritArcher', c:3, r:1, hp:130, pAtk:20, atkSpeed:1.0, range:3, moveSpeed:1.7 },
+    { name:'โกเลมหินอารีน่า', sprite:'Golem', c:3, r:0, hp:560, pAtk:26, atkSpeed:0.6, range:1, moveSpeed:1.1, frameSize:{ w:1.4, h:1.7 }, armor:25 },
+    { name:'Stone Wolf A', sprite:'StoneWolf', c:1, r:1, hp:150, pAtk:17, atkSpeed:1.4, range:1, moveSpeed:2.6, armor:10 },
+    { name:'Stone Wolf B', sprite:'StoneWolf', c:6, r:1, hp:150, pAtk:17, atkSpeed:1.4, range:1, moveSpeed:2.6, armor:10 },
+    { name:'Spirit Archer', sprite:'SpiritArcher', c:3, r:1, hp:130, pAtk:20, atkSpeed:1.0, range:3, moveSpeed:1.7, armor:0 },
   ];
   if (stage === 13) return [
-    { name:'มังกรกระดูก', sprite:'BoneDragon', c:3, r:0, hp:680, pAtk:30, atkSpeed:0.85, range:2, moveSpeed:1.3, frameSize:{ w:2.0, h:1.6 } },
-    { name:'Spirit Archer A', sprite:'SpiritArcher', c:1, r:1, hp:140, pAtk:21, atkSpeed:1.0, range:3, moveSpeed:1.7 },
-    { name:'Spirit Archer B', sprite:'SpiritArcher', c:6, r:1, hp:140, pAtk:21, atkSpeed:1.0, range:3, moveSpeed:1.7 },
+    { name:'มังกรกระดูก', sprite:'BoneDragon', c:3, r:0, hp:680, pAtk:30, atkSpeed:0.85, range:2, moveSpeed:1.3, frameSize:{ w:2.0, h:1.6 }, armor:15 },
+    { name:'Spirit Archer A', sprite:'SpiritArcher', c:1, r:1, hp:140, pAtk:21, atkSpeed:1.0, range:3, moveSpeed:1.7, armor:0 },
+    { name:'Spirit Archer B', sprite:'SpiritArcher', c:6, r:1, hp:140, pAtk:21, atkSpeed:1.0, range:3, moveSpeed:1.7, armor:0 },
   ];
   if (stage === 15) return [
-    { name:'แชมเปี้ยนอมตะ', sprite:'ChampionBig', c:3, r:0, hp:950, pAtk:34, atkSpeed:0.85, range:1, moveSpeed:1.3, frameSize:{ w:1.9, h:2.6 } },
-    { name:'Skeleton Honor Guard A', sprite:'Skeleton', c:1, r:1, hp:170, pAtk:22, atkSpeed:0.9, range:1, moveSpeed:1.8 },
-    { name:'Skeleton Honor Guard B', sprite:'Skeleton', c:6, r:1, hp:170, pAtk:22, atkSpeed:0.9, range:1, moveSpeed:1.8 },
-    { name:'Shadow Assassin', sprite:'ShadowAssassin', c:4, r:1, hp:150, pAtk:24, atkSpeed:1.3, range:1, moveSpeed:3.0 },
+    { name:'แชมเปี้ยนอมตะ', sprite:'ChampionBig', c:3, r:0, hp:950, pAtk:34, atkSpeed:0.85, range:1, moveSpeed:1.3, frameSize:{ w:1.9, h:2.6 }, armor:20 },
+    { name:'Skeleton Honor Guard A', sprite:'Skeleton', c:1, r:1, hp:170, pAtk:22, atkSpeed:0.9, range:1, moveSpeed:1.8, armor:5 },
+    { name:'Skeleton Honor Guard B', sprite:'Skeleton', c:6, r:1, hp:170, pAtk:22, atkSpeed:0.9, range:1, moveSpeed:1.8, armor:5 },
+    { name:'Shadow Assassin', sprite:'ShadowAssassin', c:4, r:1, hp:150, pAtk:24, atkSpeed:1.3, range:1, moveSpeed:3.0, armor:5 },
   ];
   return null;
 }
@@ -509,9 +565,17 @@ function updateUnit(u, dt) {
   if (d<=u.range) {
     u.atkCooldown -= dt;
     if (u.atkCooldown<=0) {
-      u.atkCooldown = 1/u.atkSpeed;
+      const buffs = u.team==='player' ? getTeamBuffs() : null;
+      u.atkCooldown = 1/(u.atkSpeed * (1 + (buffs ? buffs.atkSpeedPct/100 : 0)));
       u.animState='attack'; u.animTimer=0;
       let dmg = applyTrait(u, target, u.pAtk);
+      if (buffs) {
+        dmg *= (1 + buffs.dmgPct/100);
+        const effArmor = Math.max(0, (target.armor||0) - buffs.armorPenPct);
+        dmg *= (1 - effArmor/100);
+      } else if (target.armor) {
+        dmg *= (1 - target.armor/100);
+      }
       target.hp -= dmg;
       const dir = gridToWorld(target.c,target.r).sub(u.group.position).normalize().multiplyScalar(0.12);
       u.body.position.x += dir.x;
@@ -557,6 +621,20 @@ function renderUI() {
   const stageLabelEl = document.getElementById('stageLabel');
   if (STAGE_LABEL[wave]) { stageLabelEl.textContent = STAGE_LABEL[wave]; stageLabelEl.style.display = ''; }
   else { stageLabelEl.style.display = 'none'; }
+  const linkRowEl = document.getElementById('linkRow');
+  linkRowEl.innerHTML = '';
+  getActiveSynergies().forEach((s) => {
+    const parts = [];
+    if (s.dmgPct) parts.push(`ดาเมจ+${s.dmgPct}%`);
+    if (s.armorPenPct) parts.push(`เจาะเกราะ+${s.armorPenPct}`);
+    if (s.atkSpeedPct) parts.push(`ความเร็วโจมตี+${s.atkSpeedPct}%`);
+    if (s.goldPerWave) parts.push(`ทอง+${s.goldPerWave}/ด่าน`);
+    const pill = document.createElement('div');
+    pill.className = 'linkPill';
+    pill.textContent = `🔗 ${s.name}`;
+    pill.title = `${s.desc}\n${parts.join(', ')}`;
+    linkRowEl.appendChild(pill);
+  });
   document.getElementById('bottomUI').style.display = phase==='shop' ? 'flex' : 'none';
   startBattleBtn.disabled = Object.keys(placedUnits).length === 0;
 
@@ -565,7 +643,7 @@ function renderUI() {
     const def = HERO_DEFS[hkey];
     const div = document.createElement('div');
     div.className = 'card' + (gold < def.cost ? ' disabled' : '');
-    div.innerHTML = `<img src="assets/portraits/${hkey}.png"><div class="name">${def.title}</div><div class="cost">💰${def.cost}</div>`;
+    div.innerHTML = `<img src="assets/portraits/${hkey}.png"><div class="name">${def.title}</div><div class="tags">${tagLabel(hkey)}</div><div class="cost">💰${def.cost}</div>`;
     div.onclick = () => buyHero(hkey);
     shopCardsEl.appendChild(div);
   });
@@ -576,7 +654,7 @@ function renderUI() {
     const def = HERO_DEFS[hkey];
     const div = document.createElement('div');
     div.className = 'card' + (i===selectedBenchIdx ? ' selected' : '');
-    div.innerHTML = `<img src="assets/portraits/${hkey}.png"><div class="name">${def.title}</div>`;
+    div.innerHTML = `<img src="assets/portraits/${hkey}.png"><div class="name">${def.title}</div><div class="tags">${tagLabel(hkey)}</div>`;
     div.onclick = () => { selectedBenchIdx = (selectedBenchIdx===i) ? -1 : i; renderUI(); };
     benchCardsEl.appendChild(div);
   });
@@ -688,7 +766,7 @@ function showResult(title, body, onContinue) {
 }
 
 function onWaveCleared() {
-  const reward = waveReward(wave);
+  const reward = waveReward(wave) + getTeamBuffs().goldPerWave;
   gold += reward;
   clearEnemies();
   if (wave >= WAVE_TOTAL) {
