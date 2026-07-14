@@ -117,7 +117,7 @@
     <div id="shopCards"></div>
   </div>
   <div class="panel" id="benchPanel">
-    <h3>ม้านั่งสำรอง</h3>
+    <h3>ม้านั่งสำรอง <span id="fieldCount" style="font-weight:normal;color:#6b5a3a;"></span></h3>
     <div id="benchCards"></div>
     <div id="hint"></div>
   </div>
@@ -140,6 +140,7 @@
 const GRID = 8;
 const TILE = 1;
 const PLAYER_ROWS = [5, 6, 7];       // แถวที่วางฮีโร่ได้
+const MAX_FIELD = 5;                 // ลงสนามพร้อมกันได้สูงสุด 5 ตัว ที่เหลือรอในม้านั่งสำรอง
 const WAVE_TOTAL = 15;
 const CAMERA_ANGLE_DEG = 55, CAMERA_YAW_DEG = 15, CAMERA_ZOOM = 7.2;
 // เลื่อนจุดที่กล้องมองไปทาง "แถวผู้เล่น" เล็กน้อยให้อยู่กลางพื้นที่ 3D ที่เหลือพอดี
@@ -644,6 +645,9 @@ function renderUI() {
   });
   document.getElementById('bottomUI').style.display = phase==='shop' ? 'flex' : 'none';
   startBattleBtn.disabled = placedUnits.length === 0;
+  const fieldFull = placedUnits.length >= MAX_FIELD;
+  if (fieldFull) selectedBenchIdx = -1;
+  document.getElementById('fieldCount').textContent = `(ลงสนามแล้ว ${placedUnits.length}/${MAX_FIELD})`;
 
   shopCardsEl.innerHTML = '';
   shopOffers.forEach((hkey) => {
@@ -660,12 +664,14 @@ function renderUI() {
   benchHeroes.forEach((hkey, i) => {
     const def = HERO_DEFS[hkey];
     const div = document.createElement('div');
-    div.className = 'card' + (i===selectedBenchIdx ? ' selected' : '');
+    div.className = 'card' + (i===selectedBenchIdx ? ' selected' : '') + (fieldFull ? ' disabled' : '');
     div.innerHTML = `<img src="assets/portraits/${hkey}.png"><div class="name">${def.title}</div><div class="tags">${tagLabel(hkey)}</div>`;
-    div.onclick = () => { selectedBenchIdx = (selectedBenchIdx===i) ? -1 : i; renderUI(); };
+    div.onclick = () => { if (!fieldFull) { selectedBenchIdx = (selectedBenchIdx===i) ? -1 : i; renderUI(); } };
     benchCardsEl.appendChild(div);
   });
-  hintEl.textContent = selectedBenchIdx>=0
+  hintEl.textContent = fieldFull
+    ? `สนามเต็มแล้ว (${MAX_FIELD}/${MAX_FIELD}) — คลิกฮีโร่บนกระดานเพื่อถอนกลับม้านั่งก่อนวางตัวใหม่`
+    : selectedBenchIdx>=0
     ? `เลือก ${HERO_DEFS[benchHeroes[selectedBenchIdx]].title} แล้ว — คลิกช่องหญ้าเขียวบนกระดาน`
     : (placedUnits.length===0 ? 'ยังไม่ได้วางฮีโร่ลงกระดาน' : '');
 }
@@ -689,6 +695,8 @@ rerollBtn.onclick = () => {
 };
 
 function placeHeroAt(hkey, c, r) {
+  if (phase !== 'shop') return;               // วางลงกระดานได้เฉพาะช่วงเตรียมทีมก่อนสู้เท่านั้น
+  if (placedUnits.length >= MAX_FIELD) return; // สนามเต็ม (สูงสุด 5 ตัว) — ต้องถอนตัวอื่นก่อน
   const idx = benchHeroes.indexOf(hkey);
   if (idx < 0) return;
   benchHeroes.splice(idx, 1);
@@ -701,6 +709,7 @@ function placeHeroAt(hkey, c, r) {
   renderUI();
 }
 function unplaceUnit(u) {
+  if (phase !== 'shop') return;
   const idx = placedUnits.indexOf(u);
   if (idx < 0) return;
   removeUnit(u);
