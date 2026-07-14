@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Auto Battler — Tutorial</title>
+<style>
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#14100c;font-family:'Trebuchet MS',sans-serif}
+#game{width:100%;height:100%;border:0;display:block}
+#tutorial{position:fixed;inset:0;z-index:1000;pointer-events:none;display:none}
+#tutorial.show{display:block}
+#shade{position:absolute;inset:0;background:rgba(0,0,0,.28)}
+#guide{position:absolute;left:50%;top:72px;transform:translateX(-50%);width:min(720px,86vw);padding:14px 18px;border:2px solid #e2bb5c;border-radius:14px;background:linear-gradient(#2b2114,#171009);color:#fff3cc;box-shadow:0 8px 30px rgba(0,0,0,.7);text-align:center;pointer-events:auto}
+#guide b{color:#ffd66e;font-size:20px}#guide p{margin:7px 0 0;font-size:15px;line-height:1.45}
+#progress{margin-top:8px;color:#bfae83;font-size:12px}
+#arrow{position:absolute;width:38px;height:38px;border:4px solid #ffd45f;border-radius:50%;box-shadow:0 0 18px #ffd45f;animation:pulse .8s infinite alternate;pointer-events:none}
+@keyframes pulse{to{transform:scale(1.18);opacity:.65}}
+</style>
+</head>
+<body>
+<iframe id="game" src="autochess-next.html"></iframe>
+<div id="tutorial"><div id="shade"></div><div id="guide"><b id="title"></b><p id="text"></p><div id="progress"></div></div><div id="arrow"></div></div>
+<script>
+(() => {
+  const frame=document.getElementById('game');
+  const overlay=document.getElementById('tutorial');
+  const title=document.getElementById('title');
+  const text=document.getElementById('text');
+  const progress=document.getElementById('progress');
+  const arrow=document.getElementById('arrow');
+  let ready=false,lastKey='';
+
+  function waitGame(){
+    const w=frame.contentWindow,d=frame.contentDocument;
+    if(!w||!d||!d.getElementById('startBattleBtn')||typeof w.renderUI!=='function') return setTimeout(waitGame,200);
+    if(ready) return; ready=true;
+    installTutorial(w,d);
+    setInterval(()=>refresh(w,d),180);
+  }
+  frame.addEventListener('load',()=>setTimeout(waitGame,300));
+  setTimeout(waitGame,700);
+
+  function installTutorial(w,d){
+    w.eval(`
+      window.TUTORIAL_ACTIVE = localStorage.getItem('ab_tutorial_done') !== '1';
+      window.TUTORIAL_MERGED = false;
+      window.TUTORIAL_CLASS1_BOUGHT = false;
+      window.TUTORIAL_COPIES = 0;
+      window.TUTORIAL_ORIGINAL_RENDER = renderUI;
+      window.TUTORIAL_ORIGINAL_BUILD = buildWave;
+      window.TUTORIAL_ORIGINAL_BUY = buyHero;
+      window.TUTORIAL_ORIGINAL_START = startBattleBtn.onclick;
+
+      HERO_DEFS.novice={title:'Novice',sprite:'BladeMaster',cost:0,hp:260,pAtk:35,atkSpeed:1.4,range:1,moveSpeed:2.4,trait:'none'};
+      HERO_DEFS.swordman={title:'Swordman',sprite:'Duelist',cost:3,hp:180,pAtk:26,atkSpeed:1.45,range:1,moveSpeed:2.5,trait:'crit'};
+      HERO_TAGS.novice=['physical']; HERO_TAGS.swordman=['physical'];
+
+      buildWave=function(stage){
+        if(window.TUTORIAL_ACTIVE&&stage===1)return[{name:'Training Slime',sprite:'Skeleton',c:3,r:1,hp:28,pAtk:1,atkSpeed:.5,range:1,moveSpeed:1.2,armor:0}];
+        if(window.TUTORIAL_ACTIVE&&stage===2)return[{name:'Training Skeleton',sprite:'Skeleton',c:3,r:1,hp:65,pAtk:6,atkSpeed:.7,range:1,moveSpeed:1.4,armor:0}];
+        if(window.TUTORIAL_ACTIVE&&stage===3)return[{name:'Training Guard A',sprite:'Skeleton',c:2,r:1,hp:85,pAtk:8,atkSpeed:.8,range:1,moveSpeed:1.5,armor:2},{name:'Training Guard B',sprite:'Skeleton',c:5,r:1,hp:85,pAtk:8,atkSpeed:.8,range:1,moveSpeed:1.5,armor:2}];
+        return window.TUTORIAL_ORIGINAL_BUILD(stage);
+      };
+
+      function tutorialPortraitFix(){
+        document.querySelectorAll('#shopCards .card,#benchCards .card,#fieldCards .card').forEach(card=>{
+          const n=card.querySelector('.name')?.textContent;
+          const img=card.querySelector('img');
+          if(!img)return;
+          if(n==='Novice')img.src='assets/portraits/blademaster.png';
+          if(n==='Swordman')img.src='assets/portraits/duelist.png';
+        });
+      }
+      renderUI=function(){
+        window.TUTORIAL_ORIGINAL_RENDER();
+        tutorialPortraitFix();
+        if(window.TUTORIAL_ACTIVE){
+          rerollBtn.disabled=true;
+          if(wave===1){shopOffers=[];shopCardsEl.innerHTML='';}
+          if(wave===2&&!window.TUTORIAL_CLASS1_BOUGHT){shopOffers=['swordman'];}
+          if(wave===3&&!window.TUTORIAL_MERGED){shopOffers=['swordman'];}
+        }
+      };
+
+      function replacePlacedHero(oldKey,newKey){
+        const old=placedUnits.find(u=>u.heroKey===oldKey);
+        const pos=old?{c:old.origC,r:old.origR}:null;
+        if(old){removeUnit(old);placedUnits.splice(placedUnits.indexOf(old),1);}
+        benchHeroes=benchHeroes.filter(k=>k!==oldKey);
+        if(pos){
+          const def=HERO_DEFS[newKey];
+          const u=makeUnit({team:'player',name:def.title,sprite:def.sprite,c:pos.c,r:pos.r,hp:def.hp,pAtk:def.pAtk,atkSpeed:def.atkSpeed,range:def.range,moveSpeed:def.moveSpeed,trait:def.trait,heroKey:newKey});
+          u.origC=pos.c;u.origR=pos.r;u.linked=false;placedUnits.push(u);
+        }else benchHeroes.push(newKey);
+      }
+
+      buyHero=function(hkey){
+        if(!window.TUTORIAL_ACTIVE)return window.TUTORIAL_ORIGINAL_BUY(hkey);
+        if(wave===2&&hkey==='swordman'&&!window.TUTORIAL_CLASS1_BOUGHT){
+          if(gold<3)return;gold-=3;window.TUTORIAL_CLASS1_BOUGHT=true;replacePlacedHero('novice','swordman');shopOffers=[];renderUI();return;
+        }
+        if(wave===3&&hkey==='swordman'&&!window.TUTORIAL_MERGED){
+          if(gold<3||benchHeroes.length>=MAX_BENCH)return;
+          gold-=3;benchHeroes.push('swordman');window.TUTORIAL_COPIES++;
+          const total=benchHeroes.filter(k=>k==='swordman').length+placedUnits.filter(u=>u.heroKey==='swordman').length;
+          if(total>=3){
+            const anchor=placedUnits.find(u=>u.heroKey==='swordman');
+            const pos=anchor?{c:anchor.origC,r:anchor.origR}:{c:3,r:6};
+            placedUnits.filter(u=>u.heroKey==='swordman').slice().forEach(u=>{removeUnit(u);placedUnits.splice(placedUnits.indexOf(u),1);});
+            benchHeroes=benchHeroes.filter(k=>k!=='swordman');
+            const def=HERO_DEFS.blademaster;
+            const u=makeUnit({team:'player',name:'Blade Master — Class 2',sprite:def.sprite,c:pos.c,r:pos.r,hp:def.hp+35,pAtk:def.pAtk+8,atkSpeed:def.atkSpeed,range:def.range,moveSpeed:def.moveSpeed,trait:def.trait,heroKey:'blademaster'});
+            u.origC=pos.c;u.origR=pos.r;u.linked=false;placedUnits.push(u);window.TUTORIAL_MERGED=true;shopOffers=[];
+          }
+          renderUI();return;
+        }
+      };
+
+      startBattleBtn.onclick=function(){
+        if(window.TUTORIAL_ACTIVE){
+          if(wave===1&&!placedUnits.some(u=>u.heroKey==='novice'))return;
+          if(wave===2&&!window.TUTORIAL_CLASS1_BOUGHT)return;
+          if(wave===3&&!window.TUTORIAL_MERGED)return;
+        }
+        window.TUTORIAL_ORIGINAL_START();
+      };
+
+      if(window.TUTORIAL_ACTIVE){
+        units.filter(u=>u.team==='player').slice().forEach(removeUnit);
+        placedUnits=[];benchHeroes=['novice'];ownedPool=[];shopOffers=[];gold=0;wave=1;losses=0;phase='shop';selectedBenchIdx=-1;renderUI();
+      }
+    `);
+  }
+
+  function qEval(w,expr){try{return w.eval(expr)}catch{return null}}
+  function show(key,t,p,targetEl){
+    if(key!==lastKey){lastKey=key;title.textContent=t;text.textContent=p;progress.textContent='บทสอนบังคับ • ด่าน 1–3';}
+    overlay.classList.add('show');
+    const el=targetEl;
+    if(el){const r=el.getBoundingClientRect(),fr=frame.getBoundingClientRect();arrow.style.display='block';arrow.style.left=(fr.left+r.left+r.width/2-19)+'px';arrow.style.top=(fr.top+r.top+r.height/2-19)+'px';}
+    else arrow.style.display='none';
+  }
+  function hide(){overlay.classList.remove('show')}
+
+  function refresh(w,d){
+    if(!ready)return;
+    const active=qEval(w,'window.TUTORIAL_ACTIVE');
+    if(!active){hide();return;}
+    const wave=qEval(w,'wave'),phase=qEval(w,'phase');
+    const placed=qEval(w,'placedUnits.map(u=>u.heroKey)')||[];
+    const class1=qEval(w,'window.TUTORIAL_CLASS1_BOUGHT');
+    const merged=qEval(w,'window.TUTORIAL_MERGED');
+    const bench=qEval(w,'benchHeroes.slice()')||[];
+
+    if(wave===1&&phase==='shop'){
+      if(!placed.includes('novice')){
+        const card=d.querySelector('#benchCards .card');
+        show('w1-place','ด่าน 1: เริ่มจาก Novice','แตะการ์ด Novice ที่ม้านั่งสำรอง แล้วแตะช่องสีเขียวบนสนามเพื่อวางฮีโร่',card);
+      }else show('w1-start','พร้อมฝึกต่อสู้','Novice จะชนะศัตรูฝึกแน่นอน กด “เริ่มการต่อสู้”',d.getElementById('startBattleBtn'));
+      return;
+    }
+    if(wave===1&&phase==='battle'){show('w1-battle','กำลังฝึกต่อสู้','สังเกตการเดินเข้าหาเป้าหมายและโจมตีอัตโนมัติ',null);return;}
+    if(wave===2&&phase==='shop'){
+      if(!class1)show('w2-buy','ด่าน 2: เปลี่ยนอาชีพครั้งแรก','กดซื้อ Swordman เพื่อเปลี่ยน Novice เป็น Class 1',d.querySelector('#shopCards .card'));
+      else show('w2-start','Class 1 พร้อมแล้ว','Swordman แข็งแกร่งขึ้น กดเริ่มการต่อสู้',d.getElementById('startBattleBtn'));
+      return;
+    }
+    if(wave===2&&phase==='battle'){show('w2-battle','ทดลองพลัง Class 1','Swordman จะต่อสู้แทน Novice โดยอัตโนมัติ',null);return;}
+    if(wave===3&&phase==='shop'){
+      if(!merged){
+        const total=(bench.filter(k=>k==='swordman').length)+(placed.filter(k=>k==='swordman').length);
+        show('w3-merge-'+total,'ด่าน 3: รวม 3 ตัวเป็น Class 2',`ตอนนี้มี Swordman ${total}/3 ตัว กดซื้อ Swordman เพิ่มจนรวมครบ 3 ตัว ระบบจะเปลี่ยนเป็น Blade Master อัตโนมัติ`,d.querySelector('#shopCards .card'));
+      }else show('w3-start','เปลี่ยนเป็น Class 2 สำเร็จ','Blade Master พร้อมแล้ว กดเริ่มการต่อสู้เพื่อจบบทสอน',d.getElementById('startBattleBtn'));
+      return;
+    }
+    if(wave===3&&phase==='battle'){show('w3-battle','การทดสอบสุดท้าย','ผ่านด่านนี้แล้ว ร้านค้าและระบบปกติจะปลดล็อก',null);return;}
+    if(wave>=4){
+      w.eval("window.TUTORIAL_ACTIVE=false;localStorage.setItem('ab_tutorial_done','1');ownedPool=Object.keys(HERO_DEFS).filter(k=>!['novice','swordman'].includes(k)&&!placedUnits.some(u=>u.heroKey===k));pickShopOffers();renderUI();");
+      hide();
+    }
+  }
+})();
+</script>
+</body>
+</html>
