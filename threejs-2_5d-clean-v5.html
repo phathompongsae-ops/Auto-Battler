@@ -68,8 +68,8 @@
   .shop{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px}
   .card{pointer-events:auto;border:1px solid #80643a;border-radius:8px;background:linear-gradient(#1c2320,#12100c);text-align:center;padding:3px;overflow:hidden;display:flex;flex-direction:column}
   .card .pic{position:relative;height:46px;border-radius:6px;background:#1c2b20;overflow:hidden}
-  .card .pic canvas{width:100%;height:100%;object-fit:cover;object-position:50% 30%}
-  @media(min-height:620px){.card .pic{height:auto;aspect-ratio:16/10}}
+  .card .pic canvas{width:100%;height:100%;object-fit:cover;object-position:50% 42%}
+  @media(min-height:720px){.card .pic{height:auto;aspect-ratio:16/10}}
   .card b{display:block;font-size:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
   .card .tags{display:flex;gap:2px;justify-content:center;flex-wrap:wrap;min-height:10px}
   .card .tags span{font-size:6px;padding:1px 3px;border-radius:4px;background:#00000055;color:#d8c894}
@@ -94,6 +94,20 @@
     .slot{width:58px;height:64px}
     .shop-row{grid-template-columns:88px 1fr 88px}
     .round{width:88px;height:88px}
+  }
+  /* short landscape screens (phones, embedded viewers): compress bench/shop
+     so the board keeps most of the height — keep this after the width query */
+  @media(max-height:520px){
+    .bench{grid-template-columns:repeat(6,40px);gap:4px;padding:4px 6px}
+    .slot{width:40px;height:44px}
+    .slot b{font-size:6px}
+    .round{width:54px;height:54px;font-size:8px}
+    .round small{font-size:8px}
+    .shop-row{grid-template-columns:54px 1fr 54px}
+    .card .pic{height:34px}
+    .card b{font-size:7px}
+    .battle{grid-template-columns:76px minmax(0,1fr) 76px}
+    .board-hint{display:none}
   }
 </style>
 </head>
