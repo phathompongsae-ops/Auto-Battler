@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>Auto Battler — Mobile Playtest V2</title>
+<style>
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#080604;touch-action:none;font-family:Arial,sans-serif}
+#stage{position:fixed;left:50%;top:50%;width:960px;height:540px;transform-origin:center;background:#14100c;box-shadow:0 0 40px #000}
+iframe{display:block;width:960px;height:540px;border:0;background:#14100c}
+#loading{position:fixed;inset:0;z-index:5;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:#14100c;color:#f0e6c8;text-align:center}
+#loading button{padding:12px 20px;border:2px solid #d7ad50;border-radius:10px;background:#372817;color:#fff3cc;font-weight:700}
+#rotate{display:none;position:fixed;inset:0;z-index:20;align-items:center;justify-content:center;text-align:center;padding:30px;background:#14100c;color:#f0e6c8;font-weight:700;font-size:22px;line-height:1.5}
+@media(orientation:portrait){#stage,#loading{display:none!important}#rotate{display:flex}}
+</style>
+</head>
+<body>
+<div id="loading"><div id="loadText">กำลังเปิดเกมเวอร์ชันทดสอบใหม่…</div><button id="directBtn" type="button">เปิดเกมโดยตรง</button></div>
+<div id="stage"><iframe id="game" src="autochess.html?build=playtest-mobile-v2-20260714" allow="fullscreen"></iframe></div>
+<div id="rotate">กรุณาหมุนมือถือเป็นแนวนอน<br>แล้วรีเฟรชอีกครั้ง</div>
+<script>
+(()=>{
+ const stage=document.getElementById('stage'),game=document.getElementById('game'),loading=document.getElementById('loading'),text=document.getElementById('loadText');
+ const core='autochess.html?build=playtest-mobile-v2-20260714';
+ function fit(){const s=Math.min(innerWidth/960,innerHeight/540);stage.style.transform=`translate(-50%,-50%) scale(${s})`;}
+ function done(){loading.style.display='none';}
+ game.addEventListener('load',()=>setTimeout(done,300),{once:true});
+ game.addEventListener('error',()=>{text.textContent='โหลดในกรอบไม่สำเร็จ กรุณากด “เปิดเกมโดยตรง”';});
+ document.getElementById('directBtn').onclick=()=>location.href=core;
+ setTimeout(()=>{if(loading.style.display!=='none')text.textContent='ใช้เวลานานผิดปกติ กรุณากด “เปิดเกมโดยตรง”';},7000);
+ addEventListener('resize',fit,{passive:true});addEventListener('orientationchange',()=>setTimeout(fit,150),{passive:true});fit();
+})();
+</script>
+</body>
+</html>
