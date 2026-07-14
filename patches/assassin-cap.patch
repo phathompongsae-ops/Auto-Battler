@@ -1,0 +1,13 @@
+*** Begin Patch
+*** Update File: autochess.html
+@@
+-  9:  [{ type:'SpiritArcher', count:3 }, { type:'ShadowAssassin', count:2 }],
++  9:  [{ type:'SpiritArcher', count:3 }, { type:'ShadowAssassin', count:1 }, { type:'Skeleton', count:1 }],
+@@
+-  11: [{ type:'Skeleton', count:4 }, { type:'ShadowAssassin', count:3 }],
+-  12: [{ type:'StoneWolf', count:3 }, { type:'SpiritArcher', count:3 }, { type:'ShadowAssassin', count:2 }],
+-  14: [{ type:'Skeleton', count:3 }, { type:'StoneWolf', count:3 }, { type:'SpiritArcher', count:2 }, { type:'ShadowAssassin', count:2 }],
++  11: [{ type:'Skeleton', count:6 }, { type:'ShadowAssassin', count:1 }],
++  12: [{ type:'StoneWolf', count:4 }, { type:'SpiritArcher', count:3 }, { type:'ShadowAssassin', count:1 }],
++  14: [{ type:'Skeleton', count:4 }, { type:'StoneWolf', count:3 }, { type:'SpiritArcher', count:2 }, { type:'ShadowAssassin', count:1 }],
+*** End Patch
