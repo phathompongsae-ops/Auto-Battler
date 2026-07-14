@@ -205,13 +205,48 @@
     {name:'Priestess',cls:'Mage',    tags:['Mage','Forest'],    color:'#2f8fd6', hair:'#efe6c8'}
   ];
 
+  /* real art assets (per-hero, optional) — heroes without files here keep the
+     canvas-drawn placeholder, and any fetch failure falls back the same way */
+  const HERO_ASSETS = {
+    Swordman:{face:'assets/v5/face_swordman.png', body:'assets/v5/body_swordman.png'}
+  };
+  const heroBitmaps = {}; // name -> {face:ImageBitmap, body:ImageBitmap}
+  function loadHeroAssets(){
+    Object.entries(HERO_ASSETS).forEach(([name, paths])=>{
+      heroBitmaps[name] = heroBitmaps[name] || {};
+      Object.entries(paths).forEach(([kind, url])=>{
+        fetch(url)
+          .then(r=>{ if(!r.ok) throw new Error(r.status); return r.blob(); })
+          .then(b=>createImageBitmap(b))
+          .then(bmp=>{
+            heroBitmaps[name][kind] = bmp;
+            renderAll();
+            if(refreshBoardSpritesFn) refreshBoardSpritesFn();
+          })
+          .catch(()=>{}); // keep placeholder art
+      });
+    });
+  }
+
   /* ============================== portrait drawing (canvas, no emoji) ============================== */
   const portraitCache = new Map();
   function facePortrait(hero, size){
-    const key = hero.name+'|f'+size;
+    const bmp = heroBitmaps[hero.name] && heroBitmaps[hero.name].face;
+    const key = hero.name+'|f'+size+(bmp?'|a':'');
     if(portraitCache.has(key)) return portraitCache.get(key);
     const c = document.createElement('canvas'); c.width=c.height=size;
     const ctx = c.getContext('2d');
+    if(bmp){
+      roundRect(ctx,0,0,size,size,size*.22); ctx.clip();
+      const grd0 = ctx.createLinearGradient(0,0,0,size);
+      grd0.addColorStop(0, shade(hero.color,10)); grd0.addColorStop(1, shade(hero.color,-40));
+      ctx.fillStyle = grd0; ctx.fillRect(0,0,size,size);
+      const s = Math.max(size/bmp.width, size/bmp.height);
+      const dw = bmp.width*s, dh = bmp.height*s;
+      ctx.drawImage(bmp, (size-dw)/2, (size-dh)/2, dw, dh);
+      portraitCache.set(key,c);
+      return c;
+    }
     const grd = ctx.createRadialGradient(size*.5,size*.5,2,size*.5,size*.5,size*.62);
     grd.addColorStop(0, shade(hero.color,18)); grd.addColorStop(1, shade(hero.color,-38));
     ctx.fillStyle = grd; roundRect(ctx,0,0,size,size,size*.22); ctx.fill();
@@ -238,8 +273,20 @@
   }
 
   function bodyPortrait(hero){
-    const key = hero.name+'|body';
+    const bmp = heroBitmaps[hero.name] && heroBitmaps[hero.name].body;
+    const key = hero.name+'|body'+(bmp?'|a':'');
     if(portraitCache.has(key)) return portraitCache.get(key);
+    if(bmp){
+      // higher-res canvas for real art; contain-fit, feet at the bottom edge
+      const W=256, H=384;
+      const c2 = document.createElement('canvas'); c2.width=W; c2.height=H;
+      const cx2 = c2.getContext('2d');
+      const s = Math.min(W/bmp.width, H/bmp.height);
+      const dw = bmp.width*s, dh = bmp.height*s;
+      cx2.drawImage(bmp, (W-dw)/2, H-dh, dw, dh);
+      portraitCache.set(key,c2);
+      return c2;
+    }
     const w=96,h=140;
     const c = document.createElement('canvas'); c.width=w; c.height=h;
     const ctx = c.getContext('2d');
@@ -668,6 +715,7 @@
   let placeHero = ()=>{};
   let startBattleFn = null;
   let combatView = []; // live ally units, read by renderTeam during combat
+  let refreshBoardSpritesFn = null; // swaps placed-sprite textures once real art loads
 
   function fallback(){
     const c = canvasEl, x = c.getContext('2d');
@@ -922,6 +970,15 @@
 
         board[r][c2] = {hero, sprite, shadow};
         state.boardCount++;
+      };
+
+      refreshBoardSpritesFn = function(){
+        for(let r=0;r<BOARD_N;r++) for(let c2=0;c2<BOARD_N;c2++){
+          const cell = board[r][c2];
+          if(!cell) continue;
+          cell.sprite.material.map = new THREE_.CanvasTexture(bodyPortrait(cell.hero));
+          cell.sprite.material.needsUpdate = true;
+        }
       };
 
       /* ================= combat engine (rules from COMBAT_DECISIONS.md) =================
@@ -1225,6 +1282,7 @@
   /* ============================== boot UI ============================== */
   refillOffers();
   renderAll();
+  loadHeroAssets();
 })();
 </script>
 </body>
