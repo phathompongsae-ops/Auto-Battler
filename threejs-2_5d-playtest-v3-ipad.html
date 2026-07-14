@@ -1,0 +1,81 @@
+<!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"><title>Auto Battler 2.5D V3 iPad</title><style>*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#07110d}iframe{position:fixed;inset:0;width:100%;height:100%;border:0;display:block;background:#07110d}</style></head><body><iframe id="game" src="threejs-2_5d-playtest-v2.html?v=3"></iframe><script>
+const frame=document.getElementById('game');
+frame.addEventListener('load',()=>{
+  const w=frame.contentWindow,d=w.document;
+  const css=d.createElement('style');
+  css.textContent=`
+    :root{--safe-bottom:max(env(safe-area-inset-bottom),12px)}
+    html,body{padding-bottom:0!important;overflow:hidden!important}
+    .shopbar,#shopbar,#bottom{
+      bottom:var(--safe-bottom)!important;
+      height:126px!important;
+      min-height:126px!important;
+      padding:7px 6px 10px!important;
+      overflow:visible!important;
+      z-index:30!important;
+    }
+    .bench,#bench{
+      bottom:calc(var(--safe-bottom) + 134px)!important;
+      z-index:31!important;
+    }
+    .start,#start{
+      bottom:calc(var(--safe-bottom) + 136px)!important;
+      z-index:35!important;
+    }
+    .shop,#shop{align-items:stretch!important;min-height:108px!important;overflow:visible!important}
+    .card{min-height:108px!important;padding:4px!important;display:flex!important;flex-direction:column!important;overflow:visible!important}
+    .portrait{height:52px!important;min-height:52px!important;border-radius:7px!important;background:linear-gradient(#35513c,#1d2d23)!important;overflow:hidden!important}
+    .portrait canvas{width:100%!important;height:100%!important;display:block!important}
+    .card b{font-size:10px!important;line-height:14px!important;margin-top:2px!important}
+    .card small{font-size:8px!important;line-height:11px!important}
+    .card button{display:block!important;visibility:visible!important;opacity:1!important;min-height:25px!important;margin-top:auto!important;padding:5px 3px!important;position:relative!important;z-index:40!important;pointer-events:auto!important;touch-action:manipulation!important}
+    .roundBtn{min-height:96px!important;align-self:center!important;touch-action:manipulation!important}
+    @media(max-height:650px){
+      .shopbar,#shopbar,#bottom{height:116px!important;min-height:116px!important}
+      .bench,#bench{bottom:calc(var(--safe-bottom) + 122px)!important}
+      .start,#start{bottom:calc(var(--safe-bottom) + 124px)!important}
+      .portrait{height:45px!important;min-height:45px!important}
+      .card{min-height:98px!important}
+    }
+  `;
+  d.head.appendChild(css);
+
+  function roundRect(ctx,x,y,w,h,r){r=Math.min(r,w/2,h/2);ctx.beginPath();ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.quadraticCurveTo(x+w,y,x+w,y+r);ctx.lineTo(x+w,y+h-r);ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);ctx.lineTo(x+r,y+h);ctx.quadraticCurveTo(x,y+h,x,y+h-r);ctx.lineTo(x,y+r);ctx.quadraticCurveTo(x,y,x+r,y);ctx.closePath()}
+  function faceCanvas(name){
+    const c=d.createElement('canvas');c.width=120;c.height=92;const x=c.getContext('2d');
+    const n=(name||'').toLowerCase();let hair='#5b3422',cloth='#436b9b',accent='#d7b65e',skin='#f2c6a2';
+    if(n.includes('arch')){hair='#d2a35f';cloth='#4d7a43';accent='#d8c46b'}
+    else if(n.includes('acol')){hair='#d9b77b';cloth='#efe1aa';accent='#76b879'}
+    else if(n.includes('mage')){hair='#3c274f';cloth='#624393';accent='#b27aff'}
+    else if(n.includes('wolf')||n.includes('beast')){hair='#37404c';cloth='#4e5968';accent='#d7aa58';skin='#727b86'}
+    else if(n.includes('orc')){hair='#263c20';cloth='#6f512f';accent='#d7a44e';skin='#79a653'}
+    x.clearRect(0,0,120,92);x.fillStyle='rgba(0,0,0,.24)';x.beginPath();x.ellipse(60,83,31,7,0,0,Math.PI*2);x.fill();
+    x.fillStyle=cloth;x.strokeStyle=accent;x.lineWidth=4;roundRect(x,30,47,60,39,14);x.fill();x.stroke();
+    x.fillStyle=skin;x.strokeStyle='#3a271d';x.lineWidth=3;x.beginPath();x.arc(60,35,23,0,Math.PI*2);x.fill();x.stroke();
+    x.fillStyle=hair;x.beginPath();x.arc(60,30,25,Math.PI,0);x.lineTo(85,42);x.quadraticCurveTo(72,25,60,31);x.quadraticCurveTo(48,25,35,43);x.closePath();x.fill();
+    if(n.includes('mage')){x.fillStyle='#3a2454';x.beginPath();x.moveTo(32,38);x.lineTo(60,4);x.lineTo(88,38);x.closePath();x.fill();x.fillStyle='#d4a8ff';x.beginPath();x.arc(91,25,6,0,Math.PI*2);x.fill()}
+    if(n.includes('arch')){x.strokeStyle='#d8bd68';x.lineWidth=3;x.beginPath();x.arc(88,50,22,-1.1,1.1);x.stroke()}
+    if(n.includes('sword')){x.strokeStyle='#e6edf0';x.lineWidth=5;x.beginPath();x.moveTo(91,8);x.lineTo(72,68);x.stroke()}
+    if(n.includes('acol')){x.fillStyle='#78c979';x.beginPath();x.arc(84,17,7,0,Math.PI*2);x.fill();x.beginPath();x.arc(92,23,5,0,Math.PI*2);x.fill()}
+    x.fillStyle='#201715';x.beginPath();x.arc(52,37,2.5,0,Math.PI*2);x.arc(68,37,2.5,0,Math.PI*2);x.fill();x.strokeStyle='#8b4f47';x.lineWidth=2;x.beginPath();x.arc(60,44,7,.2,2.9);x.stroke();
+    return c;
+  }
+  function applyPortraits(){
+    d.querySelectorAll('.card').forEach(card=>{
+      const name=(card.querySelector('b')?.textContent||card.textContent||'Hero').trim();
+      const p=card.querySelector('.portrait');
+      if(p&&!p.dataset.faceApplied){p.innerHTML='';p.appendChild(faceCanvas(name));p.dataset.faceApplied='1'}
+    });
+    d.querySelectorAll('.slot').forEach(slot=>{
+      const name=(slot.querySelector('b')?.textContent||'Hero').trim();
+      if(name&&slot.classList.contains('filled')&&!slot.dataset.faceApplied){
+        [...slot.children].filter(e=>e.tagName==='CANVAS').forEach(e=>e.remove());
+        const cv=faceCanvas(name);cv.style.width='100%';cv.style.height='100%';slot.insertBefore(cv,slot.firstChild);slot.dataset.faceApplied='1';
+      }
+    });
+  }
+  applyPortraits();
+  new MutationObserver(()=>requestAnimationFrame(applyPortraits)).observe(d.body,{childList:true,subtree:true});
+  d.addEventListener('touchend',e=>{const b=e.target.closest?.('.card button');if(b){e.preventDefault();b.click()}},{passive:false});
+});
+</script></body></html>
