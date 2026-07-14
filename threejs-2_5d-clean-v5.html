@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <title>Auto Battler 2.5D — Clean V5</title>
 <style>
-  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
   html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#07120d;color:#f7e7ba;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;touch-action:none}
 
   /* ---------- App grid: 4 real rows, no absolute overlays on the board ---------- */
@@ -77,6 +77,8 @@
   .card.empty{visibility:hidden}
 
   .start{position:relative;pointer-events:auto;border:1px solid #a77d37;border-radius:8px;background:linear-gradient(#dba43b,#a2701e);color:#2a1a05;padding:7px 10px;font-weight:900;font-size:10px;margin-left:auto}
+  .start:disabled{opacity:.55}
+  .pill.wave{border-color:#c9a04c;background:linear-gradient(#33270f,#1d160a);font-size:12px}
   .hud .start{margin:0}
 
   .toast{position:fixed;left:50%;top:14%;transform:translateX(-50%);max-width:80%;padding:10px 14px;border:1px solid #c28f46;border-radius:10px;background:#17130fed;text-align:center;font-size:12px;z-index:60;display:none;pointer-events:none}
@@ -100,6 +102,8 @@
     <div class="pill">Lv.<b id="lv">1</b><span class="xpbar"><i id="xpbar" style="width:0%"></i></span><b id="xp">0/4</b></div>
     <div class="pill">💰 <b id="gold">3</b></div>
     <div class="pill">👥 <b id="used">0</b>/<b id="cap">1</b></div>
+    <div class="grow"></div>
+    <div class="pill wave">WAVE <b id="wave">1</b></div>
     <div class="grow"></div>
     <div class="right-btns">
       <button class="btn" id="speed">×1</button>
@@ -268,6 +272,96 @@
     return c;
   }
 
+  // forest-themed monster sprites, drawn with canvas like the hero bodies
+  function monsterBody(type){
+    const key = 'mon|'+type;
+    if(portraitCache.has(key)) return portraitCache.get(key);
+    const w=96,h=140;
+    const c = document.createElement('canvas'); c.width=w; c.height=h;
+    const ctx = c.getContext('2d');
+    if(type==='Slime'){
+      const g = ctx.createRadialGradient(w*.5,h*.62,6,w*.5,h*.66,w*.5);
+      g.addColorStop(0,'#8ce07f'); g.addColorStop(1,'#3f9c34');
+      ctx.fillStyle=g;
+      ctx.beginPath();ctx.ellipse(w*.5,h*.66,w*.40,h*.30,0,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='rgba(255,255,255,.45)';
+      ctx.beginPath();ctx.ellipse(w*.36,h*.52,w*.10,h*.06,-.5,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='#173a12';
+      ctx.beginPath();ctx.ellipse(w*.40,h*.62,w*.045,h*.045,0,0,Math.PI*2);ctx.fill();
+      ctx.beginPath();ctx.ellipse(w*.60,h*.62,w*.045,h*.045,0,0,Math.PI*2);ctx.fill();
+      ctx.strokeStyle='#173a12';ctx.lineWidth=3;
+      ctx.beginPath();ctx.arc(w*.5,h*.70,w*.08,.15*Math.PI,.85*Math.PI);ctx.stroke();
+    } else if(type==='Wolf'){
+      ctx.fillStyle='#6f7480';
+      ctx.beginPath();ctx.ellipse(w*.5,h*.66,w*.30,h*.22,0,0,Math.PI*2);ctx.fill(); // body
+      ctx.fillStyle='#8a8f9c';
+      ctx.beginPath();ctx.ellipse(w*.5,h*.36,w*.24,h*.17,0,0,Math.PI*2);ctx.fill(); // head
+      // ears
+      ctx.fillStyle='#5b606c';
+      ctx.beginPath();ctx.moveTo(w*.32,h*.28);ctx.lineTo(w*.38,h*.10);ctx.lineTo(w*.46,h*.24);ctx.closePath();ctx.fill();
+      ctx.beginPath();ctx.moveTo(w*.68,h*.28);ctx.lineTo(w*.62,h*.10);ctx.lineTo(w*.54,h*.24);ctx.closePath();ctx.fill();
+      // snout
+      ctx.fillStyle='#c7cad2';
+      ctx.beginPath();ctx.ellipse(w*.5,h*.44,w*.11,h*.07,0,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='#2c2f36';
+      ctx.beginPath();ctx.ellipse(w*.5,h*.42,w*.035,h*.025,0,0,Math.PI*2);ctx.fill();
+      // eyes
+      ctx.fillStyle='#f5d95a';
+      ctx.beginPath();ctx.ellipse(w*.40,h*.33,w*.04,h*.03,0,0,Math.PI*2);ctx.fill();
+      ctx.beginPath();ctx.ellipse(w*.60,h*.33,w*.04,h*.03,0,0,Math.PI*2);ctx.fill();
+      // legs
+      ctx.fillStyle='#5b606c';
+      ctx.fillRect(w*.32,h*.80,w*.10,h*.16);
+      ctx.fillRect(w*.58,h*.80,w*.10,h*.16);
+    } else if(type==='Imp'){
+      ctx.fillStyle='#7a3fb5';
+      roundRect(ctx,w*.32,h*.44,w*.36,h*.32,w*.09);ctx.fill(); // robe body
+      ctx.fillStyle='#9a5bd6';
+      ctx.beginPath();ctx.ellipse(w*.5,h*.30,w*.21,h*.15,0,0,Math.PI*2);ctx.fill(); // head
+      // horns
+      ctx.fillStyle='#e8d9a0';
+      ctx.beginPath();ctx.moveTo(w*.34,h*.24);ctx.lineTo(w*.26,h*.08);ctx.lineTo(w*.42,h*.18);ctx.closePath();ctx.fill();
+      ctx.beginPath();ctx.moveTo(w*.66,h*.24);ctx.lineTo(w*.74,h*.08);ctx.lineTo(w*.58,h*.18);ctx.closePath();ctx.fill();
+      // glowing eyes
+      ctx.fillStyle='#ffd95a';
+      ctx.beginPath();ctx.ellipse(w*.42,h*.30,w*.04,h*.035,0,0,Math.PI*2);ctx.fill();
+      ctx.beginPath();ctx.ellipse(w*.58,h*.30,w*.04,h*.035,0,0,Math.PI*2);ctx.fill();
+      // little wings
+      ctx.fillStyle='#5c2f8a';
+      ctx.beginPath();ctx.moveTo(w*.30,h*.50);ctx.lineTo(w*.10,h*.42);ctx.lineTo(w*.28,h*.62);ctx.closePath();ctx.fill();
+      ctx.beginPath();ctx.moveTo(w*.70,h*.50);ctx.lineTo(w*.90,h*.42);ctx.lineTo(w*.72,h*.62);ctx.closePath();ctx.fill();
+      // legs
+      ctx.fillStyle='#4a2570';
+      ctx.fillRect(w*.38,h*.74,w*.09,h*.20);
+      ctx.fillRect(w*.53,h*.74,w*.09,h*.20);
+    } else { // Orc
+      ctx.fillStyle='#4a3324';
+      ctx.fillRect(w*.34,h*.72,w*.12,h*.24);
+      ctx.fillRect(w*.54,h*.72,w*.12,h*.24); // legs
+      ctx.fillStyle='#6b4a2c';
+      roundRect(ctx,w*.26,h*.42,w*.48,h*.36,w*.10);ctx.fill(); // armor torso
+      ctx.fillStyle='#5f9e3f';
+      ctx.fillRect(w*.14,h*.46,w*.13,h*.26);
+      ctx.fillRect(w*.73,h*.46,w*.13,h*.26); // arms
+      ctx.beginPath();ctx.ellipse(w*.5,h*.24,w*.24,h*.165,0,0,Math.PI*2);ctx.fill(); // head
+      // tusks
+      ctx.fillStyle='#f2ead0';
+      ctx.beginPath();ctx.moveTo(w*.40,h*.32);ctx.lineTo(w*.37,h*.24);ctx.lineTo(w*.45,h*.29);ctx.closePath();ctx.fill();
+      ctx.beginPath();ctx.moveTo(w*.60,h*.32);ctx.lineTo(w*.63,h*.24);ctx.lineTo(w*.55,h*.29);ctx.closePath();ctx.fill();
+      // angry eyes
+      ctx.fillStyle='#2b1b10';
+      ctx.beginPath();ctx.ellipse(w*.42,h*.22,w*.035,h*.022,-.3,0,Math.PI*2);ctx.fill();
+      ctx.beginPath();ctx.ellipse(w*.58,h*.22,w*.035,h*.022,.3,0,Math.PI*2);ctx.fill();
+      // axe accent
+      ctx.strokeStyle='#8a6a2a';ctx.lineWidth=5;ctx.lineCap='round';
+      ctx.beginPath();ctx.moveTo(w*.84,h*.40);ctx.lineTo(w*.84,h*.68);ctx.stroke();
+      ctx.fillStyle='#c9ccd4';
+      ctx.beginPath();ctx.arc(w*.84,h*.40,w*.10,-Math.PI*.9,Math.PI*.1);ctx.fill();
+    }
+    portraitCache.set(key,c);
+    return c;
+  }
+
   /* ============================== game state ============================== */
   const XP_NEED = {1:4,2:8,3:12,4:16};
   const BOARD_N = 8;
@@ -278,7 +372,10 @@
     bench:new Array(6).fill(null),
     offers:[],
     boardCount:0,
-    selectedBench:-1
+    selectedBench:-1,
+    wave:1,
+    phase:'prep', // 'prep' | 'combat'
+    speedMul:1
   };
   const board = []; // board[r][c] = {hero, sprite, shadow} | null
   for(let r=0;r<BOARD_N;r++){ board.push(new Array(BOARD_N).fill(null)); }
@@ -289,6 +386,7 @@
   /* ============================== rendering: HUD / bench / shop / synergy / team ============================== */
   function renderHUD(){
     q('gold').textContent = state.gold;
+    q('wave').textContent = state.wave;
     q('lv').textContent = state.level;
     q('cap').textContent = state.level;
     q('used').textContent = state.boardCount;
@@ -385,15 +483,22 @@
   function renderTeam(){
     const panel = q('teamPanel');
     panel.querySelectorAll('.team-row').forEach(el=>el.remove());
-    const list = ownedHeroes();
-    q('teamEmpty').style.display = list.length ? 'none' : 'block';
-    list.forEach(hero=>{
+    let rows;
+    if(state.phase==='combat' && combatView.length){
+      rows = combatView.map(u=>({hero:u.hero, ratio:Math.max(0,u.hp/u.maxHp), dead:u.dead}));
+      state.bench.forEach(h=>{ if(h) rows.push({hero:h, ratio:1, dead:false}); });
+    } else {
+      rows = ownedHeroes().map(h=>({hero:h, ratio:1, dead:false}));
+    }
+    q('teamEmpty').style.display = rows.length ? 'none' : 'block';
+    rows.forEach(({hero,ratio,dead})=>{
       const row = document.createElement('div'); row.className='team-row';
+      if(dead) row.style.opacity='.35';
       row.appendChild(cloneCanvas(facePortrait(hero,44)));
       const hp = document.createElement('div'); hp.className='team-hp';
       const b = document.createElement('b'); b.textContent = hero.name;
       const bar = document.createElement('div'); bar.className='bar';
-      const i = document.createElement('i'); i.style.width='100%';
+      const i = document.createElement('i'); i.style.width=(ratio*100)+'%';
       bar.appendChild(i); hp.appendChild(b); hp.appendChild(bar);
       row.appendChild(hp);
       panel.appendChild(row);
@@ -427,16 +532,18 @@
     renderAll();
   };
   q('start').onclick = ()=>{
+    if(state.phase!=='prep') return;
     if(state.boardCount<1){ toast('ต้องวางฮีโร่ลงกระดานอย่างน้อย 1 ตัวก่อนเริ่มต่อสู้'); return; }
-    toast('เริ่มต่อสู้! (ระบบคำนวณการต่อสู้จะเพิ่มในขั้นถัดไป)', 2200);
+    if(!startBattleFn){ toast('โหมดกระดานสำรองยังไม่รองรับการต่อสู้'); return; }
+    startBattleFn();
   };
   q('reset').onclick = ()=>{
     if(!confirm('รีเซ็ตเกม?')) return;
     location.reload();
   };
   q('speed').onclick = ()=>{
-    const cur = q('speed').textContent;
-    q('speed').textContent = cur==='×1' ? '×2' : (cur==='×2' ? '×4' : '×1');
+    state.speedMul = state.speedMul===1 ? 2 : (state.speedMul===2 ? 4 : 1);
+    q('speed').textContent = '×'+state.speedMul;
   };
 
   /* ============================== bench pointer: drag + tap-select ============================== */
@@ -448,9 +555,14 @@
     return el ? parseInt(el.dataset.benchIndex,10) : -1;
   }
 
+  // native drag/selection gestures fire pointercancel mid-drag — suppress them
+  document.addEventListener('dragstart', e=>e.preventDefault());
+
   q('bench').addEventListener('pointerdown', e=>{
+    if(state.phase!=='prep') return;
     const idx = benchIndexFromEl(e.target);
     if(idx===-1 || !state.bench[idx]) return;
+    e.preventDefault();
     dragState = {benchIndex:idx, startX:e.clientX, startY:e.clientY, moved:false, pointerId:e.pointerId, ghostEl:null};
   });
 
@@ -525,6 +637,7 @@
 
   /* ============================== placement logic ============================== */
   function tryPlaceAtScreenPoint(benchIndex, clientX, clientY){
+    if(state.phase!=='prep'){ toast('วางตัวได้เฉพาะช่วงเตรียมทีม'); return; }
     const hero = state.bench[benchIndex];
     if(!hero) return;
     const rect = canvasEl.getBoundingClientRect();
@@ -553,9 +666,12 @@
   let pickTile = ()=>null;
   let highlightValidTiles = ()=>{};
   let placeHero = ()=>{};
+  let startBattleFn = null;
+  let combatView = []; // live ally units, read by renderTeam during combat
 
   function fallback(){
     const c = canvasEl, x = c.getContext('2d');
+    if(!x){ toast('ไม่สามารถเปิดโหมดกระดานสำรองได้', 3000); return; }
     const wrap = q('boardWrap');
     function draw(){
       const w = wrap.clientWidth, h = wrap.clientHeight;
@@ -753,7 +869,18 @@
       new ResizeObserver(resize).observe(wrap);
       resize();
 
-      (function anim(){ requestAnimationFrame(anim); renderer.render(scene,camera); })();
+      let lastT = performance.now();
+      function anim(){
+        requestAnimationFrame(anim);
+        const now = performance.now();
+        const dt = Math.min(.05, (now-lastT)/1000);
+        lastT = now;
+        updateCombat(dt*state.speedMul);
+        renderer.render(scene,camera);
+      }
+      // first frame is scheduled (not invoked) so the combat engine's
+      // let-bindings below are initialized before updateCombat ever runs
+      requestAnimationFrame(anim);
 
       /* ---- raycasting from canvas.getBoundingClientRect() ---- */
       const raycaster = new THREE_.Raycaster();
@@ -795,6 +922,298 @@
 
         board[r][c2] = {hero, sprite, shadow};
         state.boardCount++;
+      };
+
+      /* ================= combat engine (rules from COMBAT_DECISIONS.md) =================
+         - melee adjacency uses Chebyshev distance (diagonals count as adjacent)
+         - movement/pathfinding is 4-directional BFS, units never share or swap tiles
+         - targets are locked and re-evaluated every 0.4s or when the target dies
+         - tie-breaks: higher threat > shorter path > lower HP% > row/col
+         - ranged attacks ignore line of sight; projectiles home and die with their target
+         - no kiting: ranged units stand and fight when engaged
+         - attack speed hard-capped at 3 hits/sec */
+      const STATS = {
+        Warrior:{hp:115, atk:12, range:1, aspd:1.0, threat:1.6, ms:2.2},
+        Ranger: {hp:75,  atk:10, range:4, aspd:1.2, threat:1.0, ms:2.4},
+        Mage:   {hp:80,  atk:11, range:3, aspd:0.9, threat:1.0, ms:2.0}
+      };
+      const MONSTERS = {
+        Slime:{hp:55,  atk:6,  range:1, aspd:0.8, threat:1.0, ms:1.6},
+        Wolf: {hp:70,  atk:7,  range:1, aspd:1.0, threat:1.0, ms:2.8},
+        Imp:  {hp:60,  atk:8,  range:3, aspd:1.0, threat:1.0, ms:2.0},
+        Orc:  {hp:130, atk:13, range:1, aspd:0.8, threat:1.6, ms:1.8}
+      };
+      const ATK_MIN_INTERVAL = 1/3;
+
+      let combatRunning = false;
+      const allies=[], enemies=[], projectiles=[], floaties=[];
+      const occ = [];
+      for(let r=0;r<BOARD_N;r++) occ.push(new Array(BOARD_N).fill(null));
+      let teamPanelTimer = 0;
+
+      function tilePos(r,c2){ return {x:(c2-3.5)*TILE, z:(r-3.5)*TILE}; }
+      function cheb(a,b){ return Math.max(Math.abs(a.r-b.r), Math.abs(a.c-b.c)); }
+
+      function makeHpBar(){
+        const cv = document.createElement('canvas'); cv.width=64; cv.height=10;
+        const tex = new THREE_.CanvasTexture(cv);
+        const sp = new THREE_.Sprite(new THREE_.SpriteMaterial({map:tex, transparent:true, depthTest:false}));
+        sp.scale.set(.8,.12,1);
+        return {cv, tex, sp};
+      }
+      function drawHpBar(bar, ratio, isAlly){
+        const x = bar.cv.getContext('2d');
+        x.clearRect(0,0,64,10);
+        x.fillStyle='#111'; x.fillRect(0,0,64,10);
+        x.fillStyle = isAlly ? '#58d24a' : '#e04a3a';
+        x.fillRect(1,1,62*Math.max(0,Math.min(1,ratio)),8);
+        bar.tex.needsUpdate = true;
+      }
+
+      function spawnFloatie(text, pos, color){
+        const cv = document.createElement('canvas'); cv.width=128; cv.height=64;
+        const x = cv.getContext('2d');
+        x.font='900 40px system-ui'; x.textAlign='center';
+        x.strokeStyle='#000'; x.lineWidth=6; x.strokeText(text,64,44);
+        x.fillStyle=color; x.fillText(text,64,44);
+        const sp = new THREE_.Sprite(new THREE_.SpriteMaterial({map:new THREE_.CanvasTexture(cv), transparent:true, depthTest:false}));
+        sp.scale.set(1.1,.55,1);
+        sp.position.set(pos.x, 1.55, pos.z);
+        scene.add(sp);
+        floaties.push({sp, t:0});
+      }
+
+      function makeUnit(def, team, r, c2, sprite, shadow, hero){
+        const u = {
+          team, r, c:c2,
+          hp:def.hp, maxHp:def.hp, atk:def.atk, range:def.range,
+          interval:Math.max(1/def.aspd, ATK_MIN_INTERVAL), threat:def.threat, ms:def.ms,
+          cd:Math.random()*.3, retarget:0, wait:0, target:null, path:null, move:null, dead:false,
+          sprite, shadow, hero:hero||null, bar:makeHpBar()
+        };
+        u.bar.sp.position.set(sprite.position.x, sprite.position.y+.95, sprite.position.z);
+        drawHpBar(u.bar, 1, team==='ally');
+        scene.add(u.bar.sp);
+        occ[r][c2] = u;
+        return u;
+      }
+
+      function setUnitPos(u, x, z){
+        u.sprite.position.x=x; u.sprite.position.z=z;
+        u.shadow.position.x=x; u.shadow.position.z=z;
+        u.bar.sp.position.set(x, u.sprite.position.y+.95, z);
+      }
+
+      // BFS (4-dir) to the closest tile from which the target is within attack range
+      function bfsToAttack(u, target){
+        const inRange = (r,c2)=>Math.max(Math.abs(r-target.r),Math.abs(c2-target.c))<=u.range;
+        if(inRange(u.r,u.c)) return [];
+        const prev = {}, seen = new Set([u.r+','+u.c]);
+        const queue = [{r:u.r,c:u.c}];
+        while(queue.length){
+          const cur = queue.shift();
+          for(const [dr,dc] of [[1,0],[-1,0],[0,1],[0,-1]]){
+            const nr=cur.r+dr, nc=cur.c+dc, k=nr+','+nc;
+            if(nr<0||nr>=BOARD_N||nc<0||nc>=BOARD_N||seen.has(k)) continue;
+            if(occ[nr][nc]) continue;
+            seen.add(k); prev[k]=cur;
+            const node = {r:nr,c:nc};
+            if(inRange(nr,nc)){
+              const path=[node]; let p=cur;
+              while(p && !(p.r===u.r && p.c===u.c)){ path.unshift(p); p=prev[p.r+','+p.c]; }
+              return path;
+            }
+            queue.push(node);
+          }
+        }
+        return null; // unreachable — not a valid primary target
+      }
+
+      function pickTarget(u, foes){
+        const cands = [];
+        for(const f of foes){
+          if(f.dead) continue;
+          const path = bfsToAttack(u, f);
+          if(path===null) continue;
+          cands.push({f, path});
+        }
+        if(!cands.length) return null;
+        cands.sort((a,b)=>
+          (b.f.threat-a.f.threat) ||
+          (a.path.length-b.path.length) ||
+          (a.f.hp/a.f.maxHp - b.f.hp/b.f.maxHp) ||
+          (a.f.r-b.f.r) || (a.f.c-b.f.c));
+        return cands[0];
+      }
+
+      function kill(u){
+        u.dead = true;
+        if(occ[u.r][u.c]===u) occ[u.r][u.c]=null;
+        u.sprite.visible=false; u.shadow.visible=false; u.bar.sp.visible=false;
+      }
+
+      function applyDamage(target, dmg){
+        if(target.dead) return;
+        target.hp -= dmg;
+        drawHpBar(target.bar, target.hp/target.maxHp, target.team==='ally');
+        spawnFloatie('-'+dmg, target.sprite.position, target.team==='ally' ? '#ff8a8a' : '#ffe08a');
+        if(target.hp<=0) kill(target);
+      }
+
+      const projTexCache = {};
+      function projTexture(team){
+        if(projTexCache[team]) return projTexCache[team];
+        const cv = document.createElement('canvas'); cv.width=cv.height=32;
+        const x = cv.getContext('2d');
+        const g = x.createRadialGradient(16,16,2,16,16,14);
+        g.addColorStop(0,'#ffffff');
+        g.addColorStop(1, team==='ally' ? '#8ad4ff' : '#ff9a5a');
+        x.fillStyle=g; x.beginPath(); x.arc(16,16,14,0,Math.PI*2); x.fill();
+        projTexCache[team] = new THREE_.CanvasTexture(cv);
+        return projTexCache[team];
+      }
+      function spawnProjectile(u, target){
+        const sp = new THREE_.Sprite(new THREE_.SpriteMaterial({map:projTexture(u.team), transparent:true, depthTest:false}));
+        sp.scale.set(.3,.3,1);
+        sp.position.copy(u.sprite.position); sp.position.y = 1.0;
+        scene.add(sp);
+        projectiles.push({sp, target, dmg:u.atk, speed:9});
+      }
+
+      function updateUnit(u, dt, foes){
+        if(u.dead) return;
+        u.cd -= dt; u.retarget -= dt;
+        if(u.move){ // finish the current tile step before deciding anything else
+          u.move.t += dt*u.ms;
+          const k = Math.min(1, u.move.t);
+          const from = tilePos(u.move.fr,u.move.fc), to = tilePos(u.move.tr,u.move.tc);
+          setUnitPos(u, from.x+(to.x-from.x)*k, from.z+(to.z-from.z)*k);
+          if(k>=1) u.move=null;
+          return;
+        }
+        if(u.retarget<=0 || !u.target || u.target.dead){
+          const res = pickTarget(u, foes);
+          u.retarget = 0.4;
+          if(res){ u.target=res.f; u.path=res.path; }
+          else { u.target=null; u.path=null; return; }
+        }
+        if(cheb(u,u.target)<=u.range){
+          u.path=null;
+          if(u.cd<=0){
+            u.cd = u.interval;
+            if(u.range<=1) applyDamage(u.target, u.atk);
+            else spawnProjectile(u, u.target);
+          }
+          return;
+        }
+        if(u.path && u.path.length){
+          const next = u.path[0];
+          if(occ[next.r][next.c]){ // blocked: wait briefly, then re-path (decision #10)
+            u.wait += dt;
+            if(u.wait>.3){ u.wait=0; u.retarget=0; u.path=null; }
+            return;
+          }
+          occ[u.r][u.c]=null; occ[next.r][next.c]=u;
+          u.move={fr:u.r, fc:u.c, tr:next.r, tc:next.c, t:0};
+          u.r=next.r; u.c=next.c;
+          u.path.shift();
+        } else {
+          u.retarget = 0;
+        }
+      }
+
+      function spawnWave(){
+        const pool = state.wave>=4 ? ['Slime','Wolf','Imp','Orc']
+                   : state.wave>=2 ? ['Slime','Wolf','Imp']
+                   : ['Slime','Wolf'];
+        const n = Math.min(state.wave, 5); // wave 1 = 1v1 at board level 1, scales with player progression
+        for(let i=0;i<n;i++){
+          const type = pool[Math.floor(Math.random()*pool.length)];
+          let r, c2, guard=0;
+          do{ r=Math.floor(Math.random()*3); c2=Math.floor(Math.random()*BOARD_N); }
+          while(occ[r][c2] && ++guard<100);
+          if(occ[r][c2]) continue;
+          const tex = new THREE_.CanvasTexture(monsterBody(type));
+          const spr = new THREE_.Sprite(new THREE_.SpriteMaterial({map:tex, transparent:true}));
+          spr.scale.set(.95,1.4,1);
+          const p = tilePos(r,c2);
+          spr.position.set(p.x,.78,p.z);
+          const sh = new THREE_.Mesh(new THREE_.CircleGeometry(.32,20), new THREE_.MeshBasicMaterial({color:0x000000, transparent:true, opacity:.35}));
+          sh.rotation.x=-Math.PI/2; sh.position.set(p.x,.07,p.z);
+          scene.add(spr, sh);
+          enemies.push(makeUnit(MONSTERS[type], 'enemy', r, c2, spr, sh));
+        }
+      }
+
+      function endBattle(win){
+        combatRunning = false; state.phase='prep'; combatView=[];
+        projectiles.forEach(p=>scene.remove(p.sp)); projectiles.length=0;
+        floaties.forEach(f=>scene.remove(f.sp)); floaties.length=0;
+        enemies.forEach(e=>{ scene.remove(e.sprite); scene.remove(e.shadow); scene.remove(e.bar.sp); });
+        enemies.length=0;
+        allies.forEach(a=>{
+          scene.remove(a.bar.sp);
+          a.sprite.visible=true; a.shadow.visible=true;
+          const p = tilePos(a.home.r, a.home.c);
+          a.sprite.position.set(p.x,.78,p.z);
+          a.shadow.position.set(p.x,.07,p.z);
+        });
+        allies.length=0;
+        for(let r=0;r<BOARD_N;r++) for(let c2=0;c2<BOARD_N;c2++) occ[r][c2]=null;
+        q('start').disabled=false; q('start').textContent='เริ่มต่อสู้';
+        if(win){ state.gold+=5; state.wave++; toast('ชนะ Wave '+(state.wave-1)+'! ได้ 5 ทอง', 2200); }
+        else { state.gold+=2; toast('แพ้... ได้ปลอบใจ 2 ทอง ลองจัดทัพใหม่', 2200); }
+        renderAll();
+      }
+
+      function updateCombat(dt){
+        if(!combatRunning) return;
+        allies.forEach(u=>updateUnit(u, dt, enemies));
+        enemies.forEach(u=>updateUnit(u, dt, allies));
+        for(let i=projectiles.length-1;i>=0;i--){
+          const p = projectiles[i];
+          if(p.target.dead){ scene.remove(p.sp); projectiles.splice(i,1); continue; }
+          const tp = p.target.sprite.position;
+          const dx=tp.x-p.sp.position.x, dy=(tp.y+.1)-p.sp.position.y, dz=tp.z-p.sp.position.z;
+          const dist = Math.hypot(dx,dy,dz);
+          const step = p.speed*dt;
+          if(dist<=Math.max(step,.15)){
+            applyDamage(p.target, p.dmg);
+            scene.remove(p.sp); projectiles.splice(i,1);
+          } else {
+            p.sp.position.x+=dx/dist*step; p.sp.position.y+=dy/dist*step; p.sp.position.z+=dz/dist*step;
+          }
+        }
+        for(let i=floaties.length-1;i>=0;i--){
+          const f = floaties[i];
+          f.t += dt;
+          f.sp.position.y += dt*.9;
+          f.sp.material.opacity = Math.max(0, 1-f.t/.7);
+          if(f.t>.7){ scene.remove(f.sp); floaties.splice(i,1); }
+        }
+        teamPanelTimer -= dt;
+        if(teamPanelTimer<=0){ teamPanelTimer=.3; renderTeam(); }
+        if(enemies.length && enemies.every(e=>e.dead)) return endBattle(true);
+        if(allies.every(a=>a.dead)) return endBattle(false);
+      }
+
+      startBattleFn = function(){
+        if(combatRunning) return;
+        for(let r=0;r<BOARD_N;r++) for(let c2=0;c2<BOARD_N;c2++) occ[r][c2]=null;
+        allies.length=0; enemies.length=0;
+        for(let r=0;r<BOARD_N;r++) for(let c2=0;c2<BOARD_N;c2++){
+          const cell = board[r][c2];
+          if(cell){
+            const u = makeUnit(STATS[cell.hero.cls], 'ally', r, c2, cell.sprite, cell.shadow, cell.hero);
+            u.home = {r, c:c2};
+            allies.push(u);
+          }
+        }
+        spawnWave();
+        combatRunning = true; state.phase='combat'; combatView=allies;
+        state.selectedBench=-1; highlightValidTiles(false);
+        q('start').disabled=true; q('start').textContent='กำลังต่อสู้...';
+        renderBench(); renderTeam();
       };
 
     }catch(e){
