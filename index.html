@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Auto Battler — เฟส 1 (สไปรท์จริง)</title>
+<style>
+  html, body { margin: 0; padding: 0; overflow: hidden; background: #14100c; }
+  canvas { display: block; }
+  #hud {
+    position: fixed; top: 8px; left: 8px; color: #d7c9a7;
+    font-family: monospace; font-size: 14px; background: rgba(20,14,8,0.65);
+    padding: 8px 12px; border-radius: 4px; border: 1px solid #5a4a32;
+    pointer-events: none; line-height: 1.6;
+  }
+  #banner {
+    position: fixed; top: 40%; left: 50%; transform: translate(-50%,-50%);
+    color: #f0e6c8; font-family: monospace; font-size: 32px; font-weight: bold;
+    background: rgba(24,17,10,0.9); padding: 20px 40px; border-radius: 8px;
+    border: 2px solid #8a7a5a; display: none; text-align: center;
+  }
+  #restart {
+    position: fixed; top: 58%; left: 50%; transform: translateX(-50%);
+    font-family: monospace; font-size: 16px; padding: 10px 24px;
+    background: #6b5d42; color: #f0e6c8; border: 1px solid #a89468;
+    border-radius: 6px; cursor: pointer; display: none;
+  }
+  #loading {
+    position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
+    color: #d7c9a7; font-family: monospace; font-size: 18px; background: #14100c; z-index: 10;
+  }
+</style>
+</head>
+<body>
+<div id="loading">กำลังโหลดสไปรท์...</div>
+<div id="hud"></div>
+<div id="banner"></div>
+<button id="restart" onclick="location.reload()">สู้อีกครั้ง</button>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// ============================================================
+// CONFIG (ตามเกณฑ์เฟส 1: 2 ทีมสู้กันอัตโนมัติจนจบด่าน)
+// ============================================================
+const GRID = 8;
+const TILE = 1;
+const STAGE_TIME = 60;
+const CAMERA_ANGLE_DEG = 55;
+const CAMERA_YAW_DEG = 15;
+const CAMERA_ZOOM = 5.8;
+
+// ============================================================
+// RENDERER / SCENE / CAMERA
+// ============================================================
+const renderer = new THREE.WebGLRenderer({ antialias: false });
+renderer.setPixelRatio(1);
+renderer.setSize(window.innerWidth, window.innerHeight);
+document.body.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x1c1510);          // ค่ำมืดแบบซากโบราณ
+scene.fog = new THREE.Fog(0x1c1510, 18, 34);           // หมอกไกลๆ ให้ขอบสนามจมมืด
+
+const aspect = window.innerWidth / window.innerHeight;
+const camera = new THREE.OrthographicCamera(
+  -CAMERA_ZOOM * aspect, CAMERA_ZOOM * aspect, CAMERA_ZOOM, -CAMERA_ZOOM, 0.1, 1000);
+const camDist = 20;
+const aR = THREE.MathUtils.degToRad(CAMERA_ANGLE_DEG);
+const yR = THREE.MathUtils.degToRad(CAMERA_YAW_DEG);
+camera.position.set(camDist*Math.cos(aR)*Math.cos(yR), camDist*Math.sin(aR), camDist*Math.cos(aR)*Math.sin(yR));
+camera.lookAt(0, 0, 0);
+
+// แสงโทนคบเพลิง: อุ่นจากมุมหนึ่ง เย็นจางๆ ทั้งฉาก
+scene.add(new THREE.AmbientLight(0x8a7a68, 0.9));
+const torch = new THREE.DirectionalLight(0xffb060, 0.7);
+torch.position.set(6, 10, 3);
+scene.add(torch);
+
+function gridToWorld(c, r) {
+  return new THREE.Vector3((c - GRID/2)*TILE + TILE/2, 0, (r - GRID/2)*TILE + TILE/2);
+}
+
+// ============================================================
+// PROCEDURAL FLOOR TEXTURES (พื้นหินยังวาดด้วย canvas — ไม่มีสไปรท์พื้นใน assets/)
+// ============================================================
+function makeCanvas(w, h) {
+  const cv = document.createElement('canvas');
+  cv.width = w; cv.height = h;
+  return cv;
+}
+function toTexture(cv) {
+  const t = new THREE.CanvasTexture(cv);
+  t.magFilter = THREE.NearestFilter;
+  t.minFilter = THREE.NearestFilter;
+  return t;
+}
+function stoneTileTexture(base, seed) {
+  const cv = makeCanvas(32, 32), g = cv.getContext('2d');
+  g.fillStyle = base; g.fillRect(0, 0, 32, 32);
+  let s = seed;
+  const rnd = () => (s = (s * 16807) % 2147483647) / 2147483647;
+  for (let i = 0; i < 90; i++) {
+    const v = rnd();
+    g.fillStyle = v < 0.5 ? 'rgba(0,0,0,0.10)' : 'rgba(255,240,210,0.06)';
+    g.fillRect((rnd()*32)|0, (rnd()*32)|0, 1 + (rnd()*2|0), 1 + (rnd()*2|0));
+  }
+  g.strokeStyle = 'rgba(10,6,2,0.35)'; g.lineWidth = 1;
+  for (let i = 0; i < 2; i++) {
+    g.beginPath();
+    let x = rnd()*32, y = rnd()*32;
+    g.moveTo(x, y);
+    for (let j = 0; j < 4; j++) { x += rnd()*12-6; y += rnd()*12-6; g.lineTo(x, y); }
+    g.stroke();
+  }
+  g.strokeStyle = 'rgba(0,0,0,0.28)';
+  g.strokeRect(0.5, 0.5, 31, 31);
+  return toTexture(cv);
+}
+const texA = stoneTileTexture('#6e6552', 41);   // หินเทาอุ่น
+const texB = stoneTileTexture('#5d5645', 977);  // หินเข้มสลับ
+
+// ============================================================
+// CHARACTER SPRITES — โหลดสไปรท์จริงจาก assets/ (แทน pixel-art ที่วาดด้วย canvas)
+// ============================================================
+const ASSET_PATHS = {
+  Fighter:      'assets/fighter.png',
+  Swordman:     'assets/swordman.png',
+  Archer:       'assets/archer.png',
+  Acolyte:      'assets/acolyte.png',
+  Skeleton:     'assets/mon_skeleton.png',
+  SpiritArcher: 'assets/mon_spiritarcher.png',
+  StoneWolf:    'assets/mon_stonewolf.png',
+  Warden:       'assets/miniboss_warden.png',
+};
+const SPRITES = {};
+function loadAllSprites(onDone) {
+  const loader = new THREE.TextureLoader();
+  const names = Object.keys(ASSET_PATHS);
+  let loaded = 0;
+  names.forEach((name) => {
+    loader.load(ASSET_PATHS[name], (tex) => {
+      tex.magFilter = THREE.NearestFilter;
+      tex.minFilter = THREE.NearestFilter;
+      SPRITES[name] = tex;
+      loaded++;
+      if (loaded === names.length) onDone();
+    }, undefined, (err) => {
+      console.error('โหลดสไปรท์ไม่สำเร็จ:', ASSET_PATHS[name], err);
+    });
+  });
+}
+
+// ============================================================
+// BOARD — พื้นหิน + ขอบสนามจม
+// ============================================================
+const tileGeo = new THREE.PlaneGeometry(TILE*0.98, TILE*0.98);
+for (let r = 0; r < GRID; r++) for (let c = 0; c < GRID; c++) {
+  const m = new THREE.Mesh(tileGeo, new THREE.MeshBasicMaterial({
+    map: (c+r)%2===0 ? texA : texB, side: THREE.DoubleSide }));
+  m.rotation.x = -Math.PI/2;
+  const p = gridToWorld(c, r);
+  m.position.set(p.x, 0, p.z);
+  scene.add(m);
+}
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(60, 60),
+  new THREE.MeshBasicMaterial({ color: 0x241c14 }));
+ground.rotation.x = -Math.PI/2;
+ground.position.y = -0.02;
+scene.add(ground);
+
+// ============================================================
+// PROPS — เสาหัก เศษหิน รอบสนาม (ธีมซากอารีน่า)
+// ============================================================
+function brokenPillar(x, z, h, tilt) {
+  const geo = new THREE.CylinderGeometry(0.28, 0.34, h, 6);
+  const mat = new THREE.MeshLambertMaterial({ color: 0x7a7060 });
+  const m = new THREE.Mesh(geo, mat);
+  m.position.set(x, h/2 - 0.02, z);
+  m.rotation.z = tilt;
+  scene.add(m);
+  const base = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.25, 0.7),
+    new THREE.MeshLambertMaterial({ color: 0x685e4e }));
+  base.position.set(x, 0.1, z);
+  scene.add(base);
+}
+function rubble(x, z, s) {
+  const m = new THREE.Mesh(new THREE.DodecahedronGeometry(s, 0),
+    new THREE.MeshLambertMaterial({ color: 0x6a6152 }));
+  m.position.set(x, s*0.5, z);
+  m.rotation.set(Math.random()*3, Math.random()*3, 0);
+  scene.add(m);
+}
+brokenPillar(-5.2, -5.0, 2.6,  0.05);
+brokenPillar( 5.0, -5.2, 1.4, -0.12);
+brokenPillar(-5.4,  5.1, 0.9,  0.18);
+brokenPillar( 5.3,  5.0, 2.2, -0.04);
+brokenPillar( 0.2, -5.6, 1.8,  0.08);
+brokenPillar(-5.8,  0.3, 1.1, -0.15);
+rubble(-4.6, -3.2, 0.22); rubble(4.8, -2.4, 0.18); rubble(4.5, 3.6, 0.26);
+rubble(-4.9, 2.8, 0.16); rubble(2.2, 5.2, 0.2); rubble(-1.8, -5.4, 0.19);
+rubble(5.6, 0.8, 0.15);
+
+// ============================================================
+// UNITS
+// ============================================================
+const units = [];
+const occupied = new Set();
+function key(c, r) { return c + ',' + r; }
+
+function makeUnit(cfg) {
+  const group = new THREE.Group();
+  const body = new THREE.Mesh(
+    new THREE.PlaneGeometry(1.1, 1.6),
+    new THREE.MeshBasicMaterial({ map: SPRITES[cfg.sprite], side: THREE.DoubleSide, transparent: true, alphaTest: 0.5 }));
+  body.position.y = 0.8;
+  group.add(body);
+  const shadow = new THREE.Mesh(new THREE.CircleGeometry(0.28, 12),
+    new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.35 }));
+  shadow.rotation.x = -Math.PI/2;
+  shadow.position.y = 0.01;
+  group.add(shadow);
+  const hpBg = new THREE.Mesh(new THREE.PlaneGeometry(0.8, 0.09),
+    new THREE.MeshBasicMaterial({ color: 0x2a1410, side: THREE.DoubleSide }));
+  hpBg.position.y = 1.78;
+  group.add(hpBg);
+  const hpBar = new THREE.Mesh(new THREE.PlaneGeometry(0.8, 0.09),
+    new THREE.MeshBasicMaterial({ color: cfg.team === 'player' ? 0x66c25a : 0xc25a44, side: THREE.DoubleSide }));
+  hpBar.position.y = 1.78; hpBar.position.z = 0.001;
+  group.add(hpBar);
+
+  const p = gridToWorld(cfg.c, cfg.r);
+  group.position.set(p.x, 0, p.z);
+  scene.add(group);
+  occupied.add(key(cfg.c, cfg.r));
+
+  const u = { ...cfg, group, body, hpBar, shadow,
+    maxHp: cfg.hp, alive: true, atkCooldown: 0,
+    moving: false, moveFrom: null, moveTo: null, moveT: 0 };
+  units.push(u);
+  return u;
+}
+
+function setupRoster() {
+  // ทีมผู้เล่น — แท้งค์ / ดาบ / ธนู / ผู้รักษา
+  makeUnit({ team:'player', name:'Fighter',  sprite:'Fighter',  c:3, r:5, hp:200, pAtk:12, atkSpeed:0.8, range:1, moveSpeed:2.0 });
+  makeUnit({ team:'player', name:'Swordman', sprite:'Swordman', c:4, r:5, hp:140, pAtk:19, atkSpeed:1.0, range:1, moveSpeed:2.4 });
+  makeUnit({ team:'player', name:'Archer',   sprite:'Archer',   c:3, r:7, hp:85,  pAtk:15, atkSpeed:1.6, range:3, moveSpeed:2.2 });
+  makeUnit({ team:'player', name:'Acolyte',  sprite:'Acolyte',  c:4, r:7, hp:90,  pHeal:12, atkSpeed:1.2, range:3, moveSpeed:2.0, role:'healer' });
+
+  // กองทัพซากอารีน่า — โครงกระดูก / นักธนูวิญญาณ / หมาป่าหิน / วอร์เดนหัวหน้าด่าน
+  makeUnit({ team:'enemy', name:'Skeleton A',    sprite:'Skeleton',     c:2, r:0, hp:95,  pAtk:11, atkSpeed:0.95, range:1, moveSpeed:1.8 });
+  makeUnit({ team:'enemy', name:'Skeleton B',    sprite:'Skeleton',     c:6, r:0, hp:95,  pAtk:11, atkSpeed:0.95, range:1, moveSpeed:1.8 });
+  makeUnit({ team:'enemy', name:'Stone Wolf',    sprite:'StoneWolf',    c:1, r:1, hp:75,  pAtk:10, atkSpeed:1.4,  range:1, moveSpeed:2.8 });
+  makeUnit({ team:'enemy', name:'Spirit Archer', sprite:'SpiritArcher', c:5, r:1, hp:65,  pAtk:12, atkSpeed:1.0,  range:3, moveSpeed:1.7 });
+  makeUnit({ team:'enemy', name:'Warden',        sprite:'Warden',       c:4, r:0, hp:240, pAtk:18, atkSpeed:0.78, range:1, moveSpeed:1.5 });
+}
+
+// ============================================================
+// A* PATHFINDING
+// ============================================================
+function astar(sc, sr, tc, tr, ignoreKey) {
+  const open = [{ c:sc, r:sr, g:0, f:0, parent:null }];
+  const closed = new Set();
+  const h = (c, r) => Math.abs(c-tc) + Math.abs(r-tr);
+  open[0].f = h(sc, sr);
+  while (open.length) {
+    open.sort((a,b) => a.f - b.f);
+    const cur = open.shift();
+    if (cur.c === tc && cur.r === tr) {
+      const path = [];
+      let n = cur;
+      while (n.parent) { path.unshift({ c:n.c, r:n.r }); n = n.parent; }
+      return path;
+    }
+    closed.add(key(cur.c, cur.r));
+    for (const [dc, dr] of [[1,0],[-1,0],[0,1],[0,-1]]) {
+      const nc = cur.c + dc, nr = cur.r + dr;
+      if (nc < 0 || nr < 0 || nc >= GRID || nr >= GRID) continue;
+      const k = key(nc, nr);
+      if (closed.has(k)) continue;
+      if (occupied.has(k) && k !== ignoreKey && !(nc===tc && nr===tr)) continue;
+      const g = cur.g + 1;
+      const exist = open.find(o => o.c===nc && o.r===nr);
+      if (exist && exist.g <= g) continue;
+      if (exist) { exist.g = g; exist.f = g + h(nc,nr); exist.parent = cur; }
+      else open.push({ c:nc, r:nr, g, f: g + h(nc,nr), parent: cur });
+    }
+  }
+  return null;
+}
+
+function gridDist(a, b) { return Math.abs(a.c-b.c) + Math.abs(a.r-b.r); }
+
+function selectTarget(u) {
+  let best = null, bd = Infinity;
+  for (const o of units) {
+    if (!o.alive || o.team === u.team) continue;
+    const d = gridDist(u, o);
+    if (d < bd) { bd = d; best = o; }
+  }
+  return best;
+}
+
+// ผู้รักษาเลือกเป้าหมายพันธมิตรที่เลือดเหลือน้อยที่สุด (สัดส่วน) ที่ยังไม่เต็ม
+function selectHealTarget(u) {
+  let best = null, bestFrac = 1;
+  for (const o of units) {
+    if (!o.alive || o.team !== u.team) continue;
+    if (o.hp >= o.maxHp) continue;
+    const frac = o.hp / o.maxHp;
+    if (frac < bestFrac) { bestFrac = frac; best = o; }
+  }
+  return best;
+}
+
+function stepToward(u, target) {
+  const path = astar(u.c, u.r, target.c, target.r, key(u.c, u.r));
+  if (path && path.length > 0) {
+    const next = path[0];
+    const nk = key(next.c, next.r);
+    if (!occupied.has(nk)) {
+      occupied.delete(key(u.c, u.r));
+      occupied.add(nk);
+      u.moving = true; u.moveT = 0;
+      u.moveFrom = { c:u.c, r:u.r };
+      u.moveTo = next;
+      u.body.scale.x = (next.c < u.c) ? -1 : (next.c > u.c ? 1 : u.body.scale.x);
+    }
+  }
+}
+
+// ============================================================
+// GAME LOOP
+// ============================================================
+let timeLeft = STAGE_TIME;
+let gameOver = false;
+const hud = document.getElementById('hud');
+const banner = document.getElementById('banner');
+const restartBtn = document.getElementById('restart');
+
+function endGame(msg) {
+  gameOver = true;
+  banner.textContent = msg;
+  banner.style.display = 'block';
+  restartBtn.style.display = 'block';
+}
+
+function updateHealer(u, dt) {
+  const target = selectHealTarget(u);
+  if (!target) return; // ไม่มีใครบาดเจ็บ — ยืนรอ
+  const d = gridDist(u, target);
+  if (d <= u.range) {
+    u.atkCooldown -= dt;
+    if (u.atkCooldown <= 0) {
+      u.atkCooldown = 1 / u.atkSpeed;
+      target.hp = Math.min(target.maxHp, target.hp + u.pHeal);
+      target.body.material.color.set(0x9cffa0);
+      setTimeout(() => target.alive && target.body.material.color.set(0xffffff), 120);
+      target.hpBar.scale.x = Math.max(0, target.hp / target.maxHp);
+      target.hpBar.position.x = -0.4 * (1 - target.hpBar.scale.x);
+    }
+    u.body.scale.x = (gridToWorld(target.c,target.r).x < u.group.position.x) ? -1 : 1;
+  } else {
+    stepToward(u, target);
+  }
+}
+
+function updateUnit(u, dt) {
+  if (!u.alive) return;
+
+  if (u.moving) {
+    u.moveT += dt * u.moveSpeed;
+    if (u.moveT >= 1) {
+      u.moveT = 1; u.moving = false;
+      u.c = u.moveTo.c; u.r = u.moveTo.r;
+    }
+    const a = gridToWorld(u.moveFrom.c, u.moveFrom.r);
+    const b = gridToWorld(u.moveTo.c, u.moveTo.r);
+    u.group.position.lerpVectors(a, b, u.moveT);
+    u.body.position.y = 0.8 + Math.abs(Math.sin(u.moveT * Math.PI * 2)) * 0.06;
+    return;
+  }
+  u.body.position.y = 0.8;
+
+  if (u.role === 'healer') { updateHealer(u, dt); return; }
+
+  const target = selectTarget(u);
+  if (!target) return;
+
+  const d = gridDist(u, target);
+  if (d <= u.range) {
+    u.atkCooldown -= dt;
+    if (u.atkCooldown <= 0) {
+      u.atkCooldown = 1 / u.atkSpeed;
+      target.hp -= u.pAtk;
+      const dir = gridToWorld(target.c, target.r).sub(u.group.position).normalize().multiplyScalar(0.12);
+      u.body.position.x += dir.x;
+      setTimeout(() => { if (u.alive) u.body.position.x = 0; }, 90);
+      target.body.material.color.set(0xff8866);
+      setTimeout(() => target.alive && target.body.material.color.set(0xffffff), 80);
+      target.hpBar.scale.x = Math.max(0, target.hp / target.maxHp);
+      target.hpBar.position.x = -0.4 * (1 - target.hpBar.scale.x);
+      if (target.hp <= 0) {
+        target.alive = false;
+        occupied.delete(key(target.c, target.r));
+        target.deathT = 0;
+      }
+    }
+    u.body.scale.x = (gridToWorld(target.c,target.r).x < u.group.position.x) ? -1 : 1;
+  } else {
+    stepToward(u, target);
+  }
+}
+
+let last = performance.now();
+function animate(now) {
+  requestAnimationFrame(animate);
+  const dt = Math.min((now - last) / 1000, 0.05);
+  last = now;
+
+  if (!gameOver) {
+    timeLeft -= dt;
+    for (const u of units) updateUnit(u, dt);
+
+    const pAlive = units.filter(u => u.alive && u.team==='player').length;
+    const eAlive = units.filter(u => u.alive && u.team==='enemy').length;
+    hud.innerHTML = `🏛 ซากอารีน่าหิน — ด่าน 1<br>⏱ ${Math.max(0,timeLeft).toFixed(1)} วิ<br>🟩 ทีมผู้เล่น: ${pAlive} | 🟥 กองทัพซากอารีน่า: ${eAlive}`;
+
+    if (eAlive === 0) endGame('🏆 ชนะด่าน 1!');
+    else if (pAlive === 0) endGame('💀 ทีมถูกกวาดล้าง');
+    else if (timeLeft <= 0) endGame('⏱ หมดเวลา — แพ้ทันที');
+  }
+
+  for (const u of units) {
+    if (!u.alive && u.deathT !== undefined && u.deathT < 1) {
+      u.deathT = Math.min(1, u.deathT + dt * 2);
+      u.body.rotation.z = -u.deathT * Math.PI / 2;
+      u.body.material.opacity = 1 - u.deathT;
+      u.hpBar.visible = false;
+      u.group.children[2].visible = false; // hpBg
+      u.shadow.material.opacity = 0.35 * (1 - u.deathT);
+      if (u.deathT >= 1) u.group.visible = false;
+    }
+  }
+
+  for (const u of units) u.group.quaternion.copy(camera.quaternion);
+  renderer.render(scene, camera);
+}
+
+// ============================================================
+// START — รอโหลดสไปรท์จริงจาก assets/ ให้ครบก่อนเริ่มด่าน
+// ============================================================
+loadAllSprites(() => {
+  document.getElementById('loading').style.display = 'none';
+  setupRoster();
+  requestAnimationFrame(animate);
+});
+
+window.addEventListener('resize', () => {
+  const asp = window.innerWidth / window.innerHeight;
+  camera.left = -CAMERA_ZOOM*asp; camera.right = CAMERA_ZOOM*asp;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+</script>
+</body>
+</html>
