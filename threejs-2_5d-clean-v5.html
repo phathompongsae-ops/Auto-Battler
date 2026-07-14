@@ -72,8 +72,9 @@
   .shop-row{grid-area:shop;display:grid;grid-template-columns:var(--round) 1fr var(--round);gap:6px;align-items:center}
   .round{pointer-events:auto;border:2px solid #98723a;border-radius:50%;width:var(--round);height:var(--round);background:radial-gradient(circle,#5c4119,#20150b 75%);color:#ffe6a0;font-weight:900;font-size:9px;line-height:1.5;display:flex;flex-direction:column;align-items:center;justify-content:center}
   .round small{font-size:9px;color:#ffd873}
-  .shop{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px}
-  .card{pointer-events:auto;border:1px solid #80643a;border-radius:8px;background:linear-gradient(#1c2320,#12100c);text-align:center;padding:3px;overflow:hidden;display:flex;flex-direction:column}
+  /* compact centered card strip like the reference — not edge-to-edge */
+  .shop{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;width:min(100%,62vw,860px);margin:0 auto}
+  .card{pointer-events:auto;border:1px solid #80643a;border-radius:10px;background:linear-gradient(#1c2320,#12100c);text-align:center;padding:4px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 3px 8px #0008}
   .card .pic{position:relative;height:var(--pic);border-radius:6px;background:#1c2b20;overflow:hidden}
   .card .pic canvas{width:100%;height:100%;object-fit:contain;object-position:50% 100%}
   .card b{display:block;font-size:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
