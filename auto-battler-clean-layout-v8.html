@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>Auto Battler — Clean Layout V8</title>
+<style>
+:root{--gold:#c69a42;--panel:#121510e8;--line:#80683d;--text:#f6e8bd;--green:#69db7c;--shopH:112px;--topH:46px;--sideW:112px}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#07100b;color:var(--text);font-family:system-ui,sans-serif;touch-action:none}button{font:inherit}
+#app{position:fixed;inset:0;display:grid;grid-template-columns:var(--sideW) 1fr var(--sideW);grid-template-rows:var(--topH) minmax(0,1fr) 62px var(--shopH);gap:5px;padding:5px;background:radial-gradient(circle at 50% 42%,#4b6c42 0,#203728 57%,#07100b 100%)}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;box-shadow:0 5px 14px #0008}
+#top{grid-column:1/4;display:flex;align-items:center;gap:6px;min-width:0;z-index:5}.pill,.topBtn{height:36px;border:1px solid var(--line);border-radius:9px;background:#151710e8;color:var(--text);display:flex;align-items:center;justify-content:center;padding:0 10px;font-weight:800;font-size:12px;white-space:nowrap}.grow{flex:1}.topBtn{min-width:46px;cursor:pointer}
+#synergy{grid-column:1;grid-row:2;padding:8px;overflow:hidden;pointer-events:auto}#synergy h3,#team h3{margin:0 0 7px;font-size:12px}.syn{padding:6px 1px;border-bottom:1px solid #51442c;font-size:10px;white-space:nowrap}
+#team{grid-column:3;grid-row:2;padding:8px;overflow:hidden}.member{display:grid;grid-template-columns:24px 1fr;gap:5px;align-items:center;margin:5px 0}.avatar{width:24px;height:24px;border:1px solid #9c7c40;border-radius:5px;background:linear-gradient(135deg,#738a55,#2c3e2d)}.hp{height:5px;background:#30291e;border-radius:4px;overflow:hidden}.hp i{display:block;height:100%;background:var(--green)}.member small{font-size:8px}
+#arena{grid-column:2;grid-row:2;position:relative;min-width:0;min-height:0;border:7px solid #77805e;border-radius:18px;overflow:hidden;background:radial-gradient(circle at 50% 45%,#817d58 0 18%,#575c42 55%,#31402f 100%);box-shadow:0 14px 25px #000a;isolation:isolate}
+#arena:before{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,#17331f 0 4%,transparent 4% 96%,#17331f 96%),linear-gradient(#17331f 0 4%,transparent 4% 96%,#17331f 96%);z-index:0}
+#board{position:absolute;inset:5% 5% 4%;display:grid;grid-template-columns:repeat(8,1fr);grid-template-rows:repeat(8,1fr);transform:perspective(900px) rotateX(44deg);transform-origin:center;z-index:1;filter:drop-shadow(0 14px 12px #0007)}
+.cell{position:relative;border:1px solid #d9cfa45c;background:#8f8b696d}.cell:nth-child(even){background:#77795f78}.cell.player{box-shadow:inset 0 0 0 2px #5fe28166}.cell.valid{background:#a9c96eaa!important;box-shadow:inset 0 0 0 3px #ffe377}
+.unit{position:absolute;left:7%;bottom:2%;width:86%;height:120%;transform:rotateX(-44deg);transform-origin:bottom center;z-index:4;filter:drop-shadow(0 5px 4px #000a);animation:idle 1s ease-in-out infinite alternate}.unit .char{height:100%;display:flex;align-items:end;justify-content:center;font-size:clamp(24px,4.8vw,55px)}.unit .bar{position:absolute;left:10%;right:10%;top:0;height:5px;background:#351311;border:1px solid #000}.unit .bar i{display:block;height:100%;width:100%;background:#55d66a}.unit.enemy .bar i{background:#e8554e}@keyframes idle{to{transform:rotateX(-44deg) translateY(-4px)}}
+#benchWrap{grid-column:2;grid-row:3;display:flex;align-items:center;justify-content:center;min-width:0}#bench{display:grid;grid-template-columns:repeat(6,minmax(42px,58px));gap:5px;padding:5px 7px;background:#15120ddd;border:1px solid var(--line);border-radius:10px;max-width:100%}.slot{position:relative;height:50px;border:2px solid #594a31;border-radius:8px;background:#251f15;overflow:hidden;touch-action:none}.slot.filled{border-color:#b99149}.slot.selected{border-color:#ffe16c;box-shadow:0 0 11px #ffd65b}.slot .char{font-size:30px;text-align:center;line-height:42px}.slot b{position:absolute;left:1px;right:1px;bottom:0;background:#000b;text-align:center;font-size:7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.slot .n{display:flex;align-items:center;justify-content:center;height:100%;color:#6f5a38;font-weight:900}
+#shopZone{grid-column:1/4;grid-row:4;display:grid;grid-template-columns:110px minmax(0,1fr) 110px;gap:6px;min-height:0}.roundBtn{border:2px solid #95743b;border-radius:50%;background:radial-gradient(circle,#4a361b,#1d160d);color:#ffe8a8;font-weight:900;font-size:12px;box-shadow:0 5px 14px #0008}.roundBtn:disabled{opacity:.4}.roundBtn span{display:block;font-size:18px}.shop{display:grid;grid-template-columns:repeat(5,minmax(66px,1fr));gap:5px;min-width:0}.card{position:relative;border:2px solid #776039;border-radius:9px;background:linear-gradient(#242820,#121610);padding:4px;text-align:center;color:var(--text);overflow:hidden}.portrait{height:52px;border-radius:6px;background:linear-gradient(#607b51,#263b2b);display:flex;align-items:center;justify-content:center;font-size:34px}.card b{display:block;font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.card small{display:block;font-size:8px;color:#cdbd98}.card button{margin-top:2px;width:100%;border:0;border-radius:5px;background:#b7832b;color:#21170a;font-weight:900;font-size:9px;padding:3px}.card button:disabled{opacity:.4}
+#start{position:absolute;right:8px;bottom:8px;z-index:6;border:1px solid #bd913f;border-radius:8px;background:#bd8b2d;color:#21170a;font-weight:900;padding:7px 12px;font-size:11px}.ghost{position:fixed;width:56px;height:66px;z-index:99;pointer-events:none;transform:translate(-50%,-68%);display:flex;align-items:end;justify-content:center;font-size:48px;filter:drop-shadow(0 6px 5px #000b)}
+#toast{position:fixed;left:50%;top:22%;transform:translate(-50%,-50%) scale(.85);opacity:0;z-index:100;padding:10px 16px;border:1px solid #c69a42;border-radius:10px;background:#15120ff2;font-weight:900;font-size:12px;transition:.16s;pointer-events:none}.show{opacity:1!important;transform:translate(-50%,-50%) scale(1)!important}
+@media(max-width:820px){:root{--sideW:88px;--topH:42px;--shopH:102px}.pill,.topBtn{height:32px;padding:0 7px;font-size:10px}#synergy,#team{padding:5px}.syn{font-size:8px;padding:5px 0}.member{grid-template-columns:20px 1fr}.avatar{width:20px;height:20px}.member small{font-size:7px}#arena{border-width:5px}.shopZone{grid-template-columns:86px minmax(0,1fr) 86px}.portrait{height:42px;font-size:28px}.card{padding:2px}.roundBtn{font-size:9px}.roundBtn span{font-size:15px}.slot{height:44px}.slot .char{font-size:26px;line-height:37px}}
+</style>
+</head>
+<body>
+<div id="app">
+ <header id="top">
+  <div class="pill">Lv.<b id="level">1</b>&nbsp; EXP&nbsp;<b id="exp">0/4</b></div>
+  <div class="pill">💰&nbsp;<b id="gold">3</b></div>
+  <div class="pill">👥&nbsp;<b id="used">0</b>/<b id="cap">1</b></div>
+  <div class="grow"></div>
+  <button class="topBtn" id="speed">×1</button><button class="topBtn" id="auto">AUTO</button><button class="topBtn" id="settings">⚙</button>
+ </header>
+ <aside id="synergy" class="panel"><h3>SYNERGY</h3><div id="synList"></div></aside>
+ <main id="arena"><div id="board"></div><button id="start">เริ่มต่อสู้</button></main>
+ <aside id="team" class="panel"><h3>TEAM</h3><div id="teamList"></div></aside>
+ <section id="benchWrap"><div id="bench"></div></section>
+ <footer id="shopZone"><button class="roundBtn" id="buyExp">+4 EXP<span>BUY EXP</span>4💰</button><div class="shop" id="shop"></div><button class="roundBtn" id="reroll">REFRESH<span>2💰</span></button></footer>
+ <div id="toast"></div>
+</div>
+<script>
+const H=[
+ {name:'Swordman',icon:'🧑🏻‍⚔️',role:'Warrior',cost:2,hp:140},
+ {name:'Archer',icon:'🏹',role:'Ranger',cost:2,hp:110},
+ {name:'Acolyte',icon:'🧝🏻‍♀️',role:'Forest',cost:2,hp:120},
+ {name:'Mage',icon:'🧙🏻',role:'Mage',cost:2,hp:100}
+];
+const EN=['👺','💀','🐺','🟢'];
+let gold=3,level=1,xp=0,bench=[],field=[],selected=-1,offers=[],battle=false,speed=1;
+const req={1:4,2:8,3:12,4:16};
+const board=document.querySelector('#board'),benchEl=document.querySelector('#bench'),shop=document.querySelector('#shop');
+const toast=document.querySelector('#toast');
+function msg(t){toast.textContent=t;toast.classList.add('show');setTimeout(()=>toast.classList.remove('show'),1000)}
+function makeOffers(){offers=Array.from({length:5},()=>({...H[Math.floor(Math.random()*H.length)]}))}
+function cell(c,r){return board.children[r*8+c]}
+function renderBoard(){
+ board.innerHTML='';
+ for(let r=0;r<8;r++)for(let c=0;c<8;c++){const d=document.createElement('div');d.className='cell'+(r>=5?' player':'');d.dataset.c=c;d.dataset.r=r;d.onclick=()=>place(c,r);board.appendChild(d)}
+ field.forEach((u,i)=>{const d=document.createElement('div');d.className='unit';d.innerHTML='<div class="bar"><i></i></div><div class="char">'+u.icon+'</div>';d.onclick=e=>{e.stopPropagation();if(!battle&&bench.length<6){bench.push(field.splice(i,1)[0]);selected=-1;render()}};cell(u.c,u.r).appendChild(d)})
+}
+function renderBench(){benchEl.innerHTML='';for(let i=0;i<6;i++){const s=document.createElement('div');s.className='slot'+(bench[i]?' filled':'')+(selected===i?' selected':'');if(bench[i]){s.innerHTML='<div class="char">'+bench[i].icon+'</div><b>'+bench[i].name+'</b>';s.onpointerdown=e=>dragStart(e,i);s.onclick=()=>{selected=selected===i?-1:i;renderBench()}}else s.innerHTML='<div class="n">'+(i+1)+'</div>';benchEl.appendChild(s)}}
+function renderShop(){shop.innerHTML='';offers.forEach(h=>{const c=document.createElement('article');c.className='card';c.innerHTML='<div class="portrait">'+h.icon+'</div><b>'+h.name+'</b><small>'+h.role+' • '+h.cost+'💰</small><button>ซื้อ</button>';const b=c.querySelector('button');b.disabled=battle||gold<h.cost||bench.length>=6;b.onclick=()=>{if(b.disabled)return;gold-=h.cost;bench.push({...h});render()};shop.appendChild(c)})}
+function renderSide(){
+ const roles={Warrior:0,Ranger:0,Mage:0,Forest:0};[...field,...bench].forEach(u=>roles[u.role]++);synList.innerHTML=Object.entries(roles).map(([k,v])=>'<div class="syn">'+({Warrior:'⚔',Ranger:'🏹',Mage:'🔮',Forest:'🌲'}[k])+' '+k+' '+v+'/2</div>').join('');
+ teamList.innerHTML=[...field,...bench].slice(0,8).map((u,i)=>'<div class="member"><div class="avatar"></div><div><small>'+u.name+'</small><div class="hp"><i style="width:'+(100-i*6)+'%"></i></div></div></div>').join('');
+}
+function render(){renderBoard();renderBench();renderShop();renderSide();goldEl.textContent=gold;levelEl.textContent=level;expEl.textContent=level<5?xp+'/'+req[level]:'MAX';usedEl.textContent=field.length;capEl.textContent=level;buyExp.disabled=battle||gold<4||level>=5;reroll.disabled=battle||gold<2;start.disabled=battle||!field.length}
+const goldEl=document.querySelector('#gold'),levelEl=document.querySelector('#level'),expEl=document.querySelector('#exp'),usedEl=document.querySelector('#used'),capEl=document.querySelector('#cap'),synList=document.querySelector('#synList'),teamList=document.querySelector('#teamList'),buyExp=document.querySelector('#buyExp'),reroll=document.querySelector('#reroll'),start=document.querySelector('#start');
+function place(c,r){if(selected<0||!bench[selected]||battle)return;if(r<5)return msg('วางได้เฉพาะ 3 แถวล่าง');if(field.length>=level)return msg('กระดาน Lv.'+level+' ลงได้ '+level+' ตัว');if(field.some(u=>u.c===c&&u.r===r))return msg('ช่องนี้มีตัวแล้ว');const u=bench.splice(selected,1)[0];u.c=c;u.r=r;field.push(u);selected=-1;render()}
+let drag=null,ghost=null;
+function boardTarget(x,y){const R=board.getBoundingClientRect();if(x<R.left||x>R.right||y<R.top||y>R.bottom)return null;const c=Math.max(0,Math.min(7,Math.floor((x-R.left)/R.width*8)));const r=Math.max(0,Math.min(7,Math.floor((y-R.top)/R.height*8)));return r>=5?{c,r}:null}
+function dragStart(e,i){if(!bench[i]||battle)return;e.preventDefault();selected=i;drag=i;ghost=document.createElement('div');ghost.className='ghost';ghost.textContent=bench[i].icon;document.body.appendChild(ghost);dragMove(e)}
+function dragMove(e){if(!ghost)return;ghost.style.left=e.clientX+'px';ghost.style.top=e.clientY+'px';document.querySelectorAll('.valid').forEach(x=>x.classList.remove('valid'));const t=boardTarget(e.clientX,e.clientY);if(t)cell(t.c,t.r).classList.add('valid')}
+function dragEnd(e){if(drag===null)return;const t=boardTarget(e.clientX,e.clientY);if(t)place(t.c,t.r);ghost?.remove();ghost=null;drag=null;document.querySelectorAll('.valid').forEach(x=>x.classList.remove('valid'))}
+addEventListener('pointermove',dragMove,{passive:false});addEventListener('pointerup',dragEnd);addEventListener('pointercancel',dragEnd);addEventListener('blur',()=>{ghost?.remove();ghost=null;drag=null});
+buyExp.onclick=()=>{if(gold<4||level>=5||battle)return;gold-=4;xp+=4;while(level<5&&xp>=req[level]){xp-=req[level];level++;msg('กระดานเลเวล '+level)}render()};reroll.onclick=()=>{if(gold<2||battle)return;gold-=2;makeOffers();render()};
+speed.onclick=()=>{speed=speed===1?2:1;speedBtn.textContent='×'+speed};const speedBtn=document.querySelector('#speed');auto.onclick=()=>auto.classList.toggle('active');settings.onclick=()=>msg('เมนูตั้งค่าจะเพิ่มภายหลัง');
+start.onclick=()=>{if(!field.length||battle)return;battle=true;render();const enemies=[{c:2,r:1,i:0},{c:4,r:1,i:1},{c:6,r:2,i:2}];enemies.forEach((e,k)=>{const d=document.createElement('div');d.className='unit enemy';d.innerHTML='<div class="bar"><i></i></div><div class="char">'+EN[e.i]+'</div>';cell(e.c,e.r).appendChild(d);setTimeout(()=>d.style.opacity='.25',(650+k*180)/speed)});setTimeout(()=>{gold+=5;battle=false;makeOffers();msg('ชนะ +5 ทอง');render()},1600/speed)};
+makeOffers();render();msg('เริ่มด้วย 3 เหรียญ • ซื้อฮีโร่ตัวแรก');
+</script>
+</body></html>
