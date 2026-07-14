@@ -98,6 +98,7 @@
   <div class="pill">💰 <span id="goldLabel">0</span></div>
   <div class="pill">🌊 ด่าน <span id="waveLabel">1</span>/<span id="waveTotal">3</span></div>
   <div class="pill" id="phaseLabel">เตรียมทีม</div>
+  <div class="pill" id="stageLabel" style="display:none"></div>
   <div class="spacer"></div>
   <button id="speedBtn">x1</button>
   <button id="pauseBtn">⏸ หยุด</button>
@@ -132,7 +133,7 @@
 const GRID = 8;
 const TILE = 1;
 const PLAYER_ROWS = [5, 6, 7];       // แถวที่วางฮีโร่ได้
-const WAVE_TOTAL = 3;
+const WAVE_TOTAL = 15;
 const CAMERA_ANGLE_DEG = 55, CAMERA_YAW_DEG = 15, CAMERA_ZOOM = 7.2;
 // เลื่อนจุดที่กล้องมองไปทาง "แถวผู้เล่น" เล็กน้อยให้อยู่กลางพื้นที่ 3D ที่เหลือพอดี
 const LOOK_TARGET = new THREE.Vector3(0, 0, 1.3);
@@ -224,10 +225,14 @@ const ASSET_META = {
   FrostWeaver:  { path: 'assets/heroes/frostweaver_sheet.png',  frames: 8 },
   Summoner:     { path: 'assets/heroes/summoner_sheet.png',     frames: 8 },
   Sniper:       { path: 'assets/heroes/sniper_sheet.png',       frames: 8 },
-  Skeleton:     { path: 'assets/mon_skeleton.png',      frames: 1 },
-  StoneWolf:    { path: 'assets/mon_stonewolf.png',     frames: 1 },
-  SpiritArcher: { path: 'assets/mon_spiritarcher.png',  frames: 1 },
-  Warden:       { path: 'assets/miniboss_warden.png',   frames: 1 },
+  Skeleton:       { path: 'assets/mon_skeleton.png',       frames: 1 },
+  StoneWolf:      { path: 'assets/mon_stonewolf.png',      frames: 1 },
+  SpiritArcher:   { path: 'assets/mon_spiritarcher.png',   frames: 1 },
+  ShadowAssassin: { path: 'assets/mon_shadowassassin.png', frames: 1 },
+  Warden:         { path: 'assets/miniboss_warden.png',    frames: 1 },
+  Golem:          { path: 'assets/mon_golem.png',          frames: 1 },
+  BoneDragon:     { path: 'assets/mon_bonedragon.png',     frames: 1 },
+  ChampionBig:    { path: 'assets/boss_champion_big.png',  frames: 1 },
 };
 const SPRITES = {};
 function loadAllSprites(onDone) {
@@ -257,22 +262,85 @@ const HERO_DEFS = {
   summoner:    { title:'Summoner',     sprite:'Summoner',    cost:4, hp:105, pAtk:13, atkSpeed:1.0, range:3, moveSpeed:1.9, trait:'none' },
   sniper:      { title:'Sniper',       sprite:'Sniper',      cost:5, hp:90,  pAtk:24, atkSpeed:0.9, range:5, moveSpeed:1.7, trait:'longshot' },
 };
-const ENEMY_WAVES = [
-  [ { name:'Skeleton A', sprite:'Skeleton', c:2, r:1, hp:90, pAtk:12, atkSpeed:0.9, range:1, moveSpeed:1.8 },
-    { name:'Skeleton B', sprite:'Skeleton', c:5, r:1, hp:90, pAtk:12, atkSpeed:0.9, range:1, moveSpeed:1.8 },
-    { name:'Stone Wolf', sprite:'StoneWolf', c:3, r:0, hp:75, pAtk:11, atkSpeed:1.4, range:1, moveSpeed:2.6 } ],
-  [ { name:'Skeleton A', sprite:'Skeleton', c:1, r:1, hp:115, pAtk:14, atkSpeed:0.9, range:1, moveSpeed:1.8 },
-    { name:'Skeleton B', sprite:'Skeleton', c:4, r:1, hp:115, pAtk:14, atkSpeed:0.9, range:1, moveSpeed:1.8 },
-    { name:'Skeleton C', sprite:'Skeleton', c:6, r:0, hp:115, pAtk:14, atkSpeed:0.9, range:1, moveSpeed:1.8 },
-    { name:'Stone Wolf A', sprite:'StoneWolf', c:2, r:0, hp:95, pAtk:13, atkSpeed:1.4, range:1, moveSpeed:2.6 },
-    { name:'Spirit Archer', sprite:'SpiritArcher', c:5, r:0, hp:85, pAtk:14, atkSpeed:1.0, range:3, moveSpeed:1.7 } ],
-  [ { name:'Warden', sprite:'Warden', c:3, r:0, hp:320, pAtk:21, atkSpeed:0.8, range:1, moveSpeed:1.4 },
-    { name:'Spirit Archer A', sprite:'SpiritArcher', c:1, r:1, hp:95, pAtk:15, atkSpeed:1.0, range:3, moveSpeed:1.7 },
-    { name:'Spirit Archer B', sprite:'SpiritArcher', c:6, r:1, hp:95, pAtk:15, atkSpeed:1.0, range:3, moveSpeed:1.7 },
-    { name:'Stone Wolf A', sprite:'StoneWolf', c:0, r:0, hp:100, pAtk:14, atkSpeed:1.4, range:1, moveSpeed:2.6 },
-    { name:'Stone Wolf B', sprite:'StoneWolf', c:7, r:0, hp:100, pAtk:14, atkSpeed:1.4, range:1, moveSpeed:2.6 } ],
-];
-const WAVE_REWARD = [12, 16, 22];
+// สถิติพื้นฐานของศัตรูทั่วไป (ก่อนสเกลตามด่าน) — ธีมกองทัพซากอารีน่าหิน
+const ENEMY_BASE = {
+  Skeleton:       { hp:90, pAtk:12, atkSpeed:0.9, range:1, moveSpeed:1.8 },
+  StoneWolf:      { hp:75, pAtk:11, atkSpeed:1.4, range:1, moveSpeed:2.6 },
+  SpiritArcher:   { hp:80, pAtk:14, atkSpeed:1.0, range:3, moveSpeed:1.7 },
+  ShadowAssassin: { hp:70, pAtk:18, atkSpeed:1.3, range:1, moveSpeed:3.0 },
+};
+// ช่องวางศัตรูฝั่งบนกระดาน (แถว 0-1) — วนใช้ซ้ำถ้าจำนวนตัวเกินจำนวนช่อง
+const ENEMY_SLOTS = [ [3,0],[1,1],[6,1],[0,0],[7,0],[2,1],[5,1],[4,0] ];
+function scaledStat(type, stage) {
+  const b = ENEMY_BASE[type];
+  const mul = 1 + (stage - 1) * 0.08;   // ด่านหลังยากขึ้นทีละ ~8%
+  return { hp: Math.round(b.hp*mul), pAtk: Math.round(b.pAtk*mul), atkSpeed: b.atkSpeed, range: b.range, moveSpeed: b.moveSpeed };
+}
+function fillerWave(stage, comp) {
+  const units = []; let slot = 0;
+  comp.forEach(({ type, count }) => {
+    for (let i = 0; i < count; i++) {
+      const [c, r] = ENEMY_SLOTS[slot++ % ENEMY_SLOTS.length];
+      units.push({ name: `${type} ${i+1}`, sprite: type, c, r, ...scaledStat(type, stage) });
+    }
+  });
+  return units;
+}
+// เนื้อหาแมพ 1 ตาม GDD: บทสอนด่าน 1-3, มินิบอสด่าน 5/10, ด่านมังกร 13, บอสด่าน 15
+const STAGE_PLAN = {
+  1:  [{ type:'Skeleton', count:2 }],
+  2:  [{ type:'Skeleton', count:2 }, { type:'StoneWolf', count:1 }],
+  3:  [{ type:'Skeleton', count:2 }, { type:'StoneWolf', count:1 }, { type:'SpiritArcher', count:1 }],
+  4:  [{ type:'Skeleton', count:3 }, { type:'StoneWolf', count:2 }],
+  6:  [{ type:'Skeleton', count:3 }, { type:'SpiritArcher', count:2 }],
+  7:  [{ type:'StoneWolf', count:2 }, { type:'SpiritArcher', count:2 }, { type:'ShadowAssassin', count:1 }],
+  8:  [{ type:'Skeleton', count:4 }, { type:'StoneWolf', count:2 }],
+  9:  [{ type:'SpiritArcher', count:3 }, { type:'ShadowAssassin', count:2 }],
+  11: [{ type:'Skeleton', count:4 }, { type:'ShadowAssassin', count:3 }],
+  12: [{ type:'StoneWolf', count:3 }, { type:'SpiritArcher', count:3 }, { type:'ShadowAssassin', count:2 }],
+  14: [{ type:'Skeleton', count:3 }, { type:'StoneWolf', count:3 }, { type:'SpiritArcher', count:2 }, { type:'ShadowAssassin', count:2 }],
+};
+const STAGE_LABEL = {
+  5:  '⚠ มินิบอส: หัวหน้าผู้คุมสังเวียน',
+  10: '⚠ มินิบอส: โกเลมหินอารีน่า',
+  13: '🐉 ด่านมังกร',
+  15: '💀 บอสใหญ่: แชมเปี้ยนอมตะ',
+};
+function bossWave(stage) {
+  if (stage === 5) return [
+    { name:'หัวหน้าผู้คุมสังเวียน', sprite:'Warden', c:3, r:0, hp:340, pAtk:20, atkSpeed:0.8, range:1, moveSpeed:1.4 },
+    { name:'Skeleton Guard A', sprite:'Skeleton', c:1, r:1, hp:100, pAtk:13, atkSpeed:0.9, range:1, moveSpeed:1.8 },
+    { name:'Skeleton Guard B', sprite:'Skeleton', c:5, r:1, hp:100, pAtk:13, atkSpeed:0.9, range:1, moveSpeed:1.8 },
+  ];
+  if (stage === 10) return [
+    { name:'โกเลมหินอารีน่า', sprite:'Golem', c:3, r:0, hp:560, pAtk:26, atkSpeed:0.6, range:1, moveSpeed:1.1, frameSize:{ w:1.4, h:1.7 } },
+    { name:'Stone Wolf A', sprite:'StoneWolf', c:1, r:1, hp:150, pAtk:17, atkSpeed:1.4, range:1, moveSpeed:2.6 },
+    { name:'Stone Wolf B', sprite:'StoneWolf', c:6, r:1, hp:150, pAtk:17, atkSpeed:1.4, range:1, moveSpeed:2.6 },
+    { name:'Spirit Archer', sprite:'SpiritArcher', c:3, r:1, hp:130, pAtk:20, atkSpeed:1.0, range:3, moveSpeed:1.7 },
+  ];
+  if (stage === 13) return [
+    { name:'มังกรกระดูก', sprite:'BoneDragon', c:3, r:0, hp:680, pAtk:30, atkSpeed:0.85, range:2, moveSpeed:1.3, frameSize:{ w:2.0, h:1.6 } },
+    { name:'Spirit Archer A', sprite:'SpiritArcher', c:1, r:1, hp:140, pAtk:21, atkSpeed:1.0, range:3, moveSpeed:1.7 },
+    { name:'Spirit Archer B', sprite:'SpiritArcher', c:6, r:1, hp:140, pAtk:21, atkSpeed:1.0, range:3, moveSpeed:1.7 },
+  ];
+  if (stage === 15) return [
+    { name:'แชมเปี้ยนอมตะ', sprite:'ChampionBig', c:3, r:0, hp:950, pAtk:34, atkSpeed:0.85, range:1, moveSpeed:1.3, frameSize:{ w:1.9, h:2.6 } },
+    { name:'Skeleton Honor Guard A', sprite:'Skeleton', c:1, r:1, hp:170, pAtk:22, atkSpeed:0.9, range:1, moveSpeed:1.8 },
+    { name:'Skeleton Honor Guard B', sprite:'Skeleton', c:6, r:1, hp:170, pAtk:22, atkSpeed:0.9, range:1, moveSpeed:1.8 },
+    { name:'Shadow Assassin', sprite:'ShadowAssassin', c:4, r:1, hp:150, pAtk:24, atkSpeed:1.3, range:1, moveSpeed:3.0 },
+  ];
+  return null;
+}
+function buildWave(stage) {
+  return bossWave(stage) || fillerWave(stage, STAGE_PLAN[stage] || [{ type:'Skeleton', count:2 + Math.floor(stage/3) }]);
+}
+function waveReward(stage) {
+  if (stage === 5) return 30;
+  if (stage === 10) return 42;
+  if (stage === 13) return 48;
+  if (stage === 15) return 65;
+  return 10 + stage * 2;
+}
 
 // ============================================================
 // GAME STATE
@@ -301,13 +369,15 @@ function makeUnit(cfg) {
   const frames = meta.frames;
   let tex = SPRITES[cfg.sprite];
   if (frames > 1) { tex = tex.clone(); tex.needsUpdate = true; tex.repeat.set(1/frames, 1); tex.offset.set(0, 0); }
-  const w = frames > 1 ? 0.8 : 1.1, h = frames > 1 ? 1.4 : 1.6;
+  const defaultW = frames > 1 ? 0.8 : 1.1, defaultH = frames > 1 ? 1.4 : 1.6;
+  const w = cfg.frameSize ? cfg.frameSize.w : defaultW;
+  const h = cfg.frameSize ? cfg.frameSize.h : defaultH;
   const body = new THREE.Mesh(new THREE.PlaneGeometry(w, h),
     new THREE.MeshBasicMaterial({ map: tex, side: THREE.DoubleSide, transparent: true, alphaTest: 0.5 }));
   body.position.y = h/2;
   body.userData = { isUnit: true };
   group.add(body);
-  const shadow = new THREE.Mesh(new THREE.CircleGeometry(0.26, 12), new THREE.MeshBasicMaterial({ color:0x000000, transparent:true, opacity:0.35 }));
+  const shadow = new THREE.Mesh(new THREE.CircleGeometry(0.26 * (w/defaultW), 12), new THREE.MeshBasicMaterial({ color:0x000000, transparent:true, opacity:0.35 }));
   shadow.rotation.x = -Math.PI/2; shadow.position.y = 0.01; group.add(shadow);
   const barY = h + 0.14;
   const hpBg = new THREE.Mesh(new THREE.PlaneGeometry(0.72,0.08), new THREE.MeshBasicMaterial({ color:0x2a1410, side:THREE.DoubleSide }));
@@ -318,7 +388,7 @@ function makeUnit(cfg) {
   group.position.set(p.x, 0, p.z);
   scene.add(group);
   occupied.add(key(cfg.c, cfg.r));
-  const u = { ...cfg, group, body, hpBar, shadow, tex, frames,
+  const u = { ...cfg, group, body, hpBar, shadow, tex, frames, halfH: h/2,
     maxHp: cfg.hp, alive: true, atkCooldown: 0,
     moving: false, moveFrom: null, moveTo: null, moveT: 0,
     animState: 'idle', animTimer: 0, animFrame: 0 };
@@ -429,10 +499,10 @@ function updateUnit(u, dt) {
     if (u.moveT>=1) { u.moveT=1; u.moving=false; u.c=u.moveTo.c; u.r=u.moveTo.r; }
     const a=gridToWorld(u.moveFrom.c,u.moveFrom.r), b=gridToWorld(u.moveTo.c,u.moveTo.r);
     u.group.position.lerpVectors(a,b,u.moveT);
-    u.body.position.y = (u.frames>1?0.7:0.8) + Math.abs(Math.sin(u.moveT*Math.PI*2))*0.06;
+    u.body.position.y = u.halfH + Math.abs(Math.sin(u.moveT*Math.PI*2))*0.06;
     updateAnim(u,dt); return;
   }
-  u.body.position.y = u.frames>1?0.7:0.8;
+  u.body.position.y = u.halfH;
   const target = selectTarget(u);
   if (!target) { updateAnim(u,dt); return; }
   const d = gridDist(u,target);
@@ -484,6 +554,9 @@ function renderUI() {
   goldLabel.textContent = gold;
   waveLabel.textContent = wave;
   phaseLabel.textContent = phase==='shop' ? 'เตรียมทีม' : phase==='battle' ? 'กำลังต่อสู้' : '';
+  const stageLabelEl = document.getElementById('stageLabel');
+  if (STAGE_LABEL[wave]) { stageLabelEl.textContent = STAGE_LABEL[wave]; stageLabelEl.style.display = ''; }
+  else { stageLabelEl.style.display = 'none'; }
   document.getElementById('bottomUI').style.display = phase==='shop' ? 'flex' : 'none';
   startBattleBtn.disabled = Object.keys(placedUnits).length === 0;
 
@@ -586,10 +659,10 @@ const resultTitle = document.getElementById('resultTitle');
 const resultBody = document.getElementById('resultBody');
 const resultBtn = document.getElementById('resultBtn');
 let waveTimer = 0;
-const WAVE_TIMEOUT = 100;
+const WAVE_TIMEOUT = 150;
 
 function spawnWave(n) {
-  ENEMY_WAVES[n-1].forEach((cfg) => makeUnit({ team:'enemy', ...cfg }));
+  buildWave(n).forEach((cfg) => makeUnit({ team:'enemy', ...cfg }));
 }
 function clearEnemies() {
   units.filter(u => u.team==='enemy').forEach(removeUnit);
@@ -615,7 +688,7 @@ function showResult(title, body, onContinue) {
 }
 
 function onWaveCleared() {
-  const reward = WAVE_REWARD[wave-1];
+  const reward = waveReward(wave);
   gold += reward;
   clearEnemies();
   if (wave >= WAVE_TOTAL) {
@@ -624,7 +697,8 @@ function onWaveCleared() {
       phaseLabel.textContent = 'จบเกม';
     });
   } else {
-    showResult(`🏆 ชนะด่าน ${wave}!`, `ได้ทอง +${reward} — จัดทัพแล้วลุยด่านถัดไป`, () => {
+    const label = STAGE_LABEL[wave] ? ` (${STAGE_LABEL[wave]})` : '';
+    showResult(`🏆 ชนะด่าน ${wave}!${label}`, `ได้ทอง +${reward} — จัดทัพแล้วลุยด่านถัดไป`, () => {
       wave += 1;
       healPlayerTeam();
       pickShopOffers();
