@@ -57,7 +57,7 @@
   .slot{width:50px;height:56px;border-radius:50%;background:radial-gradient(circle at 50% 35%,#4a4030,#241d13 70%);position:relative;border:2px solid #4a3c24}
   .slot.filled{border-color:#d0a052}
   .slot.selected{box-shadow:0 0 0 3px #ffe178}
-  .slot canvas{position:absolute;left:50%;top:38%;transform:translate(-50%,-52%);width:74%;height:74%;object-fit:contain;pointer-events:none}
+  .slot canvas{position:absolute;left:50%;top:38%;transform:translate(-50%,-52%);width:74%;aspect-ratio:1;object-fit:cover;border-radius:50%;pointer-events:none}
   .slot b{position:absolute;bottom:1px;left:0;right:0;font-size:6.5px;text-align:center;color:#f7e7ba;text-shadow:0 1px 1px #000;pointer-events:none}
   .slot.dragging-source{opacity:.35}
 
@@ -68,7 +68,8 @@
   .shop{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px}
   .card{pointer-events:auto;border:1px solid #80643a;border-radius:8px;background:linear-gradient(#1c2320,#12100c);text-align:center;padding:3px;overflow:hidden;display:flex;flex-direction:column}
   .card .pic{position:relative;height:46px;border-radius:6px;background:#1c2b20;overflow:hidden}
-  .card .pic canvas{width:100%;height:100%}
+  .card .pic canvas{width:100%;height:100%;object-fit:cover;object-position:50% 30%}
+  @media(min-height:620px){.card .pic{height:auto;aspect-ratio:16/10}}
   .card b{display:block;font-size:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
   .card .tags{display:flex;gap:2px;justify-content:center;flex-wrap:wrap;min-height:10px}
   .card .tags span{font-size:6px;padding:1px 3px;border-radius:4px;background:#00000055;color:#d8c894}
@@ -961,10 +962,11 @@
         shadow.rotation.x = -Math.PI/2; shadow.position.set(pos.x, .07, pos.z);
         scene.add(shadow);
 
-        const tex = new THREE_.CanvasTexture(bodyPortrait(hero));
+        const bodyCv = bodyPortrait(hero);
+        const tex = new THREE_.CanvasTexture(bodyCv);
         const mat = new THREE_.SpriteMaterial({map:tex, transparent:true});
         const sprite = new THREE_.Sprite(mat);
-        sprite.scale.set(0.95, 1.4, 1);
+        sprite.scale.set(1.4*bodyCv.width/bodyCv.height, 1.4, 1); // keep the art's true aspect
         sprite.position.set(pos.x, .78, pos.z);
         scene.add(sprite);
 
@@ -976,8 +978,10 @@
         for(let r=0;r<BOARD_N;r++) for(let c2=0;c2<BOARD_N;c2++){
           const cell = board[r][c2];
           if(!cell) continue;
-          cell.sprite.material.map = new THREE_.CanvasTexture(bodyPortrait(cell.hero));
+          const cv = bodyPortrait(cell.hero);
+          cell.sprite.material.map = new THREE_.CanvasTexture(cv);
           cell.sprite.material.needsUpdate = true;
+          cell.sprite.scale.set(1.4*cv.width/cv.height, 1.4, 1);
         }
       };
 
@@ -1190,9 +1194,10 @@
           do{ r=Math.floor(Math.random()*3); c2=Math.floor(Math.random()*BOARD_N); }
           while(occ[r][c2] && ++guard<100);
           if(occ[r][c2]) continue;
-          const tex = new THREE_.CanvasTexture(monsterBody(type));
+          const monCv = monsterBody(type);
+          const tex = new THREE_.CanvasTexture(monCv);
           const spr = new THREE_.Sprite(new THREE_.SpriteMaterial({map:tex, transparent:true}));
-          spr.scale.set(.95,1.4,1);
+          spr.scale.set(1.4*monCv.width/monCv.height, 1.4, 1);
           const p = tilePos(r,c2);
           spr.position.set(p.x,.78,p.z);
           const sh = new THREE_.Mesh(new THREE_.CircleGeometry(.32,20), new THREE_.MeshBasicMaterial({color:0x000000, transparent:true, opacity:.35}));
