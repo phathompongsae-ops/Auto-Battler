@@ -1,0 +1,812 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>Auto Battler 2.5D — Clean V5</title>
+<style>
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#07120d;color:#f7e7ba;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;touch-action:none}
+
+  /* ---------- App grid: 4 real rows, no absolute overlays on the board ---------- */
+  #app{
+    position:fixed;inset:0;
+    display:grid;
+    grid-template-rows:auto minmax(0,1fr) auto auto;
+    grid-template-areas:"hud" "battle" "bench" "shop";
+    padding-top:max(6px,env(safe-area-inset-top));
+    padding-left:max(6px,env(safe-area-inset-left));
+    padding-right:max(6px,env(safe-area-inset-right));
+    padding-bottom:max(6px,env(safe-area-inset-bottom));
+    gap:6px;
+  }
+
+  /* ---------- Top HUD ---------- */
+  .hud{grid-area:hud;display:flex;align-items:center;gap:6px;padding:0 4px;flex-wrap:nowrap}
+  .pill{display:flex;align-items:center;gap:5px;border:1px solid #9b7840;background:linear-gradient(#241d12,#17130d);color:#f9e3a1;border-radius:14px;padding:5px 10px;font-size:11px;font-weight:800;white-space:nowrap}
+  .pill .xpbar{width:52px;height:5px;border-radius:3px;background:#3a2e1a;overflow:hidden;border:1px solid #6e5730}
+  .pill .xpbar i{display:block;height:100%;background:linear-gradient(#ffe38a,#c9942f)}
+  .btn{pointer-events:auto;border:1px solid #9b7840;background:linear-gradient(#241d12,#17130d);color:#f9e3a1;border-radius:9px;padding:6px 9px;font-size:10px;font-weight:800}
+  .hud .grow{flex:1}
+  .hud .right-btns{display:flex;gap:5px}
+
+  /* ---------- Battle row: left synergy | board | right team ---------- */
+  .battle{grid-area:battle;display:grid;grid-template-columns:88px minmax(0,1fr) 88px;gap:6px;min-height:0}
+  .side{border:1px solid #806536;border-radius:10px;background:#12110ddb;padding:6px;overflow-y:auto;min-height:0}
+  .side h3{margin:0 0 6px;text-align:center;font-size:9px;letter-spacing:.05em;color:#e8c877}
+  .syn-row{display:flex;align-items:center;gap:6px;padding:4px 2px;border-bottom:1px solid #493a22}
+  .syn-icon{width:20px;height:20px;border-radius:5px;flex:none;display:grid;place-items:center;font-size:11px;color:#0c0c0c;font-weight:900}
+  .syn-info{min-width:0;flex:1}
+  .syn-info b{display:block;font-size:8px;line-height:1.2}
+  .syn-info span{font-size:8px;color:#c9a862}
+  .team-row{display:flex;align-items:center;gap:5px;padding:3px 1px;border-bottom:1px solid #493a22}
+  .team-row canvas{width:22px;height:22px;border-radius:5px;border:1px solid #7c6636;flex:none}
+  .team-hp{flex:1;min-width:0}
+  .team-hp b{display:block;font-size:8px}
+  .team-hp .bar{height:4px;border-radius:2px;background:#3a2e1a;overflow:hidden;border:1px solid #6e5730}
+  .team-hp .bar i{display:block;height:100%;background:linear-gradient(#8be36a,#3f9c31)}
+  .team-empty{font-size:8px;color:#c9a862;text-align:center;padding-top:8px}
+
+  .board-wrap{position:relative;min-width:0;min-height:0;border:1px solid #2b3b2c;border-radius:10px;overflow:hidden;background:#0d1d13;box-shadow:inset 0 0 22px #000a}
+  #game{display:block;width:100%;height:100%;touch-action:none}
+  .board-hint{position:absolute;left:0;right:0;bottom:6px;text-align:center;font-size:9px;color:#d8c894;pointer-events:none;text-shadow:0 1px 2px #000}
+
+  /* ---------- Bench row ---------- */
+  .bench-row{grid-area:bench;display:flex;justify-content:center}
+  .bench{display:grid;grid-template-columns:repeat(6,50px);gap:5px;padding:6px 8px;border:1px solid #8a6c39;border-radius:12px;background:#15120edc;pointer-events:auto}
+  .slot{width:50px;height:56px;border-radius:50%;background:radial-gradient(circle at 50% 35%,#4a4030,#241d13 70%);position:relative;border:2px solid #4a3c24}
+  .slot.filled{border-color:#d0a052}
+  .slot.selected{box-shadow:0 0 0 3px #ffe178}
+  .slot canvas{position:absolute;left:50%;top:38%;transform:translate(-50%,-52%);width:74%;height:74%;object-fit:contain;pointer-events:none}
+  .slot b{position:absolute;bottom:1px;left:0;right:0;font-size:6.5px;text-align:center;color:#f7e7ba;text-shadow:0 1px 1px #000;pointer-events:none}
+  .slot.dragging-source{opacity:.35}
+
+  /* ---------- Shop row ---------- */
+  .shop-row{grid-area:shop;display:grid;grid-template-columns:74px 1fr 74px;gap:6px;align-items:center}
+  .round{pointer-events:auto;border:2px solid #98723a;border-radius:50%;width:74px;height:74px;background:radial-gradient(circle,#5c4119,#20150b 75%);color:#ffe6a0;font-weight:900;font-size:9px;line-height:1.5;display:flex;flex-direction:column;align-items:center;justify-content:center}
+  .round small{font-size:9px;color:#ffd873}
+  .shop{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px}
+  .card{pointer-events:auto;border:1px solid #80643a;border-radius:8px;background:linear-gradient(#1c2320,#12100c);text-align:center;padding:3px;overflow:hidden;display:flex;flex-direction:column}
+  .card .pic{position:relative;height:46px;border-radius:6px;background:#1c2b20;overflow:hidden}
+  .card .pic canvas{width:100%;height:100%}
+  .card b{display:block;font-size:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
+  .card .tags{display:flex;gap:2px;justify-content:center;flex-wrap:wrap;min-height:10px}
+  .card .tags span{font-size:6px;padding:1px 3px;border-radius:4px;background:#00000055;color:#d8c894}
+  .card button{margin-top:2px;width:100%;border:0;border-radius:5px;background:linear-gradient(#e0b04c,#a97a24);color:#2a1a05;font-size:8px;font-weight:900;padding:2px 0}
+  .card button:disabled{opacity:.4}
+  .card.empty{visibility:hidden}
+
+  .start{position:relative;pointer-events:auto;border:1px solid #a77d37;border-radius:8px;background:linear-gradient(#dba43b,#a2701e);color:#2a1a05;padding:7px 10px;font-weight:900;font-size:10px;margin-left:auto}
+  .hud .start{margin:0}
+
+  .toast{position:fixed;left:50%;top:14%;transform:translateX(-50%);max-width:80%;padding:10px 14px;border:1px solid #c28f46;border-radius:10px;background:#17130fed;text-align:center;font-size:12px;z-index:60;display:none;pointer-events:none}
+  .toast.show{display:block}
+
+  .drag-ghost{position:fixed;width:52px;height:58px;pointer-events:none;z-index:80;transform:translate(-50%,-50%);border-radius:50%;box-shadow:0 0 0 2px #ffe178,0 4px 10px #000a;overflow:hidden}
+  .drag-ghost canvas{width:100%;height:100%}
+
+  @media(min-width:900px){
+    .battle{grid-template-columns:118px minmax(0,1fr) 118px}
+    .bench{grid-template-columns:repeat(6,58px)}
+    .slot{width:58px;height:64px}
+    .shop-row{grid-template-columns:88px 1fr 88px}
+    .round{width:88px;height:88px}
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="hud">
+    <div class="pill">Lv.<b id="lv">1</b><span class="xpbar"><i id="xpbar" style="width:0%"></i></span><b id="xp">0/4</b></div>
+    <div class="pill">💰 <b id="gold">3</b></div>
+    <div class="pill">👥 <b id="used">0</b>/<b id="cap">1</b></div>
+    <div class="grow"></div>
+    <div class="right-btns">
+      <button class="btn" id="speed">×1</button>
+      <button class="btn" id="reset">⌂</button>
+    </div>
+    <button class="start" id="start">เริ่มต่อสู้</button>
+  </div>
+
+  <div class="battle">
+    <aside class="side" id="synergyPanel">
+      <h3>SYNERGY</h3>
+    </aside>
+
+    <div class="board-wrap" id="boardWrap">
+      <canvas id="game"></canvas>
+      <div class="board-hint" id="boardHint">ลากฮีโร่จาก Bench หรือแตะเลือกแล้วแตะช่องในกระดาน</div>
+    </div>
+
+    <aside class="side" id="teamPanel">
+      <h3>TEAM</h3>
+      <div class="team-empty" id="teamEmpty">ยังไม่มีฮีโร่</div>
+    </aside>
+  </div>
+
+  <div class="bench-row">
+    <div class="bench" id="bench"></div>
+  </div>
+
+  <div class="shop-row">
+    <button class="round" id="buyXp">BUY EXP<br><small>4💰</small></button>
+    <div class="shop" id="shop"></div>
+    <button class="round" id="refresh">REFRESH<br><small>2💰</small></button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ============================== helpers ============================== */
+  const q = id => document.getElementById(id);
+  const toastEl = q('toast');
+  let toastTimer = null;
+  function toast(msg, ms){
+    toastEl.textContent = msg;
+    toastEl.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(()=>toastEl.classList.remove('show'), ms||1600);
+  }
+
+  function shade(hex, percent){
+    const n = parseInt(hex.slice(1),16);
+    let r=(n>>16)+Math.round(255*percent/100);
+    let g=(n>>8&0xff)+Math.round(255*percent/100);
+    let b=(n&0xff)+Math.round(255*percent/100);
+    r=Math.max(0,Math.min(255,r));g=Math.max(0,Math.min(255,g));b=Math.max(0,Math.min(255,b));
+    return '#'+(1<<24|r<<16|g<<8|b).toString(16).slice(1);
+  }
+
+  function roundRect(ctx,x,y,w,h,r){
+    ctx.beginPath();
+    ctx.moveTo(x+r,y);
+    ctx.arcTo(x+w,y,x+w,y+h,r);
+    ctx.arcTo(x+w,y+h,x,y+h,r);
+    ctx.arcTo(x,y+h,x,y,r);
+    ctx.arcTo(x,y,x+w,y,r);
+    ctx.closePath();
+  }
+
+  /* ============================== hero data ============================== */
+  // class badge drawn as vector shapes (no emoji), per handoff instructions
+  const CLASS_BADGE = {
+    Warrior:(ctx,x,y,s)=>{ // small blade
+      ctx.strokeStyle='#e8e8e8';ctx.lineWidth=s*.09;ctx.lineCap='round';
+      ctx.beginPath();ctx.moveTo(x-s*.22,y+s*.22);ctx.lineTo(x+s*.22,y-s*.22);ctx.stroke();
+      ctx.strokeStyle='#8a6a2a';ctx.lineWidth=s*.16;
+      ctx.beginPath();ctx.moveTo(x-s*.05,y+s*.30);ctx.lineTo(x+s*.05,y+s*.18);ctx.stroke();
+    },
+    Ranger:(ctx,x,y,s)=>{ // bow arc
+      ctx.strokeStyle='#caa15a';ctx.lineWidth=s*.08;
+      ctx.beginPath();ctx.arc(x,y,s*.26,-Math.PI*.62,Math.PI*.62);ctx.stroke();
+      ctx.strokeStyle='#e8e0c8';ctx.lineWidth=s*.045;
+      ctx.beginPath();ctx.moveTo(x+s*.13,y-s*.21);ctx.lineTo(x+s*.13,y+s*.21);ctx.stroke();
+    },
+    Mage:(ctx,x,y,s)=>{ // staff + orb
+      ctx.strokeStyle='#8a6a3a';ctx.lineWidth=s*.07;ctx.lineCap='round';
+      ctx.beginPath();ctx.moveTo(x-s*.16,y+s*.26);ctx.lineTo(x+s*.16,y-s*.20);ctx.stroke();
+      ctx.fillStyle='#8ad4ff';
+      ctx.beginPath();ctx.arc(x+s*.18,y-s*.24,s*.11,0,Math.PI*2);ctx.fill();
+    }
+  };
+
+  const HEROES = [
+    {name:'Swordman', cls:'Warrior', tags:['Warrior','Forest'], color:'#c0392b', hair:'#4a2b18'},
+    {name:'Archer',   cls:'Ranger',  tags:['Ranger','Forest'],  color:'#27ae60', hair:'#3a2a16'},
+    {name:'Acolyte',  cls:'Mage',    tags:['Mage','Forest'],    color:'#8e44ad', hair:'#241b30'},
+    {name:'Priestess',cls:'Mage',    tags:['Mage','Forest'],    color:'#2f8fd6', hair:'#efe6c8'}
+  ];
+
+  /* ============================== portrait drawing (canvas, no emoji) ============================== */
+  const portraitCache = new Map();
+  function facePortrait(hero, size){
+    const key = hero.name+'|f'+size;
+    if(portraitCache.has(key)) return portraitCache.get(key);
+    const c = document.createElement('canvas'); c.width=c.height=size;
+    const ctx = c.getContext('2d');
+    const grd = ctx.createRadialGradient(size*.5,size*.5,2,size*.5,size*.5,size*.62);
+    grd.addColorStop(0, shade(hero.color,18)); grd.addColorStop(1, shade(hero.color,-38));
+    ctx.fillStyle = grd; roundRect(ctx,0,0,size,size,size*.22); ctx.fill();
+    // head
+    ctx.fillStyle='#ffdfc0';
+    ctx.beginPath();ctx.ellipse(size*.5,size*.48,size*.27,size*.29,0,0,Math.PI*2);ctx.fill();
+    // hair back
+    ctx.fillStyle=hero.hair;
+    ctx.beginPath();ctx.ellipse(size*.5,size*.30,size*.31,size*.20,0,Math.PI,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.ellipse(size*.24,size*.42,size*.09,size*.16,0,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.ellipse(size*.76,size*.42,size*.09,size*.16,0,0,Math.PI*2);ctx.fill();
+    // eyes
+    ctx.fillStyle='#2b2b2b';
+    ctx.beginPath();ctx.ellipse(size*.40,size*.49,size*.032,size*.05,0,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.ellipse(size*.60,size*.49,size*.032,size*.05,0,0,Math.PI*2);ctx.fill();
+    // blush
+    ctx.fillStyle='rgba(255,120,120,.35)';
+    ctx.beginPath();ctx.ellipse(size*.33,size*.57,size*.045,size*.025,0,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.ellipse(size*.67,size*.57,size*.045,size*.025,0,0,Math.PI*2);ctx.fill();
+    // class badge, bottom-right
+    if(CLASS_BADGE[hero.cls]) CLASS_BADGE[hero.cls](ctx, size*.78, size*.80, size*.34);
+    portraitCache.set(key,c);
+    return c;
+  }
+
+  function bodyPortrait(hero){
+    const key = hero.name+'|body';
+    if(portraitCache.has(key)) return portraitCache.get(key);
+    const w=96,h=140;
+    const c = document.createElement('canvas'); c.width=w; c.height=h;
+    const ctx = c.getContext('2d');
+    // legs
+    ctx.fillStyle=shade(hero.color,-45);
+    ctx.fillRect(w*.36,h*.72,w*.11,h*.24);
+    ctx.fillRect(w*.53,h*.72,w*.11,h*.24);
+    // torso/robe
+    ctx.fillStyle=hero.color;
+    roundRect(ctx,w*.28,h*.42,w*.44,h*.36,w*.10);ctx.fill();
+    // arms
+    ctx.fillStyle=shade(hero.color,-15);
+    ctx.fillRect(w*.16,h*.46,w*.13,h*.28);
+    ctx.fillRect(w*.71,h*.46,w*.13,h*.28);
+    // head
+    ctx.fillStyle='#ffdfc0';
+    ctx.beginPath();ctx.ellipse(w*.5,h*.24,w*.22,h*.155,0,0,Math.PI*2);ctx.fill();
+    // hair
+    ctx.fillStyle=hero.hair;
+    ctx.beginPath();ctx.ellipse(w*.5,h*.14,w*.25,h*.11,0,Math.PI,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.ellipse(w*.28,h*.22,w*.07,h*.09,0,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.ellipse(w*.72,h*.22,w*.07,h*.09,0,0,Math.PI*2);ctx.fill();
+    // eyes
+    ctx.fillStyle='#2b2b2b';
+    ctx.beginPath();ctx.ellipse(w*.43,h*.25,w*.025,h*.02,0,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.ellipse(w*.57,h*.25,w*.025,h*.02,0,0,Math.PI*2);ctx.fill();
+    // class weapon accent
+    if(CLASS_BADGE[hero.cls]) CLASS_BADGE[hero.cls](ctx, w*.82, h*.55, w*.30);
+    portraitCache.set(key,c);
+    return c;
+  }
+
+  /* ============================== game state ============================== */
+  const XP_NEED = {1:4,2:8,3:12,4:16};
+  const BOARD_N = 8;
+  const PLAYER_ROWS = [5,6,7]; // 3 rows nearest the camera/UI (bottom rows)
+
+  const state = {
+    gold:3, level:1, xp:0,
+    bench:new Array(6).fill(null),
+    offers:[],
+    boardCount:0,
+    selectedBench:-1
+  };
+  const board = []; // board[r][c] = {hero, sprite, shadow} | null
+  for(let r=0;r<BOARD_N;r++){ board.push(new Array(BOARD_N).fill(null)); }
+
+  function randomHero(){ return HEROES[Math.floor(Math.random()*HEROES.length)]; }
+  function refillOffers(){ state.offers = [0,1,2,3,4].map(randomHero); }
+
+  /* ============================== rendering: HUD / bench / shop / synergy / team ============================== */
+  function renderHUD(){
+    q('gold').textContent = state.gold;
+    q('lv').textContent = state.level;
+    q('cap').textContent = state.level;
+    q('used').textContent = state.boardCount;
+    if(state.level<5){
+      q('xp').textContent = state.xp+'/'+XP_NEED[state.level];
+      q('xpbar').style.width = Math.min(100, state.xp/XP_NEED[state.level]*100)+'%';
+    } else {
+      q('xp').textContent = 'MAX';
+      q('xpbar').style.width = '100%';
+    }
+  }
+
+  function renderBench(){
+    const b = q('bench');
+    b.innerHTML = '';
+    state.bench.forEach((hero,i)=>{
+      const d = document.createElement('div');
+      d.className = 'slot'+(hero?' filled':'')+(state.selectedBench===i?' selected':'');
+      if(hero){
+        const cv = facePortrait(hero, 64);
+        const clone = document.createElement('canvas');
+        clone.width=cv.width; clone.height=cv.height;
+        clone.getContext('2d').drawImage(cv,0,0);
+        d.appendChild(clone);
+        const label = document.createElement('b');
+        label.textContent = hero.name;
+        d.appendChild(label);
+        d.dataset.benchIndex = i;
+      }
+      b.appendChild(d);
+    });
+  }
+
+  function renderShop(){
+    const s = q('shop');
+    s.innerHTML = '';
+    state.offers.forEach((hero, idx)=>{
+      const d = document.createElement('div');
+      d.className = 'card';
+      const pic = document.createElement('div'); pic.className='pic';
+      pic.appendChild(cloneCanvas(facePortrait(hero,80)));
+      d.appendChild(pic);
+      const name = document.createElement('b'); name.textContent = hero.name; d.appendChild(name);
+      const tags = document.createElement('div'); tags.className='tags';
+      hero.tags.forEach(t=>{ const sp=document.createElement('span'); sp.textContent=t; tags.appendChild(sp); });
+      d.appendChild(tags);
+      const btn = document.createElement('button');
+      btn.textContent = 'ซื้อ 2💰';
+      const benchFull = state.bench.every(x=>x!==null);
+      btn.disabled = state.gold<2 || benchFull;
+      btn.onclick = ()=>buyHero(idx);
+      d.appendChild(btn);
+      s.appendChild(d);
+    });
+  }
+
+  function cloneCanvas(src){
+    const c = document.createElement('canvas'); c.width=src.width; c.height=src.height;
+    c.getContext('2d').drawImage(src,0,0);
+    return c;
+  }
+
+  function renderSynergy(){
+    const panel = q('synergyPanel');
+    panel.querySelectorAll('.syn-row').forEach(el=>el.remove());
+    const counts = {};
+    for(let r=0;r<BOARD_N;r++) for(let c2=0;c2<BOARD_N;c2++){
+      const cell = board[r][c2];
+      if(cell) cell.hero.tags.forEach(t=>{ counts[t]=(counts[t]||0)+1; });
+    }
+    const order = ['Warrior','Ranger','Mage','Forest'];
+    const colors = {Warrior:'#e0665a',Ranger:'#6fce8f',Mage:'#8ab6ff',Forest:'#8fd16a'};
+    order.forEach(tag=>{
+      const row = document.createElement('div'); row.className='syn-row';
+      const icon = document.createElement('div'); icon.className='syn-icon';
+      icon.style.background = colors[tag];
+      row.appendChild(icon);
+      const info = document.createElement('div'); info.className='syn-info';
+      const b = document.createElement('b'); b.textContent = tag;
+      const span = document.createElement('span'); span.textContent = (counts[tag]||0)+'/2';
+      info.appendChild(b); info.appendChild(span);
+      row.appendChild(info);
+      panel.appendChild(row);
+    });
+  }
+
+  function ownedHeroes(){
+    const list = [];
+    for(let r=0;r<BOARD_N;r++) for(let c2=0;c2<BOARD_N;c2++){ if(board[r][c2]) list.push(board[r][c2].hero); }
+    state.bench.forEach(h=>{ if(h) list.push(h); });
+    return list;
+  }
+
+  function renderTeam(){
+    const panel = q('teamPanel');
+    panel.querySelectorAll('.team-row').forEach(el=>el.remove());
+    const list = ownedHeroes();
+    q('teamEmpty').style.display = list.length ? 'none' : 'block';
+    list.forEach(hero=>{
+      const row = document.createElement('div'); row.className='team-row';
+      row.appendChild(cloneCanvas(facePortrait(hero,44)));
+      const hp = document.createElement('div'); hp.className='team-hp';
+      const b = document.createElement('b'); b.textContent = hero.name;
+      const bar = document.createElement('div'); bar.className='bar';
+      const i = document.createElement('i'); i.style.width='100%';
+      bar.appendChild(i); hp.appendChild(b); hp.appendChild(bar);
+      row.appendChild(hp);
+      panel.appendChild(row);
+    });
+  }
+
+  function renderAll(){
+    renderHUD(); renderBench(); renderShop(); renderSynergy(); renderTeam();
+  }
+
+  /* ============================== shop / xp actions ============================== */
+  function buyHero(offerIdx){
+    const hero = state.offers[offerIdx];
+    if(state.gold<2){ toast('ทองไม่พอ'); return; }
+    const freeSlot = state.bench.findIndex(x=>x===null);
+    if(freeSlot===-1){ toast('Bench เต็มแล้ว'); return; }
+    state.gold -= 2;
+    state.bench[freeSlot] = hero;
+    renderAll();
+  }
+
+  q('refresh').onclick = ()=>{
+    if(state.gold<2){ toast('ทองไม่พอ'); return; }
+    state.gold -= 2; refillOffers(); renderAll();
+  };
+  q('buyXp').onclick = ()=>{
+    if(state.level>=5){ toast('เลเวลสูงสุดแล้ว'); return; }
+    if(state.gold<4){ toast('ทองไม่พอ'); return; }
+    state.gold -= 4; state.xp += 4;
+    while(state.level<5 && state.xp>=XP_NEED[state.level]){ state.xp -= XP_NEED[state.level]; state.level++; }
+    renderAll();
+  };
+  q('start').onclick = ()=>{
+    if(state.boardCount<1){ toast('ต้องวางฮีโร่ลงกระดานอย่างน้อย 1 ตัวก่อนเริ่มต่อสู้'); return; }
+    toast('เริ่มต่อสู้! (ระบบคำนวณการต่อสู้จะเพิ่มในขั้นถัดไป)', 2200);
+  };
+  q('reset').onclick = ()=>{
+    if(!confirm('รีเซ็ตเกม?')) return;
+    location.reload();
+  };
+  q('speed').onclick = ()=>{
+    const cur = q('speed').textContent;
+    q('speed').textContent = cur==='×1' ? '×2' : (cur==='×2' ? '×4' : '×1');
+  };
+
+  /* ============================== bench pointer: drag + tap-select ============================== */
+  let dragState = null; // {benchIndex, startX, startY, moved, pointerId, ghostEl}
+
+  function benchIndexFromEl(el){
+    while(el && !el.dataset){ el = el.parentElement; }
+    while(el && el.dataset.benchIndex===undefined){ el = el.parentElement; if(el===document.body) return -1; }
+    return el ? parseInt(el.dataset.benchIndex,10) : -1;
+  }
+
+  q('bench').addEventListener('pointerdown', e=>{
+    const idx = benchIndexFromEl(e.target);
+    if(idx===-1 || !state.bench[idx]) return;
+    dragState = {benchIndex:idx, startX:e.clientX, startY:e.clientY, moved:false, pointerId:e.pointerId, ghostEl:null};
+  });
+
+  function startGhost(ds, x, y){
+    const hero = state.bench[ds.benchIndex];
+    const ghost = document.createElement('div'); ghost.className='drag-ghost';
+    ghost.appendChild(cloneCanvas(facePortrait(hero,64)));
+    document.body.appendChild(ghost);
+    ghost.style.left = x+'px'; ghost.style.top = y+'px';
+    ds.ghostEl = ghost;
+    highlightValidTiles(true);
+  }
+  function moveGhost(ds, x, y){
+    if(ds.ghostEl){ ds.ghostEl.style.left = x+'px'; ds.ghostEl.style.top = y+'px'; }
+  }
+  function endGhost(ds){
+    if(ds.ghostEl && ds.ghostEl.parentNode) ds.ghostEl.parentNode.removeChild(ds.ghostEl);
+    highlightValidTiles(false);
+  }
+
+  document.addEventListener('pointermove', e=>{
+    if(!dragState || e.pointerId!==dragState.pointerId) return;
+    const dx=e.clientX-dragState.startX, dy=e.clientY-dragState.startY;
+    if(!dragState.moved && Math.hypot(dx,dy)>6){
+      dragState.moved = true;
+      startGhost(dragState, e.clientX, e.clientY);
+    }
+    if(dragState.moved) moveGhost(dragState, e.clientX, e.clientY);
+  });
+
+  document.addEventListener('pointerup', e=>{
+    if(!dragState || e.pointerId!==dragState.pointerId) return;
+    const ds = dragState; dragState = null;
+    if(ds.moved){
+      endGhost(ds);
+      tryPlaceAtScreenPoint(ds.benchIndex, e.clientX, e.clientY);
+    } else {
+      toggleSelect(ds.benchIndex);
+    }
+  });
+  document.addEventListener('pointercancel', ()=>{
+    if(dragState){ endGhost(dragState); dragState=null; }
+  });
+
+  function toggleSelect(idx){
+    state.selectedBench = (state.selectedBench===idx) ? -1 : idx;
+    highlightValidTiles(state.selectedBench!==-1);
+    renderBench();
+  }
+
+  /* ============================== canvas tap-cell (fallback + drop target) ============================== */
+  let canvasPointer = null; // {startX,startY,pointerId}
+  const canvasEl = q('game');
+
+  canvasEl.addEventListener('pointerdown', e=>{
+    if(dragState) return; // dragging from bench takes priority
+    canvasPointer = {startX:e.clientX, startY:e.clientY, pointerId:e.pointerId};
+  });
+  canvasEl.addEventListener('pointerup', e=>{
+    if(!canvasPointer || e.pointerId!==canvasPointer.pointerId) return;
+    const cp = canvasPointer; canvasPointer = null;
+    const dx=e.clientX-cp.startX, dy=e.clientY-cp.startY;
+    if(Math.hypot(dx,dy)>6) return; // was a camera-drag-like gesture, not a tap
+    if(state.selectedBench!==-1){
+      const idx = state.selectedBench;
+      state.selectedBench = -1;
+      highlightValidTiles(false);
+      tryPlaceAtScreenPoint(idx, e.clientX, e.clientY);
+      renderBench();
+    }
+  });
+
+  /* ============================== placement logic ============================== */
+  function tryPlaceAtScreenPoint(benchIndex, clientX, clientY){
+    const hero = state.bench[benchIndex];
+    if(!hero) return;
+    const rect = canvasEl.getBoundingClientRect();
+    if(clientX<rect.left || clientX>rect.right || clientY<rect.top || clientY>rect.bottom){
+      return; // dropped outside the board — cancel silently
+    }
+    const tile = pickTile(clientX, clientY, rect);
+    if(!tile){ toast('วางในช่องกระดานเท่านั้น'); return; }
+    if(PLAYER_ROWS.indexOf(tile.r)===-1){ toast('วางได้เฉพาะ 3 แถวล่างของกระดาน'); return; }
+    if(board[tile.r][tile.c]){ toast('ช่องนี้มีฮีโร่แล้ว'); return; }
+    if(state.boardCount>=state.level){ toast('ลงสนามได้สูงสุด '+state.level+' ตัวที่เลเวลนี้'); return; }
+    placeHero(tile.r, tile.c, hero);
+    state.bench[benchIndex] = null;
+    renderAll();
+  }
+
+  /* ============================== Three.js scene ============================== */
+  function loadScript(src, ok, fail){
+    const s = document.createElement('script'); s.src = src; s.onload = ok; s.onerror = fail;
+    document.head.appendChild(s);
+  }
+  loadScript('https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js', boot,
+    ()=>loadScript('https://unpkg.com/three@0.128.0/build/three.min.js', boot,
+    ()=>{ toast('โหลด Three.js ไม่สำเร็จ จึงเปิดโหมดกระดานสำรอง', 3000); fallback(); }));
+
+  let pickTile = ()=>null;
+  let highlightValidTiles = ()=>{};
+  let placeHero = ()=>{};
+
+  function fallback(){
+    const c = canvasEl, x = c.getContext('2d');
+    const wrap = q('boardWrap');
+    function draw(){
+      const w = wrap.clientWidth, h = wrap.clientHeight;
+      c.width = w*devicePixelRatio; c.height = h*devicePixelRatio;
+      x.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+      x.fillStyle = '#0d1d13'; x.fillRect(0,0,w,h);
+      const size = Math.min(w,h)*0.92;
+      const L = (w-size)/2, T = (h-size)/2;
+      for(let r=0;r<BOARD_N;r++) for(let c2=0;c2<BOARD_N;c2++){
+        x.fillStyle = (r+c2)%2 ? '#3a4a37' : '#33422f';
+        if(PLAYER_ROWS.indexOf(r)!==-1) x.fillStyle = (r+c2)%2 ? '#4a5a3f' : '#425238';
+        x.fillRect(L+c2*size/BOARD_N, T+r*size/BOARD_N, size/BOARD_N-1, size/BOARD_N-1);
+      }
+    }
+    new ResizeObserver(draw).observe(wrap);
+    draw();
+  }
+
+  function boot(){
+    try{
+      const THREE_ = window.THREE;
+      const canvas = canvasEl;
+      const wrap = q('boardWrap');
+      const renderer = new THREE_.WebGLRenderer({canvas, antialias:true, alpha:false});
+      renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));
+      renderer.shadowMap.enabled = true;
+
+      const scene = new THREE_.Scene();
+      scene.background = new THREE_.Color(0x0d1d13);
+      scene.fog = new THREE_.Fog(0x0d1d13, 26, 44);
+
+      // steeper, more top-down "auto chess" camera angle.
+      // Orthographic + a dynamic contain-fit in resize() keeps the whole board
+      // visible and tappable on any aspect ratio (very wide/short phones included).
+      const camera = new THREE_.OrthographicCamera(-1, 1, 1, -1, .1, 100);
+      camera.position.set(0, 14.5, 9.5);
+      camera.lookAt(0, 0, .4);
+      camera.updateMatrixWorld(true);
+
+      scene.add(new THREE_.HemisphereLight(0xd9f2d1, 0x24351f, .85));
+      const sun = new THREE_.DirectionalLight(0xffedbf, .9);
+      sun.position.set(-6, 12, 7);
+      sun.castShadow = true;
+      scene.add(sun);
+
+      // ground
+      const ground = new THREE_.Mesh(
+        new THREE_.CircleGeometry(15, 48),
+        new THREE_.MeshStandardMaterial({color:0x2c5334, roughness:1})
+      );
+      ground.rotation.x = -Math.PI/2; ground.position.y = -.16; ground.receiveShadow = true;
+      scene.add(ground);
+
+      // board group
+      const boardGroup = new THREE_.Group(); scene.add(boardGroup);
+      const TILE = 1.06;
+      const tileMeshes = []; // visible tiles (small gap, for the grid look)
+      const hitPlanes = [];  // full-coverage invisible planes used for raycasting (no dead gaps between tiles)
+      const playerTileMat = new THREE_.MeshStandardMaterial({color:0x7c896d, roughness:1});
+      const enemyTileMat = new THREE_.MeshStandardMaterial({color:0x6d7c63, roughness:1});
+      const highlightMat = new THREE_.MeshStandardMaterial({color:0x9be36a, roughness:1, emissive:0x2f5c1c, emissiveIntensity:.6});
+      const hitPlaneMat = new THREE_.MeshBasicMaterial({transparent:true, opacity:0, depthWrite:false});
+      for(let r=0;r<BOARD_N;r++) for(let c2=0;c2<BOARD_N;c2++){
+        const isPlayerRow = PLAYER_ROWS.indexOf(r)!==-1;
+        const userData = {r, c:c2, isPlayerRow};
+        const mat = ((r+c2)%2 ? playerTileMat : enemyTileMat).clone();
+        const m = new THREE_.Mesh(new THREE_.BoxGeometry(TILE*.995, .12, TILE*.995), mat);
+        m.position.set((c2-3.5)*TILE, 0, (r-3.5)*TILE);
+        m.receiveShadow = true;
+        m.userData = userData;
+        boardGroup.add(m);
+        tileMeshes.push(m);
+
+        const hit = new THREE_.Mesh(new THREE_.PlaneGeometry(TILE*1.02, TILE*1.02), hitPlaneMat);
+        hit.rotation.x = -Math.PI/2;
+        hit.position.set(m.position.x, .07, m.position.z);
+        hit.userData = userData;
+        boardGroup.add(hit);
+        hitPlanes.push(hit);
+      }
+
+      // circular ritual decal in the center (canvas texture)
+      (function ritualDecal(){
+        const cs = 512;
+        const cc = document.createElement('canvas'); cc.width=cc.height=cs;
+        const cx = cc.getContext('2d');
+        cx.strokeStyle = 'rgba(230,210,150,0.55)'; cx.lineWidth = 5;
+        cx.beginPath(); cx.arc(cs/2,cs/2,cs*0.40,0,Math.PI*2); cx.stroke();
+        cx.beginPath(); cx.arc(cs/2,cs/2,cs*0.30,0,Math.PI*2); cx.stroke();
+        cx.lineWidth = 2;
+        for(let i=0;i<12;i++){
+          const a = i/12*Math.PI*2;
+          cx.beginPath();
+          cx.moveTo(cs/2+Math.cos(a)*cs*0.30, cs/2+Math.sin(a)*cs*0.30);
+          cx.lineTo(cs/2+Math.cos(a)*cs*0.40, cs/2+Math.sin(a)*cs*0.40);
+          cx.stroke();
+        }
+        const tex = new THREE_.CanvasTexture(cc);
+        const decal = new THREE_.Mesh(new THREE_.PlaneGeometry(TILE*3.4, TILE*3.4), new THREE_.MeshBasicMaterial({map:tex, transparent:true, depthWrite:false}));
+        decal.rotation.x = -Math.PI/2; decal.position.y = .07;
+        boardGroup.add(decal);
+      })();
+
+      // fence posts bordering the board
+      const fenceMat = new THREE_.MeshStandardMaterial({color:0x5a4023, roughness:1});
+      const half = BOARD_N/2*TILE + .3;
+      for(let i=-4;i<=4;i++){
+        const xoff = i/4*half;
+        [-half, half].forEach(z=>{
+          const post = new THREE_.Mesh(new THREE_.CylinderGeometry(.05,.06,.5,6), fenceMat);
+          post.position.set(xoff, .1, z);
+          scene.add(post);
+        });
+      }
+      [[-half,0],[half,0]].forEach(([x,zoff])=>{
+        const post = new THREE_.Mesh(new THREE_.CylinderGeometry(.05,.06,.5,6), fenceMat);
+        post.position.set(x, .1, zoff);
+        scene.add(post);
+      });
+
+      // trees ringing the arena — kept close enough to stay inside the
+      // orthographic contain-fit frustum so the forest is actually visible
+      for(let i=0;i<20;i++){
+        const a = i/20*Math.PI*2, r = 5.6+(i%3)*.55;
+        if(Math.sin(a)>.55) continue; // keep the front arc clear so trees never cover the player's rows
+        const trunk = new THREE_.Mesh(new THREE_.CylinderGeometry(.15,.22,1.3,7), new THREE_.MeshStandardMaterial({color:0x573820}));
+        trunk.position.set(Math.cos(a)*r, .65, Math.sin(a)*r);
+        const crown = new THREE_.Mesh(new THREE_.ConeGeometry(.7,1.6,8), new THREE_.MeshStandardMaterial({color:i%2?0x2c6939:0x3c7c44}));
+        crown.position.set(trunk.position.x, 1.7, trunk.position.z);
+        scene.add(trunk, crown);
+      }
+      // rocks
+      for(let i=0;i<8;i++){
+        const a = (i+.5)/8*Math.PI*2, r=5.1+((i*2.3)%1)*.9;
+        if(Math.sin(a)>.55) continue;
+        const rock = new THREE_.Mesh(new THREE_.IcosahedronGeometry(.35+Math.random()*.25,0), new THREE_.MeshStandardMaterial({color:0x555a52,roughness:1}));
+        rock.position.set(Math.cos(a)*r, .2, Math.sin(a)*r);
+        rock.rotation.set(Math.random(),Math.random(),Math.random());
+        scene.add(rock);
+      }
+      // small shop house on the left
+      (function house(){
+        const g = new THREE_.Group();
+        const body = new THREE_.Mesh(new THREE_.BoxGeometry(1.6,1.2,1.4), new THREE_.MeshStandardMaterial({color:0x6b4a2c}));
+        body.position.y = .6;
+        const roof = new THREE_.Mesh(new THREE_.ConeGeometry(1.3,.9,4), new THREE_.MeshStandardMaterial({color:0x8a2f22}));
+        roof.rotation.y = Math.PI/4; roof.position.y = 1.55;
+        g.add(body, roof);
+        g.position.set(-6.6, 0, -2.2);
+        g.scale.set(.8,.8,.8);
+        scene.add(g);
+      })();
+      // water accent on the right
+      (function water(){
+        const w = new THREE_.Mesh(new THREE_.PlaneGeometry(2.6,9), new THREE_.MeshStandardMaterial({color:0x2c6a86, roughness:.4, metalness:.1, transparent:true, opacity:.85}));
+        w.rotation.x = -Math.PI/2; w.position.set(6.9, -.1, 0);
+        scene.add(w);
+      })();
+
+      /* ---- resize via ResizeObserver on the canvas container ----
+         Compute how large the play area (board + margin) projects onto the
+         camera's local x/y axes once (camera never moves), then "contain-fit"
+         that rectangle into whatever aspect ratio the container has. This
+         keeps the full board visible & tappable on any device/orientation
+         instead of shrinking to a thin strip on very wide/short screens. */
+      const playHalf = BOARD_N/2*TILE + .8;
+      const corners = [
+        new THREE_.Vector3(-playHalf, 0, -playHalf),
+        new THREE_.Vector3( playHalf, 0, -playHalf),
+        new THREE_.Vector3(-playHalf, 0,  playHalf),
+        new THREE_.Vector3( playHalf, 0,  playHalf)
+      ];
+      let contentHalfW = 0, contentHalfH = 0;
+      corners.forEach(p=>{
+        const local = camera.worldToLocal(p.clone());
+        contentHalfW = Math.max(contentHalfW, Math.abs(local.x));
+        contentHalfH = Math.max(contentHalfH, Math.abs(local.y));
+      });
+      const PADDING = 1.08;
+      contentHalfW *= PADDING; contentHalfH *= PADDING;
+
+      function resize(){
+        const w = wrap.clientWidth, h = wrap.clientHeight;
+        if(w<=0||h<=0) return;
+        renderer.setSize(w,h,false);
+        const aspect = w/h;
+        const contentAspect = contentHalfW/contentHalfH;
+        let halfW, halfH;
+        if(aspect >= contentAspect){ halfH = contentHalfH; halfW = halfH*aspect; }
+        else { halfW = contentHalfW; halfH = halfW/aspect; }
+        camera.left = -halfW; camera.right = halfW;
+        camera.top = halfH; camera.bottom = -halfH;
+        camera.updateProjectionMatrix();
+      }
+      new ResizeObserver(resize).observe(wrap);
+      resize();
+
+      (function anim(){ requestAnimationFrame(anim); renderer.render(scene,camera); })();
+
+      /* ---- raycasting from canvas.getBoundingClientRect() ---- */
+      const raycaster = new THREE_.Raycaster();
+      const ndc = new THREE_.Vector2();
+      pickTile = function(clientX, clientY, rectArg){
+        const rect = rectArg || canvas.getBoundingClientRect();
+        ndc.x = ((clientX-rect.left)/rect.width)*2-1;
+        ndc.y = -((clientY-rect.top)/rect.height)*2+1;
+        raycaster.setFromCamera(ndc, camera);
+        const hits = raycaster.intersectObjects(hitPlanes);
+        if(!hits.length) return null;
+        return hits[0].object.userData;
+      };
+
+      highlightValidTiles = function(show){
+        tileMeshes.forEach(m=>{
+          if(!m.userData.isPlayerRow) return;
+          m.material = show ? highlightMat : (((m.userData.r+m.userData.c)%2) ? playerTileMat : enemyTileMat);
+        });
+      };
+
+      /* ---- placing a hero sprite (billboard, faces camera) ---- */
+      placeHero = function(r, c2, hero){
+        const tileMesh = tileMeshes.find(m=>m.userData.r===r && m.userData.c===c2);
+        const pos = tileMesh.position;
+        const shadow = new THREE_.Mesh(
+          new THREE_.CircleGeometry(.32, 20),
+          new THREE_.MeshBasicMaterial({color:0x000000, transparent:true, opacity:.35})
+        );
+        shadow.rotation.x = -Math.PI/2; shadow.position.set(pos.x, .07, pos.z);
+        scene.add(shadow);
+
+        const tex = new THREE_.CanvasTexture(bodyPortrait(hero));
+        const mat = new THREE_.SpriteMaterial({map:tex, transparent:true});
+        const sprite = new THREE_.Sprite(mat);
+        sprite.scale.set(0.95, 1.4, 1);
+        sprite.position.set(pos.x, .78, pos.z);
+        scene.add(sprite);
+
+        board[r][c2] = {hero, sprite, shadow};
+        state.boardCount++;
+      };
+
+    }catch(e){
+      toast('WebGL เริ่มทำงานไม่สำเร็จ: '+e.message, 3000);
+      fallback();
+    }
+  }
+
+  /* ============================== boot UI ============================== */
+  refillOffers();
+  renderAll();
+})();
+</script>
+</body>
+</html>
