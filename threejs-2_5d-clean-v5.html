@@ -212,7 +212,8 @@
   /* real art assets (per-hero, optional) — heroes without files here keep the
      canvas-drawn placeholder, and any fetch failure falls back the same way */
   const HERO_ASSETS = {
-    Swordman:{face:'assets/v5/face_swordman.png', body:'assets/v5/body_swordman.png'}
+    Swordman:{face:'assets/v5/face_swordman.png', body:'assets/v5/body_swordman.png'},
+    Archer:{face:'assets/v5/face_archer.png', body:'assets/v5/body_archer.png'}
   };
   const heroBitmaps = {}; // name -> {face:ImageBitmap, body:ImageBitmap}
   function loadHeroAssets(){
