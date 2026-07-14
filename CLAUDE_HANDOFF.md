@@ -1,5 +1,47 @@
 # Auto-Battler — Claude Code Handoff
 
+## ✅ สถานะล่าสุด: V5 ใช้งานได้แล้ว (อัปเดต 2026-07-14)
+
+### ไฟล์หลักปัจจุบัน
+`threejs-2_5d-clean-v5.html` — branch `claude/threejs-2-5d-clean-v5-e80mbk`
+
+Commit สำคัญ (เรียงเวลา):
+- `296042b` โครง V5: CSS Grid 4 แถวจริง (HUD / battle / bench / shop) ไม่มี overlay ทับ Canvas,
+  กล้อง orthographic + contain-fit, ลาก-วาง + แตะเลือก-แตะวาง, portrait วาดด้วย canvas แทน emoji
+- `97872ce` ระบบต่อสู้เต็มลูปตามกติกา `COMBAT_DECISIONS.md` (wave, targeting, projectile,
+  HP bar, damage number, แพ้/ชนะได้ทอง, ปุ่ม speed ×1/×2/×4 คุมจริง)
+- `d624092` เดินสายภาพจริงตัวแรก (Swordman) + ระบบโหลด asset แบบ per-hero มี fallback
+- `cef8a79`, `87ce88e`, `e55bb2f` แก้ภาพยืด/กระดานโดนเบียดบนจอแนวนอน — บทเรียนสำคัญ:
+  **ห้ามใช้ media query อิงความสูงจอ** (เบราว์เซอร์มือถือใน embedded viewer รายงานความสูง
+  ไม่ตรงจริง) ให้ใช้ `clamp(min, Xvh, max)` กับทุกขนาดของ bench/shop และล็อกแถว battle
+  ขั้นต่ำ `34vh` ใน grid-template-rows แทน
+
+### Acceptance Criteria (จากรอบก่อน) — สถานะ
+- [x] เปิดแล้วเห็นกระดาน 8×8 + ฉากป่า + Shop 5 ใบ + Bench 6 ช่อง ทันที
+- [x] UI ไม่บังกระดาน (แยกพื้นที่จริงด้วย Grid, เทสกระดานได้ 53–69% ของจอ 5 ขนาด)
+- [x] เริ่ม 3 ทอง → ซื้อฮีโร่ 2 ทอง → เข้า Bench → ลาก/แตะวาง 3 แถวล่าง → 1/1 → เริ่มต่อสู้
+- [x] ต่อสู้จบมีแพ้/ชนะ ได้ทอง (+5 ชนะ / +2 แพ้) ขึ้น Wave ถัดไป ฮีโร่กลับตำแหน่งเดิม
+- [ ] ทดสอบบนอุปกรณ์จริงครบ (ผ่าน headless หลายขนาดจอ + ผู้ใช้ทดสอบมือถือแนวนอนแล้ว)
+
+### ลิงก์ทดลองเล่น (Claude Artifact — แพ็ก Three.js + asset ในไฟล์เดียว)
+https://claude.ai/code/artifact/1c025f52-9740-4bae-b45d-52b0b509476c
+(อัปเดตโดย publish ซ้ำจากเซสชัน Claude Code เดิม — URL คงที่)
+
+### ระบบ asset ภาพจริง (ทำงานร่วมกับ GPT)
+- Workflow ที่ตกลงกับผู้ใช้: GPT เจนภาพ → ผู้ใช้ตรวจ → แนบไฟล์ให้ Claude ในแชท →
+  Claude ตัดพื้นหลัง/ครอป/เดินสายเข้าเกม/commit เอง (GPT ห้ามแตะไฟล์โค้ด)
+- ทะเบียนภาพอยู่ในตัวแปร `HERO_ASSETS` ใน v5 — ฮีโร่ที่ไม่มีไฟล์ใช้ placeholder อัตโนมัติ
+- สเปกไฟล์และบทเรียนการครอป ดู `ART_BRIEF.md` (อัปเดตแล้ว)
+- ตัวแรกที่เข้าเกมแล้ว: Swordman (`assets/v5/body_swordman.png`, `face_swordman.png`)
+
+### งานถัดไปของ V5
+1. ภาพจริง Archer / Acolyte / Priestess (สั่ง GPT ชุดละ 3–4 ตัว แนบ Swordman เป็นตัวอ้างอิงสไตล์)
+2. ภาพมอนสเตอร์จริง Slime / Wolf / Imp / Orc (คีย์ใน `MONSTERS` ของ v5)
+3. ระบบ merge 3 ตัวเป็นดาว, สกิล/มานา (รอตัดสินใจตาม `COMBAT_DECISIONS.md` ข้อ A)
+4. seeded RNG + combat log สำหรับ replay/บาลานซ์
+
+---
+
 ## เป้าหมายของโปรเจกต์
 สร้างเกม Auto Battler สำหรับเว็บ/มือถือ โดยใช้ Three.js ในรูปแบบ 2.5D และต้องสามารถต่อยอดไปเล่นบน Android/iPad ได้
 
