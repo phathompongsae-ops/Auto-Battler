@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Auto Battler — โหมด Auto Chess</title>
+<style>
+  html, body { margin: 0; padding: 0; overflow: hidden; background: #14100c; font-family: 'Trebuchet MS', sans-serif; }
+  canvas { display: block; position: fixed; top: 0; left: 0; }
+  * { box-sizing: border-box; }
+
+  #loading {
+    position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
+    color: #d7c9a7; font-family: monospace; font-size: 18px; background: #14100c; z-index: 30;
+  }
+
+  /* ----- แถบบนสุด ----- */
+  #topbar {
+    position: fixed; top: 0; left: 0; right: 0; display: flex; align-items: center;
+    gap: 18px; padding: 10px 16px; background: linear-gradient(#1c140c, rgba(28,20,12,0));
+    color: #f0e6c8; font-size: 15px; z-index: 10; pointer-events: none;
+  }
+  #topbar .pill {
+    background: rgba(20,14,8,0.78); border: 1px solid #8a6c40; border-radius: 20px;
+    padding: 6px 14px; pointer-events: auto; display: flex; align-items: center; gap: 6px;
+  }
+  #topbar .spacer { flex: 1; }
+  #topbar button {
+    pointer-events: auto; background: #4a3a24; color: #f0e6c8; border: 1px solid #a8843c;
+    border-radius: 6px; padding: 6px 12px; cursor: pointer; font-size: 14px;
+  }
+  #topbar button.active { background: #a8843c; color: #241c10; }
+  a#back { text-decoration: none; }
+
+  /* ----- แผงร้านค้า / ม้านั่งสำรอง (parchment style) -----
+     ผูกความสูงคงที่ + ยึดขอบล่างจอเสมอ ไม่ให้ซ้อนทับกระดาน 3D
+     (canvas เว้นพื้นที่ด้านล่างเท่ากับ UI_HEIGHT ไว้ให้แล้วผ่าน JS)
+     วางร้านค้า/ม้านั่ง/ปุ่มเริ่มรบเป็นแถวเดียวกัน (ไม่ซ้อนสูง) เพื่อประหยัดความสูงจอ */
+  #bottomUI {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 10; height: 210px;
+    display: flex; flex-direction: row; align-items: stretch; gap: 8px;
+    padding: 8px 10px 10px; pointer-events: none;
+    background: linear-gradient(rgba(20,14,8,0), rgba(12,9,5,0.6) 25%);
+  }
+  .panel {
+    background: linear-gradient(#f2e6c8, #e2d3a8); border: 2px solid #8a6c40; border-radius: 10px;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.5); pointer-events: auto; color: #3a2b18;
+    padding: 8px 10px; overflow-y: auto;
+  }
+  #shopPanel, #benchPanel { flex: 1 1 0; min-width: 0; }
+  #shopPanel h3, #benchPanel h3 { margin: 0 0 6px; font-size: 13px; display: flex; justify-content: space-between; align-items: center; }
+  #shopPanel h3 button {
+    background: #6b8f42; color: #fbf6e6; border: 1px solid #4a6b2a; border-radius: 6px;
+    padding: 4px 10px; cursor: pointer; font-size: 12px;
+  }
+  #shopPanel h3 button:disabled { background: #999; border-color: #777; cursor: not-allowed; }
+  #shopCards, #benchCards { display: flex; gap: 6px; flex-wrap: wrap; }
+  .card {
+    width: 62px; background: #fbf6e6; border: 2px solid #b89858; border-radius: 6px; overflow: hidden;
+    text-align: center; cursor: pointer; font-size: 10px; user-select: none; flex-shrink: 0;
+  }
+  .card img { width: 100%; height: 56px; object-fit: cover; display: block; background: #333; }
+  .card .name { padding: 2px 2px 0; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 9px; }
+  .card .cost { padding: 0 2px 3px; color: #a8843c; font-weight: bold; }
+  .card.disabled { opacity: 0.45; cursor: not-allowed; }
+  .card.selected { border-color: #c0392b; box-shadow: 0 0 0 2px #c0392b; }
+  #hint { color: #6b5a3a; font-size: 11px; margin-top: 4px; }
+  #startCol { flex: 0 0 150px; display: flex; align-items: center; justify-content: center; }
+  #startBattleBtn {
+    pointer-events: auto; background: linear-gradient(#e0c060, #a8843c); color: #2a1e10;
+    border: 2px solid #6b4a24; border-radius: 10px; font-size: 15px; font-weight: bold;
+    padding: 14px 18px; cursor: pointer; letter-spacing: 0.5px; width: 100%; height: 100%;
+  }
+  #startBattleBtn:disabled { background: #999; border-color: #666; color: #ddd; cursor: not-allowed; }
+
+  /* ----- โมดัลผลลัพธ์ ----- */
+  #resultModal {
+    position: fixed; inset: 0; display: none; align-items: center; justify-content: center;
+    background: rgba(10,7,4,0.72); z-index: 20;
+  }
+  #resultBox {
+    background: linear-gradient(#2a2014, #1a130c); border: 2px solid #a8843c; border-radius: 12px;
+    padding: 30px 50px; text-align: center; color: #f0e6c8;
+  }
+  #resultBox h2 { margin: 0 0 10px; font-size: 28px; }
+  #resultBox p { margin: 4px 0 18px; color: #d7c9a7; }
+  #resultBox button {
+    background: linear-gradient(#e0c060, #a8843c); color: #2a1e10; border: 2px solid #6b4a24;
+    border-radius: 8px; font-size: 16px; font-weight: bold; padding: 10px 28px; cursor: pointer;
+  }
+</style>
+</head>
+<body>
+<div id="loading">กำลังเตรียมสนามประลอง...</div>
+
+<div id="topbar">
+  <a id="back" href="index.html"><button>&larr; เมนู</button></a>
+  <div class="pill">💰 <span id="goldLabel">0</span></div>
+  <div class="pill">🌊 ด่าน <span id="waveLabel">1</span>/<span id="waveTotal">3</span></div>
+  <div class="pill" id="phaseLabel">เตรียมทีม</div>
+  <div class="spacer"></div>
+  <button id="speedBtn">x1</button>
+  <button id="pauseBtn">⏸ หยุด</button>
+</div>
+
+<div id="bottomUI">
+  <div class="panel" id="shopPanel">
+    <h3>ร้านค้า <button id="rerollBtn">รีโรล (2💰)</button></h3>
+    <div id="shopCards"></div>
+  </div>
+  <div class="panel" id="benchPanel">
+    <h3>ม้านั่งสำรอง</h3>
+    <div id="benchCards"></div>
+    <div id="hint"></div>
+  </div>
+  <div id="startCol"><button id="startBattleBtn">⚔ เริ่มการต่อสู้</button></div>
+</div>
+
+<div id="resultModal">
+  <div id="resultBox">
+    <h2 id="resultTitle"></h2>
+    <p id="resultBody"></p>
+    <button id="resultBtn">ไปต่อ</button>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// ============================================================
+// CONFIG
+// ============================================================
+const GRID = 8;
+const TILE = 1;
+const PLAYER_ROWS = [5, 6, 7];       // แถวที่วางฮีโร่ได้
+const WAVE_TOTAL = 3;
+const CAMERA_ANGLE_DEG = 55, CAMERA_YAW_DEG = 15, CAMERA_ZOOM = 7.2;
+// เลื่อนจุดที่กล้องมองไปทาง "แถวผู้เล่น" เล็กน้อยให้อยู่กลางพื้นที่ 3D ที่เหลือพอดี
+const LOOK_TARGET = new THREE.Vector3(0, 0, 1.3);
+// กัน UI ด้านล่างจอทับกระดาน: canvas สูงแค่ (จอ - UI_HEIGHT) เท่านั้น ไม่ใช่เต็มจอ
+const UI_HEIGHT = 210;
+function canvasHeight() { return Math.max(240, window.innerHeight - UI_HEIGHT); }
+
+// ============================================================
+// RENDERER / SCENE / CAMERA
+// ============================================================
+const renderer = new THREE.WebGLRenderer({ antialias: false });
+renderer.setPixelRatio(1);
+renderer.setSize(window.innerWidth, canvasHeight());
+document.body.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x1c1510);
+scene.fog = new THREE.Fog(0x1c1510, 18, 34);
+
+const aspect = window.innerWidth / canvasHeight();
+const camera = new THREE.OrthographicCamera(-CAMERA_ZOOM*aspect, CAMERA_ZOOM*aspect, CAMERA_ZOOM, -CAMERA_ZOOM, 0.1, 1000);
+const camDist = 20;
+const aR = THREE.MathUtils.degToRad(CAMERA_ANGLE_DEG), yR = THREE.MathUtils.degToRad(CAMERA_YAW_DEG);
+camera.position.set(camDist*Math.cos(aR)*Math.cos(yR), camDist*Math.sin(aR), camDist*Math.cos(aR)*Math.sin(yR));
+camera.position.add(LOOK_TARGET);
+camera.lookAt(LOOK_TARGET);
+
+scene.add(new THREE.AmbientLight(0x8a7a68, 0.9));
+const torch = new THREE.DirectionalLight(0xffb060, 0.7);
+torch.position.set(6, 10, 3);
+scene.add(torch);
+
+function gridToWorld(c, r) { return new THREE.Vector3((c - GRID/2)*TILE + TILE/2, 0, (r - GRID/2)*TILE + TILE/2); }
+
+// ============================================================
+// พื้น + เสาหัก (ธีมซากอารีน่าหิน) — ไทล์ผู้เล่นเรืองเขียวจางบอกโซนวาง
+// ============================================================
+function makeCanvas(w,h){const c=document.createElement('canvas');c.width=w;c.height=h;return c;}
+function toTexture(cv){const t=new THREE.CanvasTexture(cv);t.magFilter=THREE.NearestFilter;t.minFilter=THREE.NearestFilter;return t;}
+function stoneTileTexture(base, seed) {
+  const cv = makeCanvas(32,32), g = cv.getContext('2d');
+  g.fillStyle = base; g.fillRect(0,0,32,32);
+  let s = seed; const rnd = () => (s=(s*16807)%2147483647)/2147483647;
+  for (let i=0;i<90;i++){const v=rnd();g.fillStyle=v<0.5?'rgba(0,0,0,0.10)':'rgba(255,240,210,0.06)';g.fillRect((rnd()*32)|0,(rnd()*32)|0,1+(rnd()*2|0),1+(rnd()*2|0));}
+  g.strokeStyle='rgba(0,0,0,0.28)'; g.lineWidth=1; g.strokeRect(0.5,0.5,31,31);
+  return toTexture(cv);
+}
+const texA = stoneTileTexture('#6e6552', 41);
+const texB = stoneTileTexture('#5d5645', 977);
+const tileGeo = new THREE.PlaneGeometry(TILE*0.98, TILE*0.98);
+const tileMeshes = [];
+for (let r=0;r<GRID;r++) for (let c=0;c<GRID;c++) {
+  const isPlayerZone = PLAYER_ROWS.includes(r);
+  const mat = new THREE.MeshBasicMaterial({ map: (c+r)%2===0?texA:texB, color: isPlayerZone?0x9fc98a:0xffffff, side: THREE.DoubleSide });
+  const m = new THREE.Mesh(tileGeo, mat);
+  m.rotation.x = -Math.PI/2;
+  const p = gridToWorld(c,r);
+  m.position.set(p.x, 0, p.z);
+  m.userData = { isTile: true, c, r, playerZone: isPlayerZone };
+  scene.add(m);
+  tileMeshes.push(m);
+}
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(60,60), new THREE.MeshBasicMaterial({ color: 0x241c14 }));
+ground.rotation.x = -Math.PI/2; ground.position.y = -0.02; scene.add(ground);
+
+function brokenPillar(x,z,h,tilt){
+  const m=new THREE.Mesh(new THREE.CylinderGeometry(0.28,0.34,h,6), new THREE.MeshLambertMaterial({color:0x7a7060}));
+  m.position.set(x,h/2-0.02,z); m.rotation.z=tilt; scene.add(m);
+  const base=new THREE.Mesh(new THREE.BoxGeometry(0.7,0.25,0.7), new THREE.MeshLambertMaterial({color:0x685e4e}));
+  base.position.set(x,0.1,z); scene.add(base);
+}
+function rubble(x,z,s){
+  const m=new THREE.Mesh(new THREE.DodecahedronGeometry(s,0), new THREE.MeshLambertMaterial({color:0x6a6152}));
+  m.position.set(x,s*0.5,z); m.rotation.set(Math.random()*3,Math.random()*3,0); scene.add(m);
+}
+brokenPillar(-5.2,-5.0,2.6,0.05); brokenPillar(5.0,-5.2,1.4,-0.12);
+brokenPillar(-5.4,5.1,0.9,0.18); brokenPillar(5.3,5.0,2.2,-0.04);
+rubble(-4.6,-3.2,0.22); rubble(4.8,-2.4,0.18); rubble(4.5,3.6,0.26); rubble(-4.9,2.8,0.16);
+
+// ============================================================
+// SPRITES
+// ============================================================
+const ASSET_META = {
+  BladeMaster:  { path: 'assets/heroes/blademaster_sheet.png',  frames: 8 },
+  BeastLord:    { path: 'assets/heroes/beastlord_sheet.png',    frames: 8 },
+  Trickster:    { path: 'assets/heroes/trickster_sheet.png',    frames: 8 },
+  Duelist:      { path: 'assets/heroes/duelist_sheet.png',      frames: 8 },
+  Archmage:     { path: 'assets/heroes/archmage_sheet.png',     frames: 8 },
+  FrostWeaver:  { path: 'assets/heroes/frostweaver_sheet.png',  frames: 8 },
+  Summoner:     { path: 'assets/heroes/summoner_sheet.png',     frames: 8 },
+  Sniper:       { path: 'assets/heroes/sniper_sheet.png',       frames: 8 },
+  Skeleton:     { path: 'assets/mon_skeleton.png',      frames: 1 },
+  StoneWolf:    { path: 'assets/mon_stonewolf.png',     frames: 1 },
+  SpiritArcher: { path: 'assets/mon_spiritarcher.png',  frames: 1 },
+  Warden:       { path: 'assets/miniboss_warden.png',   frames: 1 },
+};
+const SPRITES = {};
+function loadAllSprites(onDone) {
+  const loader = new THREE.TextureLoader();
+  const names = Object.keys(ASSET_META);
+  let loaded = 0;
+  names.forEach((name) => {
+    loader.load(ASSET_META[name].path, (tex) => {
+      tex.magFilter = THREE.NearestFilter; tex.minFilter = THREE.NearestFilter;
+      if (ASSET_META[name].frames > 1) tex.repeat.set(1/ASSET_META[name].frames, 1);
+      SPRITES[name] = tex; loaded++;
+      if (loaded === names.length) onDone();
+    }, undefined, (err) => console.error('โหลดสไปรท์ไม่สำเร็จ:', ASSET_META[name].path, err));
+  });
+}
+
+// ============================================================
+// ข้อมูลฮีโร่ (ร้านค้า) + คลื่นศัตรู
+// ============================================================
+const HERO_DEFS = {
+  blademaster: { title:'Blade Master', sprite:'BladeMaster', cost:3, hp:170, pAtk:23, atkSpeed:1.3, range:1, moveSpeed:2.4, trait:'none' },
+  duelist:     { title:'Duelist',      sprite:'Duelist',     cost:3, hp:135, pAtk:20, atkSpeed:1.5, range:1, moveSpeed:2.6, trait:'crit' },
+  beastlord:   { title:'Beast Lord',   sprite:'BeastLord',   cost:4, hp:155, pAtk:15, atkSpeed:1.0, range:1, moveSpeed:2.1, trait:'none' },
+  trickster:   { title:'Trickster',    sprite:'Trickster',   cost:3, hp:100, pAtk:16, atkSpeed:1.3, range:3, moveSpeed:2.2, trait:'weaken' },
+  archmage:    { title:'Archmage',     sprite:'Archmage',    cost:5, hp:95,  pAtk:25, atkSpeed:0.8, range:4, moveSpeed:1.8, trait:'none' },
+  frostweaver: { title:'Frost Weaver', sprite:'FrostWeaver', cost:4, hp:110, pAtk:15, atkSpeed:1.0, range:4, moveSpeed:1.8, trait:'slow' },
+  summoner:    { title:'Summoner',     sprite:'Summoner',    cost:4, hp:105, pAtk:13, atkSpeed:1.0, range:3, moveSpeed:1.9, trait:'none' },
+  sniper:      { title:'Sniper',       sprite:'Sniper',      cost:5, hp:90,  pAtk:24, atkSpeed:0.9, range:5, moveSpeed:1.7, trait:'longshot' },
+};
+const ENEMY_WAVES = [
+  [ { name:'Skeleton A', sprite:'Skeleton', c:2, r:1, hp:90, pAtk:12, atkSpeed:0.9, range:1, moveSpeed:1.8 },
+    { name:'Skeleton B', sprite:'Skeleton', c:5, r:1, hp:90, pAtk:12, atkSpeed:0.9, range:1, moveSpeed:1.8 },
+    { name:'Stone Wolf', sprite:'StoneWolf', c:3, r:0, hp:75, pAtk:11, atkSpeed:1.4, range:1, moveSpeed:2.6 } ],
+  [ { name:'Skeleton A', sprite:'Skeleton', c:1, r:1, hp:115, pAtk:14, atkSpeed:0.9, range:1, moveSpeed:1.8 },
+    { name:'Skeleton B', sprite:'Skeleton', c:4, r:1, hp:115, pAtk:14, atkSpeed:0.9, range:1, moveSpeed:1.8 },
+    { name:'Skeleton C', sprite:'Skeleton', c:6, r:0, hp:115, pAtk:14, atkSpeed:0.9, range:1, moveSpeed:1.8 },
+    { name:'Stone Wolf A', sprite:'StoneWolf', c:2, r:0, hp:95, pAtk:13, atkSpeed:1.4, range:1, moveSpeed:2.6 },
+    { name:'Spirit Archer', sprite:'SpiritArcher', c:5, r:0, hp:85, pAtk:14, atkSpeed:1.0, range:3, moveSpeed:1.7 } ],
+  [ { name:'Warden', sprite:'Warden', c:3, r:0, hp:320, pAtk:21, atkSpeed:0.8, range:1, moveSpeed:1.4 },
+    { name:'Spirit Archer A', sprite:'SpiritArcher', c:1, r:1, hp:95, pAtk:15, atkSpeed:1.0, range:3, moveSpeed:1.7 },
+    { name:'Spirit Archer B', sprite:'SpiritArcher', c:6, r:1, hp:95, pAtk:15, atkSpeed:1.0, range:3, moveSpeed:1.7 },
+    { name:'Stone Wolf A', sprite:'StoneWolf', c:0, r:0, hp:100, pAtk:14, atkSpeed:1.4, range:1, moveSpeed:2.6 },
+    { name:'Stone Wolf B', sprite:'StoneWolf', c:7, r:0, hp:100, pAtk:14, atkSpeed:1.4, range:1, moveSpeed:2.6 } ],
+];
+const WAVE_REWARD = [12, 16, 22];
+
+// ============================================================
+// GAME STATE
+// ============================================================
+let gold = 10;
+let wave = 1;
+let phase = 'shop';           // 'shop' | 'battle' | 'result' | 'gameover'
+let speedMul = 1;
+let paused = false;
+let ownedPool = Object.keys(HERO_DEFS);   // ฮีโร่ที่ยังไม่ได้ซื้อ
+let benchHeroes = [];                      // key[] ที่ซื้อแล้วแต่ยังไม่วาง
+let placedUnits = {};                      // key(c,r) -> unit (ฝั่งผู้เล่น)
+let shopOffers = [];
+let selectedBenchIdx = -1;
+
+const units = [];
+const occupied = new Set();
+function key(c, r) { return c + ',' + r; }
+
+// ============================================================
+// UNIT FACTORY / ANIMATION / TRAITS (เหมือน heroes.html)
+// ============================================================
+function makeUnit(cfg) {
+  const group = new THREE.Group();
+  const meta = ASSET_META[cfg.sprite];
+  const frames = meta.frames;
+  let tex = SPRITES[cfg.sprite];
+  if (frames > 1) { tex = tex.clone(); tex.needsUpdate = true; tex.repeat.set(1/frames, 1); tex.offset.set(0, 0); }
+  const w = frames > 1 ? 0.8 : 1.1, h = frames > 1 ? 1.4 : 1.6;
+  const body = new THREE.Mesh(new THREE.PlaneGeometry(w, h),
+    new THREE.MeshBasicMaterial({ map: tex, side: THREE.DoubleSide, transparent: true, alphaTest: 0.5 }));
+  body.position.y = h/2;
+  body.userData = { isUnit: true };
+  group.add(body);
+  const shadow = new THREE.Mesh(new THREE.CircleGeometry(0.26, 12), new THREE.MeshBasicMaterial({ color:0x000000, transparent:true, opacity:0.35 }));
+  shadow.rotation.x = -Math.PI/2; shadow.position.y = 0.01; group.add(shadow);
+  const barY = h + 0.14;
+  const hpBg = new THREE.Mesh(new THREE.PlaneGeometry(0.72,0.08), new THREE.MeshBasicMaterial({ color:0x2a1410, side:THREE.DoubleSide }));
+  hpBg.position.y = barY; group.add(hpBg);
+  const hpBar = new THREE.Mesh(new THREE.PlaneGeometry(0.72,0.08), new THREE.MeshBasicMaterial({ color: cfg.team==='player'?0x66c25a:0xc25a44, side:THREE.DoubleSide }));
+  hpBar.position.y = barY; hpBar.position.z = 0.001; group.add(hpBar);
+  const p = gridToWorld(cfg.c, cfg.r);
+  group.position.set(p.x, 0, p.z);
+  scene.add(group);
+  occupied.add(key(cfg.c, cfg.r));
+  const u = { ...cfg, group, body, hpBar, shadow, tex, frames,
+    maxHp: cfg.hp, alive: true, atkCooldown: 0,
+    moving: false, moveFrom: null, moveTo: null, moveT: 0,
+    animState: 'idle', animTimer: 0, animFrame: 0 };
+  body.userData.unit = u;
+  units.push(u);
+  return u;
+}
+function removeUnit(u) {
+  scene.remove(u.group);
+  occupied.delete(key(u.c, u.r));
+  const idx = units.indexOf(u);
+  if (idx >= 0) units.splice(idx, 1);
+}
+function resetForWave(u) {
+  u.alive = true; u.hp = u.maxHp; u.atkCooldown = 0;
+  u.body.rotation.z = 0; u.body.material.opacity = 1; u.body.material.color.set(0xffffff);
+  u.hpBar.visible = true; u.hpBar.scale.x = 1; u.hpBar.position.x = 0;
+  u.group.children[2].visible = true;
+  u.shadow.material.opacity = 0.35;
+  u.group.visible = true;
+  u.deathT = undefined;
+  u.animState = 'idle'; u.animFrame = 0;
+  occupied.add(key(u.c, u.r));
+}
+
+const WALK_SEQ = [1,2,3,4], ATTACK_SEQ = [5,6,7], ATTACK_FRAME_DUR = 0.12;
+function updateAnim(u, dt) {
+  if (u.frames <= 1) return;
+  if (u.animState === 'attack') {
+    u.animTimer += dt;
+    const idx = Math.min(ATTACK_SEQ.length-1, Math.floor(u.animTimer/ATTACK_FRAME_DUR));
+    u.animFrame = ATTACK_SEQ[idx];
+    if (u.animTimer >= ATTACK_FRAME_DUR*ATTACK_SEQ.length) { u.animState = u.moving?'walk':'idle'; u.animTimer = 0; }
+  } else if (u.moving) {
+    u.animState = 'walk'; u.animTimer += dt*6;
+    u.animFrame = WALK_SEQ[Math.floor(u.animTimer)%WALK_SEQ.length];
+  } else { u.animState = 'idle'; u.animFrame = 0; }
+  u.tex.offset.x = u.animFrame / u.frames;
+}
+function applyTrait(u, target, dmg) {
+  if (u.trait === 'crit' && Math.random() < 0.2) {
+    dmg *= 1.8; target.body.material.color.set(0xffe066);
+    setTimeout(() => target.alive && target.body.material.color.set(0xffffff), 100);
+  } else if (u.trait === 'longshot' && gridDist(u, target) >= 4) { dmg *= 1.3; }
+  else if (u.trait === 'slow') {
+    target._baseSpeed = target._baseSpeed || target.moveSpeed;
+    target.moveSpeed = target._baseSpeed * 0.6;
+    clearTimeout(target._slowTimer);
+    target._slowTimer = setTimeout(() => { target.moveSpeed = target._baseSpeed; }, 1500);
+  } else if (u.trait === 'weaken' && Math.random() < 0.3) {
+    target._baseAtk = target._baseAtk || target.pAtk;
+    target.pAtk = target._baseAtk * 0.8;
+    clearTimeout(target._weakenTimer);
+    target._weakenTimer = setTimeout(() => { target.pAtk = target._baseAtk; }, 2000);
+  }
+  return dmg;
+}
+
+// ============================================================
+// A* + targeting (เหมือนเดิม)
+// ============================================================
+function astar(sc, sr, tc, tr, ignoreKey) {
+  const open = [{ c:sc, r:sr, g:0, f:0, parent:null }];
+  const closed = new Set();
+  const h = (c,r) => Math.abs(c-tc)+Math.abs(r-tr);
+  open[0].f = h(sc,sr);
+  while (open.length) {
+    open.sort((a,b)=>a.f-b.f);
+    const cur = open.shift();
+    if (cur.c===tc && cur.r===tr) { const path=[]; let n=cur; while(n.parent){path.unshift({c:n.c,r:n.r});n=n.parent;} return path; }
+    closed.add(key(cur.c,cur.r));
+    for (const [dc,dr] of [[1,0],[-1,0],[0,1],[0,-1]]) {
+      const nc=cur.c+dc, nr=cur.r+dr;
+      if (nc<0||nr<0||nc>=GRID||nr>=GRID) continue;
+      const k = key(nc,nr);
+      if (closed.has(k)) continue;
+      if (occupied.has(k) && k!==ignoreKey && !(nc===tc&&nr===tr)) continue;
+      const g = cur.g+1;
+      const exist = open.find(o=>o.c===nc&&o.r===nr);
+      if (exist && exist.g<=g) continue;
+      if (exist) { exist.g=g; exist.f=g+h(nc,nr); exist.parent=cur; }
+      else open.push({ c:nc, r:nr, g, f:g+h(nc,nr), parent:cur });
+    }
+  }
+  return null;
+}
+function gridDist(a,b) { return Math.abs(a.c-b.c)+Math.abs(a.r-b.r); }
+function selectTarget(u) {
+  let best=null, bd=Infinity;
+  for (const o of units) { if (!o.alive||o.team===u.team) continue; const d=gridDist(u,o); if (d<bd){bd=d;best=o;} }
+  return best;
+}
+function stepToward(u, target) {
+  const path = astar(u.c, u.r, target.c, target.r, key(u.c,u.r));
+  if (path && path.length>0) {
+    const next = path[0], nk = key(next.c,next.r);
+    if (!occupied.has(nk)) {
+      occupied.delete(key(u.c,u.r)); occupied.add(nk);
+      u.moving=true; u.moveT=0; u.moveFrom={c:u.c,r:u.r}; u.moveTo=next;
+      u.body.scale.x = (next.c<u.c)?-1:(next.c>u.c?1:u.body.scale.x);
+    }
+  }
+}
+function updateUnit(u, dt) {
+  if (!u.alive) return;
+  if (u.moving) {
+    u.moveT += dt*u.moveSpeed;
+    if (u.moveT>=1) { u.moveT=1; u.moving=false; u.c=u.moveTo.c; u.r=u.moveTo.r; }
+    const a=gridToWorld(u.moveFrom.c,u.moveFrom.r), b=gridToWorld(u.moveTo.c,u.moveTo.r);
+    u.group.position.lerpVectors(a,b,u.moveT);
+    u.body.position.y = (u.frames>1?0.7:0.8) + Math.abs(Math.sin(u.moveT*Math.PI*2))*0.06;
+    updateAnim(u,dt); return;
+  }
+  u.body.position.y = u.frames>1?0.7:0.8;
+  const target = selectTarget(u);
+  if (!target) { updateAnim(u,dt); return; }
+  const d = gridDist(u,target);
+  if (d<=u.range) {
+    u.atkCooldown -= dt;
+    if (u.atkCooldown<=0) {
+      u.atkCooldown = 1/u.atkSpeed;
+      u.animState='attack'; u.animTimer=0;
+      let dmg = applyTrait(u, target, u.pAtk);
+      target.hp -= dmg;
+      const dir = gridToWorld(target.c,target.r).sub(u.group.position).normalize().multiplyScalar(0.12);
+      u.body.position.x += dir.x;
+      setTimeout(()=>{ if (u.alive) u.body.position.x=0; }, 90);
+      target.body.material.color.set(0xff8866);
+      setTimeout(()=> target.alive && target.body.material.color.set(0xffffff), 80);
+      target.hpBar.scale.x = Math.max(0, target.hp/target.maxHp);
+      target.hpBar.position.x = -0.36*(1-target.hpBar.scale.x);
+      if (target.hp<=0) { target.alive=false; occupied.delete(key(target.c,target.r)); target.deathT=0; }
+    }
+    u.body.scale.x = (gridToWorld(target.c,target.r).x < u.group.position.x) ? -1 : 1;
+  } else stepToward(u, target);
+  updateAnim(u, dt);
+}
+
+// ============================================================
+// UI — ร้านค้า / ม้านั่ง / ท็อปบาร์
+// ============================================================
+const goldLabel = document.getElementById('goldLabel');
+const waveLabel = document.getElementById('waveLabel');
+const phaseLabel = document.getElementById('phaseLabel');
+const shopCardsEl = document.getElementById('shopCards');
+const benchCardsEl = document.getElementById('benchCards');
+const rerollBtn = document.getElementById('rerollBtn');
+const startBattleBtn = document.getElementById('startBattleBtn');
+const hintEl = document.getElementById('hint');
+document.getElementById('waveTotal').textContent = WAVE_TOTAL;
+
+function pickShopOffers() {
+  const pool = [...ownedPool];
+  const offers = [];
+  while (offers.length < Math.min(4, pool.length)) {
+    const i = Math.floor(Math.random()*pool.length);
+    offers.push(pool.splice(i,1)[0]);
+  }
+  shopOffers = offers;
+}
+
+function renderUI() {
+  goldLabel.textContent = gold;
+  waveLabel.textContent = wave;
+  phaseLabel.textContent = phase==='shop' ? 'เตรียมทีม' : phase==='battle' ? 'กำลังต่อสู้' : '';
+  document.getElementById('bottomUI').style.display = phase==='shop' ? 'flex' : 'none';
+  startBattleBtn.disabled = Object.keys(placedUnits).length === 0;
+
+  shopCardsEl.innerHTML = '';
+  shopOffers.forEach((hkey) => {
+    const def = HERO_DEFS[hkey];
+    const div = document.createElement('div');
+    div.className = 'card' + (gold < def.cost ? ' disabled' : '');
+    div.innerHTML = `<img src="assets/portraits/${hkey}.png"><div class="name">${def.title}</div><div class="cost">💰${def.cost}</div>`;
+    div.onclick = () => buyHero(hkey);
+    shopCardsEl.appendChild(div);
+  });
+  rerollBtn.disabled = gold < 2 || ownedPool.length === 0;
+
+  benchCardsEl.innerHTML = '';
+  benchHeroes.forEach((hkey, i) => {
+    const def = HERO_DEFS[hkey];
+    const div = document.createElement('div');
+    div.className = 'card' + (i===selectedBenchIdx ? ' selected' : '');
+    div.innerHTML = `<img src="assets/portraits/${hkey}.png"><div class="name">${def.title}</div>`;
+    div.onclick = () => { selectedBenchIdx = (selectedBenchIdx===i) ? -1 : i; renderUI(); };
+    benchCardsEl.appendChild(div);
+  });
+  hintEl.textContent = selectedBenchIdx>=0
+    ? `เลือก ${HERO_DEFS[benchHeroes[selectedBenchIdx]].title} แล้ว — คลิกช่องหญ้าเขียวบนกระดาน`
+    : (Object.keys(placedUnits).length===0 ? 'ยังไม่ได้วางฮีโร่ลงกระดาน' : '');
+}
+
+function buyHero(hkey) {
+  const def = HERO_DEFS[hkey];
+  if (gold < def.cost) return;
+  gold -= def.cost;
+  ownedPool = ownedPool.filter(k => k !== hkey);
+  shopOffers = shopOffers.filter(k => k !== hkey);
+  benchHeroes.push(hkey);
+  renderUI();
+}
+rerollBtn.onclick = () => {
+  if (gold < 2 || ownedPool.length===0) return;
+  gold -= 2;
+  ownedPool.push(...shopOffers); // คืนตัวเลือกเดิมกลับพูล แล้วสุ่มใหม่
+  shopOffers = [];
+  pickShopOffers();
+  renderUI();
+};
+
+function placeHeroAt(hkey, c, r) {
+  const idx = benchHeroes.indexOf(hkey);
+  if (idx < 0) return;
+  benchHeroes.splice(idx, 1);
+  const def = HERO_DEFS[hkey];
+  const u = makeUnit({ team:'player', name:def.title, sprite:def.sprite, c, r,
+    hp:def.hp, pAtk:def.pAtk, atkSpeed:def.atkSpeed, range:def.range, moveSpeed:def.moveSpeed, trait:def.trait, heroKey:hkey });
+  placedUnits[key(c,r)] = u;
+  selectedBenchIdx = -1;
+  renderUI();
+}
+function unplaceUnitAt(c, r) {
+  const k = key(c,r);
+  const u = placedUnits[k];
+  if (!u) return;
+  removeUnit(u);
+  delete placedUnits[k];
+  benchHeroes.push(u.heroKey);
+  renderUI();
+}
+
+// ============================================================
+// RAYCAST — คลิกกระดานเพื่อวาง/ถอนฮีโร่ (เฉพาะช่วง shop)
+// ============================================================
+const raycaster = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
+renderer.domElement.addEventListener('click', (ev) => {
+  if (phase !== 'shop') return;
+  mouse.x = (ev.clientX / window.innerWidth) * 2 - 1;
+  mouse.y = -(ev.clientY / canvasHeight()) * 2 + 1;
+  raycaster.setFromCamera(mouse, camera);
+  const hits = raycaster.intersectObjects([...tileMeshes, ...units.map(u=>u.body)], false);
+  if (hits.length === 0) return;
+  const obj = hits[0].object;
+  if (obj.userData.isUnit) {
+    const u = obj.userData.unit;
+    if (u.team === 'player') unplaceUnitAt(u.c, u.r);
+    return;
+  }
+  if (obj.userData.isTile) {
+    const { c, r, playerZone } = obj.userData;
+    if (!playerZone) return;
+    if (occupied.has(key(c,r))) return;
+    if (selectedBenchIdx < 0) return;
+    placeHeroAt(benchHeroes[selectedBenchIdx], c, r);
+  }
+});
+
+// ============================================================
+// คลื่นศัตรู / เริ่มการต่อสู้ / จบด่าน
+// ============================================================
+const resultModal = document.getElementById('resultModal');
+const resultTitle = document.getElementById('resultTitle');
+const resultBody = document.getElementById('resultBody');
+const resultBtn = document.getElementById('resultBtn');
+let waveTimer = 0;
+const WAVE_TIMEOUT = 100;
+
+function spawnWave(n) {
+  ENEMY_WAVES[n-1].forEach((cfg) => makeUnit({ team:'enemy', ...cfg }));
+}
+function clearEnemies() {
+  units.filter(u => u.team==='enemy').forEach(removeUnit);
+}
+function healPlayerTeam() {
+  Object.values(placedUnits).forEach(resetForWave);
+}
+
+startBattleBtn.onclick = () => {
+  if (Object.keys(placedUnits).length === 0) return;
+  phase = 'battle';
+  waveTimer = 0;
+  spawnWave(wave);
+  renderUI();
+};
+
+function showResult(title, body, onContinue) {
+  phase = 'result';
+  resultTitle.textContent = title;
+  resultBody.textContent = body;
+  resultModal.style.display = 'flex';
+  resultBtn.onclick = () => { resultModal.style.display = 'none'; onContinue(); };
+}
+
+function onWaveCleared() {
+  const reward = WAVE_REWARD[wave-1];
+  gold += reward;
+  clearEnemies();
+  if (wave >= WAVE_TOTAL) {
+    showResult('🏆 พิชิตซากอารีน่าหินสำเร็จ!', `ทำครบ ${WAVE_TOTAL} ด่าน ได้ทองรวม +${reward} — ขอบคุณที่เล่น!`, () => {
+      phase = 'gameover';
+      phaseLabel.textContent = 'จบเกม';
+    });
+  } else {
+    showResult(`🏆 ชนะด่าน ${wave}!`, `ได้ทอง +${reward} — จัดทัพแล้วลุยด่านถัดไป`, () => {
+      wave += 1;
+      healPlayerTeam();
+      pickShopOffers();
+      phase = 'shop';
+      renderUI();
+    });
+  }
+}
+function onWaveFailed(reason) {
+  clearEnemies();
+  showResult('💀 พ่ายแพ้', reason + ' — กดเริ่มใหม่เพื่อลองอีกครั้ง', () => {
+    location.reload();
+  });
+}
+
+// ============================================================
+// GAME LOOP
+// ============================================================
+document.getElementById('speedBtn').onclick = (ev) => {
+  speedMul = speedMul === 1 ? 2 : 1;
+  ev.target.textContent = 'x' + speedMul;
+  ev.target.classList.toggle('active', speedMul===2);
+};
+document.getElementById('pauseBtn').onclick = (ev) => {
+  paused = !paused;
+  ev.target.textContent = paused ? '▶ เล่นต่อ' : '⏸ หยุด';
+  ev.target.classList.toggle('active', paused);
+};
+
+let last = performance.now();
+function animate(now) {
+  requestAnimationFrame(animate);
+  let dt = Math.min((now - last)/1000, 0.05);
+  last = now;
+
+  if (phase === 'battle' && !paused) {
+    dt *= speedMul;
+    waveTimer += dt;
+    for (const u of units) updateUnit(u, dt);
+    const pAlive = units.filter(u=>u.alive && u.team==='player').length;
+    const eAlive = units.filter(u=>u.alive && u.team==='enemy').length;
+    if (eAlive === 0) onWaveCleared();
+    else if (pAlive === 0) onWaveFailed('ทีมฮีโร่ถูกกวาดล้าง');
+    else if (waveTimer > WAVE_TIMEOUT) onWaveFailed('หมดเวลาด่านนี้');
+  }
+
+  for (const u of units) {
+    if (!u.alive && u.deathT !== undefined && u.deathT < 1) {
+      u.deathT = Math.min(1, u.deathT + dt*2);
+      u.body.rotation.z = -u.deathT*Math.PI/2;
+      u.body.material.opacity = 1 - u.deathT;
+      u.hpBar.visible = false;
+      u.group.children[2].visible = false;
+      u.shadow.material.opacity = 0.35*(1-u.deathT);
+      if (u.deathT >= 1) u.group.visible = false;
+    }
+  }
+  for (const u of units) u.group.quaternion.copy(camera.quaternion);
+  renderer.render(scene, camera);
+}
+
+// ============================================================
+// START
+// ============================================================
+loadAllSprites(() => {
+  document.getElementById('loading').style.display = 'none';
+  pickShopOffers();
+  renderUI();
+  requestAnimationFrame(animate);
+});
+
+window.addEventListener('resize', () => {
+  const asp = window.innerWidth/canvasHeight();
+  camera.left = -CAMERA_ZOOM*asp; camera.right = CAMERA_ZOOM*asp;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, canvasHeight());
+});
+</script>
+</body>
+</html>
