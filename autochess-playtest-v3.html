@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>Auto Battler — Playtest V3</title>
+<style>
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#0b0906;font-family:system-ui,sans-serif;touch-action:none}
+#game{width:100%;height:100%;border:0;display:block}
+#boot{position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;background:#14100c;color:#f4df9a;font-weight:800}
+#fail{display:none;max-width:620px;padding:24px;text-align:center;line-height:1.55}
+</style>
+</head>
+<body>
+<div id="boot"><div id="status">กำลังเตรียม Playtest V3…</div><div id="fail"></div></div>
+<iframe id="game" src="autochess.html?build=playtest-v3"></iframe>
+<script>
+(()=>{
+ const frame=document.getElementById('game'),boot=document.getElementById('boot'),status=document.getElementById('status'),fail=document.getElementById('fail');
+ let installed=false;
+ function error(msg){status.style.display='none';fail.style.display='block';fail.innerHTML='<b>เปิดเกมไม่สำเร็จ</b><br>'+msg+'<br><br><button onclick="location.reload()">ลองใหม่</button>';}
+ function wait(){
+  try{
+   const w=frame.contentWindow,d=frame.contentDocument;
+   if(!w||!d||!d.getElementById('startBattleBtn')||typeof w.renderUI!=='function')return setTimeout(wait,180);
+   if(installed)return;installed=true;install(w,d);boot.style.display='none';
+  }catch(e){error(e.message)}
+ }
+ frame.addEventListener('load',()=>setTimeout(wait,250));
+ setTimeout(()=>{if(!installed)error('เกมหลักใช้เวลาโหลดนานเกิน 12 วินาที กรุณาตรวจอินเทอร์เน็ตแล้วลองใหม่')},12000);
+
+ function install(w,d){
+  w.eval(`
+   window.PLAYTEST_V3=true;
+   const CLASS1_POOL=['swordman','archer','acolyte','mage'];
+   HERO_DEFS.swordman={title:'Swordman',sprite:'Duelist',cost:2,hp:145,pAtk:19,atkSpeed:1.25,range:1,moveSpeed:2.4,trait:'crit'};
+   HERO_DEFS.archer={title:'Archer',sprite:'Sniper',cost:2,hp:112,pAtk:17,atkSpeed:1.2,range:4,moveSpeed:2.25,trait:'longshot'};
+   HERO_DEFS.acolyte={title:'Acolyte',sprite:'Summoner',cost:2,hp:128,pAtk:14,atkSpeed:1.05,range:3,moveSpeed:2.2,trait:'weaken'};
+   HERO_DEFS.mage={title:'Mage',sprite:'Archmage',cost:2,hp:105,pAtk:21,atkSpeed:.95,range:4,moveSpeed:2.05,trait:'none'};
+   HERO_TAGS.swordman=['physical'];HERO_TAGS.archer=['archer'];HERO_TAGS.acolyte=['summoner'];HERO_TAGS.mage=['mage'];
+
+   const originalRenderV3=renderUI;
+   const originalStartV3=startBattleBtn.onclick;
+   const originalPlaceV3=placeHeroAt;
+   const originalUnplaceV3=unplaceUnit;
+   const benchSlots=9;
+   const randomClass1=()=>CLASS1_POOL[Math.floor(Math.random()*CLASS1_POOL.length)];
+
+   canvasHeight=function(){return Math.max(300,window.innerHeight-126)};
+   renderer.setSize(window.innerWidth,canvasHeight());
+   camera.left=-6.0*(window.innerWidth/canvasHeight());camera.right=6.0*(window.innerWidth/canvasHeight());camera.top=6.0;camera.bottom=-6.0;camera.zoom=1.16;camera.updateProjectionMatrix();
+
+   const style=document.createElement('style');style.textContent=\`
+    #bottomUI{height:118px;padding:5px 8px 7px;gap:7px;background:linear-gradient(transparent,rgba(8,6,3,.88) 18%)}
+    #benchPanel,#fieldPanel{display:none!important}#shopPanel{flex:1 1 auto;padding:5px 8px;overflow:hidden}#shopPanel h3{margin:0 0 3px}
+    #shopCards{flex-wrap:nowrap;overflow-x:auto}.card{width:56px}.card img{height:42px}.card .tags{display:none}
+    #startCol{flex:0 0 128px}#startBattleBtn{padding:8px;font-size:13px}
+    #v3Bench{position:fixed;left:50%;bottom:120px;transform:translateX(-50%);z-index:13;display:grid;grid-template-columns:repeat(9,54px);gap:4px;padding:6px;border:2px solid #80663a;border-radius:10px;background:rgba(20,14,8,.92);box-shadow:0 5px 18px #000;pointer-events:auto}
+    .v3slot{width:54px;height:58px;border:2px solid #6d5734;border-radius:7px;background:linear-gradient(#302719,#19130c);display:flex;align-items:center;justify-content:center;position:relative;color:#c8b98e;font-size:10px;user-select:none;touch-action:none}
+    .v3slot.filled{border-color:#c9a44d}.v3slot.selected{border-color:#ffdc62;box-shadow:0 0 12px #ffd85a}.v3slot img{width:48px;height:48px;object-fit:cover;border-radius:5px}.v3slot span{position:absolute;left:2px;right:2px;bottom:1px;background:rgba(0,0,0,.7);color:white;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:8px}
+    #cameraTools{position:fixed;right:8px;top:58px;z-index:14;display:flex;gap:5px}#cameraTools button{width:38px;height:34px;border-radius:8px;border:1px solid #a8843c;background:rgba(32,23,13,.9);color:#ffe39a;font-weight:bold}
+    #v3Tip{position:fixed;left:50%;top:52px;transform:translateX(-50%);z-index:12;padding:5px 10px;border-radius:12px;background:rgba(10,8,5,.75);color:#f2ddb0;font-size:11px;pointer-events:none}
+    @media(max-width:760px){#v3Bench{grid-template-columns:repeat(9,46px);gap:2px;padding:4px}.v3slot{width:46px;height:50px}.v3slot img{width:41px;height:41px}#startCol{flex-basis:112px}}
+   \`;document.head.appendChild(style);
+
+   const bench=document.createElement('div');bench.id='v3Bench';document.body.appendChild(bench);
+   const tools=document.createElement('div');tools.id='cameraTools';tools.innerHTML='<button id="camIn">＋</button><button id="camOut">－</button><button id="camReset">⌂</button>';document.body.appendChild(tools);
+   const tip=document.createElement('div');tip.id='v3Tip';tip.textContent='แตะตัวสำรองแล้วแตะช่องสนาม • ลากพื้นที่ว่างเพื่อเลื่อนกล้อง • ใช้สองนิ้วเพื่อซูม';document.body.appendChild(tip);
+
+   function renderBenchV3(){
+    bench.innerHTML='';
+    for(let i=0;i<benchSlots;i++){
+     const el=document.createElement('div'),key=benchHeroes[i];el.className='v3slot'+(key?' filled':'')+(selectedBenchIdx===i?' selected':'');el.dataset.i=i;
+     if(key){const def=HERO_DEFS[key];el.innerHTML='<img src="assets/portraits/'+(key==='swordman'?'duelist':key==='archer'?'sniper':key==='acolyte'?'summoner':'archmage')+'.png"><span>'+def.title+'</span>';}
+     else el.textContent=i+1;
+     el.onpointerdown=ev=>{ev.preventDefault();if(!key)return;selectedBenchIdx=selectedBenchIdx===i?-1:i;renderUI();window._v3Drag={index:i,startX:ev.clientX,startY:ev.clientY};};
+     bench.appendChild(el);
+    }
+   }
+   renderUI=function(){originalRenderV3();renderBenchV3();if(wave===1){shopCardsEl.innerHTML='<div style="padding:8px;color:#6b5a3a">ด่าน 1 ใช้ทีม Class 1 เริ่มต้น — ร้านค้าจะเปิดตั้งแต่ด่าน 2</div>';rerollBtn.disabled=true;}else rerollBtn.disabled=gold<2;};
+
+   pickShopOffers=function(){shopOffers=Array.from({length:4},()=>randomClass1());};
+   buyHero=function(hkey){const def=HERO_DEFS[hkey];if(!CLASS1_POOL.includes(hkey)||gold<def.cost||benchHeroes.length>=benchSlots)return;gold-=def.cost;benchHeroes.push(hkey);renderUI();};
+   placeHeroAt=function(hkey,c,r){originalPlaceV3(hkey,c,r);renderUI();};
+   unplaceUnit=function(u){if(benchHeroes.length>=benchSlots)return;originalUnplaceV3(u);renderUI();};
+
+   units.filter(u=>u.team==='player').slice().forEach(removeUnit);placedUnits=[];benchHeroes=[randomClass1(),randomClass1(),randomClass1()];ownedPool=CLASS1_POOL.slice();shopOffers=[];gold=0;wave=1;losses=0;phase='shop';selectedBenchIdx=-1;
+
+   const basePos=camera.position.clone(),baseTarget=LOOK_TARGET.clone();
+   function resetCam(){LOOK_TARGET.copy(baseTarget);camera.position.copy(basePos);camera.zoom=1.16;camera.lookAt(LOOK_TARGET);camera.updateProjectionMatrix();}
+   function zoomCam(delta){camera.zoom=THREE.MathUtils.clamp(camera.zoom+delta,.88,1.65);camera.updateProjectionMatrix();}
+   document.getElementById('camIn').onclick=()=>zoomCam(.12);document.getElementById('camOut').onclick=()=>zoomCam(-.12);document.getElementById('camReset').onclick=resetCam;
+
+   let pan=null,pinch=null;
+   renderer.domElement.style.touchAction='none';
+   renderer.domElement.addEventListener('pointerdown',ev=>{if(ev.pointerType==='mouse'&&ev.button!==0)return;pan={id:ev.pointerId,x:ev.clientX,y:ev.clientY,moved:false};renderer.domElement.setPointerCapture?.(ev.pointerId);});
+   renderer.domElement.addEventListener('pointermove',ev=>{if(!pan||pan.id!==ev.pointerId||selectedBenchIdx>=0)return;const dx=ev.clientX-pan.x,dy=ev.clientY-pan.y;if(Math.abs(dx)+Math.abs(dy)>3)pan.moved=true;pan.x=ev.clientX;pan.y=ev.clientY;const s=0.012/camera.zoom;LOOK_TARGET.x-=dx*s;LOOK_TARGET.z-=dy*s;LOOK_TARGET.x=THREE.MathUtils.clamp(LOOK_TARGET.x,-2.1,2.1);LOOK_TARGET.z=THREE.MathUtils.clamp(LOOK_TARGET.z,-.8,2.8);camera.position.x=basePos.x+(LOOK_TARGET.x-baseTarget.x);camera.position.z=basePos.z+(LOOK_TARGET.z-baseTarget.z);camera.lookAt(LOOK_TARGET);});
+   renderer.domElement.addEventListener('wheel',ev=>{ev.preventDefault();zoomCam(ev.deltaY<0?.1:-.1)},{passive:false});
+   renderer.domElement.addEventListener('touchstart',ev=>{if(ev.touches.length===2){pinch=Math.hypot(ev.touches[0].clientX-ev.touches[1].clientX,ev.touches[0].clientY-ev.touches[1].clientY)}},{passive:false});
+   renderer.domElement.addEventListener('touchmove',ev=>{if(ev.touches.length===2&&pinch){ev.preventDefault();const n=Math.hypot(ev.touches[0].clientX-ev.touches[1].clientX,ev.touches[0].clientY-ev.touches[1].clientY);zoomCam((n-pinch)*.004);pinch=n}},{passive:false});
+
+   window.addEventListener('pointerup',ev=>{
+    if(!window._v3Drag||selectedBenchIdx<0)return;
+    const rect=renderer.domElement.getBoundingClientRect();
+    if(ev.clientX<rect.left||ev.clientX>rect.right||ev.clientY<rect.top||ev.clientY>rect.bottom){window._v3Drag=null;return;}
+    mouse.x=((ev.clientX-rect.left)/rect.width)*2-1;mouse.y=-((ev.clientY-rect.top)/rect.height)*2+1;raycaster.setFromCamera(mouse,camera);
+    const hit=raycaster.intersectObjects(tileMeshes,false).find(h=>h.object.userData.isTile&&h.object.userData.playerZone);
+    if(hit){const {c,r}=hit.object.userData;if(!occupied.has(key(c,r))){const hk=benchHeroes[selectedBenchIdx];if(hk)placeHeroAt(hk,c,r);}}
+    window._v3Drag=null;
+   });
+
+   addEventListener('resize',()=>{renderer.setSize(innerWidth,canvasHeight());const a=innerWidth/canvasHeight();camera.left=-6*a;camera.right=6*a;camera.top=6;camera.bottom=-6;camera.updateProjectionMatrix();});
+   renderUI();
+  `);
+ }
+})();
+</script>
+</body>
+</html>
