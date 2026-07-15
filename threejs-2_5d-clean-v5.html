@@ -178,7 +178,7 @@
     return '#'+(1<<24|ch(16)<<16|ch(8)<<8|ch(0)).toString(16).slice(1);
   }
 
-  const TAG_COLORS = {Warrior:'#e0665a', Ranger:'#6fce8f', Mage:'#8ab6ff', Forest:'#8fd16a'};
+  const TAG_COLORS = {Warrior:'#e0665a', Ranger:'#6fce8f', Mage:'#8ab6ff', Forest:'#8fd16a', Merchant:'#e0b04c'};
 
   function roundRect(ctx,x,y,w,h,r){
     ctx.beginPath();
@@ -213,20 +213,29 @@
     }
   };
 
+  // Class-1 roster (2 gold each) — art set from the chibi card batch
   const HEROES = [
-    {name:'Swordman', cls:'Warrior', tags:['Warrior','Forest'], color:'#c0392b', hair:'#4a2b18'},
-    {name:'Archer',   cls:'Ranger',  tags:['Ranger','Forest'],  color:'#27ae60', hair:'#3a2a16'},
-    {name:'Acolyte',  cls:'Mage',    tags:['Mage','Forest'],    color:'#8e44ad', hair:'#241b30'},
-    {name:'Priestess',cls:'Mage',    tags:['Mage','Forest'],    color:'#2f8fd6', hair:'#efe6c8'}
+    {name:'Mage',     cls:'Mage',    tags:['Mage','Forest'],     color:'#6a4a9c', hair:'#241b30'},
+    {name:'Fighter',  cls:'Warrior', tags:['Warrior','Forest'],  color:'#a8502f', hair:'#4a2b18'},
+    {name:'Swordman', cls:'Warrior', tags:['Warrior','Forest'],  color:'#5577a8', hair:'#6a4a2c'},
+    {name:'Acolyte',  cls:'Mage',    tags:['Mage','Forest'],     color:'#c9a84c', hair:'#e8d8a8'},
+    {name:'Priestess',cls:'Mage',    tags:['Mage','Forest'],     color:'#2f8fd6', hair:'#efe6c8'},
+    {name:'Archer',   cls:'Ranger',  tags:['Ranger','Forest'],   color:'#4a7a3c', hair:'#5a3c22'},
+    {name:'Summoner', cls:'Mage',    tags:['Mage','Forest'],     color:'#2f4f8a', hair:'#2a2320'},
+    {name:'Merchant', cls:'Warrior', tags:['Merchant','Forest'], color:'#b07a3c', hair:'#4a3320'}
   ];
 
   /* real art assets (per-hero, optional) — heroes without files here keep the
      canvas-drawn placeholder, and any fetch failure falls back the same way */
   const HERO_ASSETS = {
+    Mage:{face:'assets/v5/face_mage.png', body:'assets/v5/body_mage.png'},
+    Fighter:{face:'assets/v5/face_fighter.png', body:'assets/v5/body_fighter.png'},
     Swordman:{face:'assets/v5/face_swordman.png', body:'assets/v5/body_swordman.png'},
-    Archer:{face:'assets/v5/face_archer.png', body:'assets/v5/body_archer.png'},
     Acolyte:{face:'assets/v5/face_acolyte.png', body:'assets/v5/body_acolyte.png'},
-    Priestess:{face:'assets/v5/face_priestess.png', body:'assets/v5/body_priestess.png'}
+    Priestess:{face:'assets/v5/face_priestess.png', body:'assets/v5/body_priestess.png'},
+    Archer:{face:'assets/v5/face_archer.png', body:'assets/v5/body_archer.png'},
+    Summoner:{face:'assets/v5/face_summoner.png', body:'assets/v5/body_summoner.png'},
+    Merchant:{face:'assets/v5/face_merchant.png', body:'assets/v5/body_merchant.png'}
   };
   const MON_ASSETS = {
     Slime:'assets/v5/mon_slime.png',
@@ -572,7 +581,7 @@
       const cell = board[r][c2];
       if(cell) cell.hero.tags.forEach(t=>{ counts[t]=(counts[t]||0)+1; });
     }
-    const order = ['Warrior','Ranger','Mage','Forest'];
+    const order = ['Warrior','Ranger','Mage','Forest','Merchant'];
     order.forEach(tag=>{
       const row = document.createElement('div'); row.className='syn-row';
       const icon = document.createElement('div'); icon.className='syn-icon';

@@ -39,8 +39,9 @@ Frost Weaver, Summoner, Sniper) และภาพอ้างอิง "Forest 
 ### 0. (ใหม่ — กำลังทำอยู่) ชุดภาพสำหรับ V5 (`threejs-2_5d-clean-v5.html`)
 
 สถานะ (2026-07-15):
-- **ฮีโร่ครบ 4/4** — Swordman, Archer, Acolyte, Priestess เข้าเกมหมด
-- **มอนสเตอร์ 2/4** — Slime ✓, Wolf ✓ | **ยังขาด: Imp, Orc**
+- **ฮีโร่ Class 1 ครบ 8 ตัว** — ชุดการ์ตูนชิบิใหม่ 7 ตัว (Mage, Fighter, Swordman, Acolyte,
+  Archer, Summoner, Merchant) + Priestess จากชุดก่อน — เข้าเกมหมดทั้ง body และ face
+- **มอนสเตอร์ 2/4** — Slime ✓, Wolf ✓ | **ยังขาด: Imp, Orc** (ให้ใช้สไตล์ชิบิชุดใหม่)
 - ใช้ภาพชุดที่ผ่านแล้วเป็นตัวอ้างอิงสไตล์เสมอ
 
 บทเรียนเพิ่มจากชุดมอนสเตอร์:
