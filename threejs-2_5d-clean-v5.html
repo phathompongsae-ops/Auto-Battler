@@ -40,6 +40,8 @@
   /* ---------- Battle row: left synergy | board | right team ---------- */
   .battle{grid-area:battle;display:grid;grid-template-columns:var(--side) minmax(0,1fr) var(--side);gap:6px;min-height:0}
   .side{border:1px solid #806536;border-radius:10px;background:#12110ddb;padding:6px;overflow-y:auto;min-height:0}
+  #synergyPanel{grid-column:1}
+  #teamPanel{grid-column:3}
   .side h3{margin:0 0 6px;text-align:center;font-size:9px;letter-spacing:.05em;color:#e8c877}
   .syn-row{display:flex;align-items:center;gap:6px;padding:4px 2px;border-bottom:1px solid #493a22}
   .syn-icon{width:20px;height:20px;border-radius:5px;flex:none;display:grid;place-items:center;font-size:11px;color:#0c0c0c;font-weight:900}
@@ -54,9 +56,21 @@
   .team-hp .bar i{display:block;height:100%;background:linear-gradient(#8be36a,#3f9c31)}
   .team-empty{font-size:8px;color:#c9a862;text-align:center;padding-top:8px}
 
-  .board-wrap{position:relative;min-width:0;min-height:0;border:1px solid #2b3b2c;border-radius:10px;overflow:hidden;background:#0d1d13;box-shadow:inset 0 0 22px #000a}
+  /* full-bleed scene: the canvas covers the whole screen, UI floats above */
+  .board-wrap{position:fixed;inset:0;z-index:1;pointer-events:auto;background:#0d1d13}
   #game{display:block;width:100%;height:100%;touch-action:none}
-  .board-hint{position:absolute;left:0;right:0;bottom:6px;text-align:center;font-size:9px;color:#d8c894;pointer-events:none;text-shadow:0 1px 2px #000}
+  .board-hint{display:none}
+  #app{pointer-events:none}
+  .hud,.battle,.bench-row,.shop-row{position:relative;z-index:2}
+  .hud{z-index:3}
+  .side{pointer-events:auto;position:relative;z-index:2}
+
+  /* landscape-only: block play in portrait */
+  #rotate{position:fixed;inset:0;z-index:99;display:none;align-items:center;justify-content:center;flex-direction:column;gap:14px;background:#111d12;color:#f3ead2;text-align:center;font-size:16px;font-weight:800;padding:24px}
+  #rotate .ric{font-size:52px;line-height:1;animation:spin 2.4s ease-in-out infinite}
+  @keyframes spin{0%,60%,100%{transform:rotate(0)}25%{transform:rotate(90deg)}}
+  @media(prefers-reduced-motion:reduce){#rotate .ric{animation:none}}
+  @media(orientation:portrait){#rotate{display:flex}}
 
   /* ---------- Bench row ---------- */
   .bench-row{grid-area:bench;display:flex;justify-content:center;margin-top:-2px}
@@ -64,7 +78,8 @@
   .slot{width:var(--slot);height:calc(var(--slot)*1.12);border-radius:50%;background:radial-gradient(ellipse at 50% 32%,#7a7160,#4a443a 55%,#332e26 78%);position:relative;border:2px solid #5c5443;box-shadow:0 3px 6px #000a,inset 0 -3px 5px #0007}
   .slot.filled{border-color:#d0a052}
   .slot.selected{box-shadow:0 0 0 3px #ffe178}
-  .slot canvas{position:absolute;left:50%;top:38%;transform:translate(-50%,-52%);width:74%;aspect-ratio:1;object-fit:cover;border-radius:50%;pointer-events:none}
+  .slot{overflow:visible}
+  .slot canvas{position:absolute;left:50%;bottom:22%;transform:translateX(-50%);width:96%;height:170%;object-fit:contain;object-position:50% 100%;pointer-events:none;filter:drop-shadow(0 3px 3px #0009)}
   .slot b{position:absolute;bottom:1px;left:0;right:0;font-size:6.5px;text-align:center;color:#f7e7ba;text-shadow:0 1px 1px #000;pointer-events:none}
   .slot.dragging-source{opacity:.35}
 
@@ -147,6 +162,7 @@
 </div>
 
 <div class="toast" id="toast"></div>
+<div id="rotate"><div class="ric">⟳</div>กรุณาหมุนเครื่องเป็นแนวนอน<br>เกมนี้เล่นได้เฉพาะแนวนอน</div>
 
 <script>
 (function(){
@@ -244,6 +260,15 @@
     Imp:'assets/v5/mon_imp.png',
     Orc:'assets/v5/mon_orc.png'
   };
+  const GROUND_ASSET = 'assets/v5/board_ground.jpg'; // painted top-down arena
+  let applyGroundArtFn = null; // set in boot(); called when the texture loads
+  function loadGroundAsset(){
+    fetch(GROUND_ASSET)
+      .then(r=>{ if(!r.ok) throw new Error(r.status); return r.blob(); })
+      .then(b=>createImageBitmap(b))
+      .then(bmp=>{ if(applyGroundArtFn) applyGroundArtFn(bmp); })
+      .catch(()=>{}); // keep the low-poly board
+  }
   const heroBitmaps = {}; // name -> {face:ImageBitmap, body:ImageBitmap}
   const monBitmaps = {};  // type -> ImageBitmap
   function loadHeroAssets(){
@@ -503,11 +528,7 @@
       const d = document.createElement('div');
       d.className = 'slot'+(hero?' filled':'')+(state.selectedBench===i?' selected':'');
       if(hero){
-        const cv = facePortrait(hero, 64);
-        const clone = document.createElement('canvas');
-        clone.width=cv.width; clone.height=cv.height;
-        clone.getContext('2d').drawImage(cv,0,0);
-        d.appendChild(clone);
+        d.appendChild(cloneCanvas(bodyPortrait(hero))); // full body standing on the pedestal
         const label = document.createElement('b');
         label.textContent = hero.name;
         d.appendChild(label);
@@ -858,6 +879,11 @@
         hitPlanes.push(hit);
       }
 
+      // nature decor (trees/rocks/water) stays even with the painted ground;
+      // boardDecor (ritual circle, fence, house) is replaced by the art
+      const decorGroup = new THREE_.Group(); scene.add(decorGroup);
+      const boardDecor = new THREE_.Group(); scene.add(boardDecor);
+
       // circular ritual decal in the center (canvas texture)
       (function ritualDecal(){
         const cs = 512;
@@ -877,7 +903,7 @@
         const tex = new THREE_.CanvasTexture(cc);
         const decal = new THREE_.Mesh(new THREE_.PlaneGeometry(TILE*3.4, TILE*3.4), new THREE_.MeshBasicMaterial({map:tex, transparent:true, depthWrite:false}));
         decal.rotation.x = -Math.PI/2; decal.position.y = .07;
-        boardGroup.add(decal);
+        boardDecor.add(decal);
       })();
 
       // fence posts bordering the board
@@ -888,13 +914,13 @@
         [-half, half].forEach(z=>{
           const post = new THREE_.Mesh(new THREE_.CylinderGeometry(.05,.06,.5,6), fenceMat);
           post.position.set(xoff, .1, z);
-          scene.add(post);
+          boardDecor.add(post);
         });
       }
       [[-half,0],[half,0]].forEach(([x,zoff])=>{
         const post = new THREE_.Mesh(new THREE_.CylinderGeometry(.05,.06,.5,6), fenceMat);
         post.position.set(x, .1, zoff);
-        scene.add(post);
+        boardDecor.add(post);
       });
 
       // trees ringing the arena — kept close enough to stay inside the
@@ -906,7 +932,7 @@
         trunk.position.set(Math.cos(a)*r, .65, Math.sin(a)*r);
         const crown = new THREE_.Mesh(new THREE_.ConeGeometry(.7,1.6,8), new THREE_.MeshStandardMaterial({color:i%2?0x2c6939:0x3c7c44}));
         crown.position.set(trunk.position.x, 1.7, trunk.position.z);
-        scene.add(trunk, crown);
+        decorGroup.add(trunk); decorGroup.add(crown);
       }
       // rocks
       for(let i=0;i<8;i++){
@@ -915,7 +941,7 @@
         const rock = new THREE_.Mesh(new THREE_.IcosahedronGeometry(.35+Math.random()*.25,0), new THREE_.MeshStandardMaterial({color:0x555a52,roughness:1}));
         rock.position.set(Math.cos(a)*r, .2, Math.sin(a)*r);
         rock.rotation.set(Math.random(),Math.random(),Math.random());
-        scene.add(rock);
+        decorGroup.add(rock);
       }
       // small shop house on the left
       (function house(){
@@ -925,15 +951,29 @@
         const roof = new THREE_.Mesh(new THREE_.ConeGeometry(1.3,.9,4), new THREE_.MeshStandardMaterial({color:0x8a2f22}));
         roof.rotation.y = Math.PI/4; roof.position.y = 1.55;
         g.add(body, roof);
-        g.position.set(-6.6, 0, -2.2);
+        g.position.set(-7.6, 0, -2.2);
         g.scale.set(.8,.8,.8);
-        scene.add(g);
+        boardDecor.add(g);
       })();
-      // water accent on the right
+      // soft-edged pond on the right
       (function water(){
-        const w = new THREE_.Mesh(new THREE_.PlaneGeometry(2.6,9), new THREE_.MeshStandardMaterial({color:0x2c6a86, roughness:.4, metalness:.1, transparent:true, opacity:.85}));
-        w.rotation.x = -Math.PI/2; w.position.set(6.9, -.1, 0);
-        scene.add(w);
+        const cv = document.createElement('canvas'); cv.width = 256; cv.height = 512;
+        const x = cv.getContext('2d');
+        const g = x.createRadialGradient(128,256,20,128,256,250);
+        g.addColorStop(0,'rgba(94,178,196,.95)');
+        g.addColorStop(.62,'rgba(58,132,156,.9)');
+        g.addColorStop(.85,'rgba(40,96,120,.55)');
+        g.addColorStop(1,'rgba(40,96,120,0)');
+        x.fillStyle = g;
+        x.save(); x.translate(128,256); x.scale(1,2); x.beginPath(); x.arc(0,0,126,0,Math.PI*2); x.fill(); x.restore();
+        x.strokeStyle = 'rgba(220,245,250,.35)'; x.lineWidth = 3;
+        for(const [ox,oy,rr] of [[100,150,26],[150,300,34],[95,400,22]]){
+          x.beginPath(); x.ellipse(ox,oy,rr,rr*.35,0,0,Math.PI*2); x.stroke();
+        }
+        const tex = new THREE_.CanvasTexture(cv);
+        const w = new THREE_.Mesh(new THREE_.PlaneGeometry(3.4,7.2), new THREE_.MeshBasicMaterial({map:tex, transparent:true, depthWrite:false}));
+        w.rotation.x = -Math.PI/2; w.position.set(8.8, .012, 0);
+        decorGroup.add(w);
       })();
 
       /* ---- resize via ResizeObserver on the canvas container ----
@@ -963,12 +1003,19 @@
         if(w<=0||h<=0) return;
         renderer.setSize(w,h,false);
         const aspect = w/h;
-        const contentAspect = contentHalfW/contentHalfH;
-        let halfW, halfH;
-        if(aspect >= contentAspect){ halfH = contentHalfH; halfW = halfH*aspect; }
-        else { halfW = contentHalfW; halfH = halfW/aspect; }
+        // full-bleed framing: board occupies ~6%..68% of screen height,
+        // the strip below is scenery under the floating bench/shop UI
+        const B = contentHalfH;
+        let halfH = B/.62;
+        let cY = B - .88*halfH; // negative: view center sits below the board
+        let halfW = halfH*aspect;
+        if(halfW < contentHalfW*1.02){ // narrow screens: fit width, relax the bias
+          halfW = contentHalfW*1.02;
+          halfH = halfW/aspect;
+          cY = -Math.min(.419*B, Math.max(0, halfH - B*1.02));
+        }
         camera.left = -halfW; camera.right = halfW;
-        camera.top = halfH; camera.bottom = -halfH;
+        camera.top = cY + halfH; camera.bottom = cY - halfH;
         camera.updateProjectionMatrix();
         // bench pedestals track the on-screen tile size (like the reference,
         // where bench slots match board cells)
@@ -1004,11 +1051,64 @@
         return hits[0].object.userData;
       };
 
+      let groundArtActive = false;
+      const invisTileMat = new THREE_.MeshBasicMaterial({transparent:true, opacity:0, depthWrite:false});
+      const highlightOverlayMat = new THREE_.MeshBasicMaterial({color:0x9be36a, transparent:true, opacity:.45, depthWrite:false});
+
       highlightValidTiles = function(show){
         tileMeshes.forEach(m=>{
           if(!m.userData.isPlayerRow) return;
-          m.material = show ? highlightMat : (((m.userData.r+m.userData.c)%2) ? playerTileMat : enemyTileMat);
+          if(groundArtActive){
+            m.material = show ? highlightOverlayMat : invisTileMat;
+          } else {
+            m.material = show ? highlightMat : (((m.userData.r+m.userData.c)%2) ? playerTileMat : enemyTileMat);
+          }
         });
+      };
+
+      // swap the low-poly board for the painted arena once its texture loads.
+      // measured on the art: the 8x8 checker spans 1201px of the 2048px image
+      applyGroundArtFn = function(bmp){
+        const boardSpanFrac = 1423/2048; // calibrated against the in-game highlight overlay
+        const size = (BOARD_N*TILE)/boardSpanFrac;
+        const cv = document.createElement('canvas'); cv.width = bmp.width; cv.height = bmp.height;
+        const cx2 = cv.getContext('2d');
+        cx2.drawImage(bmp, 0, 0);
+        cx2.globalCompositeOperation = 'destination-out';
+        const F = Math.round(bmp.width*.055);
+        [[0,0,0,F,'v0'],[0,cv.height-F,0,cv.height,'v1'],[0,0,F,0,'h0'],[cv.width-F,0,cv.width,0,'h1']].forEach(([x0,y0,x1,y1])=>{
+          const gr = cx2.createLinearGradient(x0,y0,x1,y1);
+          gr.addColorStop(0,'rgba(0,0,0,1)'); gr.addColorStop(1,'rgba(0,0,0,0)');
+          cx2.fillStyle = gr;
+          if(y1>y0) cx2.fillRect(0, Math.min(y0,y1), cv.width, F);
+          else cx2.fillRect(Math.min(x0,x1), 0, F, cv.height);
+        });
+        cx2.globalCompositeOperation = 'source-over';
+        const tex = new THREE_.CanvasTexture(cv);
+        const plane = new THREE_.Mesh(
+          new THREE_.PlaneGeometry(size, size),
+          new THREE_.MeshBasicMaterial({map:tex, transparent:true})
+        );
+        plane.rotation.x = -Math.PI/2;
+        plane.position.set(0.014, .02, 0.57);
+        scene.add(plane);
+        // tile the art's own grass outward so the full-bleed screen has no bare patches
+        const gcv = document.createElement('canvas'); gcv.width = gcv.height = 512;
+        const gx = gcv.getContext('2d');
+        gx.drawImage(bmp, 560, 30, 300, 230, 0, 0, 512, 512); // plain grass strip
+        gx.fillStyle = 'rgba(96,116,60,.30)'; // mute detail so the tiling doesn't read
+        gx.fillRect(0,0,512,512);
+        const gtex = new THREE_.CanvasTexture(gcv);
+        gtex.wrapS = gtex.wrapT = THREE_.MirroredRepeatWrapping;
+        gtex.repeat.set(47,47); // ≈1.8 world units per tile
+        const grassPlane = new THREE_.Mesh(new THREE_.PlaneGeometry(84,84), new THREE_.MeshBasicMaterial({map:gtex}));
+        grassPlane.rotation.x = -Math.PI/2; grassPlane.position.y = .005;
+        scene.add(grassPlane);
+        boardDecor.visible = false;            // painted art has its own circle + border
+        tileMeshes.forEach(m=>{ m.material = invisTileMat; });
+        ground.material.color.set(0x364322);   // blend the outer 3D ground with the art's grass
+        scene.background = new THREE_.Color(0x2a3a20);
+        groundArtActive = true;
       };
 
       /* ---- placing a hero sprite (billboard, faces camera) ---- */
@@ -1352,6 +1452,7 @@
   refillOffers();
   renderAll();
   loadHeroAssets();
+  loadGroundAsset();
 })();
 </script>
 </body>
