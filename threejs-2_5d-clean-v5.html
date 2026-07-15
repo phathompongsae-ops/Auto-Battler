@@ -77,7 +77,7 @@
   .card{pointer-events:auto;border:1px solid #80643a;border-radius:9px;background:#14161a;text-align:center;padding:0;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 3px 8px #0009,inset 0 0 0 1px #0006}
   .card>b{display:block;font-size:9px;font-weight:800;color:#f3ead2;padding:3px 2px;background:#0000004f;border-bottom:1px solid #ffffff12;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:.03em}
   .card .pic{position:relative;height:var(--pic);overflow:hidden}
-  .card .pic canvas{width:100%;height:100%;object-fit:contain;object-position:50% 100%;filter:drop-shadow(0 3px 3px #0008)}
+  .card .pic canvas{width:100%;height:100%;object-fit:cover;object-position:50% 12%;filter:drop-shadow(0 3px 3px #0008)}
   .card .tags{display:flex;flex-direction:column;align-items:flex-start;gap:1px;padding:2px 7px 1px;min-height:10px}
   .card .tags span{display:flex;align-items:center;gap:4px;font-size:7px;font-weight:700;color:#d8cfae}
   .card .tags i{width:8px;height:8px;border-radius:3px;flex:none;box-shadow:inset 0 -1px 1px #0007}
@@ -349,6 +349,23 @@
     return c;
   }
 
+  // card bust: upper part of the body art so the chibi face reads large,
+  // like the reference card design
+  function bustPortrait(hero){
+    const bmp = heroBitmaps[hero.name] && heroBitmaps[hero.name].body;
+    const key = hero.name+'|bust'+(bmp?'|a':'');
+    if(portraitCache.has(key)) return portraitCache.get(key);
+    const srcCv = bmp ? null : bodyPortrait(hero);
+    const sw = bmp ? bmp.width : srcCv.width;
+    const sh = bmp ? bmp.height : srcCv.height;
+    const cutH = Math.round(sh*.56); // head + chest
+    const c = document.createElement('canvas'); c.width = sw; c.height = cutH;
+    const ctx = c.getContext('2d');
+    ctx.drawImage(bmp || srcCv, 0, 0, sw, cutH, 0, 0, sw, cutH);
+    portraitCache.set(key,c);
+    return c;
+  }
+
   // forest-themed monster sprites, drawn with canvas like the hero bodies
   function monsterBody(type){
     const bmp = monBitmaps[type];
@@ -516,8 +533,8 @@
       d.style.borderColor = mixHex('#b08d4a',hero.color,.38);
       const name = document.createElement('b'); name.textContent = hero.name; d.appendChild(name);
       const pic = document.createElement('div'); pic.className='pic';
-      pic.style.background = 'radial-gradient(ellipse at 50% 74%,'+mixHex('#181b20',hero.color,.5)+' 0%,transparent 72%)';
-      pic.appendChild(cloneCanvas(bodyPortrait(hero)));
+      pic.style.background = 'radial-gradient(ellipse at 50% 45%,'+mixHex('#181b20',hero.color,.5)+' 0%,transparent 75%)';
+      pic.appendChild(cloneCanvas(bustPortrait(hero)));
       d.appendChild(pic);
       const tags = document.createElement('div'); tags.className='tags';
       hero.tags.forEach(t=>{
