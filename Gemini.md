@@ -5,6 +5,26 @@
 บน branch `claude/threejs-2-5d-clean-v5-e80mbk` — ดูภาพรวมโปรเจกต์เต็มที่ `GDD.md`,
 ประวัติงานของ Claude ที่ `CLAUDE_HANDOFF.md`, และแผนงาน Priority 1-7 ที่ `gemini_status.md`
 
+## Boss spawn scaffold: stage 5/10/15 (placeholder — เสร็จแล้ว)
+
+**ขอบเขต**: วางโครง Logic ให้สุ่ม/ล็อก ID บอสก่อนเริ่มด่าน 5, 10, 15 เท่านั้น —
+**ยังไม่มีสเตตัส/สไปรท์บอสจริง** เป็นแค่โครงเผื่อไว้ให้ใส่ค่าทีหลัง ไม่แตะระบบ spawn
+มอนสเตอร์ทั่วไป (`spawnWave()`) ที่ทำงานอยู่แล้ว
+
+**เพิ่มอะไรบ้าง** (ทั้งหมดอยู่ใน `threejs-2_5d-clean-v5.html`):
+- `BOSS_STAGE_POOL = {5:['boss_ph_5a','boss_ph_5b'], 10:['boss_ph_10a','boss_ph_10b'], 15:['boss_champion_big']}`
+- `pickBossId(wave)` — สุ่ม 1 จาก pool ของ wave นั้น, คืน `null` ถ้า wave ไม่ใช่ 5/10/15
+  (wave 15 มีตัวเลือกเดียวจึงเท่ากับ "ล็อกตาย" ที่ `boss_champion_big`)
+- `state.currentBossId` — เก็บผลที่สุ่มได้ล่าสุด, `startBattleFn()` เรียก `pickBossId(state.wave)`
+  ก่อน `spawnWave()` ทุกครั้งที่กดเริ่มต่อสู้
+- toast + `console.info('[Boss placeholder] ...')` โชว์ ID ที่สุ่มได้ตอนเริ่มด่าน 5/10/15
+  เพื่อให้เทสผ่านหน้าจอจริงได้โดยไม่ต้องเปิด devtools (ไม่ใช่ UI ถาวร เอาออกได้ตอนใส่บอสจริง)
+
+**ทดสอบแล้ว**: unit-check แบบสุ่ม 2000 ครั้ง (wave 5/10 ได้สัดส่วนใกล้ 50/50, wave 15 ได้
+`boss_champion_big` ทุกครั้ง) + เล่นจริงผ่าน Playwright จนถึง wave 16 เห็น toast ถูกต้องที่
+wave 5 (`boss_ph_5b`), 10 (`boss_ph_10a`), 15 (`boss_champion_big`) ไม่มี console error/
+request 404 เลยตลอดการเล่น
+
 ## Priority 1 (gemini_status.md): Stabilize 15-stage run — เสร็จแล้ว
 
 **ขอบเขต**: ทดสอบ flow เกมจริงตั้งแต่ wave 1 ถึง 15 หา error/404 ใน console แล้วแก้ให้หมด

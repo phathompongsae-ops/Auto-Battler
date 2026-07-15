@@ -2,7 +2,10 @@
 **Last Updated:** 2026-07-15
 
 ## Roadmap & Priorities
-1. **Stabilize 15-stage run:** Full test flow (1-15), error checking, and regression testing.
+1. **Stabilize 15-stage run:** Full test flow (1-15), error checking, and regression testing. — ✅ done
+   (see `Gemini.md`: weapon-atlas 404 + favicon 404 fixed, clean Playwright run through wave 15)
+   - Sub-task: boss-ID pick scaffold for stage 5/10/15 — ✅ done (placeholder only, no stats/sprite yet;
+     see `Gemini.md`)
 2. **Remove runtime regex patch:** Convert Combat Next into a modular system.
 3. **Hero Merge / Star Upgrade:** Implement unique ID, star levels, and 3-copy merge logic.
 4. **Equipment Core:** Implement inventory, 2 slots per hero, and stat modifier pipeline.
