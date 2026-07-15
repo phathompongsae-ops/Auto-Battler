@@ -113,24 +113,28 @@
   .drag-ghost{position:fixed;width:52px;height:58px;pointer-events:none;z-index:80;transform:translate(-50%,-50%);border-radius:50%;box-shadow:0 0 0 2px #ffe178,0 4px 10px #000a;overflow:hidden}
   .drag-ghost canvas{width:100%;height:100%}
 
-  /* ---------- Weapon shop (post-win drop) + held-weapon drag-to-equip ---------- */
-  .weapon-shop{position:fixed;left:50%;top:12%;transform:translateX(-50%);z-index:70;display:none;flex-direction:column;align-items:center;gap:6px;background:#17130fed;border:1px solid #c28f46;border-radius:12px;padding:10px 12px;pointer-events:auto}
-  .weapon-shop.show{display:flex}
-  .weapon-shop .wtitle{font-size:11px;font-weight:800;color:#ffe6a0;text-align:center}
-  .weapon-shop .wrow{display:flex;gap:8px}
-  .wcard{border:1px solid #8a6c39;border-radius:8px;background:#241d12;padding:6px 8px;text-align:center;min-width:66px}
+  /* ---------- Weapon shop popup (post-win drop) + inventory-tray drag-to-equip ---------- */
+  .weapon-shop{position:fixed;inset:0;z-index:70;display:none}
+  .weapon-shop.show{display:block}
+  .weapon-shop .wbackdrop{position:absolute;inset:0;background:#000000b3;pointer-events:auto}
+  .weapon-shop .wbox{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:8px;max-width:92vw;background:#17130fed;border:1px solid #c28f46;border-radius:14px;padding:14px 16px;pointer-events:auto}
+  .weapon-shop .wtitle{font-size:12px;font-weight:800;color:#ffe6a0;text-align:center}
+  .weapon-shop .wrow{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+  .wcard{border:2px solid #8a6c39;border-radius:8px;background:#241d12;padding:6px 8px;text-align:center;min-width:70px}
+  .wcard .wicon{width:40px;height:40px;margin:0 auto 4px}
+  .wcard .wicon canvas{width:100%;height:100%;display:block}
   .wcard b{display:block;font-size:9px;color:#f3ead2;white-space:nowrap}
   .wcard .wstat{font-size:9px;color:#8ad4ff;margin:3px 0}
   .wcard button{display:flex;align-items:center;justify-content:center;gap:4px;width:100%;border:1px solid #8a6c39;border-radius:6px;background:linear-gradient(#3d3016,#241c0e);color:#ffd873;font-size:9px;font-weight:900;padding:3px 0}
   .wcard button .coin{width:9px;height:9px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ffeaa6,#e3b34d 55%,#8a5c14);border:1px solid #6e4c12;display:inline-block}
   .wcard button:disabled{opacity:.4}
-  .weapon-shop .wskip{pointer-events:auto;border:1px solid #806536;border-radius:7px;background:#241d12;color:#d8c894;font-size:9px;padding:4px 10px}
+  .weapon-shop .wskip{pointer-events:auto;border:1px solid #806536;border-radius:7px;background:#2a2213;color:#d8c894;font-size:10px;padding:5px 14px}
 
-  .held-weapon{position:fixed;left:50%;top:12%;transform:translateX(-50%);z-index:71;display:none;flex-direction:column;align-items:center;gap:2px;background:#241d12ee;border:2px solid #ffe178;border-radius:10px;padding:6px 10px;pointer-events:auto;cursor:grab;touch-action:none}
-  .held-weapon.show{display:flex}
-  .held-weapon b{font-size:9px;color:#ffe6a0}
-  .held-weapon span{font-size:8px;color:#8ad4ff}
-  .held-weapon i{font-style:normal;font-size:7px;color:#d8c894}
+  .weapon-inventory{position:fixed;left:50%;top:12%;transform:translateX(-50%);z-index:65;display:none;flex-direction:row;gap:6px;pointer-events:none}
+  .weapon-inventory.show{display:flex}
+  .wslot{display:flex;flex-direction:column;align-items:center;gap:2px;background:#241d12ee;border:2px solid #ffe178;border-radius:10px;padding:5px 8px;pointer-events:auto;cursor:grab;touch-action:none}
+  .wslot canvas{width:26px;height:26px;display:block}
+  .wslot span{font-size:8px;color:#8ad4ff}
 
   .weapon-ghost{position:fixed;z-index:80;transform:translate(-50%,-50%);pointer-events:none;padding:5px 8px;border-radius:8px;background:#241d12ee;border:2px solid #ffe178;color:#ffe6a0;font-size:9px;font-weight:800;white-space:nowrap}
 
@@ -187,7 +191,7 @@
 
 <div class="toast" id="toast"></div>
 <div class="weapon-shop" id="weaponShop"></div>
-<div class="held-weapon" id="heldWeapon"></div>
+<div class="weapon-inventory" id="weaponInventory"></div>
 <div id="rotate"><div class="ric">⟳</div>กรุณาหมุนเครื่องเป็นแนวนอน<br>เกมนี้เล่นได้เฉพาะแนวนอน</div>
 
 <script>
@@ -582,8 +586,9 @@
     wave:1,
     phase:'prep', // 'prep' | 'combat'
     speedMul:1,
-    weaponOffers:[], // up to 3 post-win weapon shop offers (cleared unbought at next battle start)
-    heldWeapon:null  // weapon def currently picked up, waiting to be dragged onto a hero
+    weaponOffers:[], // 3-4 post-win weapon shop offers (cleared unbought at next battle start)
+    weaponShopOpen:false, // ShowWeaponShopPopup() modal visibility
+    inventory:[]     // purchased weapons not yet equipped on a hero (drag from tray to equip)
   };
   const board = []; // board[r][c] = {hero, sprite, shadow} | null
   for(let r=0;r<BOARD_N;r++){ board.push(new Array(BOARD_N).fill(null)); }
@@ -725,7 +730,7 @@
 
   function renderAll(){
     renderHUD(); renderBench(); renderShop(); renderSynergy(); renderTeam();
-    renderWeaponShop(); renderHeldWeapon();
+    renderWeaponShop(); renderWeaponInventory();
   }
 
   /* ============================== shop / xp actions ============================== */
@@ -761,18 +766,76 @@
     return null;
   }
 
-  /* ============================== weapon shop (post-win drop) ============================== */
+  /* ============================== weapon icons: atlas loader + single-shape dynamic-color fallback ==============================
+     Real assets not in the repo yet — assumed schema once they land:
+       assets/icons/weapons/weapon_icons.webp  (one sprite sheet)
+       assets/icons/weapons/weapon_icons.json  ({ "<WEAPON_POOL id>": {x,y,w,h}, ... })
+     Until then every weapon reuses one drawn glyph tinted per rarity ("Single SVG,
+     Dynamic Color" reimplemented on <canvas> to keep the project's canvas-only rule). */
+  const RARITY_BY_LEVEL = {1:'common', 2:'rare', 3:'epic'};
+  const RARITY_COLORS = {common:'#9aa0a6', rare:'#4a90e2', epic:'#9b59b6'};
+  function weaponRarity(w){ return RARITY_BY_LEVEL[w.level] || 'common'; }
+
+  let weaponAtlasImg = null, weaponAtlasMap = null;
+  function loadWeaponAtlas(){
+    fetch('assets/icons/weapons/weapon_icons.json').then(r=>r.ok?r.json():null).then(map=>{
+      if(!map) return null;
+      weaponAtlasMap = map;
+      return fetch('assets/icons/weapons/weapon_icons.webp').then(r=>r.ok?r.blob():null);
+    }).then(blob=>blob?createImageBitmap(blob):null).then(bmp=>{
+      if(!bmp) return;
+      weaponAtlasImg = bmp;
+      renderWeaponShop(); renderWeaponInventory();
+    }).catch(()=>{}); // atlas not present yet — procedural glyph stays in use
+  }
+
+  function drawWeaponGlyph(ctx, size, color){
+    const bladeLen = size*0.62, bladeW = size*0.16;
+    ctx.save();
+    ctx.translate(size/2, size/2); ctx.rotate(-Math.PI/4);
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.moveTo(-bladeW/2, -bladeLen/2);
+    ctx.lineTo(bladeW/2, -bladeLen/2);
+    ctx.lineTo(bladeW/2, bladeLen/2-size*0.12);
+    ctx.lineTo(0, bladeLen/2);
+    ctx.lineTo(-bladeW/2, bladeLen/2-size*0.12);
+    ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#3a2c18';
+    ctx.fillRect(-bladeW*0.9, bladeLen/2-size*0.10, bladeW*1.8, size*0.09);
+    ctx.fillRect(-size*0.045, bladeLen/2-size*0.02, size*0.09, size*0.22);
+    ctx.restore();
+  }
+  function weaponIconCanvas(w, size){
+    const cv = document.createElement('canvas'); cv.width=size; cv.height=size;
+    const ctx = cv.getContext('2d');
+    const rarity = weaponRarity(w), rgb = RARITY_COLORS[rarity];
+    ctx.fillStyle = mixHex(rgb,'#0d0f12',.45);
+    roundRect(ctx, 1,1,size-2,size-2, size*0.18); ctx.fill();
+    if(weaponAtlasImg && weaponAtlasMap && weaponAtlasMap[w.id]){
+      const f = weaponAtlasMap[w.id];
+      ctx.drawImage(weaponAtlasImg, f.x, f.y, f.w, f.h, size*0.08, size*0.08, size*0.84, size*0.84);
+    } else {
+      drawWeaponGlyph(ctx, size, mixHex(rgb,'#ffffff',.55));
+    }
+    return cv;
+  }
+
+  /* ============================== weapon shop popup (post-win drop) ============================== */
   function weaponPrice(w){
     // NOT specified in game_config.json (WEAPON_POOL has no cost field) — placeholder
     // scaled off hero cost (2g): level*3g. Flagging for review, see chat summary.
     return w.level*3;
   }
   function rollWeaponOffers(stage){
-    const table = CONFIG.DROP_TABLE_BY_STAGE[String(stage)];
+    // DROP_TABLE_BY_STAGE only defines stages 1-5; any wave beyond that automatically
+    // falls back to stage 5's table instead of running out of weapon drops forever
+    const table = CONFIG.DROP_TABLE_BY_STAGE[String(stage)] ?? CONFIG.DROP_TABLE_BY_STAGE['5'];
     if(!table || !table.items || !table.items.length) return [];
     const totalWeight = table.items.reduce((s,it)=>s+it.weight,0);
+    const count = 3 + Math.floor(Math.random()*2); // 3 or 4 offers per popup
     const offers = [];
-    for(let i=0;i<3;i++){
+    for(let i=0;i<count;i++){
       let roll = Math.random()*totalWeight;
       let pickedId = table.items[table.items.length-1].id;
       for(const it of table.items){
@@ -783,59 +846,89 @@
     }
     return offers;
   }
+  // Opens the centered weapon-shop modal with a fresh set of offers (called after a Win).
+  function ShowWeaponShopPopup(offers){
+    state.weaponOffers = offers;
+    state.weaponShopOpen = true;
+    renderWeaponShop();
+  }
+  function closeWeaponShopPopup(){
+    state.weaponShopOpen = false;
+    state.weaponOffers = [];
+    renderWeaponShop();
+  }
   function renderWeaponShop(){
     const el = q('weaponShop');
-    if(!state.weaponOffers.length){ el.classList.remove('show'); el.innerHTML=''; return; }
+    if(!state.weaponShopOpen || !state.weaponOffers.length){ el.classList.remove('show'); el.innerHTML=''; return; }
     el.classList.add('show');
     el.innerHTML = '';
+    const backdrop = document.createElement('div'); backdrop.className='wbackdrop';
+    backdrop.onclick = closeWeaponShopPopup;
+    el.appendChild(backdrop);
+    const box = document.createElement('div'); box.className='wbox';
     const title = document.createElement('div'); title.className='wtitle';
-    title.textContent = 'ร้านอาวุธ — เลือกซื้อ 1 ชิ้น (ไม่ซื้อตอนนี้จะหายไป)';
-    el.appendChild(title);
+    title.textContent = 'ร้านอาวุธ — เลือกซื้อได้หลายชิ้น';
+    box.appendChild(title);
     const row = document.createElement('div'); row.className='wrow';
     state.weaponOffers.forEach((w,idx)=>{
+      const rarity = weaponRarity(w);
       const card = document.createElement('div'); card.className='wcard';
+      card.style.borderColor = RARITY_COLORS[rarity];
+      const iconWrap = document.createElement('div'); iconWrap.className='wicon';
+      iconWrap.appendChild(weaponIconCanvas(w, 40));
+      card.appendChild(iconWrap);
       const name = document.createElement('b'); name.textContent = w.name; card.appendChild(name);
       const stat = document.createElement('div'); stat.className='wstat'; stat.textContent = '+'+w.pAtk+' ATK'; card.appendChild(stat);
       const price = weaponPrice(w);
       const btn = document.createElement('button');
       const coin = document.createElement('span'); coin.className='coin'; btn.appendChild(coin);
       btn.appendChild(document.createTextNode(String(price)));
-      btn.disabled = state.gold<price || !!state.heldWeapon;
+      btn.disabled = state.gold<price;
       btn.onclick = ()=>buyWeapon(idx);
       card.appendChild(btn);
       row.appendChild(card);
     });
-    el.appendChild(row);
+    box.appendChild(row);
     const skip = document.createElement('button'); skip.className='wskip';
-    skip.textContent = 'ข้าม';
-    skip.onclick = ()=>{ state.weaponOffers=[]; renderWeaponShop(); };
-    el.appendChild(skip);
+    skip.textContent = 'ปิด';
+    skip.onclick = closeWeaponShopPopup;
+    box.appendChild(skip);
+    el.appendChild(box);
   }
+  // Buying deducts coins (state.gold), adds the weapon to the inventory tray, and
+  // closes the popup immediately — equipping onto a hero happens later via drag.
   function buyWeapon(idx){
     const w = state.weaponOffers[idx];
     if(!w) return;
     const price = weaponPrice(w);
     if(state.gold<price){ toast('ทองไม่พอ'); return; }
-    if(state.heldWeapon){ toast('ถืออาวุธอยู่แล้ว ลากไปสวมให้ฮีโร่ก่อน'); return; }
     state.gold -= price;
-    state.heldWeapon = w;
-    state.weaponOffers = [];
-    renderHUD(); renderWeaponShop(); renderHeldWeapon();
+    state.inventory.push(Object.assign({}, w));
+    closeWeaponShopPopup();
+    toast('ได้รับ '+w.name+'! เก็บไว้ในกระเป๋าอาวุธ');
+    renderAll();
   }
-  function renderHeldWeapon(){
-    const el = q('heldWeapon');
-    if(!state.heldWeapon){ el.classList.remove('show'); el.innerHTML=''; return; }
-    el.classList.add('show');
+  function renderWeaponInventory(){
+    const el = q('weaponInventory');
     el.innerHTML = '';
-    const b = document.createElement('b'); b.textContent = state.heldWeapon.name; el.appendChild(b);
-    const span = document.createElement('span'); span.textContent = '+'+state.heldWeapon.pAtk+' ATK'; el.appendChild(span);
-    const hint = document.createElement('i'); hint.textContent = 'ลากไปวางบนฮีโร่เพื่อสวมใส่'; el.appendChild(hint);
+    if(!state.inventory.length){ el.classList.remove('show'); return; }
+    el.classList.add('show');
+    state.inventory.forEach((w,idx)=>{
+      const rarity = weaponRarity(w);
+      const slot = document.createElement('div'); slot.className='wslot';
+      slot.style.borderColor = RARITY_COLORS[rarity];
+      slot.dataset.invIndex = idx;
+      slot.appendChild(weaponIconCanvas(w, 26));
+      const span = document.createElement('span'); span.textContent = '+'+w.pAtk; slot.appendChild(span);
+      el.appendChild(slot);
+    });
   }
-  function equipWeapon(hero){
-    if(!hero || !state.heldWeapon) return;
-    hero.weapon = state.heldWeapon;
-    toast(hero.name+' สวม '+state.heldWeapon.name+' แล้ว (+'+state.heldWeapon.pAtk+' ATK)');
-    state.heldWeapon = null;
+  function equipWeapon(hero, invIndex){
+    const w = state.inventory[invIndex];
+    if(!hero || !w) return;
+    hero.weapon = w;
+    state.inventory.splice(invIndex, 1);
+    toast(hero.name+' สวม '+w.name+' แล้ว (+'+w.pAtk+' ATK)');
     renderAll();
   }
 
@@ -973,18 +1066,22 @@
     renderAll();
   }
 
-  /* ============================== weapon drag-to-equip ============================== */
-  let weaponDrag = null; // {startX,startY,moved,pointerId,ghostEl}
+  /* ============================== weapon drag-to-equip (from inventory tray) ============================== */
+  let weaponDrag = null; // {startX,startY,moved,pointerId,ghostEl,invIndex}
 
-  q('heldWeapon').addEventListener('pointerdown', e=>{
-    if(!state.heldWeapon) return;
+  q('weaponInventory').addEventListener('pointerdown', e=>{
+    const slot = e.target.closest('.wslot');
+    if(!slot) return;
     e.preventDefault();
-    weaponDrag = {startX:e.clientX, startY:e.clientY, moved:false, pointerId:e.pointerId, ghostEl:null};
+    const invIndex = parseInt(slot.dataset.invIndex, 10);
+    weaponDrag = {startX:e.clientX, startY:e.clientY, moved:false, pointerId:e.pointerId, ghostEl:null, invIndex};
   });
 
   function startWeaponGhost(wd, x, y){
+    const w = state.inventory[wd.invIndex];
+    if(!w) return;
     const ghost = document.createElement('div'); ghost.className='weapon-ghost';
-    ghost.textContent = state.heldWeapon.name;
+    ghost.textContent = w.name;
     document.body.appendChild(ghost);
     ghost.style.left = x+'px'; ghost.style.top = y+'px';
     wd.ghostEl = ghost;
@@ -1010,7 +1107,7 @@
     const wd = weaponDrag; weaponDrag = null;
     if(wd.moved){
       endWeaponGhost(wd);
-      tryEquipAtScreenPoint(e.clientX, e.clientY);
+      tryEquipAtScreenPoint(e.clientX, e.clientY, wd.invIndex);
     } else {
       toast('ลากไอคอนอาวุธไปวางบนฮีโร่เพื่อสวมใส่');
     }
@@ -1019,15 +1116,15 @@
     if(weaponDrag){ endWeaponGhost(weaponDrag); weaponDrag=null; }
   });
 
-  function tryEquipAtScreenPoint(clientX, clientY){
-    if(!state.heldWeapon) return;
+  function tryEquipAtScreenPoint(clientX, clientY, invIndex){
+    if(!state.inventory[invIndex]) return;
     const domTarget = document.elementFromPoint(clientX, clientY);
     const benchIdx = benchIndexFromEl(domTarget);
-    if(benchIdx!==-1 && state.bench[benchIdx]){ equipWeapon(state.bench[benchIdx]); return; }
+    if(benchIdx!==-1 && state.bench[benchIdx]){ equipWeapon(state.bench[benchIdx], invIndex); return; }
     const rect = canvasEl.getBoundingClientRect();
     if(clientX>=rect.left && clientX<=rect.right && clientY>=rect.top && clientY<=rect.bottom){
       const tile = pickTile(clientX, clientY, rect);
-      if(tile && board[tile.r][tile.c]){ equipWeapon(board[tile.r][tile.c].hero); return; }
+      if(tile && board[tile.r][tile.c]){ equipWeapon(board[tile.r][tile.c].hero, invIndex); return; }
     }
     toast('ลากไปวางบนฮีโร่ (ม้านั่งหรือในสนาม) เพื่อสวมอาวุธ');
   }
@@ -1646,12 +1743,12 @@
         if(win){
           const clearedWave = state.wave; // wave just cleared, before incrementing
           state.gold+=5; state.wave++;
-          // DROP_TABLE_BY_STAGE only defines stages 1-5; waves beyond that get no
-          // weapon shop until stage 6+ data is provided (per user decision)
-          state.weaponOffers = rollWeaponOffers(clearedWave);
-          toast('ชนะ Wave '+clearedWave+'! ได้ 5 ทอง'+(state.weaponOffers.length?' — พบร้านอาวุธ!':''), 2200);
+          // waves beyond stage 5 fall back to the stage-5 drop table (see rollWeaponOffers)
+          const offers = rollWeaponOffers(clearedWave);
+          toast('ชนะ Wave '+clearedWave+'! ได้ 5 ทอง'+(offers.length?' — พบร้านอาวุธ!':''), 2200);
+          if(offers.length) ShowWeaponShopPopup(offers);
         } else {
-          state.gold+=2; state.weaponOffers=[];
+          state.gold+=2; closeWeaponShopPopup();
           toast('แพ้... ได้ปลอบใจ 2 ทอง ลองจัดทัพใหม่', 2200);
         }
         renderAll();
@@ -1690,7 +1787,7 @@
 
       startBattleFn = function(){
         if(combatRunning) return;
-        state.weaponOffers = []; // unsold weapon shop offers vanish once the next battle starts
+        closeWeaponShopPopup(); // unsold weapon shop offers vanish once the next battle starts
         for(let r=0;r<BOARD_N;r++) for(let c2=0;c2<BOARD_N;c2++) occ[r][c2]=null;
         allies.length=0; enemies.length=0;
         for(let r=0;r<BOARD_N;r++) for(let c2=0;c2<BOARD_N;c2++){
@@ -1720,6 +1817,7 @@
   loadHeroAssets();
   loadGroundAsset();
   loadClassIcons();
+  loadWeaponAtlas();
   loadConfig().then(renderAll); // re-render once game_config.json overrides the fallback
 })();
 </script>
