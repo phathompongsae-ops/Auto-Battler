@@ -1,11 +1,52 @@
 # Auto-Battler — Project Notes (Gemini)
 
 บันทึกโปรเจกต์สำหรับผู้ช่วย AI อื่น (Gemini) ที่อาจเข้ามาต่องานบนโปรเจกต์นี้ทีหลัง
-ไฟล์เกมหลักคือ `threejs-2_5d-clean-v5.html` (Three.js + vanilla JS, ไฟล์เดียวจบ)
-บน branch `claude/threejs-2-5d-clean-v5-e80mbk` — ดูภาพรวมโปรเจกต์เต็มที่ `GDD.md`,
-ประวัติงานของ Claude ที่ `CLAUDE_HANDOFF.md`, และแผนงาน Priority 1-7 ที่ `gemini_status.md`
+โปรเจกต์นี้มี **เกม 2 ไฟล์แยกกัน** บน branch `claude/threejs-2-5d-clean-v5-e80mbk`:
+- `threejs-2_5d-clean-v5.html` — Three.js + vanilla JS ไฟล์เดียวจบ, ใช้ `state`/`HEROES`/
+  `CONFIG` (จาก `game_config.json`), มีระบบบอส stage 5/10/15 แบบ scaffold (`BOSS_POOL`)
+- `autochess.html` — เกมคนละตัว คนละ schema กันโดยสิ้นเชิง (`HERO_DEFS`/`benchHeroes`/
+  `placedUnits`, ระบบ tier-1→tier-2 evolution + merge) — **เช็กก่อนแก้เสมอว่า user
+  หมายถึงไฟล์ไหน** เพราะชื่อ/ศัพท์คล้ายกันมาก (เคยสับสนมาแล้วหลายรอบในเซสชันนี้)
 
-## Game Speed Multiplier (Fast Forward) x1-x4 — เสร็จแล้ว
+ดูภาพรวมโปรเจกต์เต็มที่ `GDD.md`, ประวัติงานของ Claude ที่ `CLAUDE_HANDOFF.md`, และแผนงาน
+Priority 1-7 ที่ `gemini_status.md`
+
+## autochess.html: Hero roster ใหม่ + Physical/Magic damage + Auto-merge + Tier-1 shop — เสร็จแล้ว
+
+**เปลี่ยนอะไรบ้าง** (ทั้งหมดอยู่ใน `autochess.html`):
+- แทนที่ `HERO_DEFS` ทั้งหมดด้วยข้อมูลใหม่ 21 ตัว (7 tier-1 + 14 tier-2 ผ่าน `evolves_from`)
+  โครงสร้างใหม่: `stats:{hp,p_atk,m_atk,p_def,m_def,move_speed,attack_speed,attack_range}`,
+  `attack_type`, `synergy[]`, `active_skill` (data อธิบายเท่านั้น ยังไม่ implement เป็น
+  combat logic) — มีแค่ 8/21 ตัวที่มีภาพจริง (blade_master, beast_lord, trickster, duelist,
+  archmage, frost_weaver, summoner, sniper) อีก 13 ตัว map ไปใช้ภาพที่ใกล้เคียงที่สุดตาม
+  role/attack_type ไปพลางก่อน (คอมเมนต์ไว้ในโค้ดตรง `HERO_DEFS` — สลับเป็นภาพจริงทีหลังได้)
+- ย้าย synergy tag จาก `HERO_TAGS` แยกมาอยู่ใน `def.synergy` ของแต่ละฮีโร่แทน — **ระบบ Link
+  bonus เดิม (`SYNERGIES`: trade_route/arcane_duo/warband) ใช้ tag คนละชุดกับของใหม่ ตอนนี้
+  จึงเป็น inert (ไม่ error แค่ไม่ trigger)** ยังไม่ได้ออกแบบคอมโบใหม่ให้ (ไม่ใช่การตัดสินใจ
+  balance ที่ควรทำเองโดยไม่ถาม)
+- Combat: `attackerRawAtk()`/`mitigateDamage()` — เลือก p_atk/m_atk ตาม `attack_type` แล้วหัก
+  ด้วย `p_def`/`m_def` แบบลบตรงๆ (ฮีโร่) ส่วนมอนสเตอร์/บอสเดิมที่มีแค่ `armor` (%) ยังใช้สูตร
+  เดิมไม่เปลี่ยน (กันบาลานซ์ monster เดิมพัง)
+- `checkAndMergeUnits()` — เรียกหลัง `buyHero`/`unplaceUnit` ทุกครั้ง ครบ 3 ตัว tier-1
+  เดียวกันบนม้านั่งสำรอง → ลบทิ้งแล้วสุ่ม 1 ใน 2 สาย tier-2 มาแทน วนซ้ำได้ถ้าเมิร์จได้
+  หลายชุดพร้อมกัน
+- `ownedPool` filter เหลือแค่ `class_tier===1` — ร้านค้า/รีโรลจะไม่มีทางสุ่มเจอ tier-2 เลย
+  (tier-2 ได้จากการเมิร์จเท่านั้น)
+
+**ทดสอบแล้ว**: สูตรดาเมจ unit test (physical/magic/armor เดิม/เกราะเกิน), กระจายสุ่มเมิร์จ
+200 รอบ (~50/50), multi-merge + double-merge-in-one-call, shop คงเหลือ tier-1 ตลอด 15 รีโรล,
+เล่นจริงซื้อ-ลากวาง-x4-ต่อสู้จบ ไม่มี console/page error ใหม่เลย
+
+## autochess.html: Camera Zoom + Drag-to-place ghost sprite — เสร็จแล้ว
+
+- `CAMERA_ZOOM` 7.2 → 5.0 ให้กระดาน 8x8 เต็มจอมากขึ้น (เช็ก desktop/tablet/phone-landscape
+  ไม่โดนขอบ HUD บนตัด)
+- เพิ่มระบบลากวางจริง (เดิมมีแค่คลิกเลือก-แล้วคลิกวาง) — ghost sprite ลอยเยื้องขึ้นเหนือ
+  นิ้ว/เมาส์ 56px (`GHOST_Y_OFFSET`) ระหว่างลาก เพื่อไม่ให้บังช่องกระดาน แตะเฉยๆ (ไม่ลาก)
+  ยัง fallback ไปที่ระบบเดิมได้
+- ไม่แตะ Grid width/จำนวนช่อง และ Combat Logic — click-to-unplace ยังทำงานถูกต้องเหมือนเดิม
+
+## threejs-2_5d-clean-v5.html: Game Speed Multiplier (Fast Forward) x1-x4 — เสร็จแล้ว
 
 **หมายเหตุ**: `state.speedMul` (ปุ่ม ×1/×2/×4 มุมขวาบน HUD) มีอยู่แล้วในไฟล์ก่อนหน้านี้ — คูณเข้ากับ
 `dt` ก่อนส่งเข้า `updateCombat()` ใน `anim()` loop รอบนี้แค่เติม x3 เข้าไปในวงจรปุ่ม และเพิ่มปุ่มลัด
