@@ -457,6 +457,82 @@ const ITEM_BASE = {
     }
   ]
 };
+// flat id -> item def lookup across base_items + combined_items, for equip/buildCombatStats
+const ITEM_DEFS_BY_ID = {};
+[...ITEM_BASE.base_items, ...ITEM_BASE.combined_items].forEach((def) => { ITEM_DEFS_BY_ID[def.id] = def; });
+
+// ============================================================
+// EQUIPMENT CORE — inventory/item-instance data model, equip/unequip, and the stat
+// pipeline that folds equipped items into a hero's live combatStats. Data + logic only —
+// no shop/drag UI yet, so item instances currently only come from createItemInstance()
+// (a minimal factory needed to have anything to equip/test with until a shop exists).
+// ============================================================
+const playerState = {
+  inventory: { capacity: 20, itemInstanceIds: [] },
+  itemInstances: {}, // instanceId -> { instanceId, itemDefId, location:'inventory'|'equipped', ownerHeroId }
+};
+let nextItemInstanceSeq = 1;
+function createItemInstance(itemDefId) {
+  const instanceId = 'item_inst_' + (nextItemInstanceSeq++);
+  playerState.itemInstances[instanceId] = { instanceId, itemDefId, location: 'inventory', ownerHeroId: null };
+  playerState.inventory.itemInstanceIds.push(instanceId);
+  return instanceId;
+}
+function equipItem(hero, itemInstanceId, slotIndex) {
+  if (slotIndex !== 0 && slotIndex !== 1) return false;
+  if (hero.equipment[slotIndex] != null) return false;
+  const inst = playerState.itemInstances[itemInstanceId];
+  if (!inst || inst.location !== 'inventory') return false;
+  const invIdx = playerState.inventory.itemInstanceIds.indexOf(itemInstanceId);
+  if (invIdx < 0) return false;
+  playerState.inventory.itemInstanceIds.splice(invIdx, 1);
+  inst.location = 'equipped';
+  inst.ownerHeroId = hero.instanceId;
+  hero.equipment[slotIndex] = itemInstanceId;
+  return true;
+}
+function unequipItem(hero, slotIndex) {
+  if (slotIndex !== 0 && slotIndex !== 1) return false;
+  const itemInstanceId = hero.equipment[slotIndex];
+  if (!itemInstanceId) return false;
+  if (playerState.inventory.itemInstanceIds.length >= playerState.inventory.capacity) return false;
+  const inst = playerState.itemInstances[itemInstanceId];
+  hero.equipment[slotIndex] = null;
+  if (inst) { inst.location = 'inventory'; inst.ownerHeroId = null; }
+  playerState.inventory.itemInstanceIds.push(itemInstanceId);
+  return true;
+}
+const ATTACK_SPEED_MIN = 0.2, ATTACK_SPEED_MAX = 3.0;
+// Builds hero.combatStats from hero.baseStats (never mutated) + equipped item stats:
+// flat `stats` add first, then `percent_stats` multiply (if an item defines any), then
+// clamp attack_speed to [0.2, 3.0] and floor hp/p_atk/m_atk/p_def/m_def at 0.
+function buildCombatStats(hero, itemDefs) {
+  const stats = structuredClone(hero.baseStats);
+  hero.equipment.forEach((itemInstanceId) => {
+    if (!itemInstanceId) return;
+    const inst = playerState.itemInstances[itemInstanceId];
+    const def = inst && itemDefs[inst.itemDefId];
+    if (!def || !def.stats) return;
+    for (const statKey in def.stats) {
+      if (stats[statKey] == null) continue;
+      stats[statKey] += def.stats[statKey];
+    }
+  });
+  hero.equipment.forEach((itemInstanceId) => {
+    if (!itemInstanceId) return;
+    const inst = playerState.itemInstances[itemInstanceId];
+    const def = inst && itemDefs[inst.itemDefId];
+    if (!def || !def.percent_stats) return;
+    for (const statKey in def.percent_stats) {
+      if (stats[statKey] == null) continue;
+      stats[statKey] *= (1 + def.percent_stats[statKey] / 100);
+    }
+  });
+  stats.attack_speed = Math.min(ATTACK_SPEED_MAX, Math.max(ATTACK_SPEED_MIN, stats.attack_speed));
+  ['hp', 'p_atk', 'm_atk', 'p_def', 'm_def'].forEach((k) => { stats[k] = Math.max(0, stats[k]); });
+  hero.combatStats = stats;
+  return stats;
+}
 
 // ============================================================
 // LINK SYSTEM V2 (LINK_SYSTEM_V2) — data-driven, instance-based team synergy.
@@ -811,6 +887,10 @@ function updateAnim(u, dt) {
 // at all) — that legacy path is preserved unchanged for any target that defines `armor`. Heroes
 // (HERO_DEFS.stats.p_def/m_def) use the new flat subtraction instead.
 function attackerRawAtk(attacker) {
+  // heroes: read the equipment-adjusted combatStats snapshot built at battle start.
+  // enemies/bosses never have combatStats (no equipment) — fall back to their flat stat.
+  const s = attacker.combatStats;
+  if (s) return attacker.attackType === 'magic' ? (s.m_atk || 0) : (s.p_atk || 0);
   return attacker.attackType === 'magic' ? (attacker.mAtk || 0) : (attacker.pAtk || 0);
 }
 function mitigateDamage(rawDmg, attacker, target, armorPenPct) {
@@ -819,7 +899,8 @@ function mitigateDamage(rawDmg, attacker, target, armorPenPct) {
     return rawDmg * (1 - effArmor / 100);
   }
   const isMagic = attacker.attackType === 'magic';
-  const def = isMagic ? (target.mDef || 0) : (target.pDef || 0);
+  const ts = target.combatStats;
+  const def = ts ? (isMagic ? (ts.m_def || 0) : (ts.p_def || 0)) : (isMagic ? (target.mDef || 0) : (target.pDef || 0));
   return Math.max(0, rawDmg - def);
 }
 function applyTrait(u, target, dmg) {
@@ -899,12 +980,14 @@ function updateUnit(u, dt) {
   u.body.position.y = u.halfH;
   const target = selectTarget(u);
   if (!target) { updateAnim(u,dt); return; }
+  const atkRange = u.combatStats ? u.combatStats.attack_range : u.range;
   const d = gridDist(u,target);
-  if (d<=u.range) {
+  if (d<=atkRange) {
     u.atkCooldown -= dt;
     if (u.atkCooldown<=0) {
       const atkSpeedPct = (u.team==='player' && combatLinkBuffs) ? combatLinkBuffs.atkSpeedPct : 0;
-      u.atkCooldown = 1/(u.atkSpeed * (1 + atkSpeedPct/100));
+      const baseAtkSpeed = u.combatStats ? u.combatStats.attack_speed : u.atkSpeed;
+      u.atkCooldown = 1/(baseAtkSpeed * (1 + atkSpeedPct/100));
       u.animState='attack'; u.animTimer=0;
       let dmg = applyTrait(u, target, attackerRawAtk(u));
       dmg = applyCombatLinkModifiers(dmg, u, target);
@@ -1095,8 +1178,11 @@ function placeHeroAt(benchIdx, c, r) {
     hp:s.hp, pAtk:s.p_atk, mAtk:s.m_atk, pDef:s.p_def, mDef:s.m_def, attackType:def.attack_type,
     atkSpeed:s.attack_speed, range:s.attack_range, moveSpeed:s.move_speed, heroKey:inst.heroKey,
     instanceId: inst.instanceId, // same identity carries from bench to field (state_model.field_storage)
-    equipment: [] }); // Priority 4 scaffold — up to 2 ITEM_BASE item ids per hero; not read by combat yet
+    equipment: [null, null], combatStats: null }); // Equipment Core — 2 fixed slots, always both present
   u.baseMaxHp = s.hp; // immutable — Link maxHpPct is always recomputed from this, never compounded
+  // immutable snapshot buildCombatStats() clones from — never overwritten by equipment/Link math
+  u.baseStats = { hp:s.hp, p_atk:s.p_atk, m_atk:s.m_atk, p_def:s.p_def, m_def:s.m_def,
+    move_speed:s.move_speed, attack_speed:s.attack_speed, attack_range:s.attack_range };
   u.origC = c; u.origR = r;   // ไทล์ที่วางไว้ตอนแรก — ใช้สแนปกลับระหว่างด่าน (ดู resetForWave)
   placedUnits.push(u);
   selectedBenchIdx = -1;
@@ -1239,6 +1325,7 @@ startBattleBtn.onclick = () => {
   if (placedUnits.length === 0) return;
   phase = 'battle';
   waveTimer = 0;
+  placedUnits.forEach((u) => buildCombatStats(u, ITEM_DEFS_BY_ID)); // Board Initialization — equipment pipeline
   applyPreCombatLinkBuffs();
   spawnWave(wave);
   renderUI();

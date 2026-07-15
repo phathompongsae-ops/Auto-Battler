@@ -66,10 +66,35 @@ Priority 1-7 ที่ `gemini_status.md`
   `dt` cap 50ms ก่อนคูณ, attack range เช็คจาก grid distance ไม่เกี่ยวกับ dt, ดาเมจคำนวณทันที
   ตอน cooldown หมด (ไม่มี projectile ที่ travel แล้วอาจ overshoot)
 
-**Equipment scaffold (Priority 4 — ยังไม่ wire เข้า combat)**
+**Equipment Core Data & Stat Pipeline (เสร็จแล้ว — ยังไม่มี UI ลากวางไอเทม)**
 - `ITEM_BASE`: 4 base items + 10 combined items (recipe จาก 2 base items) พร้อม stats/passive
-  description — ยังเป็นแค่ data, ไม่มี logic ซื้อ/สวมใส่/คำนวณสเตตัสจริง
-- ฮีโร่ที่วางบนกระดานมี `equipment: []` เป็นค่าเริ่มต้น (สูงสุด 2 ชิ้น/ตัวในอนาคต)
+  description — `ITEM_DEFS_BY_ID` รวมทั้งสองกลุ่มเป็น lookup เดียวด้วย id
+- `playerState.inventory` (`capacity:20, itemInstanceIds:[]`) + `playerState.itemInstances`
+  (instanceId → `{instanceId, itemDefId, location:'inventory'|'equipped', ownerHeroId}`) —
+  `createItemInstance(itemDefId)` สร้าง item instance ใหม่ลงกระเป๋า (ยังไม่มีร้านขายไอเทมจริง
+  ฟังก์ชันนี้เป็นแค่ factory ขั้นต่ำให้มีของทดสอบ equip/unequip ได้)
+- ฮีโร่ที่วางบนกระดานมี `equipment: [null, null]` (2 ช่องตายตัวเสมอ), `combatStats: null`,
+  และ `baseStats` (สแนปช็อตค่าดิบจาก `HERO_DEFS.stats` ตอนวาง — ห้ามแก้ไขทับ, `buildCombatStats`
+  clone จากตัวนี้เสมอ)
+- `equipItem(hero, itemInstanceId, slotIndex)`/`unequipItem(hero, slotIndex)`: ตรวจช่อง (0/1),
+  ตรวจว่าช่องว่าง/ของอยู่ใน inventory จริง, ตรวจ inventory เต็มก่อน unequip — ย้าย item ระหว่าง
+  `hero.equipment[]` กับ `playerState.inventory.itemInstanceIds` พร้อมอัปเดต `location`/`ownerHeroId`
+  ของ item instance ให้ตรงกันเสมอ
+- `buildCombatStats(hero, itemDefs)`: clone `hero.baseStats` → บวก item `stats` (flat) ทุกชิ้นก่อน
+  แล้วค่อยคูณ `percent_stats` (ถ้ามี item ไหนนิยามไว้ — ชุดข้อมูลปัจจุบันยังไม่มี item ไหนใช้ percent
+  เลย) → clamp `attack_speed` ที่ [0.2, 3.0] และ floor `hp/p_atk/m_atk/p_def/m_def` ที่ 0 → เซ็ตผลลัพธ์
+  ไว้ที่ `hero.combatStats`
+- Integration: เรียก `buildCombatStats` ให้ฮีโร่ทุกตัวบนกระดานตอนกด "เริ่มการต่อสู้"
+  (ก่อน `applyPreCombatLinkBuffs()`/`spawnWave()`) — `attackerRawAtk()`/`mitigateDamage()`/
+  attack-range และ attack-speed ใน `updateUnit()` เปลี่ยนไปอ่านจาก `u.combatStats` แทนค่า
+  camelCase เดิม (`pAtk`/`mAtk`/`pDef`/`mDef`/`atkSpeed`/`range`) เมื่อมีค่านี้ — มอนสเตอร์/บอส
+  ไม่มี `combatStats` เลย จึง fallback ไปใช้พาธเดิมอัตโนมัติ ไม่กระทบบาลานซ์มอนสเตอร์
+- ทดสอบผ่าน Playwright ครบ: equip/unequip สำเร็จ+ถูกบล็อกถูกกรณี (ช่องเต็ม/inventory เต็ม),
+  `baseStats` ไม่ถูกแก้ไขทับหลัง `buildCombatStats`, ค่า stats รวมถูกต้อง (เช่น ดาบพิฆาต +38 p_atk),
+  clamp ทำงานถูกทั้งขอบบน (attack_speed) และขอบล่าง (p_def ติดลบ), รบจริงที่ดาเมจคำนวณจาก
+  `combatStats` แล้ว ไม่มี NaN
+- ยังไม่มี: UI ร้านขายไอเทม/ลากวางไอเทมเข้าช่อง, `percent_stats` field ในข้อมูล item จริง
+  (โครงสร้างรองรับแล้วแต่ยังไม่มี item ไหนใช้)
 
 **อื่นๆ ที่มีอยู่แล้วก่อนรอบนี้** (ยังทำงานอยู่ ไม่ได้แตะ): ระบบ wave 1-15 พร้อมด่านบอสจริงที่
 stage 5/10/13/15 (`bossWave()`), quota แพ้ได้ 3 ครั้งต่อรัน, bench คนละ 6 ช่อง, field สูงสุด 5 ตัว
