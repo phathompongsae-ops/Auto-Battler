@@ -1034,10 +1034,23 @@
     state.gameOver = true;
     q('gameOver').classList.add('show');
   }
+  // Game speed multiplier: dt is already scaled by state.speedMul before it reaches
+  // updateCombat() (see the anim() loop), so x2/x3/x4 just simulate more game-seconds
+  // per real frame — attack-range checks use tile distance (unaffected) and the
+  // projectile-hit check treats "distance <= this frame's step" as a hit rather than
+  // letting it overshoot, so higher multipliers can't skip past a target undetected.
+  function setSpeedMul(mul){
+    state.speedMul = mul;
+    q('speed').textContent = '×'+mul;
+  }
   q('speed').onclick = ()=>{
-    state.speedMul = state.speedMul===1 ? 2 : (state.speedMul===2 ? 4 : 1);
-    q('speed').textContent = '×'+state.speedMul;
+    setSpeedMul(state.speedMul>=4 ? 1 : state.speedMul+1);
   };
+  // debug/test shortcut: number keys 1-4 jump straight to that speed for fast-forwarding
+  // through the 15-stage boss test loop
+  document.addEventListener('keydown', e=>{
+    if(e.key==='1' || e.key==='2' || e.key==='3' || e.key==='4') setSpeedMul(parseInt(e.key, 10));
+  });
 
   /* ============================== bench pointer: drag + tap-select ============================== */
   let dragState = null; // {benchIndex, startX, startY, moved, pointerId, ghostEl}
