@@ -1868,7 +1868,10 @@
   loadHeroAssets();
   loadGroundAsset();
   loadClassIcons();
-  loadWeaponAtlas();
+  // loadWeaponAtlas() is intentionally not called yet: assets/icons/weapons/weapon_icons.webp
+  // + .json don't exist in the repo, so calling it only produces a guaranteed 404 on every
+  // boot. Re-enable this once the real atlas files land (tracked in gemini_status.md);
+  // the procedural single-glyph fallback in weaponIconCanvas() covers icons until then.
   loadConfig().then(renderAll); // re-render once game_config.json overrides the fallback
 })();
 </script>
