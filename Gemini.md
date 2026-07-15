@@ -5,7 +5,27 @@
 บน branch `claude/threejs-2-5d-clean-v5-e80mbk` — ดูภาพรวมโปรเจกต์เต็มที่ `GDD.md`,
 ประวัติงานของ Claude ที่ `CLAUDE_HANDOFF.md`, และแผนงาน Priority 1-7 ที่ `gemini_status.md`
 
-## Boss spawn scaffold: stage 5/10/15 (placeholder — เสร็จแล้ว)
+## Boss data wired: real BOSS_POOL (name/hp/atk) — เสร็จแล้ว
+
+**ขอบเขต**: แทนที่ ID-only placeholder ด้วยข้อมูลบอสจริงที่ทีมออกแบบส่งมา (name/hp/atk)
+ยังคงเป็น data-resolution เท่านั้น — **ยังไม่ spawn บอสจริงลงกระดาน ไม่มี combat AI**
+
+**เปลี่ยนอะไรบ้าง** (ทั้งหมดอยู่ใน `threejs-2_5d-clean-v5.html`):
+- `BOSS_STAGE_POOL` เดิม → เปลี่ยนชื่อเป็น `STAGE_PLAN` (โครงสร้าง stage→boss-ID list เดิมทุกอย่าง)
+- เพิ่ม `BOSS_POOL` (array ข้อมูลจริง 5 ตัว: `boss_ph_5a/5b`, `boss_ph_10a/10b`, `boss_champion_big`)
+  แต่ละตัวมี `{id, name, hp, atk}` — ค่า mechanics/theme (Shield Slam, Bone Breath, Seismic Line,
+  mark-and-warp, King's Judgment ฯลฯ) ใส่เป็น **comment เหนือแต่ละ entry เท่านั้น** ตามที่ขอ
+  ยังไม่ implement เป็น combat logic (ไม่มี push/stun/warp/target-switch จริง)
+- `BOSS_POOL_BY_ID` + `getBossData(id)` — lookup จาก id ไปเป็น object ข้อมูลเต็ม
+- `state.currentBoss` (ใหม่) — เก็บผลลัพธ์ `getBossData(pickBossId(state.wave))` เต็ม object,
+  คู่กับ `state.currentBossId` เดิม; toast ตอนเริ่มด่าน 5/10/15 โชว์ชื่อ+HP+ATK จริงแล้ว
+  (เช่น "สุ่มได้: Bone Dragon Whelp (HP 760 / ATK 28)")
+
+**ทดสอบแล้ว**: เล่นจริงผ่าน Playwright ถึง wave 16 — wave 5 ได้ Bone Dragon Whelp (HP 760/ATK 28),
+wave 10 ได้ Shadow Huntress (HP 1150/ATK 36), wave 15 ได้ Immortal Champion (HP 3200/ATK 48,
+ล็อกทุกครั้ง) — ไม่มี console error/request ล้มเหลวเลยตลอดการเล่น
+
+## Boss spawn scaffold: stage 5/10/15 (placeholder — เสร็จแล้ว, ดูข้อมูลจริงในหัวข้อด้านบน)
 
 **ขอบเขต**: วางโครง Logic ให้สุ่ม/ล็อก ID บอสก่อนเริ่มด่าน 5, 10, 15 เท่านั้น —
 **ยังไม่มีสเตตัส/สไปรท์บอสจริง** เป็นแค่โครงเผื่อไว้ให้ใส่ค่าทีหลัง ไม่แตะระบบ spawn
