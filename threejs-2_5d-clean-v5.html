@@ -634,38 +634,26 @@
   }
 
   /* ============================== boss spawn scaffold (placeholder — sprite/combat AI come later) ==============================
-     Real name/hp/atk per game design data. Mechanics are documented as comments only —
-     not implemented as combat logic yet (no push/stun/warp/target-switch behavior wired up).
-     No spawnWave()/combat integration yet either: picking still only resolves data,
-     it doesn't spawn a boss unit onto the board. */
+     Real name/hp/p_atk/m_atk/p_def/m_def per game design data. Mechanics are documented as
+     comments only — not implemented as combat logic yet (no push/stun/warp/target-switch
+     behavior wired up). No spawnWave()/combat integration yet either: picking still only
+     resolves data, it doesn't spawn a boss unit onto the board. */
   const BOSS_POOL = [
-    // Stage 5 — Stone Warden: slow armored guardian; punishes melee units stacked in one
-    // spot in front of it. Every 4th attack = Shield Slam (frontal AoE + 1-tile knockback,
-    // or Stun if there's no tile to push into). Counter: spread melee sideways, don't line
-    // up Tank and Carry.
-    { id:'boss_ph_5a', name:'Stone Warden', hp:900, atk:32 },
-    // Stage 5 — Bone Dragon Whelp: mid-range, punishes backline standing in a straight line.
-    // Every 7s = Bone Breath (line attack at furthest hero + temporary defense shred). If
-    // surrounded by melee on all sides, uses Wing Sweep (knockback around itself). Counter:
-    // keep backline off a single line, don't fully surround the boss.
-    { id:'boss_ph_5b', name:'Bone Dragon Whelp', hp:760, atk:28 },
-    // Stage 10 — Arena Golem: huge HP/armor, targets highest-ATK hero directly. Seismic Line
-    // = line attack at the highest-ATK hero; every 25% HP lost, its heavy armor faces
-    // whichever side dealt the most damage (that side takes less, the opposite side takes
-    // more). Counter: Tank taunts from the front, keep Carry on the opposite side.
-    { id:'boss_ph_10a', name:'Arena Golem', hp:1650, atk:40 },
-    // Stage 10 — Shadow Huntress: fast, dives the backline to pick off an isolated Carry. At
-    // battle start, marks the ranged/highest-ATK hero, then warps to hit it from the side or
-    // behind; an isolated target (no ally adjacent) takes bonus damage. Counter: keep a
-    // guard adjacent to Carry, avoid parking a damage dealer alone in a corner.
-    { id:'boss_ph_10b', name:'Shadow Huntress', hp:1150, atk:36 },
-    // Stage 15 — Immortal Champion: the arena's ancient champion; tests positioning, Carry
-    // protection, and front/backline balance all at once. King's Judgment = AoE centered on
-    // the highest-HP hero (so don't stand Tank next to Carry). Chain of Fate links two
-    // heroes to share damage. Battle Instinct = switches to the highest-DPS target after 3
-    // hits on its current target. Counter: space Tank away from backline, guard Carry from
-    // all sides, don't cluster key heroes together.
-    { id:'boss_champion_big', name:'Immortal Champion', hp:3200, atk:48 }
+    // Stage 5 — Stone Warden: ผู้พิทักษ์ศิลาโบราณ เกราะหนาแต่แพ้เวท
+    // mechanics: ทุกการโจมตีครั้งที่ 4 ใช้ Shield Slam โจมตีพื้นที่ด้านหน้าและผลักเป้าหมาย 1 ช่อง
+    { id:'boss_ph_5a', name:'Stone Warden', hp:900, p_atk:32, m_atk:0, p_def:25, m_def:5 },
+    // Stage 5 — Bone Dragon Whelp: ลูกมังกรกระดูก โจมตีเป็นเวทมนตร์ระยะกลาง
+    // mechanics: ทุก 7 วินาทีพ่นไฟกระดูก (Magic Damage) เป็นเส้นตรงไปยังฮีโร่ที่อยู่ไกลที่สุด
+    { id:'boss_ph_5b', name:'Bone Dragon Whelp', hp:760, p_atk:10, m_atk:28, p_def:10, m_def:20 },
+    // Stage 10 — Arena Golem: โกเลมหินขนาดใหญ่ พลังชีวิตและเกราะกายภาพสูงมาก
+    // mechanics: โจมตีฮีโร่ที่มีพลังโจมตีสูงสุด และหันเกราะหนาไปยังทิศที่รับดาเมจเยอะสุด
+    { id:'boss_ph_10a', name:'Arena Golem', hp:1650, p_atk:40, m_atk:0, p_def:35, m_def:10 },
+    // Stage 10 — Shadow Huntress: นักล่าเงาความเร็วสูง ล้วงแนวหลัง
+    // mechanics: วาร์ปไปโจมตีด้านข้าง/หลังเป้าหมายที่อยู่โดดเดี่ยว ทำโบนัส Physical Damage
+    { id:'boss_ph_10b', name:'Shadow Huntress', hp:1150, p_atk:36, m_atk:15, p_def:15, m_def:15 },
+    // Stage 15 — Immortal Champion: แชมเปียนโบราณ แข็งแกร่งทั้งกายภาพและเวทมนตร์
+    // mechanics: ใช้ King's Judgment สร้างดาเมจรอบเป้าหมายที่มี HP สูงสุด
+    { id:'boss_champion_big', name:'Immortal Champion', hp:3200, p_atk:40, m_atk:30, p_def:30, m_def:30 }
   ];
   const BOSS_POOL_BY_ID = {};
   BOSS_POOL.forEach(b => { BOSS_POOL_BY_ID[b.id] = b; });
@@ -1651,9 +1639,18 @@
 
       function makeUnit(def, team, r, c2, sprite, shadow, hero){
         const weaponBonus = (hero && hero.weapon) ? hero.weapon.pAtk : 0;
+        // Physical/Magic split: BOSS_POOL entries define p_atk/m_atk/p_def/m_def directly.
+        // Existing hero classes (STATS) and monsters (MONSTERS) only ever had a single
+        // `atk` and no defense stat at all — they're treated as pure-physical with 0
+        // defense on both sides, which leaves their current damage output unchanged
+        // (Math.max(0, atk-0) === atk, see computeDamage()).
+        const pAtk = (def.p_atk!=null ? def.p_atk : def.atk) + weaponBonus;
+        const mAtk = def.m_atk!=null ? def.m_atk : 0;
+        const pDef = def.p_def!=null ? def.p_def : 0;
+        const mDef = def.m_def!=null ? def.m_def : 0;
         const u = {
           team, r, c:c2,
-          hp:def.hp, maxHp:def.hp, atk:def.atk+weaponBonus, range:def.range,
+          hp:def.hp, maxHp:def.hp, atk:pAtk+mAtk, pAtk, mAtk, pDef, mDef, range:def.range,
           interval:Math.max(1/def.aspd, ATK_MIN_INTERVAL), threat:def.threat, ms:def.ms,
           cd:Math.random()*.3, retarget:0, wait:0, target:null, path:null, move:null, dead:false,
           sprite, shadow, hero:hero||null, bar:makeHpBar()
@@ -1719,6 +1716,14 @@
         u.sprite.visible=false; u.shadow.visible=false; u.bar.sp.visible=false;
       }
 
+      // Physical damage = attacker.pAtk mitigated by target.pDef; Magic damage = attacker.mAtk
+      // mitigated by target.mDef; each is floored at 0 before summing (no healing from over-defense)
+      function computeDamage(attacker, target){
+        const pDmg = Math.max(0, attacker.pAtk - target.pDef);
+        const mDmg = Math.max(0, attacker.mAtk - target.mDef);
+        return pDmg + mDmg;
+      }
+
       function applyDamage(target, dmg){
         if(target.dead) return;
         target.hp -= dmg;
@@ -1744,7 +1749,7 @@
         sp.scale.set(.3,.3,1);
         sp.position.copy(u.sprite.position); sp.position.y = 1.0;
         scene.add(sp);
-        projectiles.push({sp, target, dmg:u.atk, speed:9});
+        projectiles.push({sp, target, dmg:computeDamage(u, target), speed:9});
       }
 
       function updateUnit(u, dt, foes){
@@ -1768,7 +1773,7 @@
           u.path=null;
           if(u.cd<=0){
             u.cd = u.interval;
-            if(u.range<=1) applyDamage(u.target, u.atk);
+            if(u.range<=1) applyDamage(u.target, computeDamage(u, u.target));
             else spawnProjectile(u, u.target);
           }
           return;
@@ -1908,7 +1913,7 @@
         if(state.currentBoss){
           const b = state.currentBoss;
           console.info('[Boss placeholder] wave '+state.wave+' picked:', b.id, b);
-          toast('[Boss Placeholder] Wave '+state.wave+' สุ่มได้: '+b.name+' (HP '+b.hp+' / ATK '+b.atk+')', 2600);
+          toast('[Boss Placeholder] Wave '+state.wave+' สุ่มได้: '+b.name+' (HP '+b.hp+' / P.ATK '+b.p_atk+' / M.ATK '+b.m_atk+')', 2600);
         }
         spawnWave();
         combatRunning = true; state.phase='combat'; combatView=allies;
