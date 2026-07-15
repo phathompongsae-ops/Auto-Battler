@@ -613,7 +613,8 @@
     speedMul:1,
     weaponOffers:[], // 3-4 post-win weapon shop offers (cleared unbought at next battle start)
     weaponShopOpen:false, // ShowWeaponShopPopup() modal visibility
-    inventory:[]     // purchased weapons not yet equipped on a hero (drag from tray to equip)
+    inventory:[],    // purchased weapons not yet equipped on a hero (drag from tray to equip)
+    currentBossId:null // picked by pickBossId() at battle start on boss waves (5/10/15) — placeholder, unused in combat yet
   };
   const board = []; // board[r][c] = {hero, sprite, shadow} | null
   for(let r=0;r<BOARD_N;r++){ board.push(new Array(BOARD_N).fill(null)); }
@@ -629,6 +630,21 @@
     if(wave>=11) return 5;
     if(wave>=6) return 3;
     return 1;
+  }
+
+  /* ============================== boss spawn scaffold (placeholder — stats/sprite come later) ==============================
+     Structure only, per game design request: picks the boss ID that a future spawnWave()
+     revision will actually use to spawn a real boss unit. No combat/visual behavior is
+     wired up yet — real stats + a real BOSSES[id] entry land once the design is ready. */
+  const BOSS_STAGE_POOL = {
+    5:  ['boss_ph_5a', 'boss_ph_5b'],
+    10: ['boss_ph_10a', 'boss_ph_10b'],
+    15: ['boss_champion_big'] // locked — only one choice
+  };
+  function pickBossId(wave){
+    const pool = BOSS_STAGE_POOL[wave];
+    if(!pool || !pool.length) return null;
+    return pool[Math.floor(Math.random()*pool.length)];
   }
 
   /* ============================== rendering: HUD / bench / shop / synergy / team ============================== */
@@ -1849,6 +1865,12 @@
             u.home = {r, c:c2};
             allies.push(u);
           }
+        }
+        // placeholder boss-ID pick for stage 5/10/15 — not yet wired into actual spawning/stats
+        state.currentBossId = pickBossId(state.wave);
+        if(state.currentBossId){
+          console.info('[Boss placeholder] wave '+state.wave+' picked:', state.currentBossId);
+          toast('[Boss Placeholder] Wave '+state.wave+' สุ่มได้: '+state.currentBossId, 2600);
         }
         spawnWave();
         combatRunning = true; state.phase='combat'; combatView=allies;
