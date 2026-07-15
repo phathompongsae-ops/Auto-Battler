@@ -89,7 +89,7 @@
   .round{pointer-events:auto;border:2px solid #98723a;border-radius:50%;width:var(--round);height:var(--round);background:radial-gradient(circle,#5c4119,#20150b 75%);color:#ffe6a0;font-weight:900;font-size:9px;line-height:1.5;display:flex;flex-direction:column;align-items:center;justify-content:center}
   .round small{font-size:9px;color:#ffd873}
   /* compact centered card strip like the reference — not edge-to-edge */
-  .shop{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:7px;width:min(100%,45vw,620px);margin:0 auto}
+  .shop{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;width:min(100%,30vw,380px);margin:0 auto}
   .card{pointer-events:auto;border:1px solid #80643a;border-radius:9px;background:#14161a;text-align:center;padding:0;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 3px 8px #0009,inset 0 0 0 1px #0006}
   .card>b{display:block;font-size:9px;font-weight:800;color:#f3ead2;padding:3px 2px;background:#0000004f;border-bottom:1px solid #ffffff12;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:.03em}
   .card .pic{position:relative;height:var(--pic);overflow:hidden}
@@ -106,6 +106,18 @@
   .start:disabled{opacity:.55}
   .pill.wave{border-color:#c9a04c;background:linear-gradient(#33270f,#1d160a);font-size:12px}
   .hud .start{margin:0}
+
+  /* ---------- Player HP (global pool — an incomplete wave clear costs HP instead of an instant loss) ---------- */
+  .pill.hp{border-color:#c94c4c;background:linear-gradient(#2a1414,#1a0d0d)}
+  .hpbar{width:60px;height:7px;border-radius:4px;background:#3a1616;overflow:hidden;border:1px solid #7a3030;display:inline-block}
+  .hpbar i{display:block;height:100%;background:linear-gradient(#ff9a86,#c9382f);transition:width .25s}
+
+  .game-over{position:fixed;inset:0;z-index:95;display:none;align-items:center;justify-content:center;background:#000000d9}
+  .game-over.show{display:flex}
+  .go-box{pointer-events:auto;display:flex;flex-direction:column;align-items:center;gap:10px;background:#17130fed;border:1px solid #c94c4c;border-radius:14px;padding:22px 28px;text-align:center}
+  .go-box b{font-size:20px;color:#ff8a7a;letter-spacing:.05em}
+  .go-box span{font-size:12px;color:#e8c877}
+  .go-box button{pointer-events:auto;border:1px solid #a77d37;border-radius:8px;background:linear-gradient(#dba43b,#a2701e);color:#2a1a05;padding:8px 16px;font-weight:900;font-size:11px}
 
   .toast{position:fixed;left:50%;top:14%;transform:translateX(-50%);max-width:80%;padding:10px 14px;border:1px solid #c28f46;border-radius:10px;background:#17130fed;text-align:center;font-size:12px;z-index:60;display:none;pointer-events:none}
   .toast.show{display:block}
@@ -154,6 +166,7 @@
     <div class="pill">👥 <b id="used">0</b>/<b id="cap">1</b></div>
     <div class="grow"></div>
     <div class="pill wave">WAVE <b id="wave">1</b></div>
+    <div class="pill hp">❤ <span class="hpbar"><i id="hpbar" style="width:100%"></i></span><b id="hpval">100</b></div>
     <div class="grow"></div>
     <div class="right-btns">
       <button class="btn" id="speed">×1</button>
@@ -192,6 +205,13 @@
 <div class="toast" id="toast"></div>
 <div class="weapon-shop" id="weaponShop"></div>
 <div class="weapon-inventory" id="weaponInventory"></div>
+<div class="game-over" id="gameOver">
+  <div class="go-box">
+    <b>GAME OVER</b>
+    <span>Player HP หมดแล้ว</span>
+    <button id="goRestart">เริ่มใหม่</button>
+  </div>
+</div>
 <div id="rotate"><div class="ric">⟳</div>กรุณาหมุนเครื่องเป็นแนวนอน<br>เกมนี้เล่นได้เฉพาะแนวนอน</div>
 
 <script>
@@ -576,6 +596,8 @@
   const XP_NEED = {1:4,2:8,3:12,4:16};
   const BOARD_N = 8;
   const PLAYER_ROWS = [5,6,7]; // 3 rows nearest the camera/UI (bottom rows)
+  const PLAYER_MAX_HP = 100;
+  const SHOP_SLOTS = 3;
 
   const state = {
     gold:3, level:1, xp:0,
@@ -584,6 +606,8 @@
     boardCount:0,
     selectedBench:-1,
     wave:1,
+    playerHP:PLAYER_MAX_HP, // global HP pool — a wave that isn't fully cleared costs HP instead of an instant loss
+    gameOver:false,
     phase:'prep', // 'prep' | 'combat'
     speedMul:1,
     weaponOffers:[], // 3-4 post-win weapon shop offers (cleared unbought at next battle start)
@@ -594,7 +618,17 @@
   for(let r=0;r<BOARD_N;r++){ board.push(new Array(BOARD_N).fill(null)); }
 
   function randomHero(){ return HEROES[Math.floor(Math.random()*HEROES.length)]; }
-  function refillOffers(){ state.offers = [0,1,2,3,4].map(randomHero); }
+  // Wave 1's shop always guarantees a Swordman in the first slot (per game design request)
+  function refillOffers(){
+    state.offers = Array.from({length:SHOP_SLOTS}, randomHero);
+    if(state.wave===1) state.offers[0] = HEROES.find(h=>h.name==='Swordman');
+  }
+  // Wave 1-5: x1, 6-10: x3, 11+: x5 — HP lost on an incomplete clear scales with how far in you are
+  function waveDamageMultiplier(wave){
+    if(wave>=11) return 5;
+    if(wave>=6) return 3;
+    return 1;
+  }
 
   /* ============================== rendering: HUD / bench / shop / synergy / team ============================== */
   function renderHUD(){
@@ -603,6 +637,8 @@
     q('lv').textContent = state.level;
     q('cap').textContent = state.level;
     q('used').textContent = state.boardCount;
+    q('hpval').textContent = Math.max(0, state.playerHP);
+    q('hpbar').style.width = Math.max(0, state.playerHP/PLAYER_MAX_HP*100)+'%';
     if(state.level<5){
       q('xp').textContent = state.xp+'/'+XP_NEED[state.level];
       q('xpbar').style.width = Math.min(100, state.xp/XP_NEED[state.level]*100)+'%';
@@ -953,6 +989,11 @@
     if(!confirm('รีเซ็ตเกม?')) return;
     location.reload();
   };
+  q('goRestart').onclick = ()=>location.reload();
+  function showGameOver(){
+    state.gameOver = true;
+    q('gameOver').classList.add('show');
+  }
   q('speed').onclick = ()=>{
     state.speedMul = state.speedMul===1 ? 2 : (state.speedMul===2 ? 4 : 1);
     q('speed').textContent = '×'+state.speedMul;
@@ -1725,6 +1766,8 @@
       }
 
       function endBattle(win){
+        // captured before the cleanup loop below clears the enemies array
+        const monstersLeft = win ? 0 : enemies.filter(e=>!e.dead).length;
         combatRunning = false; state.phase='prep'; combatView=[];
         projectiles.forEach(p=>scene.remove(p.sp)); projectiles.length=0;
         floaties.forEach(f=>scene.remove(f.sp)); floaties.length=0;
@@ -1740,18 +1783,26 @@
         allies.length=0;
         for(let r=0;r<BOARD_N;r++) for(let c2=0;c2<BOARD_N;c2++) occ[r][c2]=null;
         q('start').disabled=false; q('start').textContent='เริ่มต่อสู้';
+        const clearedWave = state.wave; // wave just played, before incrementing
         if(win){
-          const clearedWave = state.wave; // wave just cleared, before incrementing
           state.gold+=5; state.wave++;
+          refillOffers(); // free hero-shop reroll after every win (still guarantees Swordman while wave 1)
           // waves beyond stage 5 fall back to the stage-5 drop table (see rollWeaponOffers)
           const offers = rollWeaponOffers(clearedWave);
           toast('ชนะ Wave '+clearedWave+'! ได้ 5 ทอง'+(offers.length?' — พบร้านอาวุธ!':''), 2200);
           if(offers.length) ShowWeaponShopPopup(offers);
         } else {
-          state.gold+=2; closeWeaponShopPopup();
-          toast('แพ้... ได้ปลอบใจ 2 ทอง ลองจัดทัพใหม่', 2200);
+          // no more instant loss: an incomplete clear costs HP (scaled by wave) instead,
+          // then play continues into the next wave (TFT-style), until playerHP runs out
+          const damage = monstersLeft * waveDamageMultiplier(clearedWave);
+          state.playerHP = Math.max(0, state.playerHP - damage);
+          state.gold+=2; closeWeaponShopPopup(); state.wave++;
+          toast(state.playerHP<=0
+            ? 'Player HP หมดแล้ว! -'+damage+' HP'
+            : 'เคลียร์ไม่หมด (เหลือมอนสเตอร์ '+monstersLeft+' ตัว) โดนความเสียหาย -'+damage+' HP', 2400);
         }
         renderAll();
+        if(state.playerHP<=0) showGameOver();
       }
 
       function updateCombat(dt){
