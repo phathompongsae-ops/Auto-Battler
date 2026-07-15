@@ -34,11 +34,19 @@ https://claude.ai/code/artifact/1c025f52-9740-4bae-b45d-52b0b509476c
 - สเปกไฟล์และบทเรียนการครอป ดู `ART_BRIEF.md` (อัปเดตแล้ว)
 - ตัวแรกที่เข้าเกมแล้ว: Swordman (`assets/v5/body_swordman.png`, `face_swordman.png`)
 
+### สถานะ asset (2026-07-15)
+- ฮีโร่ครบ 4/4: Swordman, Archer, Acolyte, Priestess (`assets/v5/body_*.png` + `face_*.png`)
+- มอนสเตอร์ 2/4: Slime ✓ Wolf ✓ — **ยังขาด Imp, Orc** (`assets/v5/mon_*.png`)
+- การ์ดร้านค้า redesign ตามภาพอ้างอิงแล้ว: แถบชื่อบน, พื้นเข้มอมสีคลาส, ภาพครึ่งตัวชิบิ
+  (`bustPortrait` ครอปหัว+อกจาก body 56%), แท็กจุดสี, แถบราคาเหรียญ CSS
+- กล้องเอียง ~45° (0,11,11) ให้กระดาน foreshorten เต็มจอแนวนอน + แท่น Bench
+  ผูกขนาดกับช่องกระดานบนจอจริง (คำนวณใน resize())
+
 ### งานถัดไปของ V5
-1. ภาพจริง Archer / Acolyte / Priestess (สั่ง GPT ชุดละ 3–4 ตัว แนบ Swordman เป็นตัวอ้างอิงสไตล์)
-2. ภาพมอนสเตอร์จริง Slime / Wolf / Imp / Orc (คีย์ใน `MONSTERS` ของ v5)
-3. ระบบ merge 3 ตัวเป็นดาว, สกิล/มานา (รอตัดสินใจตาม `COMBAT_DECISIONS.md` ข้อ A)
-4. seeded RNG + combat log สำหรับ replay/บาลานซ์
+1. ภาพมอนสเตอร์ 2 ตัวสุดท้าย: Imp, Orc (พรอมป์อยู่ในแชท/ART_BRIEF — Orc ให้ตัวใหญ่กว่าปกติ)
+2. ระบบ merge 3 ตัวเป็นดาว, สกิล/มานา (รอตัดสินใจตาม `COMBAT_DECISIONS.md` ข้อ A)
+3. seeded RNG + combat log สำหรับ replay/บาลานซ์
+4. อาชีพ/ฮีโร่เพิ่มเติมในอนาคต (ยังไม่มี concept): Tank/Guardian, Assassin, Support/Healer แยกจาก Mage
 
 ---
 
