@@ -112,6 +112,29 @@
   .drag-ghost{position:fixed;width:52px;height:58px;pointer-events:none;z-index:80;transform:translate(-50%,-50%);border-radius:50%;box-shadow:0 0 0 2px #ffe178,0 4px 10px #000a;overflow:hidden}
   .drag-ghost canvas{width:100%;height:100%}
 
+  /* ---------- Weapon shop (post-win drop) + held-weapon drag-to-equip ---------- */
+  .weapon-shop{position:fixed;left:50%;top:12%;transform:translateX(-50%);z-index:70;display:none;flex-direction:column;align-items:center;gap:6px;background:#17130fed;border:1px solid #c28f46;border-radius:12px;padding:10px 12px;pointer-events:auto}
+  .weapon-shop.show{display:flex}
+  .weapon-shop .wtitle{font-size:11px;font-weight:800;color:#ffe6a0;text-align:center}
+  .weapon-shop .wrow{display:flex;gap:8px}
+  .wcard{border:1px solid #8a6c39;border-radius:8px;background:#241d12;padding:6px 8px;text-align:center;min-width:66px}
+  .wcard b{display:block;font-size:9px;color:#f3ead2;white-space:nowrap}
+  .wcard .wstat{font-size:9px;color:#8ad4ff;margin:3px 0}
+  .wcard button{display:flex;align-items:center;justify-content:center;gap:4px;width:100%;border:1px solid #8a6c39;border-radius:6px;background:linear-gradient(#3d3016,#241c0e);color:#ffd873;font-size:9px;font-weight:900;padding:3px 0}
+  .wcard button .coin{width:9px;height:9px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ffeaa6,#e3b34d 55%,#8a5c14);border:1px solid #6e4c12;display:inline-block}
+  .wcard button:disabled{opacity:.4}
+  .weapon-shop .wskip{pointer-events:auto;border:1px solid #806536;border-radius:7px;background:#241d12;color:#d8c894;font-size:9px;padding:4px 10px}
+
+  .held-weapon{position:fixed;left:50%;top:12%;transform:translateX(-50%);z-index:71;display:none;flex-direction:column;align-items:center;gap:2px;background:#241d12ee;border:2px solid #ffe178;border-radius:10px;padding:6px 10px;pointer-events:auto;cursor:grab;touch-action:none}
+  .held-weapon.show{display:flex}
+  .held-weapon b{font-size:9px;color:#ffe6a0}
+  .held-weapon span{font-size:8px;color:#8ad4ff}
+  .held-weapon i{font-style:normal;font-size:7px;color:#d8c894}
+
+  .weapon-ghost{position:fixed;z-index:80;transform:translate(-50%,-50%);pointer-events:none;padding:5px 8px;border-radius:8px;background:#241d12ee;border:2px solid #ffe178;color:#ffe6a0;font-size:9px;font-weight:800;white-space:nowrap}
+
+  .syn-row.active{background:#2c2410;box-shadow:inset 0 0 0 1px #c9a862;border-radius:6px}
+
   @media(max-height:420px){
     .board-hint{display:none}
     .card .tags{display:none}
@@ -162,6 +185,8 @@
 </div>
 
 <div class="toast" id="toast"></div>
+<div class="weapon-shop" id="weaponShop"></div>
+<div class="held-weapon" id="heldWeapon"></div>
 <div id="rotate"><div class="ric">⟳</div>กรุณาหมุนเครื่องเป็นแนวนอน<br>เกมนี้เล่นได้เฉพาะแนวนอน</div>
 
 <script>
@@ -195,6 +220,34 @@
   }
 
   const TAG_COLORS = {Warrior:'#e0665a', Ranger:'#6fce8f', Mage:'#8ab6ff', Forest:'#8fd16a', Merchant:'#e0b04c'};
+
+  /* ============================== game_config.json ==============================
+     Fetched at boot; the object below is the fallback (mirrors game_config.json
+     exactly) so the game still runs if the file 404s or fetch is blocked (e.g.
+     opened via file://) — same defensive pattern as the asset loaders below. */
+  let CONFIG = {
+    HERO_CONFIG: { MAX_SYNERGY: 3, SHOP_TIER_1_ONLY: true },
+    WEAPON_POOL: {
+      weapon_lvl1: { id:'weapon_lvl1', name:'Basic Weapon',    level:1, pAtk:8  },
+      weapon_lvl2: { id:'weapon_lvl2', name:'Enhanced Weapon', level:2, pAtk:16 },
+      weapon_lvl3: { id:'weapon_lvl3', name:'Elite Weapon',    level:3, pAtk:28 }
+    },
+    FUSION_CONFIG: { inputClassTier:1, outputClassTier:2, requiredCopies:2, allowClass2Fusion:false },
+    FUSION_RULES: [ { input:['app_ninja','app_ninja'], output:'ninja' } ],
+    DROP_TABLE_BY_STAGE: {
+      "1": { dropType:'weapon', dropCount:1, items:[{id:'weapon_lvl1',weight:100}] },
+      "2": { dropType:'weapon', dropCount:1, items:[{id:'weapon_lvl1',weight:75},{id:'weapon_lvl2',weight:25}] },
+      "3": { dropType:'weapon', dropCount:1, items:[{id:'weapon_lvl1',weight:55},{id:'weapon_lvl2',weight:45}] },
+      "4": { dropType:'weapon', dropCount:1, items:[{id:'weapon_lvl1',weight:40},{id:'weapon_lvl2',weight:45},{id:'weapon_lvl3',weight:15}] },
+      "5": { dropType:'weapon', dropCount:1, items:[{id:'weapon_lvl1',weight:25},{id:'weapon_lvl2',weight:45},{id:'weapon_lvl3',weight:30}] }
+    }
+  };
+  function loadConfig(){
+    return fetch('game_config.json')
+      .then(r=>{ if(!r.ok) throw new Error(r.status); return r.json(); })
+      .then(cfg=>{ CONFIG = cfg; })
+      .catch(()=>{}); // keep the built-in fallback above
+  }
 
   function roundRect(ctx,x,y,w,h,r){
     ctx.beginPath();
@@ -497,7 +550,9 @@
     selectedBench:-1,
     wave:1,
     phase:'prep', // 'prep' | 'combat'
-    speedMul:1
+    speedMul:1,
+    weaponOffers:[], // up to 3 post-win weapon shop offers (cleared unbought at next battle start)
+    heldWeapon:null  // weapon def currently picked up, waiting to be dragged onto a hero
   };
   const board = []; // board[r][c] = {hero, sprite, shadow} | null
   for(let r=0;r<BOARD_N;r++){ board.push(new Array(BOARD_N).fill(null)); }
@@ -530,7 +585,7 @@
       if(hero){
         d.appendChild(cloneCanvas(bodyPortrait(hero))); // full body standing on the pedestal
         const label = document.createElement('b');
-        label.textContent = hero.name;
+        label.textContent = hero.name + (hero.weapon ? ' ⚔+'+hero.weapon.pAtk : '');
         d.appendChild(label);
         d.dataset.benchIndex = i;
       }
@@ -582,8 +637,15 @@
       if(cell) cell.hero.tags.forEach(t=>{ counts[t]=(counts[t]||0)+1; });
     }
     const order = ['Warrior','Ranger','Mage','Forest','Merchant'];
+    // game_config.json HERO_CONFIG.MAX_SYNERGY: at most this many combos are
+    // highlighted as "active" at once (display cap only — counts/thresholds
+    // don't grant any combat bonus yet, see COMBAT_DECISIONS.md item A)
+    const maxSynergy = (CONFIG.HERO_CONFIG && CONFIG.HERO_CONFIG.MAX_SYNERGY) || 3;
+    const active = order.filter(t=>(counts[t]||0)>=2)
+      .sort((a,b)=>(counts[b]||0)-(counts[a]||0))
+      .slice(0, maxSynergy);
     order.forEach(tag=>{
-      const row = document.createElement('div'); row.className='syn-row';
+      const row = document.createElement('div'); row.className='syn-row'+(active.indexOf(tag)!==-1?' active':'');
       const icon = document.createElement('div'); icon.className='syn-icon';
       icon.style.background = TAG_COLORS[tag];
       row.appendChild(icon);
@@ -619,7 +681,7 @@
       if(dead) row.style.opacity='.35';
       row.appendChild(cloneCanvas(facePortrait(hero,44)));
       const hp = document.createElement('div'); hp.className='team-hp';
-      const b = document.createElement('b'); b.textContent = hero.name;
+      const b = document.createElement('b'); b.textContent = hero.name + (hero.weapon ? ' ⚔+'+hero.weapon.pAtk : '');
       const bar = document.createElement('div'); bar.className='bar';
       const i = document.createElement('i'); i.style.width=(ratio*100)+'%';
       bar.appendChild(i); hp.appendChild(b); hp.appendChild(bar);
@@ -630,16 +692,117 @@
 
   function renderAll(){
     renderHUD(); renderBench(); renderShop(); renderSynergy(); renderTeam();
+    renderWeaponShop(); renderHeldWeapon();
   }
 
   /* ============================== shop / xp actions ============================== */
   function buyHero(offerIdx){
-    const hero = state.offers[offerIdx];
+    const template = state.offers[offerIdx];
     if(state.gold<2){ toast('ทองไม่พอ'); return; }
     const freeSlot = state.bench.findIndex(x=>x===null);
     if(freeSlot===-1){ toast('Bench เต็มแล้ว'); return; }
     state.gold -= 2;
-    state.bench[freeSlot] = hero;
+    // per-purchase copy: HEROES entries are shared templates (randomHero() returns the
+    // same object every time a class is offered), so every hero needs its own copy here
+    // or per-instance state like .weapon would bleed across every hero of that class
+    state.bench[freeSlot] = Object.assign({}, template);
+    checkFusion(ownedHeroes()); // scaffolding only — see checkFusion() comment
+    renderAll();
+  }
+
+  /* ============================== fusion (star-up) scaffold — inert ==============================
+     Validates FUSION_CONFIG.requiredCopies against owned heroes and would merge a matching
+     pair per FUSION_RULES, but no hero in HEROES has an `id` field (they're only matched by
+     `name`), and none of them is "app_ninja" — so `copies` is always empty and this never
+     actually fires. To activate: give a roster entry `id:'app_ninja'` and add a real "ninja"
+     class (STATS entry + roster/asset) for the fusion output to land on. */
+  function checkFusion(ownerList){
+    const fc = CONFIG.FUSION_CONFIG;
+    if(!fc || fc.requiredCopies!==2) return null;
+    for(const rule of (CONFIG.FUSION_RULES||[])){
+      const [a,b] = rule.input;
+      if(a!==b) continue; // this scaffold only supports same-hero pairs
+      const copies = ownerList.filter(h=>h && h.id===a);
+      if(copies.length>=fc.requiredCopies) return {rule, copies:copies.slice(0,fc.requiredCopies)};
+    }
+    return null;
+  }
+
+  /* ============================== weapon shop (post-win drop) ============================== */
+  function weaponPrice(w){
+    // NOT specified in game_config.json (WEAPON_POOL has no cost field) — placeholder
+    // scaled off hero cost (2g): level*3g. Flagging for review, see chat summary.
+    return w.level*3;
+  }
+  function rollWeaponOffers(stage){
+    const table = CONFIG.DROP_TABLE_BY_STAGE[String(stage)];
+    if(!table || !table.items || !table.items.length) return [];
+    const totalWeight = table.items.reduce((s,it)=>s+it.weight,0);
+    const offers = [];
+    for(let i=0;i<3;i++){
+      let roll = Math.random()*totalWeight;
+      let pickedId = table.items[table.items.length-1].id;
+      for(const it of table.items){
+        if(roll<it.weight){ pickedId=it.id; break; }
+        roll -= it.weight;
+      }
+      offers.push(CONFIG.WEAPON_POOL[pickedId]);
+    }
+    return offers;
+  }
+  function renderWeaponShop(){
+    const el = q('weaponShop');
+    if(!state.weaponOffers.length){ el.classList.remove('show'); el.innerHTML=''; return; }
+    el.classList.add('show');
+    el.innerHTML = '';
+    const title = document.createElement('div'); title.className='wtitle';
+    title.textContent = 'ร้านอาวุธ — เลือกซื้อ 1 ชิ้น (ไม่ซื้อตอนนี้จะหายไป)';
+    el.appendChild(title);
+    const row = document.createElement('div'); row.className='wrow';
+    state.weaponOffers.forEach((w,idx)=>{
+      const card = document.createElement('div'); card.className='wcard';
+      const name = document.createElement('b'); name.textContent = w.name; card.appendChild(name);
+      const stat = document.createElement('div'); stat.className='wstat'; stat.textContent = '+'+w.pAtk+' ATK'; card.appendChild(stat);
+      const price = weaponPrice(w);
+      const btn = document.createElement('button');
+      const coin = document.createElement('span'); coin.className='coin'; btn.appendChild(coin);
+      btn.appendChild(document.createTextNode(String(price)));
+      btn.disabled = state.gold<price || !!state.heldWeapon;
+      btn.onclick = ()=>buyWeapon(idx);
+      card.appendChild(btn);
+      row.appendChild(card);
+    });
+    el.appendChild(row);
+    const skip = document.createElement('button'); skip.className='wskip';
+    skip.textContent = 'ข้าม';
+    skip.onclick = ()=>{ state.weaponOffers=[]; renderWeaponShop(); };
+    el.appendChild(skip);
+  }
+  function buyWeapon(idx){
+    const w = state.weaponOffers[idx];
+    if(!w) return;
+    const price = weaponPrice(w);
+    if(state.gold<price){ toast('ทองไม่พอ'); return; }
+    if(state.heldWeapon){ toast('ถืออาวุธอยู่แล้ว ลากไปสวมให้ฮีโร่ก่อน'); return; }
+    state.gold -= price;
+    state.heldWeapon = w;
+    state.weaponOffers = [];
+    renderHUD(); renderWeaponShop(); renderHeldWeapon();
+  }
+  function renderHeldWeapon(){
+    const el = q('heldWeapon');
+    if(!state.heldWeapon){ el.classList.remove('show'); el.innerHTML=''; return; }
+    el.classList.add('show');
+    el.innerHTML = '';
+    const b = document.createElement('b'); b.textContent = state.heldWeapon.name; el.appendChild(b);
+    const span = document.createElement('span'); span.textContent = '+'+state.heldWeapon.pAtk+' ATK'; el.appendChild(span);
+    const hint = document.createElement('i'); hint.textContent = 'ลากไปวางบนฮีโร่เพื่อสวมใส่'; el.appendChild(hint);
+  }
+  function equipWeapon(hero){
+    if(!hero || !state.heldWeapon) return;
+    hero.weapon = state.heldWeapon;
+    toast(hero.name+' สวม '+state.heldWeapon.name+' แล้ว (+'+state.heldWeapon.pAtk+' ATK)');
+    state.heldWeapon = null;
     renderAll();
   }
 
@@ -775,6 +938,65 @@
     placeHero(tile.r, tile.c, hero);
     state.bench[benchIndex] = null;
     renderAll();
+  }
+
+  /* ============================== weapon drag-to-equip ============================== */
+  let weaponDrag = null; // {startX,startY,moved,pointerId,ghostEl}
+
+  q('heldWeapon').addEventListener('pointerdown', e=>{
+    if(!state.heldWeapon) return;
+    e.preventDefault();
+    weaponDrag = {startX:e.clientX, startY:e.clientY, moved:false, pointerId:e.pointerId, ghostEl:null};
+  });
+
+  function startWeaponGhost(wd, x, y){
+    const ghost = document.createElement('div'); ghost.className='weapon-ghost';
+    ghost.textContent = state.heldWeapon.name;
+    document.body.appendChild(ghost);
+    ghost.style.left = x+'px'; ghost.style.top = y+'px';
+    wd.ghostEl = ghost;
+  }
+  function moveWeaponGhost(wd, x, y){
+    if(wd.ghostEl){ wd.ghostEl.style.left = x+'px'; wd.ghostEl.style.top = y+'px'; }
+  }
+  function endWeaponGhost(wd){
+    if(wd.ghostEl && wd.ghostEl.parentNode) wd.ghostEl.parentNode.removeChild(wd.ghostEl);
+  }
+
+  document.addEventListener('pointermove', e=>{
+    if(!weaponDrag || e.pointerId!==weaponDrag.pointerId) return;
+    const dx=e.clientX-weaponDrag.startX, dy=e.clientY-weaponDrag.startY;
+    if(!weaponDrag.moved && Math.hypot(dx,dy)>6){
+      weaponDrag.moved = true;
+      startWeaponGhost(weaponDrag, e.clientX, e.clientY);
+    }
+    if(weaponDrag.moved) moveWeaponGhost(weaponDrag, e.clientX, e.clientY);
+  });
+  document.addEventListener('pointerup', e=>{
+    if(!weaponDrag || e.pointerId!==weaponDrag.pointerId) return;
+    const wd = weaponDrag; weaponDrag = null;
+    if(wd.moved){
+      endWeaponGhost(wd);
+      tryEquipAtScreenPoint(e.clientX, e.clientY);
+    } else {
+      toast('ลากไอคอนอาวุธไปวางบนฮีโร่เพื่อสวมใส่');
+    }
+  });
+  document.addEventListener('pointercancel', ()=>{
+    if(weaponDrag){ endWeaponGhost(weaponDrag); weaponDrag=null; }
+  });
+
+  function tryEquipAtScreenPoint(clientX, clientY){
+    if(!state.heldWeapon) return;
+    const domTarget = document.elementFromPoint(clientX, clientY);
+    const benchIdx = benchIndexFromEl(domTarget);
+    if(benchIdx!==-1 && state.bench[benchIdx]){ equipWeapon(state.bench[benchIdx]); return; }
+    const rect = canvasEl.getBoundingClientRect();
+    if(clientX>=rect.left && clientX<=rect.right && clientY>=rect.top && clientY<=rect.bottom){
+      const tile = pickTile(clientX, clientY, rect);
+      if(tile && board[tile.r][tile.c]){ equipWeapon(board[tile.r][tile.c].hero); return; }
+    }
+    toast('ลากไปวางบนฮีโร่ (ม้านั่งหรือในสนาม) เพื่อสวมอาวุธ');
   }
 
   /* ============================== Three.js scene ============================== */
@@ -1205,9 +1427,10 @@
       }
 
       function makeUnit(def, team, r, c2, sprite, shadow, hero){
+        const weaponBonus = (hero && hero.weapon) ? hero.weapon.pAtk : 0;
         const u = {
           team, r, c:c2,
-          hp:def.hp, maxHp:def.hp, atk:def.atk, range:def.range,
+          hp:def.hp, maxHp:def.hp, atk:def.atk+weaponBonus, range:def.range,
           interval:Math.max(1/def.aspd, ATK_MIN_INTERVAL), threat:def.threat, ms:def.ms,
           cd:Math.random()*.3, retarget:0, wait:0, target:null, path:null, move:null, dead:false,
           sprite, shadow, hero:hero||null, bar:makeHpBar()
@@ -1387,8 +1610,17 @@
         allies.length=0;
         for(let r=0;r<BOARD_N;r++) for(let c2=0;c2<BOARD_N;c2++) occ[r][c2]=null;
         q('start').disabled=false; q('start').textContent='เริ่มต่อสู้';
-        if(win){ state.gold+=5; state.wave++; toast('ชนะ Wave '+(state.wave-1)+'! ได้ 5 ทอง', 2200); }
-        else { state.gold+=2; toast('แพ้... ได้ปลอบใจ 2 ทอง ลองจัดทัพใหม่', 2200); }
+        if(win){
+          const clearedWave = state.wave; // wave just cleared, before incrementing
+          state.gold+=5; state.wave++;
+          // DROP_TABLE_BY_STAGE only defines stages 1-5; waves beyond that get no
+          // weapon shop until stage 6+ data is provided (per user decision)
+          state.weaponOffers = rollWeaponOffers(clearedWave);
+          toast('ชนะ Wave '+clearedWave+'! ได้ 5 ทอง'+(state.weaponOffers.length?' — พบร้านอาวุธ!':''), 2200);
+        } else {
+          state.gold+=2; state.weaponOffers=[];
+          toast('แพ้... ได้ปลอบใจ 2 ทอง ลองจัดทัพใหม่', 2200);
+        }
         renderAll();
       }
 
@@ -1425,6 +1657,7 @@
 
       startBattleFn = function(){
         if(combatRunning) return;
+        state.weaponOffers = []; // unsold weapon shop offers vanish once the next battle starts
         for(let r=0;r<BOARD_N;r++) for(let c2=0;c2<BOARD_N;c2++) occ[r][c2]=null;
         allies.length=0; enemies.length=0;
         for(let r=0;r<BOARD_N;r++) for(let c2=0;c2<BOARD_N;c2++){
@@ -1453,6 +1686,7 @@
   renderAll();
   loadHeroAssets();
   loadGroundAsset();
+  loadConfig().then(renderAll); // re-render once game_config.json overrides the fallback
 })();
 </script>
 </body>
