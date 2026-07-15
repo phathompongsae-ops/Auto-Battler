@@ -625,6 +625,16 @@ function buildCombatStats(hero, itemDefs) {
       stats[statKey] *= (1 + def.percent_stats[statKey] / 100);
     }
   });
+  // status_effects (buffs/debuffs) layer on top of the equipment-adjusted stats, before the
+  // clamp — no producer wired yet (skills aren't implemented), so hero.statuses is always [].
+  (hero.statuses || []).forEach((status) => {
+    if (!status.stats) return;
+    for (const statKey in status.stats) { if (stats[statKey] != null) stats[statKey] += status.stats[statKey]; }
+  });
+  (hero.statuses || []).forEach((status) => {
+    if (!status.percent_stats) return;
+    for (const statKey in status.percent_stats) { if (stats[statKey] != null) stats[statKey] *= (1 + status.percent_stats[statKey] / 100); }
+  });
   stats.attack_speed = Math.min(ATTACK_SPEED_MAX, Math.max(ATTACK_SPEED_MIN, stats.attack_speed));
   ['hp', 'p_atk', 'm_atk', 'p_def', 'm_def'].forEach((k) => { stats[k] = Math.max(0, stats[k]); });
   hero.combatStats = stats;
@@ -980,6 +990,8 @@ function resetForWave(u) {
   u.group.visible = true;
   u.deathT = undefined;
   u.animState = 'idle'; u.animFrame = 0;
+  // Skill/Mana/Status reset between waves (equipment + Link/synergy state are untouched)
+  u.current_mana = 0; u.statuses = []; u.action_state = 'idle'; u.current_target = null; u.castTimer = 0;
   occupied.add(key(u.c, u.r));
 }
 
@@ -1083,8 +1095,27 @@ function stepToward(u, target) {
     }
   }
 }
+// ============================================================
+// SKILL / MANA / STATUS EFFECTS — backend only (no UI, no real active_skill effects yet;
+// this wires the cast-and-spend-mana mechanic + status-effect stat hooks so a later task can
+// plug in each hero's actual HERO_DEFS.active_skill without touching the state machine again).
+// ============================================================
+const MANA_PER_ATTACK = 10;
+const MANA_PER_DAMAGE_TAKEN = 5; // "damage taken" mana gain — excludes DoT, but no DoT source exists yet
+const MANA_PER_KILL = 10;
+const SKILL_CAST_DURATION = 0.6; // seconds — placeholder cast time until per-hero skill data wires in
+// Only units created via placeHeroAt carry the mana/skill fields (u.current_mana !== undefined) —
+// enemies/bosses never do, so they fall through untouched, same convention as combatStats.
+function grantMana(u, amount) {
+  if (u.current_mana === undefined) return;
+  u.current_mana = Math.max(0, Math.min(u.max_mana, u.current_mana + amount));
+}
+function hasHardCC(u) {
+  return !!(u.statuses && u.statuses.some((s) => s.kind === 'stun' || s.kind === 'freeze'));
+}
+
 function updateUnit(u, dt) {
-  if (!u.alive) return;
+  if (!u.alive) return; // 1) Dead Check
   if (u.moving) {
     u.moveT += dt*u.moveSpeed;
     if (u.moveT>=1) { u.moveT=1; u.moving=false; u.c=u.moveTo.c; u.r=u.moveTo.r; }
@@ -1094,10 +1125,42 @@ function updateUnit(u, dt) {
     updateAnim(u,dt); return;
   }
   u.body.position.y = u.halfH;
-  const target = selectTarget(u);
+
+  // 2) Hard CC Check (Stun/Freeze) — no CC source wired yet, so u.statuses is always [] today
+  if (hasHardCC(u)) {
+    if (u.action_state === 'casting') { u.action_state = 'idle'; u.castTimer = 0; } // interrupted — mana untouched, retry once CC clears
+    updateAnim(u, dt);
+    return;
+  }
+
+  if (!u.current_target || !u.current_target.alive) u.current_target = selectTarget(u);
+  const target = u.current_target;
   if (!target) { updateAnim(u,dt); return; }
   const atkRange = u.combatStats ? u.combatStats.attack_range : u.range;
   const d = gridDist(u,target);
+
+  // 3) Mana Check -> Skill Cast (spends the mana bar on cast completion; no actual skill effect
+  // yet — that plugs into HERO_DEFS.active_skill in a later task per the same priority slot)
+  if (u.current_mana !== undefined) {
+    if (u.action_state === 'casting') {
+      u.castTimer -= dt;
+      if (u.castTimer <= 0) {
+        u.current_mana = Math.max(0, u.current_mana - u.max_mana); // cast completes — spend the bar
+        u.action_state = 'idle';
+      }
+      updateAnim(u, dt);
+      return; // casting locks out basic attack + movement for its whole duration
+    }
+    if (u.current_mana >= u.max_mana) {
+      u.action_state = 'casting';
+      u.castTimer = SKILL_CAST_DURATION;
+      u.animState = 'attack'; u.animTimer = 0; // stub visual until real skill data wires in
+      updateAnim(u, dt);
+      return;
+    }
+  }
+
+  // 4) Basic Attack
   if (d<=atkRange) {
     u.atkCooldown -= dt;
     if (u.atkCooldown<=0) {
@@ -1108,6 +1171,8 @@ function updateUnit(u, dt) {
       let dmg = applyTrait(u, target, attackerRawAtk(u));
       dmg = applyCombatLinkModifiers(dmg, u, target);
       target.hp -= dmg;
+      grantMana(u, MANA_PER_ATTACK);
+      grantMana(target, MANA_PER_DAMAGE_TAKEN);
       const dir = gridToWorld(target.c,target.r).sub(u.group.position).normalize().multiplyScalar(0.12);
       u.body.position.x += dir.x;
       setTimeout(()=>{ if (u.alive) u.body.position.x=0; }, 90);
@@ -1115,10 +1180,13 @@ function updateUnit(u, dt) {
       setTimeout(()=> target.alive && target.body.material.color.set(0xffffff), 80);
       target.hpBar.scale.x = Math.max(0, target.hp/target.maxHp);
       target.hpBar.position.x = -0.36*(1-target.hpBar.scale.x);
-      if (target.hp<=0) { target.alive=false; occupied.delete(key(target.c,target.r)); target.deathT=0; }
+      if (target.hp<=0) {
+        target.alive=false; occupied.delete(key(target.c,target.r)); target.deathT=0;
+        grantMana(u, MANA_PER_KILL);
+      }
     }
     u.body.scale.x = (gridToWorld(target.c,target.r).x < u.group.position.x) ? -1 : 1;
-  } else stepToward(u, target);
+  } else stepToward(u, target); // 5) Movement
   updateAnim(u, dt);
 }
 
@@ -1316,6 +1384,9 @@ function placeHeroAt(benchIdx, c, r) {
   u.baseStats = { hp:s.hp, p_atk:s.p_atk, m_atk:s.m_atk, p_def:s.p_def, m_def:s.m_def,
     move_speed:s.move_speed, attack_speed:s.attack_speed, attack_range:s.attack_range };
   u.origC = c; u.origR = r;   // ไทล์ที่วางไว้ตอนแรก — ใช้สแนปกลับระหว่างด่าน (ดู resetForWave)
+  // Skill/Mana/Status runtime state (Priority 6 backend) — only placed heroes carry these fields
+  u.current_mana = 0; u.max_mana = 100; u.statuses = []; u.action_state = 'idle';
+  u.current_target = null; u.castTimer = 0;
   updateEquipBadge(u);
   placedUnits.push(u);
   selectedBenchIdx = -1;

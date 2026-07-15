@@ -118,6 +118,34 @@ Priority 1-7 ที่ `gemini_status.md`
   บล็อกถูกต้อง, ถอนฮีโร่ที่สวมไอเทมแล้วของยังติดไปด้วย, ออโต้เมิร์จฮีโร่ที่สวมไอเทมไม่ทำของหาย,
   สู้จริงหลัง equip แล้ว `combatStats` สะท้อนโบนัสถูกต้อง ไม่มี NaN
 
+**Mana System & Skill Cast Backend (เสร็จแล้ว — รอเชื่อมต่อกับข้อมูล Active Skill ของฮีโร่จริง)**
+- ฮีโร่ทุกตัวที่วางลงกระดาน (`placeHeroAt`) มี state ใหม่: `current_mana:0`, `max_mana:100`,
+  `statuses:[]`, `action_state:'idle'`, `current_target:null`, `castTimer:0` — ศัตรู/บอสไม่มี
+  field พวกนี้เลย (เหมือน `combatStats`) ดังนั้นระบบนี้ไม่กระทบมอนสเตอร์เดิม
+- `grantMana(u, amount)`: เพิ่ม/ลดมานาแบบ clamp [0, max_mana] เสมอ, no-op ถ้า unit ไม่มี field
+  `current_mana` (เช่นมอนสเตอร์) — เรียกใน `updateUnit()`: โจมตีสำเร็จ +10, โดนดาเมจ +5 (ยังไม่มี
+  DoT ในเกมให้ยกเว้นจริงๆ แต่โค้ดเผื่อไว้), ฆ่าเป้าหมายได้ +10 (ถ้าโจมตีจังหวะเดียวฆ่าได้เลย
+  ทั้ง 3 โบนัสจะเข้าพร้อมกันในเฟรมเดียว ถูกต้องตามสเปก)
+- State Machine ใน `updateUnit()` เรียงลำดับตามสเปกเป๊ะ: 1) Dead Check → 2) Hard CC Check
+  (`hasHardCC()` เช็ก `statuses` ที่มี kind `stun`/`freeze` — ยังไม่มีตัวไหนสร้าง status ได้จริง
+  เป็นแค่ stub รอสกิลจริง) → 3) Mana Check (`current_mana >= max_mana` → เข้า `action_state:
+  'casting'` ล็อก `SKILL_CAST_DURATION` วินาที ระหว่างนั้นข้ามการโจมตี/เดินเคลื่อนที่ทั้งหมด
+  พอครบเวลาค่อยหักมานาเต็มถังแล้วกลับ `idle`) → 4) Basic Attack → 5) Movement — ถ้าโดน Hard CC
+  ขณะกำลังร่าย จะยกเลิกร่ายทันที คืน `action_state` เป็น `idle` โดยไม่หักมานา (รอร่ายใหม่ได้)
+- `u.current_target` เปลี่ยนจากคำนวณ nearest-enemy ใหม่ทุกเฟรม เป็น "ล็อกเป้าหมายเดิมจนตาย"
+  (reselect เฉพาะตอนไม่มีเป้าหมายหรือเป้าหมายตายแล้ว) — ใช้ร่วมกับทั้งฮีโร่และมอนสเตอร์
+  (`selectTarget()` เดิมไม่เปลี่ยน แค่เรียกน้อยลง)
+- `buildCombatStats()`: เพิ่ม layer สถานะ (`hero.statuses[].stats`/`percent_stats`) ต่อจาก
+  equipment (flat ก่อน แล้วค่อย percent) ก่อนเข้า clamp ขั้นสุดท้าย — ยังไม่มี status ตัวไหนถูก
+  สร้างจริงในเกม (รอสกิลจริง) แต่ pipeline พร้อมรับแล้ว
+- `resetForWave()`: รีเซ็ต `current_mana=0, statuses=[], action_state='idle', current_target=null,
+  castTimer=0` ทุกครั้งที่จบ wave/แพ้ — equipment และ Link/synergy ไม่ถูกแตะ
+- ทดสอบผ่าน Playwright ครบ: ค่าเริ่มต้น field ถูกต้อง, `grantMana` clamp ทั้งขอบบน/ล่างและ
+  no-op กับ unit ที่ไม่มี field, วงจร cast ครบ (เริ่ม-มานาไม่ลดจนจบ-หักเต็มถังตอนจบ), Hard CC
+  ขัดจังหวะการร่ายแล้วคืนมานาถูกต้อง, `buildCombatStats` ผสม status buff/debuff ก่อน clamp
+  ถูกต้อง (baseStats ไม่ถูกแก้ทับ), มานาได้ตามเหตุการณ์จริงระหว่างสู้ (โจมตี/โดนตี/ฆ่า),
+  `resetForWave` เคลียร์ค่าแต่คง equipment ไว้, เล่นจริงหลายวินาทีไม่มี NaN/console error ใหม่
+
 **อื่นๆ ที่มีอยู่แล้วก่อนรอบนี้** (ยังทำงานอยู่ ไม่ได้แตะ): ระบบ wave 1-15 พร้อมด่านบอสจริงที่
 stage 5/10/13/15 (`bossWave()`), quota แพ้ได้ 3 ครั้งต่อรัน, bench คนละ 6 ช่อง, field สูงสุด 5 ตัว
 
