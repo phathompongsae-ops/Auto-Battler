@@ -65,7 +65,7 @@
   .subcount { font-weight: normal; color: #6b5a3a; font-size: 11px; }
   .card {
     width: 62px; background: #fbf6e6; border: 2px solid #b89858; border-radius: 6px; overflow: hidden;
-    text-align: center; cursor: pointer; font-size: 10px; user-select: none; flex-shrink: 0;
+    text-align: center; cursor: pointer; font-size: 10px; user-select: none; flex-shrink: 0; position: relative;
   }
   .card img { width: 100%; height: 56px; object-fit: cover; display: block; background: #333; }
   .card .name { padding: 2px 2px 0; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 9px; }
@@ -77,6 +77,55 @@
   .card .linkBadge { display: none; padding: 0 2px 3px; color: #2f9e44; font-weight: bold; font-size: 9px; }
   .card.linked .linkBadge { display: block; }
   #hint, #linkHint { color: #6b5a3a; font-size: 11px; margin-top: 4px; }
+  /* ----- Equipment Core: inventory bar / equip-open button / drag ghost / equip modal ----- */
+  .equipBtn {
+    position: absolute; top: 2px; right: 2px; background: rgba(20,14,8,0.78); color: #f0e6c8;
+    border: 1px solid #a8843c; border-radius: 4px; font-size: 10px; padding: 1px 3px; cursor: pointer;
+    line-height: 1.2; z-index: 2;
+  }
+  #inventoryPanel {
+    position: fixed; left: 10px; bottom: 216px; z-index: 10; max-width: min(72vw, 440px);
+    pointer-events: none;
+  }
+  #inventoryPanel .panel { pointer-events: auto; padding: 6px 8px; max-height: 88px; }
+  #inventoryPanel h3 { margin: 0 0 4px; font-size: 12px; }
+  #inventoryCards, #equipModalInventory { display: flex; gap: 5px; overflow-x: auto; max-width: 100%; }
+  .itemCard {
+    width: 46px; flex-shrink: 0; background: #fbf6e6; border: 2px solid #b89858; border-radius: 6px;
+    text-align: center; font-size: 9px; user-select: none; padding: 3px 2px; cursor: grab;
+  }
+  .itemCard .itemIcon { font-size: 18px; line-height: 1.15; }
+  .itemCard .itemName { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .itemGhost {
+    position: fixed; z-index: 85; pointer-events: none; width: 46px; height: 46px;
+    display: flex; align-items: center; justify-content: center;
+    background: #fbf6e6; border: 2px solid #b89858; border-radius: 8px; font-size: 18px;
+    box-shadow: 0 4px 10px #0008; transform: translate(-50%, -50%);
+  }
+  .itemGhost.returning { transition: left 0.25s ease, top 0.25s ease; }
+  #equipModal {
+    position: fixed; inset: 0; display: none; align-items: center; justify-content: center;
+    background: rgba(10,7,4,0.68); z-index: 25;
+  }
+  #equipBox {
+    background: linear-gradient(#2a2014, #1a130c); border: 2px solid #a8843c; border-radius: 12px;
+    padding: 20px 26px; text-align: center; color: #f0e6c8; min-width: 240px;
+  }
+  #equipBox h3 { margin: 0 0 12px; }
+  #equipSlots { display: flex; gap: 12px; justify-content: center; margin-bottom: 14px; }
+  .equipSlot {
+    width: 64px; height: 64px; border: 2px dashed #8a6c40; border-radius: 8px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    font-size: 10px; color: #d7c9a7; background: rgba(255,255,255,0.04);
+  }
+  .equipSlot.filled { border-style: solid; background: rgba(168,132,60,0.18); cursor: grab; }
+  .equipSlot .itemIcon { font-size: 22px; }
+  #equipModalInventoryWrap { margin-bottom: 14px; }
+  #equipModalInventoryWrap h4 { margin: 0 0 6px; font-size: 12px; color: #d7c9a7; text-align: left; }
+  #equipCloseBtn {
+    background: linear-gradient(#e0c060, #a8843c); color: #2a1e10; border: 2px solid #6b4a24;
+    border-radius: 8px; font-size: 14px; font-weight: bold; padding: 8px 22px; cursor: pointer;
+  }
   /* drag-to-place ghost: floats above the pointer (offset applied in JS) so the
      sprite doesn't cover the tile the player is about to drop on, and reads a touch
      smaller than the bench card it came from */
@@ -125,6 +174,13 @@
   <button id="pauseBtn">⏸ หยุด</button>
 </div>
 
+<div id="inventoryPanel">
+  <div class="panel">
+    <h3>กระเป๋าไอเทม <span id="invCount" class="subcount"></span></h3>
+    <div id="inventoryCards"></div>
+  </div>
+</div>
+
 <div id="bottomUI">
   <div class="panel" id="shopPanel">
     <h3>ร้านค้า <button id="rerollBtn">รีโรล (2💰)</button></h3>
@@ -148,6 +204,18 @@
     <h2 id="resultTitle"></h2>
     <p id="resultBody"></p>
     <button id="resultBtn">ไปต่อ</button>
+  </div>
+</div>
+
+<div id="equipModal">
+  <div id="equipBox">
+    <h3 id="equipHeroName"></h3>
+    <div id="equipSlots"></div>
+    <div id="equipModalInventoryWrap">
+      <h4>กระเป๋าไอเทม — ลากมาใส่ช่องด้านบน</h4>
+      <div id="equipModalInventory"></div>
+    </div>
+    <button id="equipCloseBtn">ปิด</button>
   </div>
 </div>
 
@@ -460,6 +528,23 @@ const ITEM_BASE = {
 // flat id -> item def lookup across base_items + combined_items, for equip/buildCombatStats
 const ITEM_DEFS_BY_ID = {};
 [...ITEM_BASE.base_items, ...ITEM_BASE.combined_items].forEach((def) => { ITEM_DEFS_BY_ID[def.id] = def; });
+// no item art yet — pick a representative emoji from which stat(s) the item def carries
+function itemIcon(itemDefId) {
+  const def = ITEM_DEFS_BY_ID[itemDefId];
+  const s = (def && def.stats) || {};
+  const hasP = 'p_atk' in s, hasM = 'm_atk' in s, hasPD = 'p_def' in s, hasMD = 'm_def' in s;
+  if (hasP && hasM) return '💠';
+  if (hasP && hasPD) return '🗡️';
+  if (hasP && hasMD) return '⚔️';
+  if (hasM && hasPD) return '🪄';
+  if (hasM && hasMD) return '🔮';
+  if (hasPD && hasMD) return '🛡️';
+  if (hasP) return '⚔️';
+  if (hasM) return '🔮';
+  if (hasPD) return '🛡️';
+  if (hasMD) return '🧥';
+  return '❔';
+}
 
 // ============================================================
 // EQUIPMENT CORE — inventory/item-instance data model, equip/unequip, and the stat
@@ -501,6 +586,18 @@ function unequipItem(hero, slotIndex) {
   if (inst) { inst.location = 'inventory'; inst.ownerHeroId = null; }
   playerState.inventory.itemInstanceIds.push(itemInstanceId);
   return true;
+}
+// Used when a hero instance is removed from play without the player explicitly
+// unequipping first (auto-merge consuming bench copies) — items must never be
+// silently destroyed, so force them back to the inventory bypassing capacity.
+function returnEquipmentToInventory(heroInst) {
+  heroInst.equipment.forEach((itemInstanceId, slotIndex) => {
+    if (!itemInstanceId) return;
+    const inst = playerState.itemInstances[itemInstanceId];
+    if (inst) { inst.location = 'inventory'; inst.ownerHeroId = null; }
+    playerState.inventory.itemInstanceIds.push(itemInstanceId);
+    heroInst.equipment[slotIndex] = null;
+  });
 }
 const ATTACK_SPEED_MIN = 0.2, ATTACK_SPEED_MAX = 3.0;
 // Builds hero.combatStats from hero.baseStats (never mutated) + equipped item stats:
@@ -584,7 +681,7 @@ const ECONOMY_BONUS_CAP_PER_WAVE = 2;
 // ---- hero instance identity ----
 let nextInstanceSeq = 1;
 function createHeroInstance(heroKey) {
-  return { instanceId: 'inst_' + (nextInstanceSeq++), heroKey };
+  return { instanceId: 'inst_' + (nextInstanceSeq++), heroKey, equipment: [null, null] };
 }
 
 // ---- Link selection: instanceId is the only source of truth (GameState.linkedInstanceIds) ----
@@ -810,6 +907,14 @@ function key(c, r) { return c + ',' + r; }
 // ============================================================
 // UNIT FACTORY / ANIMATION / TRAITS (เหมือน heroes.html)
 // ============================================================
+// shared 1x texture for the Equipment Core "has item" badge sprite (see makeUnit/updateEquipBadge)
+const EQUIP_BADGE_TEX = (() => {
+  const c = document.createElement('canvas'); c.width = 32; c.height = 32;
+  const ctx = c.getContext('2d');
+  ctx.font = '24px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText('⚙️', 16, 17);
+  return new THREE.CanvasTexture(c);
+})();
 function makeUnit(cfg) {
   const group = new THREE.Group();
   const meta = ASSET_META[cfg.sprite];
@@ -831,17 +936,28 @@ function makeUnit(cfg) {
   hpBg.position.y = barY; group.add(hpBg);
   const hpBar = new THREE.Mesh(new THREE.PlaneGeometry(0.72,0.08), new THREE.MeshBasicMaterial({ color: cfg.team==='player'?0x66c25a:0xc25a44, side:THREE.DoubleSide }));
   hpBar.position.y = barY; hpBar.position.z = 0.001; group.add(hpBar);
+  // Equipment Core visual feedback: small floating badge above the HP bar, shown only while
+  // the hero has at least 1 item equipped (toggled by updateEquipBadge, never created per-hero —
+  // one shared canvas texture (EQUIP_BADGE_TEX) reused across every unit's own Sprite instance).
+  const equipBadge = new THREE.Sprite(new THREE.SpriteMaterial({ map: EQUIP_BADGE_TEX, transparent: true, depthTest: false }));
+  equipBadge.scale.set(0.3, 0.3, 1);
+  equipBadge.position.set(0.34, barY + 0.2, 0.01);
+  equipBadge.visible = false;
+  group.add(equipBadge);
   const p = gridToWorld(cfg.c, cfg.r);
   group.position.set(p.x, 0, p.z);
   scene.add(group);
   occupied.add(key(cfg.c, cfg.r));
-  const u = { ...cfg, group, body, hpBar, shadow, tex, frames, halfH: h/2,
+  const u = { ...cfg, group, body, hpBar, shadow, tex, frames, halfH: h/2, equipBadge,
     maxHp: cfg.hp, alive: true, atkCooldown: 0,
     moving: false, moveFrom: null, moveTo: null, moveT: 0,
     animState: 'idle', animTimer: 0, animFrame: 0 };
   body.userData.unit = u;
   units.push(u);
   return u;
+}
+function updateEquipBadge(u) {
+  if (u.equipBadge) u.equipBadge.visible = !!(u.equipment && u.equipment.some((e) => e));
 }
 function removeUnit(u) {
   scene.remove(u.group);
@@ -1062,6 +1178,8 @@ function renderUI() {
     linkRowEl.appendChild(pill);
   });
   document.getElementById('bottomUI').style.display = phase==='shop' ? 'flex' : 'none';
+  document.getElementById('inventoryPanel').style.display = phase==='shop' ? 'block' : 'none';
+  if (phase !== 'shop' && inspectingHero) closeEquipModal(); // Equipment UI only makes sense during shop phase
   startBattleBtn.disabled = placedUnits.length === 0;
   const fieldFull = placedUnits.length >= MAX_FIELD;
   const benchFull = benchHeroes.length >= MAX_BENCH;
@@ -1085,8 +1203,11 @@ function renderUI() {
     const def = HERO_DEFS[inst.heroKey];
     const div = document.createElement('div');
     div.className = 'card' + (i===selectedBenchIdx ? ' selected' : '') + (fieldFull ? ' disabled' : '');
-    div.innerHTML = `<img src="${heroPortraitSrc(inst.heroKey)}"><div class="name">${def.name}</div><div class="tags">${tagLabel(inst.heroKey)}</div>`;
+    const equipped = inst.equipment.some((e) => e);
+    div.innerHTML = `<img src="${heroPortraitSrc(inst.heroKey)}"><div class="name">${def.name}</div><div class="tags">${tagLabel(inst.heroKey)}</div>` +
+      `<button class="equipBtn" title="ไอเทม">⚙${equipped ? ' •' : ''}</button>`;
     div.dataset.benchIdx = i; // read by the pointerdown drag-to-place delegate below (tap-to-select fallback lives there too)
+    div.querySelector('.equipBtn').onclick = (e) => { e.stopPropagation(); openEquipModal(inst); };
     benchCardsEl.appendChild(div);
   });
   hintEl.textContent = fieldFull
@@ -1107,14 +1228,22 @@ function renderUI() {
     div.className = 'card' + (linked ? ' linked' : '') + (linkFull ? ' disabled' : '');
     const tagInfo = def.primaryLinkTag ? (LINK_TAGS[def.primaryLinkTag]?.label_th || def.primaryLinkTag) : 'ยังไม่กำหนดสาย';
     const slotNum = linked ? linkedOrder.indexOf(u.instanceId) + 1 : 0;
+    const equipped = u.equipment.some((e) => e);
     div.innerHTML = `<img src="${heroPortraitSrc(u.heroKey)}"><div class="name">${def.name}</div>` +
-      `<div class="tags">${tagInfo}</div><div class="linkBadge">🔗 Link ${slotNum || ''}</div>`;
+      `<div class="tags">${tagInfo}</div><div class="linkBadge">🔗 Link ${slotNum || ''}</div>` +
+      `<button class="equipBtn" title="ไอเทม">⚙${equipped ? ' •' : ''}</button>`;
+    div.dataset.instanceId = u.instanceId; // read by the item-drag drop-target lookup below
     div.onclick = () => toggleLinkByInstanceId(u.instanceId);
+    div.querySelector('.equipBtn').onclick = (e) => { e.stopPropagation(); openEquipModal(u); };
     fieldCardsEl.appendChild(div);
   });
   const linkHintEl = document.getElementById('linkHint');
   linkHintEl.classList.remove('warn');
   linkHintEl.textContent = `เลือกฮีโร่ในสนามเข้า Link ได้สูงสุด ${MAX_LINK_SLOTS} ตัว (${linkedCount}/${MAX_LINK_SLOTS}) — คลิกซ้ำเพื่อยกเลิก`;
+
+  placedUnits.forEach(updateEquipBadge); // Equipment Core: floating badge on any hero with an item equipped
+  renderInventory();
+  if (inspectingHero) renderEquipModal();
 }
 
 // Auto-merge: whenever the bench holds 3+ copies of the same tier-1 hero, remove those 3
@@ -1136,7 +1265,10 @@ function checkAndMergeUnits() {
       const chosen = evolutions[Math.floor(Math.random() * evolutions.length)];
       let removed = 0;
       for (let i = benchHeroes.length - 1; i >= 0 && removed < 3; i--) {
-        if (benchHeroes[i].heroKey === hkey) { benchHeroes.splice(i, 1); removed++; }
+        if (benchHeroes[i].heroKey === hkey) {
+          returnEquipmentToInventory(benchHeroes[i]); // never destroy equipped items on auto-merge
+          benchHeroes.splice(i, 1); removed++;
+        }
       }
       benchHeroes.push(createHeroInstance(chosen));
       mergedThisPass = true; mergedAny = true;
@@ -1178,12 +1310,13 @@ function placeHeroAt(benchIdx, c, r) {
     hp:s.hp, pAtk:s.p_atk, mAtk:s.m_atk, pDef:s.p_def, mDef:s.m_def, attackType:def.attack_type,
     atkSpeed:s.attack_speed, range:s.attack_range, moveSpeed:s.move_speed, heroKey:inst.heroKey,
     instanceId: inst.instanceId, // same identity carries from bench to field (state_model.field_storage)
-    equipment: [null, null], combatStats: null }); // Equipment Core — 2 fixed slots, always both present
+    equipment: inst.equipment, combatStats: null }); // carry the SAME equipment array from the bench instance
   u.baseMaxHp = s.hp; // immutable — Link maxHpPct is always recomputed from this, never compounded
   // immutable snapshot buildCombatStats() clones from — never overwritten by equipment/Link math
   u.baseStats = { hp:s.hp, p_atk:s.p_atk, m_atk:s.m_atk, p_def:s.p_def, m_def:s.m_def,
     move_speed:s.move_speed, attack_speed:s.attack_speed, attack_range:s.attack_range };
   u.origC = c; u.origR = r;   // ไทล์ที่วางไว้ตอนแรก — ใช้สแนปกลับระหว่างด่าน (ดู resetForWave)
+  updateEquipBadge(u);
   placedUnits.push(u);
   selectedBenchIdx = -1;
   renderUI();
@@ -1195,7 +1328,15 @@ function unplaceUnit(u) {
   removeUnit(u);
   placedUnits.splice(idx, 1);
   linkedInstanceIds.delete(u.instanceId); // state_model.remove_from_field_behavior
-  benchHeroes.push(createHeroInstance(u.heroKey)); // new instance — the old Link identity ends here
+  const benchInst = createHeroInstance(u.heroKey); // new instance — the old Link identity ends here
+  benchInst.equipment = u.equipment; // ...but equipped items still carry over, re-owned by the new instance
+  benchInst.equipment.forEach((itemInstanceId) => {
+    if (itemInstanceId && playerState.itemInstances[itemInstanceId]) {
+      playerState.itemInstances[itemInstanceId].ownerHeroId = benchInst.instanceId;
+    }
+  });
+  benchHeroes.push(benchInst);
+  if (inspectingHero === u) inspectingHero = benchInst; // keep an open equip modal pointed at the same hero
   checkAndMergeUnits();
   renderUI();
 }
@@ -1266,6 +1407,7 @@ function endBenchGhost(ds) {
 
 benchCardsEl.addEventListener('pointerdown', (e) => {
   if (phase !== 'shop') return;
+  if (e.target.closest('.equipBtn')) return; // let the equip-modal button's own onclick fire instead
   const card = e.target.closest('.card');
   if (!card || card.classList.contains('disabled')) return;
   const idx = parseInt(card.dataset.benchIdx, 10);
@@ -1299,6 +1441,187 @@ document.addEventListener('pointerup', (e) => {
 });
 document.addEventListener('pointercancel', () => {
   if (benchDrag) { endBenchGhost(benchDrag); benchDrag = null; }
+});
+
+// ============================================================
+// EQUIPMENT UI — inventory bar, per-hero equip modal (2 slots), and item drag-and-drop.
+// Two equip entry points, deliberately kept separate to avoid a z-index/hit-test conflict:
+//   - drag straight from the background inventory bar onto ANY bench/field card -> equips
+//     into that hero's first empty slot (quick-equip, works whenever no modal is open)
+//   - open a hero's equip modal (⚙ button on its card) for the precise per-slot view; the
+//     modal has its own copy of the inventory list so dragging still works while the
+//     full-screen modal backdrop is blocking the cards behind it
+// ============================================================
+let inspectingHero = null; // bench instance object OR field unit object currently shown in the modal
+const inventoryCardsEl = document.getElementById('inventoryCards');
+const equipModalEl = document.getElementById('equipModal');
+const equipSlotsEl = document.getElementById('equipSlots');
+const equipModalInventoryEl = document.getElementById('equipModalInventory');
+
+function renderItemCard(itemInstanceId) {
+  const inst = playerState.itemInstances[itemInstanceId];
+  const def = ITEM_DEFS_BY_ID[inst.itemDefId];
+  const div = document.createElement('div');
+  div.className = 'itemCard';
+  div.dataset.itemInstanceId = itemInstanceId;
+  div.innerHTML = `<div class="itemIcon">${itemIcon(inst.itemDefId)}</div><div class="itemName">${def.name}</div>`;
+  div.title = def.passive || def.name;
+  return div;
+}
+function renderInventory() {
+  document.getElementById('invCount').textContent = `(${playerState.inventory.itemInstanceIds.length}/${playerState.inventory.capacity})`;
+  inventoryCardsEl.innerHTML = '';
+  playerState.inventory.itemInstanceIds.forEach((id) => inventoryCardsEl.appendChild(renderItemCard(id)));
+}
+
+function openEquipModal(heroRef) {
+  if (phase !== 'shop') return;
+  inspectingHero = heroRef;
+  renderEquipModal();
+  equipModalEl.style.display = 'flex';
+}
+function closeEquipModal() {
+  inspectingHero = null;
+  equipModalEl.style.display = 'none';
+}
+function renderEquipModal() {
+  if (!inspectingHero) return;
+  document.getElementById('equipHeroName').textContent = HERO_DEFS[inspectingHero.heroKey].name;
+  equipSlotsEl.innerHTML = '';
+  inspectingHero.equipment.forEach((itemInstanceId, slotIndex) => {
+    const slotDiv = document.createElement('div');
+    slotDiv.className = 'equipSlot' + (itemInstanceId ? ' filled' : '');
+    slotDiv.dataset.slot = slotIndex;
+    if (itemInstanceId) {
+      const inst = playerState.itemInstances[itemInstanceId];
+      const idef = ITEM_DEFS_BY_ID[inst.itemDefId];
+      slotDiv.dataset.itemInstanceId = itemInstanceId;
+      slotDiv.innerHTML = `<div class="itemIcon">${itemIcon(inst.itemDefId)}</div><div class="itemName">${idef.name}</div>`;
+      slotDiv.title = idef.passive || idef.name;
+    } else {
+      slotDiv.innerHTML = `<div class="itemIcon">➕</div><div class="itemName">ว่าง</div>`;
+    }
+    equipSlotsEl.appendChild(slotDiv);
+  });
+  equipModalInventoryEl.innerHTML = '';
+  playerState.inventory.itemInstanceIds.forEach((id) => equipModalInventoryEl.appendChild(renderItemCard(id)));
+}
+document.getElementById('equipCloseBtn').onclick = () => { closeEquipModal(); renderUI(); };
+
+// ---- item drag: same ghost-follows-pointer pattern as benchDrag, offset above the finger ----
+const ITEM_GHOST_Y_OFFSET = 40;
+let itemDrag = null; // { itemInstanceId, source:'inventory'|'equipped', heroRef, slotIndex, startX, startY, moved, pointerId, ghostEl, originX, originY }
+
+function startItemGhost(x, y, itemInstanceId) {
+  const inst = playerState.itemInstances[itemInstanceId];
+  const ghost = document.createElement('div');
+  ghost.className = 'itemGhost';
+  ghost.innerHTML = `<div>${itemIcon(inst.itemDefId)}</div>`;
+  document.body.appendChild(ghost);
+  ghost.style.left = x + 'px';
+  ghost.style.top = (y - ITEM_GHOST_Y_OFFSET) + 'px';
+  return ghost;
+}
+function moveItemGhost(ghost, x, y) {
+  ghost.style.left = x + 'px';
+  ghost.style.top = (y - ITEM_GHOST_Y_OFFSET) + 'px';
+}
+function bounceBackItemGhost(ghost, originX, originY) {
+  if (!ghost) return;
+  ghost.classList.add('returning');
+  // one frame so the browser registers the starting position before the transitioned move
+  requestAnimationFrame(() => { ghost.style.left = originX + 'px'; ghost.style.top = originY + 'px'; });
+  setTimeout(() => { if (ghost.parentNode) ghost.parentNode.removeChild(ghost); }, 260);
+}
+function beginInventoryItemDrag(e, card) {
+  if (phase !== 'shop') return;
+  e.preventDefault();
+  const rect = card.getBoundingClientRect();
+  itemDrag = { itemInstanceId: card.dataset.itemInstanceId, source: 'inventory', heroRef: null, slotIndex: null,
+    startX: e.clientX, startY: e.clientY, moved: false, pointerId: e.pointerId,
+    ghostEl: null, originX: rect.left + rect.width/2, originY: rect.top + rect.height/2 };
+}
+inventoryCardsEl.addEventListener('pointerdown', (e) => {
+  const card = e.target.closest('.itemCard');
+  if (card) beginInventoryItemDrag(e, card);
+});
+equipModalInventoryEl.addEventListener('pointerdown', (e) => {
+  const card = e.target.closest('.itemCard');
+  if (card) beginInventoryItemDrag(e, card);
+});
+equipSlotsEl.addEventListener('pointerdown', (e) => {
+  if (phase !== 'shop') return;
+  const slotEl = e.target.closest('.equipSlot');
+  if (!slotEl || !slotEl.classList.contains('filled')) return;
+  e.preventDefault();
+  const rect = slotEl.getBoundingClientRect();
+  itemDrag = { itemInstanceId: slotEl.dataset.itemInstanceId, source: 'equipped', heroRef: inspectingHero,
+    slotIndex: parseInt(slotEl.dataset.slot, 10), startX: e.clientX, startY: e.clientY, moved: false,
+    pointerId: e.pointerId, ghostEl: null, originX: rect.left + rect.width/2, originY: rect.top + rect.height/2 };
+});
+document.addEventListener('pointermove', (e) => {
+  if (!itemDrag || e.pointerId !== itemDrag.pointerId) return;
+  const dx = e.clientX - itemDrag.startX, dy = e.clientY - itemDrag.startY;
+  if (!itemDrag.moved && Math.hypot(dx, dy) > 6) {
+    itemDrag.moved = true;
+    itemDrag.ghostEl = startItemGhost(e.clientX, e.clientY, itemDrag.itemInstanceId);
+  }
+  if (itemDrag.moved) moveItemGhost(itemDrag.ghostEl, e.clientX, e.clientY);
+});
+// dropping an item (from inventory OR from another equip slot) onto a hero card equips it
+// into that hero's first empty slot; returns false (caller bounces the ghost back) if none free
+function dropItemOnHeroCard(id, heroRef) {
+  const freeSlot = heroRef.equipment.findIndex((e) => e == null);
+  if (id.source === 'equipped') {
+    if (heroRef === id.heroRef) return true; // dropped back on the same hero's own card — no-op success
+    if (freeSlot < 0) return false;
+    if (!unequipItem(id.heroRef, id.slotIndex)) return false;
+    return equipItem(heroRef, id.itemInstanceId, freeSlot);
+  }
+  if (freeSlot < 0) return false;
+  return equipItem(heroRef, id.itemInstanceId, freeSlot);
+}
+document.addEventListener('pointerup', (e) => {
+  if (!itemDrag || e.pointerId !== itemDrag.pointerId) return;
+  const id = itemDrag; itemDrag = null;
+  if (!id.moved) return; // plain tap on an item — no action, unlike hero cards there's no tap-select mode
+  const dropEl = document.elementFromPoint(e.clientX, e.clientY);
+  let success = false;
+  const equipSlot = dropEl && dropEl.closest('#equipSlots .equipSlot');
+  const benchCard = dropEl && dropEl.closest('#benchCards .card');
+  const fieldCard = dropEl && dropEl.closest('#fieldCards .card');
+  if (equipSlot && inspectingHero) {
+    const slotIndex = parseInt(equipSlot.dataset.slot, 10);
+    if (id.source === 'equipped') {
+      if (slotIndex === id.slotIndex) success = true; // dropped back on its own slot — no-op success
+      else if (!inspectingHero.equipment[slotIndex] && unequipItem(id.heroRef, id.slotIndex)) {
+        success = equipItem(inspectingHero, id.itemInstanceId, slotIndex);
+      }
+    } else if (!inspectingHero.equipment[slotIndex]) {
+      success = equipItem(inspectingHero, id.itemInstanceId, slotIndex);
+    }
+  } else if (benchCard) {
+    const heroRef = benchHeroes[parseInt(benchCard.dataset.benchIdx, 10)];
+    if (heroRef) success = dropItemOnHeroCard(id, heroRef);
+  } else if (fieldCard) {
+    const heroRef = placedUnits.find((u) => u.instanceId === fieldCard.dataset.instanceId);
+    if (heroRef) success = dropItemOnHeroCard(id, heroRef);
+  } else if (id.source === 'equipped') {
+    // dropped somewhere outside any valid target (e.g. the modal's dark backdrop) -> unequip
+    success = unequipItem(id.heroRef, id.slotIndex);
+  }
+  if (success) {
+    if (id.ghostEl && id.ghostEl.parentNode) id.ghostEl.parentNode.removeChild(id.ghostEl);
+    renderUI();
+  } else {
+    bounceBackItemGhost(id.ghostEl, id.originX, id.originY);
+  }
+});
+document.addEventListener('pointercancel', (e) => {
+  if (itemDrag && e.pointerId === itemDrag.pointerId) {
+    bounceBackItemGhost(itemDrag.ghostEl, itemDrag.originX, itemDrag.originY);
+    itemDrag = null;
+  }
 });
 
 // ============================================================
