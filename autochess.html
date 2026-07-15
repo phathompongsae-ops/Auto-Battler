@@ -299,6 +299,92 @@ const TAG_LABEL_TH = { mage:'นักเวท', merchant:'พ่อค้า',
 function tagLabel(heroKey) { return (HERO_TAGS[heroKey] || []).map(t => TAG_LABEL_TH[t] || t).join(' · '); }
 
 // ============================================================
+// Priority 4 (Equipment Core) — item data scaffold only. Not wired into buy/equip
+// UI, stat application, or combat yet; base_items/combined_items and the recipe
+// pairs are declared so the equip/merge system has real data to build against.
+// ============================================================
+const ITEM_BASE = {
+  base_items: [
+    { id: "item_sword", name: "ดาบเหล็ก", stats: { p_atk: 15 } },
+    { id: "item_staff", name: "คทาเวท", stats: { m_atk: 15 } },
+    { id: "item_armor", name: "เกราะเหล็ก", stats: { p_def: 15 } },
+    { id: "item_cloak", name: "ผ้าคลุมเวท", stats: { m_def: 15 } }
+  ],
+  combined_items: [
+    {
+      id: "item_greatsword",
+      recipe: ["item_sword", "item_sword"],
+      name: "ดาบพิฆาต",
+      stats: { p_atk: 38 },
+      passive: "การโจมตีปกติใส่เป้าหมายเดิมครบ 3 ครั้ง การโจมตีครั้งถัดไปสร้างดาเมจกายภาพเพิ่ม 40% ของ P.Atk"
+    },
+    {
+      id: "item_spellblade",
+      recipe: ["item_sword", "item_staff"],
+      name: "ดาบเวทมนตร์",
+      stats: { p_atk: 20, m_atk: 20 },
+      passive: "การโจมตีปกติสร้างโบนัสดาเมจเวทเพิ่ม 20% ของ M.Atk ของผู้ใช้"
+    },
+    {
+      id: "item_vanguard_blade",
+      recipe: ["item_sword", "item_armor"],
+      name: "ดาบแนวหน้า",
+      stats: { p_atk: 22, p_def: 22 },
+      passive: "เมื่อได้รับดาเมจกายภาพ มีโอกาส 20% เพิ่ม P.Def อีก 15 เป็นเวลา 4 วินาที"
+    },
+    {
+      id: "item_spectral_edge",
+      recipe: ["item_sword", "item_cloak"],
+      name: "คมดาบวิญญาณ",
+      stats: { p_atk: 22, m_def: 22 },
+      passive: "หลังได้รับดาเมจเวท การโจมตีปกติครั้งถัดไปสร้างดาเมจกายภาพเพิ่ม 30% และลด M.Atk ของเป้าหมาย 10% เป็นเวลา 4 วินาที"
+    },
+    {
+      id: "item_archmage_staff",
+      recipe: ["item_staff", "item_staff"],
+      name: "คทาจอมเวท",
+      stats: { m_atk: 38 },
+      passive: "เมื่อใช้สกิล จะเพิ่ม M.Atk ของผู้ใช้ 15% เป็นเวลา 5 วินาที เอฟเฟกต์นี้ไม่ซ้อนทับ"
+    },
+    {
+      id: "item_battlemage_core",
+      recipe: ["item_staff", "item_armor"],
+      name: "แก่นนักรบเวท",
+      stats: { m_atk: 22, p_def: 22 },
+      passive: "เมื่อได้รับดาเมจกายภาพครบ 4 ครั้ง จะสร้างโล่เวทเท่ากับ 25% ของ M.Atk เป็นเวลา 4 วินาที"
+    },
+    {
+      id: "item_arcane_cloak",
+      recipe: ["item_staff", "item_cloak"],
+      name: "ผ้าคลุมอาร์เคน",
+      stats: { m_atk: 22, m_def: 22 },
+      passive: "เมื่อได้รับดาเมจเวท จะสะสมพลังอาร์เคน 1 ครั้ง สูงสุด 3 ครั้ง แต่ละครั้งเพิ่มดาเมจเวทของสกิลถัดไป 8%"
+    },
+    {
+      id: "item_fortress_plate",
+      recipe: ["item_armor", "item_armor"],
+      name: "เกราะป้อมปราการ",
+      stats: { p_def: 38 },
+      passive: "เมื่อ HP ต่ำกว่า 50% จะได้รับดาเมจกายภาพลดลง 18%"
+    },
+    {
+      id: "item_magic_armor",
+      recipe: ["item_armor", "item_cloak"],
+      name: "เกราะสะท้อนเวท",
+      stats: { p_def: 25, m_def: 25 },
+      passive: "เมื่อได้รับดาเมจเวท จะสะท้อนดาเมจกลับไปยังผู้โจมตีเท่ากับ 15% ของดาเมจที่ได้รับ"
+    },
+    {
+      id: "item_void_mantle",
+      recipe: ["item_cloak", "item_cloak"],
+      name: "ผ้าคลุมแห่งความว่างเปล่า",
+      stats: { m_def: 38 },
+      passive: "เมื่อ HP ต่ำกว่า 50% จะได้รับดาเมจเวทลดลง 18%"
+    }
+  ]
+};
+
+// ============================================================
 // ระบบ LINK (ซินเนอร์จีทีม) — มีฮีโร่ตามแท็กที่กำหนดครบบนกระดาน = ได้บัฟทั้งทีม
 // ============================================================
 const SYNERGIES = [
@@ -744,7 +830,8 @@ function placeHeroAt(hkey, c, r) {
   benchHeroes.splice(idx, 1);
   const def = HERO_DEFS[hkey];
   const u = makeUnit({ team:'player', name:def.title, sprite:def.sprite, c, r,
-    hp:def.hp, pAtk:def.pAtk, atkSpeed:def.atkSpeed, range:def.range, moveSpeed:def.moveSpeed, trait:def.trait, heroKey:hkey });
+    hp:def.hp, pAtk:def.pAtk, atkSpeed:def.atkSpeed, range:def.range, moveSpeed:def.moveSpeed, trait:def.trait, heroKey:hkey,
+    equipment: [] }); // Priority 4 scaffold — up to 2 ITEM_BASE item ids per hero; not read by combat yet
   u.origC = c; u.origR = r;   // ไทล์ที่วางไว้ตอนแรก — ใช้สแนปกลับระหว่างด่าน (ดู resetForWave)
   u.linked = false;           // ต้องเลือกเข้า Link เองทีหลัง (ดู toggleLink) ไม่ใช่นับอัตโนมัติ
   placedUnits.push(u);
@@ -866,9 +953,14 @@ function onWaveFailed(reason) {
 // GAME LOOP
 // ============================================================
 document.getElementById('speedBtn').onclick = (ev) => {
-  speedMul = speedMul === 1 ? 2 : 1;
+  // x1 -> x2 -> x4 -> x1. Safe at x4: dt (already capped at 50ms real time, see animate())
+  // just represents more simulated seconds per frame — attack range is a grid-distance
+  // check unrelated to dt, damage is applied instantly on cooldown (no travelling
+  // projectile that could overshoot), and move/waveTimer progress is dt-proportional
+  // either way, so higher speed can't skip a check or the stage-transition timing.
+  speedMul = speedMul === 1 ? 2 : (speedMul === 2 ? 4 : 1);
   ev.target.textContent = 'x' + speedMul;
-  ev.target.classList.toggle('active', speedMul===2);
+  ev.target.classList.toggle('active', speedMul>1);
 };
 document.getElementById('pauseBtn').onclick = (ev) => {
   paused = !paused;
