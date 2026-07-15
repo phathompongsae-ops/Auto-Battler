@@ -75,6 +75,13 @@
   .card .linkBadge { display: none; padding: 0 2px 3px; color: #2f9e44; font-weight: bold; font-size: 9px; }
   .card.linked .linkBadge { display: block; }
   #hint, #linkHint { color: #6b5a3a; font-size: 11px; margin-top: 4px; }
+  /* drag-to-place ghost: floats above the pointer (offset applied in JS) so the
+     sprite doesn't cover the tile the player is about to drop on, and reads a touch
+     smaller than the bench card it came from */
+  .benchGhost { position: fixed; width: 50px; height: 50px; pointer-events: none; z-index: 80;
+    transform: translate(-50%, -50%) scale(0.86); border-radius: 10px; overflow: hidden;
+    background: #333; box-shadow: 0 4px 10px #0008, 0 0 0 2px #ffe178; }
+  .benchGhost img { width: 100%; height: 100%; object-fit: cover; display: block; }
   #startCol { flex: 0 0 150px; display: flex; align-items: center; justify-content: center; }
   #startBattleBtn {
     pointer-events: auto; background: linear-gradient(#e0c060, #a8843c); color: #2a1e10;
@@ -155,7 +162,7 @@ const MAX_LINK = 3;                  // จากฮีโร่ในสนา�
 const MAX_BENCH = 6;                 // ม้านั่งสำรองเก็บได้สูงสุด 6 ตัว (กันไว้เผื่อรอสเตอร์โตขึ้น/ระบบเปลี่ยนคลาส)
 const WAVE_TOTAL = 15;
 const MAX_LOSSES = 3;                // แพ้ได้สูงสุด 3 ครั้งต่อรัน ก่อนที่จะจบเกมจริง (นับต่อแมพตาม GDD)
-const CAMERA_ANGLE_DEG = 55, CAMERA_YAW_DEG = 15, CAMERA_ZOOM = 7.2;
+const CAMERA_ANGLE_DEG = 55, CAMERA_YAW_DEG = 15, CAMERA_ZOOM = 5.0; // was 7.2 — zoomed in so the 8x8 grid fills more of the screen
 // เลื่อนจุดที่กล้องมองไปทาง "แถวผู้เล่น" เล็กน้อยให้อยู่กลางพื้นที่ 3D ที่เหลือพอดี
 const LOOK_TARGET = new THREE.Vector3(0, 0, 1.3);
 // กัน UI ด้านล่างจอทับกระดาน: canvas สูงแค่ (จอ - UI_HEIGHT) เท่านั้น ไม่ใช่เต็มจอ
@@ -779,7 +786,7 @@ function renderUI() {
     const div = document.createElement('div');
     div.className = 'card' + (i===selectedBenchIdx ? ' selected' : '') + (fieldFull ? ' disabled' : '');
     div.innerHTML = `<img src="assets/portraits/${hkey}.png"><div class="name">${def.title}</div><div class="tags">${tagLabel(hkey)}</div>`;
-    div.onclick = () => { if (!fieldFull) { selectedBenchIdx = (selectedBenchIdx===i) ? -1 : i; renderUI(); } };
+    div.dataset.benchIdx = i; // read by the pointerdown drag-to-place delegate below (tap-to-select fallback lives there too)
     benchCardsEl.appendChild(div);
   });
   hintEl.textContent = fieldFull
@@ -873,6 +880,80 @@ renderer.domElement.addEventListener('click', (ev) => {
     if (selectedBenchIdx < 0) return;
     placeHeroAt(benchHeroes[selectedBenchIdx], c, r);
   }
+});
+
+// tile-only raycast at a screen point — used by the drag-to-place release below
+// (kept separate from the click handler above, which also hits units for unplaceUnit)
+function pickTileAtScreenPoint(clientX, clientY) {
+  mouse.x = (clientX / window.innerWidth) * 2 - 1;
+  mouse.y = -(clientY / canvasHeight()) * 2 + 1;
+  raycaster.setFromCamera(mouse, camera);
+  const hits = raycaster.intersectObjects(tileMeshes, false);
+  return hits.length ? hits[0].object.userData : null;
+}
+
+// ============================================================
+// BENCH DRAG-TO-PLACE — pointer-drag with a floating ghost sprite, offset above
+// the finger/cursor (GHOST_Y_OFFSET) so it doesn't cover the tile being targeted.
+// Falls back to the original tap-to-select-then-tap-board flow when the pointer
+// doesn't move past the drag threshold.
+// ============================================================
+const GHOST_Y_OFFSET = 56; // px lifted above the pointer
+let benchDrag = null; // {hkey, idx, startX, startY, moved, pointerId, ghostEl}
+
+document.addEventListener('dragstart', (e) => e.preventDefault()); // native drag/selection can fire mid-gesture on some browsers
+
+function startBenchGhost(ds, x, y) {
+  const ghost = document.createElement('div');
+  ghost.className = 'benchGhost';
+  ghost.innerHTML = `<img src="assets/portraits/${ds.hkey}.png">`;
+  document.body.appendChild(ghost);
+  ghost.style.left = x + 'px';
+  ghost.style.top = (y - GHOST_Y_OFFSET) + 'px';
+  ds.ghostEl = ghost;
+}
+function moveBenchGhost(ds, x, y) {
+  if (ds.ghostEl) { ds.ghostEl.style.left = x + 'px'; ds.ghostEl.style.top = (y - GHOST_Y_OFFSET) + 'px'; }
+}
+function endBenchGhost(ds) {
+  if (ds.ghostEl && ds.ghostEl.parentNode) ds.ghostEl.parentNode.removeChild(ds.ghostEl);
+}
+
+benchCardsEl.addEventListener('pointerdown', (e) => {
+  if (phase !== 'shop') return;
+  const card = e.target.closest('.card');
+  if (!card || card.classList.contains('disabled')) return;
+  const idx = parseInt(card.dataset.benchIdx, 10);
+  if (Number.isNaN(idx)) return;
+  e.preventDefault();
+  benchDrag = { hkey: benchHeroes[idx], idx, startX: e.clientX, startY: e.clientY, moved: false, pointerId: e.pointerId, ghostEl: null };
+});
+document.addEventListener('pointermove', (e) => {
+  if (!benchDrag || e.pointerId !== benchDrag.pointerId) return;
+  const dx = e.clientX - benchDrag.startX, dy = e.clientY - benchDrag.startY;
+  if (!benchDrag.moved && Math.hypot(dx, dy) > 6) {
+    benchDrag.moved = true;
+    startBenchGhost(benchDrag, e.clientX, e.clientY);
+  }
+  if (benchDrag.moved) moveBenchGhost(benchDrag, e.clientX, e.clientY);
+});
+document.addEventListener('pointerup', (e) => {
+  if (!benchDrag || e.pointerId !== benchDrag.pointerId) return;
+  const bd = benchDrag; benchDrag = null;
+  if (bd.moved) {
+    endBenchGhost(bd);
+    const tile = pickTileAtScreenPoint(e.clientX, e.clientY);
+    if (tile && tile.isTile && tile.playerZone && !occupied.has(key(tile.c, tile.r))) {
+      placeHeroAt(bd.hkey, tile.c, tile.r);
+    }
+  } else {
+    // tap (no drag) — same toggle-select behavior the old per-card onclick had
+    selectedBenchIdx = (selectedBenchIdx === bd.idx) ? -1 : bd.idx;
+    renderUI();
+  }
+});
+document.addEventListener('pointercancel', () => {
+  if (benchDrag) { endBenchGhost(benchDrag); benchDrag = null; }
 });
 
 // ============================================================
