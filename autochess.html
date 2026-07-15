@@ -31,9 +31,11 @@
   }
   #linkRow { display: flex; gap: 6px; flex-wrap: wrap; }
   .linkPill {
-    background: rgba(70,120,60,0.85); border: 1px solid #7fbf5f; border-radius: 20px;
+    background: rgba(90,80,60,0.7); border: 1px solid #8a7a5c; border-radius: 20px;
     padding: 6px 12px; pointer-events: auto; font-size: 13px; cursor: help;
   }
+  .linkPill.active { background: rgba(70,120,60,0.85); border-color: #7fbf5f; }
+  #linkHint.warn { color: #c0392b; font-weight: bold; }
   #topbar button.active { background: #a8843c; color: #241c10; }
   a#back { text-decoration: none; }
 
@@ -288,68 +290,74 @@ function loadAllSprites(onDone) {
 // berserker, swordman, archer, ranger, mage, acolyte, priest, inquisitor, merchant, tycoon,
 // spirit_blade) has NO dedicated art yet, so it's mapped to the closest existing sprite by
 // role/attack_type as a placeholder — swap these once real art lands.
+// primaryLinkTag: vanguard|striker|ranger|caster|support|summoner|merchant — the single tag
+// counted by Link System V2 (see LINK_TAGS/LINK_SYNERGIES below). 8 of these 21 heroes have a
+// direct legacy counterpart (blade_master, beast_lord, trickster, duelist, archmage,
+// frost_weaver, summoner, sniper) and keep the tag assigned during migration; the other 13
+// are assigned by role/attack_type fit against LINK_TAGS.intended_roles (documented per hero
+// below where the choice isn't obvious).
 const HERO_DEFS = {
-  fighter:      { name:'Fighter',      class_tier:1, cost:1, sprite:'BladeMaster', synergy:['Warrior'], attack_type:'physical',
+  fighter:      { name:'Fighter',      class_tier:1, cost:1, sprite:'BladeMaster', synergy:['Warrior'], attack_type:'physical', primaryLinkTag:'vanguard',
     stats:{ hp:500, p_atk:25, m_atk:0, p_def:30, m_def:15, move_speed:2.5, attack_speed:1.1, attack_range:1 },
     active_skill:{ name:'Power Strike', description:'โจมตีเป้าหมายสร้างความเสียหายกายภาพ 160% ของ P.Atk และลด P.Def ของเป้าหมาย 10% เป็นเวลา 4 วินาที' } },
-  knight:       { name:'Knight',       class_tier:2, evolves_from:'fighter', cost:3, sprite:'BeastLord', synergy:['Warrior','Guardian','Knight'], attack_type:'physical',
+  knight:       { name:'Knight',       class_tier:2, evolves_from:'fighter', cost:3, sprite:'BeastLord', synergy:['Warrior','Guardian','Knight'], attack_type:'physical', primaryLinkTag:'vanguard',
     stats:{ hp:850, p_atk:38, m_atk:0, p_def:55, m_def:32, move_speed:2.2, attack_speed:1.0, attack_range:1 },
     active_skill:{ name:"Guardian's Challenge", description:'ยั่วยุศัตรูในระยะ 2 ช่องเป็นเวลา 3 วินาที พร้อมได้รับโล่เท่ากับ 20% ของ Max HP และลดดาเมจที่ได้รับ 20% ระหว่างยั่วยุ' } },
-  berserker:    { name:'Berserker',    class_tier:2, evolves_from:'fighter', cost:3, sprite:'Duelist', synergy:['Warrior','Berserker','Bloodrage'], attack_type:'physical',
+  berserker:    { name:'Berserker',    class_tier:2, evolves_from:'fighter', cost:3, sprite:'Duelist', synergy:['Warrior','Berserker','Bloodrage'], attack_type:'physical', primaryLinkTag:'striker',
     stats:{ hp:720, p_atk:55, m_atk:0, p_def:32, m_def:20, move_speed:2.8, attack_speed:1.25, attack_range:1 },
     active_skill:{ name:'Blood Frenzy', description:'เพิ่ม Attack Speed 45% และ P.Atk 25% เป็นเวลา 6 วินาที หาก HP ต่ำกว่า 50% โบนัสทั้งสองเพิ่มเป็น 60%' } },
-  swordman:     { name:'Swordman',     class_tier:1, cost:1, sprite:'BladeMaster', synergy:['Swordsman'], attack_type:'physical',
+  swordman:     { name:'Swordman',     class_tier:1, cost:1, sprite:'BladeMaster', synergy:['Swordsman'], attack_type:'physical', primaryLinkTag:'striker',
     stats:{ hp:430, p_atk:32, m_atk:0, p_def:22, m_def:14, move_speed:2.7, attack_speed:1.25, attack_range:1 },
     active_skill:{ name:'Blade Arc', description:'ฟันกวาดศัตรูด้านหน้า สร้างความเสียหายกายภาพ 130% ของ P.Atk แก่ศัตรูสูงสุด 3 ตัว' } },
-  blade_master: { name:'Blade Master', class_tier:2, evolves_from:'swordman', cost:3, sprite:'BladeMaster', synergy:['Swordsman','Blade Master','Cleave'], attack_type:'physical',
+  blade_master: { name:'Blade Master', class_tier:2, evolves_from:'swordman', cost:3, sprite:'BladeMaster', synergy:['Swordsman','Blade Master','Cleave'], attack_type:'physical', primaryLinkTag:'vanguard', // per legacy_roster_migration.blademaster
     stats:{ hp:680, p_atk:58, m_atk:0, p_def:34, m_def:22, move_speed:2.7, attack_speed:1.35, attack_range:1 },
     active_skill:{ name:'Three-Tile Crescent', description:'ฟันกวาดเป็นแนวโค้งกว้าง 3 ช่องด้านหน้า สร้างความเสียหายกายภาพ 175% ของ P.Atk แก่ศัตรูทุกตัวในพื้นที่' } },
-  duelist:      { name:'Duelist',      class_tier:2, evolves_from:'swordman', cost:3, sprite:'Duelist', synergy:['Swordsman','Duelist','Executioner'], attack_type:'physical',
+  duelist:      { name:'Duelist',      class_tier:2, evolves_from:'swordman', cost:3, sprite:'Duelist', synergy:['Swordsman','Duelist','Executioner'], attack_type:'physical', primaryLinkTag:'striker',
     stats:{ hp:610, p_atk:62, m_atk:0, p_def:27, m_def:24, move_speed:3.0, attack_speed:1.55, attack_range:1 },
     active_skill:{ name:"Duelist's Verdict", description:'โจมตีศัตรูที่มี Max HP สูงที่สุด สร้างความเสียหายกายภาพ 190% ของ P.Atk และเพิ่มอีก 30% หากเป้าหมายมี HP มากกว่าผู้ใช้' } },
-  archer:       { name:'Archer',       class_tier:1, cost:1, sprite:'Sniper', synergy:['Archer'], attack_type:'physical',
+  archer:       { name:'Archer',       class_tier:1, cost:1, sprite:'Sniper', synergy:['Archer'], attack_type:'physical', primaryLinkTag:'ranger',
     stats:{ hp:330, p_atk:29, m_atk:0, p_def:12, m_def:15, move_speed:2.6, attack_speed:1.4, attack_range:4 },
     active_skill:{ name:'Piercing Arrow', description:'ยิงลูกธนูเป็นเส้นตรง สร้างความเสียหายกายภาพ 145% ของ P.Atk แก่ศัตรูทุกตัวในแนว โดยดาเมจลดลง 15% ต่อเป้าหมายที่ทะลุผ่าน' } },
-  sniper:       { name:'Sniper',       class_tier:2, evolves_from:'archer', cost:3, sprite:'Sniper', synergy:['Archer','Sniper','Longshot'], attack_type:'physical',
+  sniper:       { name:'Sniper',       class_tier:2, evolves_from:'archer', cost:3, sprite:'Sniper', synergy:['Archer','Sniper','Longshot'], attack_type:'physical', primaryLinkTag:'ranger',
     stats:{ hp:480, p_atk:68, m_atk:0, p_def:17, m_def:24, move_speed:2.3, attack_speed:1.0, attack_range:6 },
     active_skill:{ name:'Deadeye Shot', description:'ยิงเป้าหมายที่อยู่ไกลที่สุด สร้างความเสียหายกายภาพ 220% ของ P.Atk และเจาะ P.Def เพิ่ม 8% ต่อระยะห่าง 1 ช่อง สูงสุด 40%' } },
-  ranger:       { name:'Ranger',       class_tier:2, evolves_from:'archer', cost:3, sprite:'Sniper', synergy:['Archer','Ranger','Multishot'], attack_type:'physical',
+  ranger:       { name:'Ranger',       class_tier:2, evolves_from:'archer', cost:3, sprite:'Sniper', synergy:['Archer','Ranger','Multishot'], attack_type:'physical', primaryLinkTag:'ranger',
     stats:{ hp:540, p_atk:48, m_atk:0, p_def:22, m_def:26, move_speed:3.0, attack_speed:1.65, attack_range:5 },
     active_skill:{ name:'Triple Volley', description:'ยิงลูกธนูใส่ศัตรูสูงสุด 3 ตัว แต่ละดอกสร้างความเสียหายกายภาพ 90% ของ P.Atk หากมีเป้าหมายเดียว ลูกธนูทั้งสามจะโจมตีเป้าหมายเดียวโดยดอกที่สองและสามลดดาเมจลง' } },
-  mage:         { name:'Mage',         class_tier:1, cost:1, sprite:'Archmage', synergy:['Mage'], attack_type:'magic',
+  mage:         { name:'Mage',         class_tier:1, cost:1, sprite:'Archmage', synergy:['Mage'], attack_type:'magic', primaryLinkTag:'caster',
     stats:{ hp:300, p_atk:0, m_atk:36, p_def:9, m_def:24, move_speed:2.1, attack_speed:0.9, attack_range:4 },
     active_skill:{ name:'Arcane Burst', description:'ระเบิดพลังเวทรอบเป้าหมาย สร้างความเสียหายเวท 150% ของ M.Atk แก่ศัตรูในระยะ 1 ช่อง' } },
-  archmage:     { name:'Archmage',     class_tier:2, evolves_from:'mage', cost:3, sprite:'Archmage', synergy:['Mage','Archmage','Arcane'], attack_type:'magic',
+  archmage:     { name:'Archmage',     class_tier:2, evolves_from:'mage', cost:3, sprite:'Archmage', synergy:['Mage','Archmage','Arcane'], attack_type:'magic', primaryLinkTag:'caster',
     stats:{ hp:470, p_atk:0, m_atk:78, p_def:14, m_def:42, move_speed:2.0, attack_speed:0.85, attack_range:5 },
     active_skill:{ name:'Grand Arcane Inferno', description:'สร้างระเบิดเวทขนาดใหญ่รอบเป้าหมาย สร้างความเสียหายเวท 185% ของ M.Atk และเผาไหม้ต่ออีก 4 วินาที รวมความเสียหาย 60% ของ M.Atk' } },
-  frost_weaver: { name:'Frost Weaver', class_tier:2, evolves_from:'mage', cost:3, sprite:'FrostWeaver', synergy:['Mage','Frost','Controller'], attack_type:'magic',
+  frost_weaver: { name:'Frost Weaver', class_tier:2, evolves_from:'mage', cost:3, sprite:'FrostWeaver', synergy:['Mage','Frost','Controller'], attack_type:'magic', primaryLinkTag:'caster',
     stats:{ hp:520, p_atk:0, m_atk:62, p_def:18, m_def:48, move_speed:2.0, attack_speed:1.0, attack_range:5 },
     active_skill:{ name:'Frozen Domain', description:'สร้างความเสียหายเวท 135% ของ M.Atk แก่ศัตรูรอบเป้าหมาย ลด Move Speed และ Attack Speed 30% เป็นเวลา 4 วินาที ศัตรูที่ติด Slow อยู่แล้วจะถูก Freeze 1.5 วินาที' } },
-  summoner:     { name:'Summoner',     class_tier:1, cost:1, sprite:'Summoner', synergy:['Summoner'], attack_type:'magic',
+  summoner:     { name:'Summoner',     class_tier:1, cost:1, sprite:'Summoner', synergy:['Summoner'], attack_type:'magic', primaryLinkTag:'summoner',
     stats:{ hp:350, p_atk:0, m_atk:28, p_def:12, m_def:22, move_speed:2.2, attack_speed:1.0, attack_range:3 },
     active_skill:{ name:'Spirit Familiar', description:'อัญเชิญวิญญาณในช่องว่างข้างตัว วิญญาณมี HP เท่ากับ 35% ของผู้เรียก และโจมตีเวทด้วยพลัง 50% ของ M.Atk ของผู้เรียก' } },
-  beast_lord:   { name:'Beast Lord',   class_tier:2, evolves_from:'summoner', cost:3, sprite:'BeastLord', synergy:['Summoner','Beast','Dragon'], attack_type:'magic',
+  beast_lord:   { name:'Beast Lord',   class_tier:2, evolves_from:'summoner', cost:3, sprite:'BeastLord', synergy:['Summoner','Beast','Dragon'], attack_type:'magic', primaryLinkTag:'summoner',
     stats:{ hp:650, p_atk:0, m_atk:52, p_def:28, m_def:36, move_speed:2.3, attack_speed:1.0, attack_range:3 },
     active_skill:{ name:'Call Spirit Dragon', description:'อัญเชิญมังกรวิญญาณในช่องว่างข้างตัว มังกรมี HP เท่ากับ 60% ของ Beast Lord และทุกการโจมตีครั้งที่ 3 จะพ่นลมหายใจเวทเป็นแนว 2 ช่อง หากมังกรมีชีวิตอยู่แล้ว สกิลจะฟื้นฟู HP มังกร 40%' } },
-  spirit_blade: { name:'Spirit Blade', class_tier:2, evolves_from:'summoner', cost:3, sprite:'Duelist', synergy:['Summoner','Spirit','Duelist'], attack_type:'physical',
+  spirit_blade: { name:'Spirit Blade', class_tier:2, evolves_from:'summoner', cost:3, sprite:'Duelist', synergy:['Summoner','Spirit','Duelist'], attack_type:'physical', primaryLinkTag:'striker', // melee duelist-style unit despite the Summoner lineage — no pet of its own, plays like striker
     stats:{ hp:670, p_atk:57, m_atk:34, p_def:33, m_def:31, move_speed:2.9, attack_speed:1.45, attack_range:1 },
     active_skill:{ name:'Spirit Merge', description:'รวมร่างกับวิญญาณเป็นเวลา 7 วินาที เพิ่ม P.Atk 30% และ Attack Speed 35% พร้อมทำให้การโจมตีปกติสร้างดาเมจเวทเพิ่มเติม 20% ของ M.Atk' } },
-  acolyte:      { name:'Acolyte',      class_tier:1, cost:1, sprite:'FrostWeaver', synergy:['Support'], attack_type:'magic',
+  acolyte:      { name:'Acolyte',      class_tier:1, cost:1, sprite:'FrostWeaver', synergy:['Support'], attack_type:'magic', primaryLinkTag:'support',
     stats:{ hp:360, p_atk:0, m_atk:24, p_def:13, m_def:30, move_speed:2.2, attack_speed:0.95, attack_range:3 },
     active_skill:{ name:'Healing Light', description:'ฟื้นฟู HP ให้พันธมิตรที่มีเปอร์เซ็นต์ HP ต่ำที่สุดเท่ากับ 120% ของ M.Atk และเพิ่ม M.Def 10 เป็นเวลา 4 วินาที' } },
-  priest:       { name:'Priest',       class_tier:2, evolves_from:'acolyte', cost:3, sprite:'FrostWeaver', synergy:['Support','Priest','Healer'], attack_type:'magic',
+  priest:       { name:'Priest',       class_tier:2, evolves_from:'acolyte', cost:3, sprite:'FrostWeaver', synergy:['Support','Priest','Healer'], attack_type:'magic', primaryLinkTag:'support',
     stats:{ hp:590, p_atk:0, m_atk:58, p_def:22, m_def:55, move_speed:2.1, attack_speed:1.0, attack_range:4 },
     active_skill:{ name:'Divine Restoration', description:'ฟื้นฟู HP ให้พันธมิตรที่มีเปอร์เซ็นต์ HP ต่ำที่สุดเท่ากับ 220% ของ M.Atk และชำระล้างสถานะผิดปกติ 1 อย่าง หากมีพันธมิตรตาย Priest สามารถชุบชีวิตได้ 1 ครั้งต่อด่านด้วย HP 35%' } },
-  inquisitor:   { name:'Inquisitor',   class_tier:2, evolves_from:'acolyte', cost:3, sprite:'Archmage', synergy:['Support','Inquisitor','Judgment'], attack_type:'magic',
+  inquisitor:   { name:'Inquisitor',   class_tier:2, evolves_from:'acolyte', cost:3, sprite:'Archmage', synergy:['Support','Inquisitor','Judgment'], attack_type:'magic', primaryLinkTag:'support', // keeps its acolyte lineage's Support tag despite dealing decent magic damage
     stats:{ hp:610, p_atk:0, m_atk:66, p_def:28, m_def:44, move_speed:2.4, attack_speed:1.15, attack_range:4 },
     active_skill:{ name:'Holy Judgment', description:'โจมตีศัตรูที่มี HP ต่ำที่สุด สร้างความเสียหายเวท 175% ของ M.Atk และฟื้นฟู HP ให้พันธมิตรทั้งหมดรวมเท่ากับ 30% ของดาเมจที่สร้างได้' } },
-  merchant:     { name:'Merchant',     class_tier:1, cost:1, sprite:'Trickster', synergy:['Merchant'], attack_type:'physical',
+  merchant:     { name:'Merchant',     class_tier:1, cost:1, sprite:'Trickster', synergy:['Merchant'], attack_type:'physical', primaryLinkTag:'merchant',
     stats:{ hp:390, p_atk:21, m_atk:0, p_def:18, m_def:18, move_speed:2.4, attack_speed:1.15, attack_range:3 },
     active_skill:{ name:'Golden Opportunity', description:'ขว้างถุงเหรียญใส่ศัตรู สร้างความเสียหายกายภาพ 120% ของ P.Atk หากเป้าหมายตายภายใน 4 วินาที ได้รับทองโบนัส 1 เหรียญ สูงสุด 2 ครั้งต่อด่าน' } },
-  tycoon:       { name:'Tycoon',       class_tier:2, evolves_from:'merchant', cost:3, sprite:'Trickster', synergy:['Merchant','Tycoon','Economy'], attack_type:'physical',
+  tycoon:       { name:'Tycoon',       class_tier:2, evolves_from:'merchant', cost:3, sprite:'Trickster', synergy:['Merchant','Tycoon','Economy'], attack_type:'physical', primaryLinkTag:'merchant',
     stats:{ hp:650, p_atk:44, m_atk:0, p_def:34, m_def:36, move_speed:2.3, attack_speed:1.2, attack_range:4 },
     active_skill:{ name:'Profitable Contract', description:'ทำเครื่องหมายศัตรูที่มี HP ต่ำที่สุดเป็นเวลา 5 วินาที สร้างความเสียหายกายภาพ 140% ของ P.Atk หากเป้าหมายตายระหว่างติดเครื่องหมาย ได้รับทองโบนัส 2 เหรียญ และเพิ่มรายได้ดอกเบี้ยสูงสุดอีก 1 เหรียญในด่านถัดไป' } },
-  trickster:    { name:'Trickster',    class_tier:2, evolves_from:'merchant', cost:3, sprite:'Trickster', synergy:['Merchant','Trickster','Disruptor'], attack_type:'magic',
+  trickster:    { name:'Trickster',    class_tier:2, evolves_from:'merchant', cost:3, sprite:'Trickster', synergy:['Merchant','Trickster','Disruptor'], attack_type:'magic', primaryLinkTag:'merchant', // per legacy_roster_migration.trickster
     stats:{ hp:570, p_atk:0, m_atk:60, p_def:25, m_def:38, move_speed:2.8, attack_speed:1.35, attack_range:4 },
     active_skill:{ name:'Loaded Dice', description:'โยนลูกเต๋าเวทใส่พื้นที่เป้าหมาย สร้างความเสียหายเวท 140% ของ M.Atk และทำให้ศัตรูติด Stun 1.5 วินาที พร้อมขโมยบัฟเชิงบวก 1 อย่างจากศัตรูที่แข็งแกร่งที่สุดในพื้นที่' } },
 };
@@ -451,47 +459,176 @@ const ITEM_BASE = {
 };
 
 // ============================================================
-// ระบบ LINK (ซินเนอร์จีทีม) — มีฮีโร่ตามแท็กที่กำหนดครบบนกระดาน = ได้บัฟทั้งทีม
+// LINK SYSTEM V2 (LINK_SYSTEM_V2) — data-driven, instance-based team synergy.
+// Replaces the old SYNERGIES/HERO_TAGS system, which broke for any hero not in the original
+// 8-hero roster (tagCount stayed 0 for new classes) and stored Link state on the runtime unit
+// itself (u.linked), which reset every time a unit was recreated on the field. This version:
+//   - counts only each hero's single `primaryLinkTag` (never secondaryTags/def.synergy)
+//   - tracks Link selection via stable instanceId (GameState.linkedInstanceIds), not object refs,
+//     so it survives bench<->field moves and battle start/end without extra bookkeeping
+//   - only the highest tier of a given synergy applies (no tier-2 + tier-3 stacking), but
+//     different synergies stack freely
+//   - caps every effect type per system_rules so no single Link setup can dominate
 // ============================================================
-const SYNERGIES = [
-  { id:'trade_route', name:'สายสัมพันธ์ นักเวท–พ่อค้า–นักธนู',
-    desc:'มีฮีโร่สาย Mage + Merchant + Archer อย่างละ 1 ตัวบนกระดาน',
-    requires:{ mage:1, merchant:1, archer:1 },
-    dmgPct:10, armorPenPct:10, goldPerWave:3 },
-  { id:'arcane_duo', name:'คู่นักเวทอาร์เคน',
-    desc:'มีฮีโร่สาย Mage อย่างน้อย 2 ตัวบนกระดาน',
-    requires:{ mage:2 },
-    dmgPct:15 },
-  { id:'warband', name:'หมู่นักรบกายภาพ',
-    desc:'มีฮีโร่สาย Physical อย่างน้อย 3 ตัวบนกระดาน',
-    requires:{ physical:3 },
-    atkSpeedPct:10 },
+const MAX_LINK_SLOTS = MAX_LINK; // alias kept for readability against the LINK_SYSTEM_V2 schema
+const LINK_TAGS = {
+  vanguard: { label_th:'แนวหน้า' },
+  striker:  { label_th:'จู่โจม' },
+  ranger:   { label_th:'โจมตีไกล' },
+  caster:   { label_th:'เวทมนตร์' },
+  support:  { label_th:'สนับสนุน' },
+  summoner: { label_th:'อัญเชิญ' },
+  merchant: { label_th:'การค้า' },
+};
+const LINK_SYNERGIES = [
+  { id:'vanguard_link', name_th:'กำแพงแนวหน้า', primaryLinkTag:'vanguard',
+    tiers:[ { required:2, effects:{ damageReductionPct:7 } }, { required:3, effects:{ damageReductionPct:15 } } ] },
+  { id:'striker_link', name_th:'จังหวะสังหาร', primaryLinkTag:'striker',
+    tiers:[ { required:2, effects:{ atkSpeedPct:8 } }, { required:3, effects:{ atkSpeedPct:18 } } ] },
+  { id:'ranger_link', name_th:'ยิงทะลวง', primaryLinkTag:'ranger',
+    tiers:[ { required:2, effects:{ armorPen:8 } }, { required:3, effects:{ armorPen:18 } } ] },
+  { id:'caster_link', name_th:'กระแสอาร์เคน', primaryLinkTag:'caster',
+    tiers:[ { required:2, effects:{ dmgPct:10 } }, { required:3, effects:{ dmgPct:20 } } ] },
+  { id:'support_link', name_th:'คำอวยพรแห่งชีวิต', primaryLinkTag:'support',
+    tiers:[ { required:2, effects:{ maxHpPct:8 } }, { required:3, effects:{ maxHpPct:16 } } ] },
+  { id:'summoner_link', name_th:'พันธสัญญาอัญเชิญ', primaryLinkTag:'summoner',
+    tiers:[ { required:2, effects:{ dmgPct:5, maxHpPct:5 } }, { required:3, effects:{ dmgPct:10, maxHpPct:10 } } ] },
+  { id:'merchant_link', name_th:'เส้นทางการค้า', primaryLinkTag:'merchant',
+    tiers:[ { required:2, effects:{ goldPerVictory:1 } }, { required:3, effects:{ goldPerVictory:2 } } ] },
 ];
-function getLinkedUnits() { return placedUnits.filter((u) => u.linked); }
-function getActiveSynergies() {
-  // นับเฉพาะฮีโร่ที่ถูก "เลือกเข้า Link" (สูงสุด 3 ตัวจากที่วางในสนาม) ไม่ใช่ทุกตัวในสนาม
-  const tagCount = {};
-  getLinkedUnits().forEach((u) => {
-    (HERO_DEFS[u.heroKey]?.synergy || []).forEach((t) => { tagCount[t] = (tagCount[t] || 0) + 1; });
-  });
-  return SYNERGIES.filter((s) => Object.entries(s.requires).every(([tag, n]) => (tagCount[tag] || 0) >= n));
+// system_rules caps — applied once per stat in getTeamBuffs(), regardless of how many
+// different synergies contribute to that stat (e.g. dmgPct comes from both caster_link and
+// summoner_link and can stack, but never above DAMAGE_BONUS_CAP_PCT combined)
+const DAMAGE_REDUCTION_CAP_PCT = 20;
+const ATTACK_SPEED_BONUS_CAP_PCT = 25;
+const DAMAGE_BONUS_CAP_PCT = 25;
+const ARMOR_PENETRATION_CAP = 20;
+const ECONOMY_BONUS_CAP_PER_WAVE = 2;
+
+// ---- hero instance identity ----
+let nextInstanceSeq = 1;
+function createHeroInstance(heroKey) {
+  return { instanceId: 'inst_' + (nextInstanceSeq++), heroKey };
 }
-function toggleLink(u) {
-  if (phase !== 'shop') return;
-  if (u.linked) { u.linked = false; renderUI(); return; }
-  if (getLinkedUnits().length >= MAX_LINK) return; // เลือกได้สูงสุด 3 ตัว
-  u.linked = true;
+
+// ---- Link selection: instanceId is the only source of truth (GameState.linkedInstanceIds) ----
+let linkedInstanceIds = new Set();
+
+// Drops any instanceId no longer on the field and trims down to MAX_LINK_SLOTS if needed.
+function sanitizeLinkSelection() {
+  const validIds = new Set(placedUnits.filter((u) => u.alive !== false).map((u) => u.instanceId));
+  for (const id of [...linkedInstanceIds]) if (!validIds.has(id)) linkedInstanceIds.delete(id);
+  if (linkedInstanceIds.size > MAX_LINK_SLOTS) {
+    linkedInstanceIds = new Set([...linkedInstanceIds].slice(0, MAX_LINK_SLOTS));
+  }
+}
+
+function isInstanceLinked(instanceId) { return linkedInstanceIds.has(instanceId); }
+
+// Returns false (and shows the "Link เต็ม" UI feedback) when the selection would exceed
+// MAX_LINK_SLOTS — ui_requirements says a blocked 4th pick must never fail silently.
+function toggleLinkByInstanceId(instanceId) {
+  if (phase !== 'shop') return true;
+  if (linkedInstanceIds.has(instanceId)) { linkedInstanceIds.delete(instanceId); renderUI(); return true; }
+  if (linkedInstanceIds.size >= MAX_LINK_SLOTS) { showLinkFullWarning(); return false; }
+  linkedInstanceIds.add(instanceId);
   renderUI();
+  return true;
 }
-function getTeamBuffs() {
-  const buffs = { dmgPct:0, armorPenPct:0, atkSpeedPct:0, goldPerWave:0 };
-  getActiveSynergies().forEach((s) => {
-    buffs.dmgPct += s.dmgPct || 0;
-    buffs.armorPenPct += s.armorPenPct || 0;
-    buffs.atkSpeedPct += s.atkSpeedPct || 0;
-    buffs.goldPerWave += s.goldPerWave || 0;
+function showLinkFullWarning() {
+  const el = document.getElementById('linkHint');
+  if (!el) return;
+  clearTimeout(showLinkFullWarning._t);
+  el.textContent = `Link เต็มแล้ว (${MAX_LINK_SLOTS}/${MAX_LINK_SLOTS}) — คลิกฮีโร่ที่เลือกไว้เพื่อยกเลิกก่อน`;
+  el.classList.add('warn');
+  // reverts on its own after a moment — does not call renderUI() so it can't be
+  // stomped by another render happening to run mid-flash
+  showLinkFullWarning._t = setTimeout(() => {
+    el.classList.remove('warn');
+    el.textContent = `เลือกฮีโร่ในสนามเข้า Link ได้สูงสุด ${MAX_LINK_SLOTS} ตัว (${linkedInstanceIds.size}/${MAX_LINK_SLOTS}) — คลิกซ้ำเพื่อยกเลิก`;
+  }, 1600);
+}
+
+function getLinkedHeroInstances() {
+  return placedUnits.filter((u) => u.alive !== false && linkedInstanceIds.has(u.instanceId));
+}
+// Counts only primaryLinkTag (never secondaryTags/def.synergy — system_rules.counting_tag).
+// A hero missing primaryLinkTag counts under 'unassigned' (console.warn once per hero key)
+// so it can be selected into Link without crashing, but 'unassigned' has no LINK_SYNERGIES
+// entry so it never opens a bonus.
+const _warnedMissingTag = new Set();
+function getLinkTagCounts() {
+  const counts = {};
+  getLinkedHeroInstances().forEach((u) => {
+    const def = HERO_DEFS[u.heroKey];
+    let tag = def && def.primaryLinkTag;
+    if (!tag) {
+      tag = 'unassigned';
+      if (!_warnedMissingTag.has(u.heroKey)) {
+        console.warn(`[LinkV2] hero "${u.heroKey}" has no primaryLinkTag — counted as "unassigned" (no synergy bonus)`);
+        _warnedMissingTag.add(u.heroKey);
+      }
+    }
+    counts[tag] = (counts[tag] || 0) + 1;
   });
+  return counts;
+}
+// tier_behavior: highest_tier_only — for each synergy, pick the single highest tier the
+// current count satisfies (never stack tier 2 + tier 3 of the same synergy).
+function resolveActiveLinkTiers() {
+  const tagCounts = getLinkTagCounts();
+  const active = [];
+  LINK_SYNERGIES.forEach((syn) => {
+    const count = tagCounts[syn.primaryLinkTag] || 0;
+    let bestTier = null;
+    syn.tiers.forEach((t) => { if (count >= t.required && (!bestTier || t.required > bestTier.required)) bestTier = t; });
+    if (bestTier) active.push({ synergy: syn, tier: bestTier, count });
+  });
+  return active;
+}
+// different_synergies_can_stack: sums effects across distinct active synergies, then applies
+// the system_rules cap per stat (not per synergy) so no combination of Links can exceed it.
+function getTeamBuffs() {
+  const buffs = { dmgPct:0, armorPenPct:0, atkSpeedPct:0, damageReductionPct:0, maxHpPct:0, goldPerVictory:0 };
+  resolveActiveLinkTiers().forEach(({ tier }) => {
+    const e = tier.effects;
+    if (e.dmgPct) buffs.dmgPct += e.dmgPct;
+    if (e.armorPen) buffs.armorPenPct += e.armorPen;
+    if (e.atkSpeedPct) buffs.atkSpeedPct += e.atkSpeedPct;
+    if (e.damageReductionPct) buffs.damageReductionPct += e.damageReductionPct;
+    if (e.maxHpPct) buffs.maxHpPct += e.maxHpPct;
+    if (e.goldPerVictory) buffs.goldPerVictory += e.goldPerVictory;
+  });
+  buffs.dmgPct = Math.min(buffs.dmgPct, DAMAGE_BONUS_CAP_PCT);
+  buffs.armorPenPct = Math.min(buffs.armorPenPct, ARMOR_PENETRATION_CAP);
+  buffs.atkSpeedPct = Math.min(buffs.atkSpeedPct, ATTACK_SPEED_BONUS_CAP_PCT);
+  buffs.damageReductionPct = Math.min(buffs.damageReductionPct, DAMAGE_REDUCTION_CAP_PCT);
+  buffs.goldPerVictory = Math.min(buffs.goldPerVictory, ECONOMY_BONUS_CAP_PER_WAVE);
   return buffs;
+}
+// Frozen once per battle (state_model.combat_start_behavior) so mid-fight state never shifts
+// team-wide Link buffs — see applyPreCombatLinkBuffs()/applyCombatLinkModifiers() below.
+let combatLinkBuffs = null;
+// Applied once at battle start: recomputes maxHp from the immutable baseMaxHp every time
+// (calculation_rules.hp_application) so support_link's maxHpPct can never compound across
+// waves even if the player changes their Link setup between fights.
+function applyPreCombatLinkBuffs() {
+  combatLinkBuffs = getTeamBuffs();
+  placedUnits.forEach((u) => {
+    u.maxHp = Math.round(u.baseMaxHp * (1 + combatLinkBuffs.maxHpPct / 100));
+    u.hp = u.maxHp;
+  });
+}
+// Applied per-attack during combat: dmgPct/armorPen come from the attacker's team snapshot,
+// damageReductionPct comes from the defending team's snapshot (only meaningful when a player
+// hero is the target, i.e. an enemy is attacking it).
+function applyCombatLinkModifiers(rawDmg, attacker, target) {
+  const atkBuffs = attacker.team === 'player' ? combatLinkBuffs : null;
+  let dmg = rawDmg;
+  if (atkBuffs) dmg *= (1 + atkBuffs.dmgPct / 100);
+  dmg = mitigateDamage(dmg, attacker, target, atkBuffs ? atkBuffs.armorPenPct : 0);
+  if (target.team === 'player' && combatLinkBuffs) dmg *= (1 - combatLinkBuffs.damageReductionPct / 100);
+  return dmg;
 }
 // สถิติพื้นฐานของศัตรูทั่วไป (ก่อนสเกลตามด่าน) — ธีมกองทัพซากอารีน่าหิน + ค่าเกราะ (ลดดาเมจ %)
 const ENEMY_BASE = {
@@ -766,12 +903,11 @@ function updateUnit(u, dt) {
   if (d<=u.range) {
     u.atkCooldown -= dt;
     if (u.atkCooldown<=0) {
-      const buffs = u.team==='player' ? getTeamBuffs() : null;
-      u.atkCooldown = 1/(u.atkSpeed * (1 + (buffs ? buffs.atkSpeedPct/100 : 0)));
+      const atkSpeedPct = (u.team==='player' && combatLinkBuffs) ? combatLinkBuffs.atkSpeedPct : 0;
+      u.atkCooldown = 1/(u.atkSpeed * (1 + atkSpeedPct/100));
       u.animState='attack'; u.animTimer=0;
       let dmg = applyTrait(u, target, attackerRawAtk(u));
-      if (buffs) dmg *= (1 + buffs.dmgPct/100);
-      dmg = mitigateDamage(dmg, u, target, buffs ? buffs.armorPenPct : 0);
+      dmg = applyCombatLinkModifiers(dmg, u, target);
       target.hp -= dmg;
       const dir = gridToWorld(target.c,target.r).sub(u.group.position).normalize().multiplyScalar(0.12);
       u.body.position.x += dir.x;
@@ -819,18 +955,27 @@ function renderUI() {
   const stageLabelEl = document.getElementById('stageLabel');
   if (STAGE_LABEL[wave]) { stageLabelEl.textContent = STAGE_LABEL[wave]; stageLabelEl.style.display = ''; }
   else { stageLabelEl.style.display = 'none'; }
+  sanitizeLinkSelection(); // drop any instanceId no longer on the field before rendering
   const linkRowEl = document.getElementById('linkRow');
   linkRowEl.innerHTML = '';
-  getActiveSynergies().forEach((s) => {
-    const parts = [];
-    if (s.dmgPct) parts.push(`ดาเมจ+${s.dmgPct}%`);
-    if (s.armorPenPct) parts.push(`เจาะเกราะ+${s.armorPenPct}`);
-    if (s.atkSpeedPct) parts.push(`ความเร็วโจมตี+${s.atkSpeedPct}%`);
-    if (s.goldPerWave) parts.push(`ทอง+${s.goldPerWave}/ด่าน`);
+  const tagCounts = getLinkTagCounts();
+  const activeTierBySynergyId = {};
+  resolveActiveLinkTiers().forEach(({ synergy, tier }) => { activeTierBySynergyId[synergy.id] = tier; });
+  LINK_SYNERGIES.forEach((syn) => {
+    const count = tagCounts[syn.primaryLinkTag] || 0;
+    if (count === 0) return; // only show progress once at least 1 linked hero has this tag
+    const maxReq = syn.tiers[syn.tiers.length - 1].required;
+    const activeTier = activeTierBySynergyId[syn.id];
     const pill = document.createElement('div');
-    pill.className = 'linkPill';
-    pill.textContent = `🔗 ${s.name}`;
-    pill.title = `${s.desc}\n${parts.join(', ')}`;
+    pill.className = 'linkPill' + (activeTier ? ' active' : '');
+    const label = LINK_TAGS[syn.primaryLinkTag]?.label_th || syn.primaryLinkTag;
+    pill.textContent = `🔗 ${label} ${Math.min(count, maxReq)}/${maxReq}`;
+    if (activeTier) {
+      const effParts = Object.entries(activeTier.effects).map(([k, v]) => `${k} +${v}${k.endsWith('Pct')?'%':''}`);
+      pill.title = `${syn.name_th} (${activeTier.required} ตัว): ${effParts.join(', ')}`;
+    } else {
+      pill.title = `${syn.name_th} — ต้องการ ${syn.tiers[0].required} ตัวเพื่อเปิดโบนัสแรก`;
+    }
     linkRowEl.appendChild(pill);
   });
   document.getElementById('bottomUI').style.display = phase==='shop' ? 'flex' : 'none';
@@ -853,33 +998,40 @@ function renderUI() {
   rerollBtn.disabled = gold < 2 || ownedPool.length === 0;
 
   benchCardsEl.innerHTML = '';
-  benchHeroes.forEach((hkey, i) => {
-    const def = HERO_DEFS[hkey];
+  benchHeroes.forEach((inst, i) => {
+    const def = HERO_DEFS[inst.heroKey];
     const div = document.createElement('div');
     div.className = 'card' + (i===selectedBenchIdx ? ' selected' : '') + (fieldFull ? ' disabled' : '');
-    div.innerHTML = `<img src="${heroPortraitSrc(hkey)}"><div class="name">${def.name}</div><div class="tags">${tagLabel(hkey)}</div>`;
+    div.innerHTML = `<img src="${heroPortraitSrc(inst.heroKey)}"><div class="name">${def.name}</div><div class="tags">${tagLabel(inst.heroKey)}</div>`;
     div.dataset.benchIdx = i; // read by the pointerdown drag-to-place delegate below (tap-to-select fallback lives there too)
     benchCardsEl.appendChild(div);
   });
   hintEl.textContent = fieldFull
     ? `สนามเต็มแล้ว (${MAX_FIELD}/${MAX_FIELD}) — คลิกฮีโร่บนกระดานเพื่อถอนกลับม้านั่งก่อนวางตัวใหม่`
     : selectedBenchIdx>=0
-    ? `เลือก ${HERO_DEFS[benchHeroes[selectedBenchIdx]].name} แล้ว — คลิกช่องหญ้าเขียวบนกระดาน`
+    ? `เลือก ${HERO_DEFS[benchHeroes[selectedBenchIdx].heroKey].name} แล้ว — คลิกช่องหญ้าเขียวบนกระดาน`
     : (placedUnits.length===0 ? 'ยังไม่ได้วางฮีโร่ลงกระดาน' : benchFull ? 'ม้านั่งสำรองเต็มแล้ว — ซื้อฮีโร่เพิ่มไม่ได้จนกว่าจะวางลงกระดาน' : '');
 
-  const linkedCount = getLinkedUnits().length;
+  const linkedCount = linkedInstanceIds.size;
+  const linkedOrder = [...linkedInstanceIds]; // insertion order -> slot number 1..MAX_LINK_SLOTS
   const fieldCardsEl = document.getElementById('fieldCards');
   fieldCardsEl.innerHTML = '';
   placedUnits.forEach((u) => {
     const def = HERO_DEFS[u.heroKey];
+    const linked = isInstanceLinked(u.instanceId);
     const div = document.createElement('div');
-    const linkFull = linkedCount >= MAX_LINK && !u.linked;
-    div.className = 'card' + (u.linked ? ' linked' : '') + (linkFull ? ' disabled' : '');
-    div.innerHTML = `<img src="${heroPortraitSrc(u.heroKey)}"><div class="name">${def.name}</div><div class="tags">${tagLabel(u.heroKey)}</div><div class="linkBadge">🔗 Link</div>`;
-    div.onclick = () => toggleLink(u);
+    const linkFull = linkedCount >= MAX_LINK_SLOTS && !linked;
+    div.className = 'card' + (linked ? ' linked' : '') + (linkFull ? ' disabled' : '');
+    const tagInfo = def.primaryLinkTag ? (LINK_TAGS[def.primaryLinkTag]?.label_th || def.primaryLinkTag) : 'ยังไม่กำหนดสาย';
+    const slotNum = linked ? linkedOrder.indexOf(u.instanceId) + 1 : 0;
+    div.innerHTML = `<img src="${heroPortraitSrc(u.heroKey)}"><div class="name">${def.name}</div>` +
+      `<div class="tags">${tagInfo}</div><div class="linkBadge">🔗 Link ${slotNum || ''}</div>`;
+    div.onclick = () => toggleLinkByInstanceId(u.instanceId);
     fieldCardsEl.appendChild(div);
   });
-  document.getElementById('linkHint').textContent = `เลือกฮีโร่ในสนามเข้า Link ได้สูงสุด ${MAX_LINK} ตัว (${linkedCount}/${MAX_LINK}) — คลิกซ้ำเพื่อยกเลิก`;
+  const linkHintEl = document.getElementById('linkHint');
+  linkHintEl.classList.remove('warn');
+  linkHintEl.textContent = `เลือกฮีโร่ในสนามเข้า Link ได้สูงสุด ${MAX_LINK_SLOTS} ตัว (${linkedCount}/${MAX_LINK_SLOTS}) — คลิกซ้ำเพื่อยกเลิก`;
 }
 
 // Auto-merge: whenever the bench holds 3+ copies of the same tier-1 hero, remove those 3
@@ -892,7 +1044,7 @@ function checkAndMergeUnits() {
   while (mergedThisPass) {
     mergedThisPass = false;
     const counts = {};
-    benchHeroes.forEach((hkey) => { counts[hkey] = (counts[hkey] || 0) + 1; });
+    benchHeroes.forEach((inst) => { counts[inst.heroKey] = (counts[inst.heroKey] || 0) + 1; });
     for (const hkey in counts) {
       const def = HERO_DEFS[hkey];
       if (!def || def.class_tier !== 1 || counts[hkey] < 3) continue;
@@ -901,9 +1053,9 @@ function checkAndMergeUnits() {
       const chosen = evolutions[Math.floor(Math.random() * evolutions.length)];
       let removed = 0;
       for (let i = benchHeroes.length - 1; i >= 0 && removed < 3; i--) {
-        if (benchHeroes[i] === hkey) { benchHeroes.splice(i, 1); removed++; }
+        if (benchHeroes[i].heroKey === hkey) { benchHeroes.splice(i, 1); removed++; }
       }
-      benchHeroes.push(chosen);
+      benchHeroes.push(createHeroInstance(chosen));
       mergedThisPass = true; mergedAny = true;
       break; // bench mutated — rebuild counts fresh before continuing
     }
@@ -918,7 +1070,7 @@ function buyHero(hkey) {
   gold -= def.cost;
   ownedPool = ownedPool.filter(k => k !== hkey);
   shopOffers = shopOffers.filter(k => k !== hkey);
-  benchHeroes.push(hkey);
+  benchHeroes.push(createHeroInstance(hkey));
   checkAndMergeUnits();
   renderUI();
 }
@@ -931,20 +1083,21 @@ rerollBtn.onclick = () => {
   renderUI();
 };
 
-function placeHeroAt(hkey, c, r) {
+function placeHeroAt(benchIdx, c, r) {
   if (phase !== 'shop') return;               // วางลงกระดานได้เฉพาะช่วงเตรียมทีมก่อนสู้เท่านั้น
   if (placedUnits.length >= MAX_FIELD) return; // สนามเต็ม (สูงสุด 5 ตัว) — ต้องถอนตัวอื่นก่อน
-  const idx = benchHeroes.indexOf(hkey);
-  if (idx < 0) return;
-  benchHeroes.splice(idx, 1);
-  const def = HERO_DEFS[hkey];
+  const inst = benchHeroes[benchIdx];
+  if (!inst) return;
+  benchHeroes.splice(benchIdx, 1);
+  const def = HERO_DEFS[inst.heroKey];
   const s = def.stats;
   const u = makeUnit({ team:'player', name:def.name, sprite:def.sprite, c, r,
     hp:s.hp, pAtk:s.p_atk, mAtk:s.m_atk, pDef:s.p_def, mDef:s.m_def, attackType:def.attack_type,
-    atkSpeed:s.attack_speed, range:s.attack_range, moveSpeed:s.move_speed, heroKey:hkey,
+    atkSpeed:s.attack_speed, range:s.attack_range, moveSpeed:s.move_speed, heroKey:inst.heroKey,
+    instanceId: inst.instanceId, // same identity carries from bench to field (state_model.field_storage)
     equipment: [] }); // Priority 4 scaffold — up to 2 ITEM_BASE item ids per hero; not read by combat yet
+  u.baseMaxHp = s.hp; // immutable — Link maxHpPct is always recomputed from this, never compounded
   u.origC = c; u.origR = r;   // ไทล์ที่วางไว้ตอนแรก — ใช้สแนปกลับระหว่างด่าน (ดู resetForWave)
-  u.linked = false;           // ต้องเลือกเข้า Link เองทีหลัง (ดู toggleLink) ไม่ใช่นับอัตโนมัติ
   placedUnits.push(u);
   selectedBenchIdx = -1;
   renderUI();
@@ -955,7 +1108,8 @@ function unplaceUnit(u) {
   if (idx < 0) return;
   removeUnit(u);
   placedUnits.splice(idx, 1);
-  benchHeroes.push(u.heroKey);
+  linkedInstanceIds.delete(u.instanceId); // state_model.remove_from_field_behavior
+  benchHeroes.push(createHeroInstance(u.heroKey)); // new instance — the old Link identity ends here
   checkAndMergeUnits();
   renderUI();
 }
@@ -983,7 +1137,7 @@ renderer.domElement.addEventListener('click', (ev) => {
     if (!playerZone) return;
     if (occupied.has(key(c,r))) return;
     if (selectedBenchIdx < 0) return;
-    placeHeroAt(benchHeroes[selectedBenchIdx], c, r);
+    placeHeroAt(selectedBenchIdx, c, r);
   }
 });
 
@@ -1004,14 +1158,14 @@ function pickTileAtScreenPoint(clientX, clientY) {
 // doesn't move past the drag threshold.
 // ============================================================
 const GHOST_Y_OFFSET = 56; // px lifted above the pointer
-let benchDrag = null; // {hkey, idx, startX, startY, moved, pointerId, ghostEl}
+let benchDrag = null; // {idx, startX, startY, moved, pointerId, ghostEl} — idx is stable through one drag gesture
 
 document.addEventListener('dragstart', (e) => e.preventDefault()); // native drag/selection can fire mid-gesture on some browsers
 
 function startBenchGhost(ds, x, y) {
   const ghost = document.createElement('div');
   ghost.className = 'benchGhost';
-  ghost.innerHTML = `<img src="${heroPortraitSrc(ds.hkey)}">`;
+  ghost.innerHTML = `<img src="${heroPortraitSrc(benchHeroes[ds.idx].heroKey)}">`;
   document.body.appendChild(ghost);
   ghost.style.left = x + 'px';
   ghost.style.top = (y - GHOST_Y_OFFSET) + 'px';
@@ -1031,7 +1185,7 @@ benchCardsEl.addEventListener('pointerdown', (e) => {
   const idx = parseInt(card.dataset.benchIdx, 10);
   if (Number.isNaN(idx)) return;
   e.preventDefault();
-  benchDrag = { hkey: benchHeroes[idx], idx, startX: e.clientX, startY: e.clientY, moved: false, pointerId: e.pointerId, ghostEl: null };
+  benchDrag = { idx, startX: e.clientX, startY: e.clientY, moved: false, pointerId: e.pointerId, ghostEl: null };
 });
 document.addEventListener('pointermove', (e) => {
   if (!benchDrag || e.pointerId !== benchDrag.pointerId) return;
@@ -1049,7 +1203,7 @@ document.addEventListener('pointerup', (e) => {
     endBenchGhost(bd);
     const tile = pickTileAtScreenPoint(e.clientX, e.clientY);
     if (tile && tile.isTile && tile.playerZone && !occupied.has(key(tile.c, tile.r))) {
-      placeHeroAt(bd.hkey, tile.c, tile.r);
+      placeHeroAt(bd.idx, tile.c, tile.r);
     }
   } else {
     // tap (no drag) — same toggle-select behavior the old per-card onclick had
@@ -1085,6 +1239,7 @@ startBattleBtn.onclick = () => {
   if (placedUnits.length === 0) return;
   phase = 'battle';
   waveTimer = 0;
+  applyPreCombatLinkBuffs();
   spawnWave(wave);
   renderUI();
 };
@@ -1098,7 +1253,7 @@ function showResult(title, body, onContinue) {
 }
 
 function onWaveCleared() {
-  const reward = waveReward(wave) + getTeamBuffs().goldPerWave;
+  const reward = waveReward(wave) + (combatLinkBuffs ? combatLinkBuffs.goldPerVictory : 0);
   gold += reward;
   clearEnemies();
   if (wave >= WAVE_TOTAL) {

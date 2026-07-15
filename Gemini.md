@@ -35,10 +35,26 @@ Priority 1-7 ที่ `gemini_status.md`
 - `attackerRawAtk()`/`mitigateDamage()`: เลือก p_atk/m_atk ตาม `attack_type` แล้วหักด้วย
   `p_def`/`m_def` แบบลบตรงๆ (ฮีโร่ใหม่) — มอนสเตอร์/บอสเดิมที่มีแค่ `armor` (%) ยังใช้สูตรเดิม
   ไม่เปลี่ยน (แยกพาธตาม target ที่มี `armor` หรือไม่ กันบาลานซ์มอนสเตอร์เดิมพัง)
-- **ระบบ Link bonus เดิม (`SYNERGIES`: trade_route/arcane_duo/warband) เป็น inert แล้ว** —
-  synergy tag ย้ายไปอยู่ใน `def.synergy` ของแต่ละฮีโร่ (แทน `HERO_TAGS` เดิม) แต่ tag vocabulary
-  ใหม่ (Warrior/Guardian/Swordsman ฯลฯ) ไม่ตรงกับคอมโบเดิมเลย ยังไม่ได้ออกแบบคอมโบใหม่ให้
-  (เป็นการตัดสินใจ balance ที่ต้องถามก่อน ไม่ได้ทำเอง)
+
+**Link System V2 (data-driven, instance-based — เสร็จแล้ว แทนที่ระบบเดิมทั้งหมด)**
+- ฮีโร่แต่ละตัวมี `primaryLinkTag` (vanguard/striker/ranger/caster/support/summoner/merchant)
+  เป็น tag เดียวที่นับเข้า Link — `def.synergy[]` เดิมเป็นแค่ label โชว์ผล ไม่ถูกนับ
+- Bench เก็บเป็น hero instance `{instanceId, heroKey}` (`createHeroInstance`) แทน heyKey ตรงๆ
+  ทำให้แยกฮีโร่ซ้ำกันบน bench/field ออกจากกันได้ (`placeHeroAt` รับ bench index แทน heroKey)
+- `linkedInstanceIds` (Set) คือ source of truth เดียวว่าฮีโร่ตัวไหนถูกเลือกเข้า Link —
+  `toggleLinkByInstanceId`/`sanitizeLinkSelection` (ล้าง id ที่ตัวลงจากสนามไปแล้วอัตโนมัติ)/
+  `showLinkFullWarning` (แจ้งเตือนกระพริบเองเมื่อกดตัวที่ 4 ตอน Link เต็ม 3/3)
+- `LINK_SYNERGIES`: 7 สาย ตาม tag, แต่ละสายมี tier2/tier3 — เปิดแค่ tier สูงสุดที่ถึงเกณฑ์เท่านั้น
+  (ไม่ stack tier ซ้อนกันในสายเดียวกัน) แต่ **สายที่ต่างกันได้ stack กัน** แล้ว cap รวมต่อสเตต
+  (dmgPct/atkSpeedPct สูงสุด 25%, armorPen/damageReduction สูงสุด 20%, goldPerVictory สูงสุด 2/wave)
+- Buff freeze ต่อไฟต์: `applyPreCombatLinkBuffs()` (เรียกตอนกด "เริ่มการต่อสู้" ก่อน spawnWave)
+  ล็อค `combatLinkBuffs` ทั้งไฟต์ และคำนวณ maxHp ใหม่จาก `baseMaxHp` (ค่าคงที่) ทุกครั้ง —
+  กัน maxHpPct ทบไปเรื่อยๆ ข้ามด่าน — `applyCombatLinkModifiers()` ใช้ snapshot นี้ตอนคำนวณดาเมจ
+  แต่ละครั้งแทนการเรียก `getTeamBuffs()` สดๆ ระหว่างไฟต์
+- ทดสอบผ่าน Playwright ครบทั้ง 9 acceptance scenarios ของ spec (highest-tier-only, ไม่ double-count
+  ข้าม tag, fallback 'unassigned' ตอนฮีโร่ไม่มี primaryLinkTag, ลิงก์หลุดอัตโนมัติเมื่อถอนฮีโร่
+  ออกจากสนาม, HP ไม่ทบเมื่อเรียก applyPreCombatLinkBuffs ซ้ำ, merchant gold cap ที่ 2/wave,
+  บล็อกตัวที่ 4 พร้อมข้อความเตือน, เล่นจริงหลายด่านรวมด่านบอสที่ speed x4 ไม่มี NaN/error)
 
 **Camera / UX**
 - `CAMERA_ZOOM = 5.0` (เดิม 7.2) — กระดาน 8x8 เต็มจอมากขึ้น ตรวจสอบแล้วไม่โดนขอบ HUD
