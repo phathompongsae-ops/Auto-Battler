@@ -614,7 +614,8 @@
     weaponOffers:[], // 3-4 post-win weapon shop offers (cleared unbought at next battle start)
     weaponShopOpen:false, // ShowWeaponShopPopup() modal visibility
     inventory:[],    // purchased weapons not yet equipped on a hero (drag from tray to equip)
-    currentBossId:null // picked by pickBossId() at battle start on boss waves (5/10/15) — placeholder, unused in combat yet
+    currentBossId:null, // picked by pickBossId() at battle start on boss waves (5/10/15) — placeholder, unused in combat yet
+    currentBoss:null    // resolved BOSS_POOL entry (name/hp/atk) for currentBossId, via getBossData()
   };
   const board = []; // board[r][c] = {hero, sprite, shadow} | null
   for(let r=0;r<BOARD_N;r++){ board.push(new Array(BOARD_N).fill(null)); }
@@ -632,19 +633,53 @@
     return 1;
   }
 
-  /* ============================== boss spawn scaffold (placeholder — stats/sprite come later) ==============================
-     Structure only, per game design request: picks the boss ID that a future spawnWave()
-     revision will actually use to spawn a real boss unit. No combat/visual behavior is
-     wired up yet — real stats + a real BOSSES[id] entry land once the design is ready. */
-  const BOSS_STAGE_POOL = {
+  /* ============================== boss spawn scaffold (placeholder — sprite/combat AI come later) ==============================
+     Real name/hp/atk per game design data. Mechanics are documented as comments only —
+     not implemented as combat logic yet (no push/stun/warp/target-switch behavior wired up).
+     No spawnWave()/combat integration yet either: picking still only resolves data,
+     it doesn't spawn a boss unit onto the board. */
+  const BOSS_POOL = [
+    // Stage 5 — Stone Warden: slow armored guardian; punishes melee units stacked in one
+    // spot in front of it. Every 4th attack = Shield Slam (frontal AoE + 1-tile knockback,
+    // or Stun if there's no tile to push into). Counter: spread melee sideways, don't line
+    // up Tank and Carry.
+    { id:'boss_ph_5a', name:'Stone Warden', hp:900, atk:32 },
+    // Stage 5 — Bone Dragon Whelp: mid-range, punishes backline standing in a straight line.
+    // Every 7s = Bone Breath (line attack at furthest hero + temporary defense shred). If
+    // surrounded by melee on all sides, uses Wing Sweep (knockback around itself). Counter:
+    // keep backline off a single line, don't fully surround the boss.
+    { id:'boss_ph_5b', name:'Bone Dragon Whelp', hp:760, atk:28 },
+    // Stage 10 — Arena Golem: huge HP/armor, targets highest-ATK hero directly. Seismic Line
+    // = line attack at the highest-ATK hero; every 25% HP lost, its heavy armor faces
+    // whichever side dealt the most damage (that side takes less, the opposite side takes
+    // more). Counter: Tank taunts from the front, keep Carry on the opposite side.
+    { id:'boss_ph_10a', name:'Arena Golem', hp:1650, atk:40 },
+    // Stage 10 — Shadow Huntress: fast, dives the backline to pick off an isolated Carry. At
+    // battle start, marks the ranged/highest-ATK hero, then warps to hit it from the side or
+    // behind; an isolated target (no ally adjacent) takes bonus damage. Counter: keep a
+    // guard adjacent to Carry, avoid parking a damage dealer alone in a corner.
+    { id:'boss_ph_10b', name:'Shadow Huntress', hp:1150, atk:36 },
+    // Stage 15 — Immortal Champion: the arena's ancient champion; tests positioning, Carry
+    // protection, and front/backline balance all at once. King's Judgment = AoE centered on
+    // the highest-HP hero (so don't stand Tank next to Carry). Chain of Fate links two
+    // heroes to share damage. Battle Instinct = switches to the highest-DPS target after 3
+    // hits on its current target. Counter: space Tank away from backline, guard Carry from
+    // all sides, don't cluster key heroes together.
+    { id:'boss_champion_big', name:'Immortal Champion', hp:3200, atk:48 }
+  ];
+  const BOSS_POOL_BY_ID = {};
+  BOSS_POOL.forEach(b => { BOSS_POOL_BY_ID[b.id] = b; });
+  function getBossData(id){ return BOSS_POOL_BY_ID[id] || null; }
+
+  const STAGE_PLAN = {
     5:  ['boss_ph_5a', 'boss_ph_5b'],
     10: ['boss_ph_10a', 'boss_ph_10b'],
     15: ['boss_champion_big'] // locked — only one choice
   };
   function pickBossId(wave){
-    const pool = BOSS_STAGE_POOL[wave];
-    if(!pool || !pool.length) return null;
-    return pool[Math.floor(Math.random()*pool.length)];
+    const ids = STAGE_PLAN[wave];
+    if(!ids || !ids.length) return null;
+    return ids[Math.floor(Math.random()*ids.length)];
   }
 
   /* ============================== rendering: HUD / bench / shop / synergy / team ============================== */
@@ -1866,11 +1901,14 @@
             allies.push(u);
           }
         }
-        // placeholder boss-ID pick for stage 5/10/15 — not yet wired into actual spawning/stats
+        // placeholder boss-ID pick for stage 5/10/15 — resolves real name/hp/atk from BOSS_POOL,
+        // but still not wired into actual spawning/combat (no boss unit is placed on the board yet)
         state.currentBossId = pickBossId(state.wave);
-        if(state.currentBossId){
-          console.info('[Boss placeholder] wave '+state.wave+' picked:', state.currentBossId);
-          toast('[Boss Placeholder] Wave '+state.wave+' สุ่มได้: '+state.currentBossId, 2600);
+        state.currentBoss = state.currentBossId ? getBossData(state.currentBossId) : null;
+        if(state.currentBoss){
+          const b = state.currentBoss;
+          console.info('[Boss placeholder] wave '+state.wave+' picked:', b.id, b);
+          toast('[Boss Placeholder] Wave '+state.wave+' สุ่มได้: '+b.name+' (HP '+b.hp+' / ATK '+b.atk+')', 2600);
         }
         spawnWave();
         combatRunning = true; state.phase='combat'; combatView=allies;
