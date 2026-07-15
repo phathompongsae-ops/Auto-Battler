@@ -14,7 +14,7 @@
        board always keeps the majority of the screen on any device/viewer */
     --slot:clamp(34px,8.5vh,58px);
     --round:clamp(44px,11vh,88px);
-    --pic:clamp(32px,11vh,140px);
+    --pic:clamp(38px,15vh,180px);
     --side:clamp(64px,9vw,118px);
     position:fixed;inset:0;
     display:grid;
@@ -73,12 +73,12 @@
   .round{pointer-events:auto;border:2px solid #98723a;border-radius:50%;width:var(--round);height:var(--round);background:radial-gradient(circle,#5c4119,#20150b 75%);color:#ffe6a0;font-weight:900;font-size:9px;line-height:1.5;display:flex;flex-direction:column;align-items:center;justify-content:center}
   .round small{font-size:9px;color:#ffd873}
   /* compact centered card strip like the reference — not edge-to-edge */
-  .shop{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;width:min(100%,62vw,860px);margin:0 auto}
+  .shop{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;width:min(100%,52vw,740px);margin:0 auto}
   .card{pointer-events:auto;border:1px solid #80643a;border-radius:9px;background:#14161a;text-align:center;padding:0;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 3px 8px #0009,inset 0 0 0 1px #0006}
   .card>b{display:block;font-size:9px;font-weight:800;color:#f3ead2;padding:3px 2px;background:#0000004f;border-bottom:1px solid #ffffff12;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:.03em}
   .card .pic{position:relative;height:var(--pic);overflow:hidden}
-  .card .pic canvas{width:100%;height:100%;object-fit:cover;object-position:50% 12%;filter:drop-shadow(0 3px 3px #0008)}
-  .card .tags{display:flex;flex-direction:column;align-items:flex-start;gap:1px;padding:2px 7px 1px;min-height:10px}
+  .card .pic canvas{width:100%;height:100%;object-fit:contain;object-position:50% 100%;filter:drop-shadow(0 3px 3px #0008)}
+  .card .tags{display:flex;flex-direction:column;align-items:center;gap:1px;padding:2px 4px 1px;min-height:10px}
   .card .tags span{display:flex;align-items:center;gap:4px;font-size:7px;font-weight:700;color:#d8cfae}
   .card .tags i{width:8px;height:8px;border-radius:3px;flex:none;box-shadow:inset 0 -1px 1px #0007}
   .card button{display:flex;align-items:center;justify-content:center;gap:4px;margin:2px 5px 5px;border:1px solid #8a6c39;border-radius:6px;background:linear-gradient(#3d3016,#241c0e);color:#ffd873;font-size:9px;font-weight:900;padding:3px 0}
@@ -213,16 +213,17 @@
     }
   };
 
-  // Class-1 roster (2 gold each) — art set from the chibi card batch
+  // Class-1 roster (2 gold each) — art set from the chibi card batch.
+  // `card` = the card background hue; all 8 are distinct per design request
   const HEROES = [
-    {name:'Mage',     cls:'Mage',    tags:['Mage','Forest'],     color:'#6a4a9c', hair:'#241b30'},
-    {name:'Fighter',  cls:'Warrior', tags:['Warrior','Forest'],  color:'#a8502f', hair:'#4a2b18'},
-    {name:'Swordman', cls:'Warrior', tags:['Warrior','Forest'],  color:'#5577a8', hair:'#6a4a2c'},
-    {name:'Acolyte',  cls:'Mage',    tags:['Mage','Forest'],     color:'#c9a84c', hair:'#e8d8a8'},
-    {name:'Priestess',cls:'Mage',    tags:['Mage','Forest'],     color:'#2f8fd6', hair:'#efe6c8'},
-    {name:'Archer',   cls:'Ranger',  tags:['Ranger','Forest'],   color:'#4a7a3c', hair:'#5a3c22'},
-    {name:'Summoner', cls:'Mage',    tags:['Mage','Forest'],     color:'#2f4f8a', hair:'#2a2320'},
-    {name:'Merchant', cls:'Warrior', tags:['Merchant','Forest'], color:'#b07a3c', hair:'#4a3320'}
+    {name:'Mage',     cls:'Mage',    tags:['Mage','Forest'],     color:'#6a4a9c', hair:'#241b30', card:'#5b2f8a'},
+    {name:'Fighter',  cls:'Warrior', tags:['Warrior','Forest'],  color:'#a8502f', hair:'#4a2b18', card:'#8a2f26'},
+    {name:'Swordman', cls:'Warrior', tags:['Warrior','Forest'],  color:'#5577a8', hair:'#6a4a2c', card:'#2e4f8e'},
+    {name:'Acolyte',  cls:'Mage',    tags:['Mage','Forest'],     color:'#c9a84c', hair:'#e8d8a8', card:'#8a6d1f'},
+    {name:'Priestess',cls:'Mage',    tags:['Mage','Forest'],     color:'#2f8fd6', hair:'#efe6c8', card:'#1f7a8a'},
+    {name:'Archer',   cls:'Ranger',  tags:['Ranger','Forest'],   color:'#4a7a3c', hair:'#5a3c22', card:'#2f7a34'},
+    {name:'Summoner', cls:'Mage',    tags:['Mage','Forest'],     color:'#2f4f8a', hair:'#2a2320', card:'#8a2f6a'},
+    {name:'Merchant', cls:'Warrior', tags:['Merchant','Forest'], color:'#b07a3c', hair:'#4a3320', card:'#9c5a1f'}
   ];
 
   /* real art assets (per-hero, optional) — heroes without files here keep the
@@ -354,23 +355,6 @@
     ctx.beginPath();ctx.ellipse(w*.57,h*.25,w*.025,h*.02,0,0,Math.PI*2);ctx.fill();
     // class weapon accent
     if(CLASS_BADGE[hero.cls]) CLASS_BADGE[hero.cls](ctx, w*.82, h*.55, w*.30);
-    portraitCache.set(key,c);
-    return c;
-  }
-
-  // card bust: upper part of the body art so the chibi face reads large,
-  // like the reference card design
-  function bustPortrait(hero){
-    const bmp = heroBitmaps[hero.name] && heroBitmaps[hero.name].body;
-    const key = hero.name+'|bust'+(bmp?'|a':'');
-    if(portraitCache.has(key)) return portraitCache.get(key);
-    const srcCv = bmp ? null : bodyPortrait(hero);
-    const sw = bmp ? bmp.width : srcCv.width;
-    const sh = bmp ? bmp.height : srcCv.height;
-    const cutH = Math.round(sh*.56); // head + chest
-    const c = document.createElement('canvas'); c.width = sw; c.height = cutH;
-    const ctx = c.getContext('2d');
-    ctx.drawImage(bmp || srcCv, 0, 0, sw, cutH, 0, 0, sw, cutH);
     portraitCache.set(key,c);
     return c;
   }
@@ -537,13 +521,14 @@
     state.offers.forEach((hero, idx)=>{
       const d = document.createElement('div');
       d.className = 'card';
-      // reference-style frame: deep dark panel tinted with the class color
-      d.style.background = 'linear-gradient('+mixHex('#181b20',hero.color,.24)+' 0%,'+mixHex('#0d0f12',hero.color,.10)+' 100%)';
-      d.style.borderColor = mixHex('#b08d4a',hero.color,.38);
+      // vertical card: rich per-hero background color (8 distinct hues)
+      const cc = hero.card || hero.color;
+      d.style.background = 'linear-gradient('+mixHex(cc,'#0d0f12',.18)+' 0%,'+mixHex(cc,'#0d0f12',.62)+' 100%)';
+      d.style.borderColor = mixHex('#c9a04c',cc,.3);
       const name = document.createElement('b'); name.textContent = hero.name; d.appendChild(name);
       const pic = document.createElement('div'); pic.className='pic';
-      pic.style.background = 'radial-gradient(ellipse at 50% 45%,'+mixHex('#181b20',hero.color,.5)+' 0%,transparent 75%)';
-      pic.appendChild(cloneCanvas(bustPortrait(hero)));
+      pic.style.background = 'radial-gradient(ellipse at 50% 62%,'+mixHex(cc,'#ffffff',.14)+'33 0%,transparent 70%)';
+      pic.appendChild(cloneCanvas(bodyPortrait(hero)));
       d.appendChild(pic);
       const tags = document.createElement('div'); tags.className='tags';
       hero.tags.forEach(t=>{
