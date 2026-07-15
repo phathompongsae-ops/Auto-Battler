@@ -14,7 +14,7 @@
        board always keeps the majority of the screen on any device/viewer */
     --slot:clamp(34px,8.5vh,58px);
     --round:clamp(44px,11vh,88px);
-    --pic:clamp(38px,15vh,180px);
+    --pic:clamp(34px,13vh,150px);
     --side:clamp(64px,9vw,118px);
     position:fixed;inset:0;
     display:grid;
@@ -73,7 +73,7 @@
   .round{pointer-events:auto;border:2px solid #98723a;border-radius:50%;width:var(--round);height:var(--round);background:radial-gradient(circle,#5c4119,#20150b 75%);color:#ffe6a0;font-weight:900;font-size:9px;line-height:1.5;display:flex;flex-direction:column;align-items:center;justify-content:center}
   .round small{font-size:9px;color:#ffd873}
   /* compact centered card strip like the reference — not edge-to-edge */
-  .shop{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;width:min(100%,52vw,740px);margin:0 auto}
+  .shop{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:7px;width:min(100%,45vw,620px);margin:0 auto}
   .card{pointer-events:auto;border:1px solid #80643a;border-radius:9px;background:#14161a;text-align:center;padding:0;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 3px 8px #0009,inset 0 0 0 1px #0006}
   .card>b{display:block;font-size:9px;font-weight:800;color:#f3ead2;padding:3px 2px;background:#0000004f;border-bottom:1px solid #ffffff12;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:.03em}
   .card .pic{position:relative;height:var(--pic);overflow:hidden}
@@ -240,7 +240,9 @@
   };
   const MON_ASSETS = {
     Slime:'assets/v5/mon_slime.png',
-    Wolf:'assets/v5/mon_wolf.png'
+    Wolf:'assets/v5/mon_wolf.png',
+    Imp:'assets/v5/mon_imp.png',
+    Orc:'assets/v5/mon_orc.png'
   };
   const heroBitmaps = {}; // name -> {face:ImageBitmap, body:ImageBitmap}
   const monBitmaps = {};  // type -> ImageBitmap
@@ -521,25 +523,17 @@
     state.offers.forEach((hero, idx)=>{
       const d = document.createElement('div');
       d.className = 'card';
-      // vertical card: rich per-hero background color (8 distinct hues)
+      // two-tone card like the reference: dark edges, bright glow behind
+      // the character (8 distinct hues per hero)
       const cc = hero.card || hero.color;
-      d.style.background = 'linear-gradient('+mixHex(cc,'#0d0f12',.18)+' 0%,'+mixHex(cc,'#0d0f12',.62)+' 100%)';
+      d.style.background =
+        'radial-gradient(ellipse 90% 55% at 50% 46%,'+mixHex(cc,'#ffffff',.30)+' 0%,'
+        +mixHex(cc,'#0d0f12',.18)+' 62%,'+mixHex(cc,'#0d0f12',.62)+' 100%)';
       d.style.borderColor = mixHex('#c9a04c',cc,.3);
       const name = document.createElement('b'); name.textContent = hero.name; d.appendChild(name);
       const pic = document.createElement('div'); pic.className='pic';
-      pic.style.background = 'radial-gradient(ellipse at 50% 62%,'+mixHex(cc,'#ffffff',.14)+'33 0%,transparent 70%)';
       pic.appendChild(cloneCanvas(bodyPortrait(hero)));
       d.appendChild(pic);
-      const tags = document.createElement('div'); tags.className='tags';
-      hero.tags.forEach(t=>{
-        const sp = document.createElement('span');
-        const dot = document.createElement('i');
-        dot.style.background = TAG_COLORS[t] || '#999';
-        sp.appendChild(dot);
-        sp.appendChild(document.createTextNode(t));
-        tags.appendChild(sp);
-      });
-      d.appendChild(tags);
       const btn = document.createElement('button');
       const coin = document.createElement('span'); coin.className='coin';
       btn.appendChild(coin);
@@ -1065,10 +1059,10 @@
         Mage:   {hp:80,  atk:11, range:3, aspd:0.9, threat:1.0, ms:2.0}
       };
       const MONSTERS = {
-        Slime:{hp:55,  atk:6,  range:1, aspd:0.8, threat:1.0, ms:1.6},
-        Wolf: {hp:70,  atk:7,  range:1, aspd:1.0, threat:1.0, ms:2.8},
-        Imp:  {hp:60,  atk:8,  range:3, aspd:1.0, threat:1.0, ms:2.0},
-        Orc:  {hp:130, atk:13, range:1, aspd:0.8, threat:1.6, ms:1.8}
+        Slime:{hp:55,  atk:6,  range:1, aspd:0.8, threat:1.0, ms:1.6, size:1.0},
+        Wolf: {hp:70,  atk:7,  range:1, aspd:1.0, threat:1.0, ms:2.8, size:1.0},
+        Imp:  {hp:60,  atk:8,  range:3, aspd:1.0, threat:1.0, ms:2.0, size:1.0},
+        Orc:  {hp:130, atk:13, range:1, aspd:0.8, threat:1.6, ms:1.8, size:1.3} // tank reads bigger on board
       };
       const ATK_MIN_INTERVAL = 1/3;
 
@@ -1263,8 +1257,10 @@
           const monCv = monsterBody(type);
           const tex = new THREE_.CanvasTexture(monCv);
           const spr = new THREE_.Sprite(new THREE_.SpriteMaterial({map:tex, transparent:true}));
-          let sprW = 1.4*monCv.width/monCv.height, sprH = 1.4;
-          if(sprW > 1.15){ sprH *= 1.15/sprW; sprW = 1.15; } // squat monsters (slime) stay tile-sized
+          const msize = MONSTERS[type].size || 1;
+          let sprW = 1.4*msize*monCv.width/monCv.height, sprH = 1.4*msize;
+          const maxW = 1.15*msize;
+          if(sprW > maxW){ sprH *= maxW/sprW; sprW = maxW; } // squat monsters (slime) stay tile-sized
           spr.scale.set(sprW, sprH, 1);
           const p = tilePos(r,c2);
           spr.position.set(p.x, .07 + sprH/2, p.z);
