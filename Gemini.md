@@ -2,10 +2,29 @@
 
 บันทึกโปรเจกต์สำหรับผู้ช่วย AI อื่น (Gemini) ที่อาจเข้ามาต่องานบนโปรเจกต์นี้ทีหลัง
 ไฟล์เกมหลักคือ `threejs-2_5d-clean-v5.html` (Three.js + vanilla JS, ไฟล์เดียวจบ)
-บน branch `claude/threejs-2-5d-clean-v5-e80mbk` — ดูภาพรวมโปรเจกต์เต็มที่ `GDD.md`
-และประวัติงานของ Claude ที่ `CLAUDE_HANDOFF.md`
+บน branch `claude/threejs-2-5d-clean-v5-e80mbk` — ดูภาพรวมโปรเจกต์เต็มที่ `GDD.md`,
+ประวัติงานของ Claude ที่ `CLAUDE_HANDOFF.md`, และแผนงาน Priority 1-7 ที่ `gemini_status.md`
 
-## อัปเดตล่าสุด: ลดร้านค้าฮีโร่จาก 5 ช่อง เหลือ 3 ช่อง
+## Priority 1 (gemini_status.md): Stabilize 15-stage run — เสร็จแล้ว
+
+**ขอบเขต**: ทดสอบ flow เกมจริงตั้งแต่ wave 1 ถึง 15 หา error/404 ใน console แล้วแก้ให้หมด
+ไม่แตะ logic ระบบอื่นที่ยังไม่ถึงคิว (merge/equipment/skill/modularization รอ Priority 3-7)
+
+**บั๊กที่เจอและแก้** (ทั้งหมดอยู่ใน `threejs-2_5d-clean-v5.html`):
+1. `loadWeaponAtlas()` ถูกเรียกตอน boot ทุกครั้ง แต่ `assets/icons/weapons/weapon_icons.webp`
+   และ `.json` ยังไม่มีไฟล์จริงในโปรเจกต์ → 404 ทุกครั้งที่เปิดเกม แก้โดยเอาการเรียกใช้ตอน boot
+   ออกก่อน (เก็บฟังก์ชันไว้เฉยๆ) จนกว่าไฟล์ atlas จริงจะมา — ไอคอนอาวุธยังทำงานปกติผ่าน
+   fallback วาดด้วย canvas เดิม (`weaponIconCanvas()`)
+2. ไม่มี `<link rel="icon">` → เบราว์เซอร์ยิง request `favicon.ico` อัตโนมัติแล้ว 404 ขึ้น
+   console เป็น error เสมอ แก้โดยเพิ่ม favicon แบบ inline SVG data-URI (ไม่มี asset ไฟล์เพิ่ม)
+
+**ทดสอบแล้ว**: รัน flow จริงผ่าน Playwright (ซื้อฮีโร่/อัปเลเวล/วางกระดาน/ต่อสู้/ซื้ออาวุธ
+วนอัตโนมัติ) ตั้งแต่ wave 1 ถึง wave 15 ครบ (ชนะ wave 15 → ขึ้น wave 16) โดยไม่มี console error
+และไม่มี request ที่ 404/failed เลยตลอดการรัน — ระบบ HP/multiplier ตามด่าน (×1/×3/×5),
+ร้านฮีโร่ (การันตี Swordman wave 1, รีโรลฟรีตอนชนะ), และร้านอาวุธ popup ทำงานถูกต้องทุกจุด
+ที่ทดสอบ
+
+## อัปเดตก่อนหน้า: ลดร้านค้าฮีโร่จาก 5 ช่อง เหลือ 3 ช่อง
 
 **ทำไม**: ปรับสมดุลจังหวะเกม/พื้นที่หน้าจอให้ร้านฮีโร่ (แถวล่างสุด) กระชับขึ้น
 โดยไม่แตะพฤติกรรมอื่นของร้านค้า
