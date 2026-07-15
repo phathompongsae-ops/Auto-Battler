@@ -5,6 +5,27 @@
 บน branch `claude/threejs-2-5d-clean-v5-e80mbk` — ดูภาพรวมโปรเจกต์เต็มที่ `GDD.md`,
 ประวัติงานของ Claude ที่ `CLAUDE_HANDOFF.md`, และแผนงาน Priority 1-7 ที่ `gemini_status.md`
 
+## Physical/Magic damage split ในระบบ Combat — เสร็จแล้ว
+
+**ขอบเขต**: เพิ่มการคำนวณดาเมจ 2 ประเภท (Physical/Magic) ในระบบต่อสู้จริง และอัปเดต
+`BOSS_POOL` ให้มี `p_atk/m_atk/p_def/m_def` แทนฟิลด์ `atk` เดิม
+
+**เปลี่ยนอะไรบ้าง** (ทั้งหมดอยู่ใน `threejs-2_5d-clean-v5.html`):
+- `computeDamage(attacker, target)` (ใหม่) — `Physical = max(0, attacker.pAtk - target.pDef)`,
+  `Magic = max(0, attacker.mAtk - target.mDef)`, บวกกันเป็นดาเมจสุทธิ (ไม่มีเกราะเกินจน "รักษา")
+- `makeUnit()` แตกค่า `pAtk/mAtk/pDef/mDef` ต่อยูนิต — `BOSS_POOL` ใช้ค่าจริงตรงๆ
+  ส่วนฮีโร่ (`STATS`) และมอนสเตอร์ (`MONSTERS`) เดิมที่มีแค่ `atk` เดี่ยวไม่มีเกราะเลย
+  ถูก map เป็น pure-physical + เกราะ 0 ทั้งสองด้าน (`max(0, atk-0) === atk`) **บาลานซ์เดิม
+  ไม่เปลี่ยนแปลง**
+- จุดคำนวณดาเมจทั้ง 2 จุด (ประชิด `applyDamage` และระยะไกล `spawnProjectile`) เปลี่ยนจาก
+  `u.atk` คงที่ → เรียก `computeDamage(u, target)` แทน เพราะดาเมจขึ้นกับเกราะของเป้าหมายด้วย
+- `BOSS_POOL` อัปเดตเป็นชุดข้อมูลใหม่ (p_atk/m_atk/p_def/m_def แทน `atk` เดิม) — mechanics/theme
+  ยังเป็น comment เท่านั้นตามเดิม ไม่มี push/stun/warp/target-switch หรือ spawn บอสจริงลงกระดาน
+
+**ทดสอบแล้ว**: unit-check สูตรคำนวณแยก (ยูนิตเดิมได้ดาเมจเท่าเดิมเป๊ะ, บอสใหม่หักเกราะถูกต้อง,
+เกราะเกินไม่ทำให้ "ติดลบกลายเป็นบวก") + เล่นจริงผ่าน Playwright ถึง wave 16 ไม่มี console error/
+request ล้มเหลวเลย toast บอส wave 15 โชว่ P.ATK/M.ATK ถูกต้อง
+
 ## Boss data wired: real BOSS_POOL (name/hp/atk) — เสร็จแล้ว
 
 **ขอบเขต**: แทนที่ ID-only placeholder ด้วยข้อมูลบอสจริงที่ทีมออกแบบส่งมา (name/hp/atk)
