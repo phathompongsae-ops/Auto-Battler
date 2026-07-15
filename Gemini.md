@@ -25,6 +25,16 @@
 wave 5 (`boss_ph_5b`), 10 (`boss_ph_10a`), 15 (`boss_champion_big`) ไม่มี console error/
 request 404 เลยตลอดการเล่น
 
+**Preview link (สำหรับเทสด้วยตัวเอง)**: https://claude.ai/code/artifact/b3630336-15c7-4e49-b789-eadc98d8e8e7
+— แพ็กจาก `threejs-2_5d-clean-v5.html` โดยฝัง Three.js + asset ภาพทั้งหมดเป็นไฟล์เดียว
+(สคริปต์แพ็ก `pack_artifact.py` อยู่นอกรีโป ไม่ได้ commit เพราะเป็นเครื่องมือช่วยพับลิชเท่านั้น
+ไม่ใช่ส่วนของเกม) ระหว่างแพ็กเจอบั๊กเฉพาะจุด: การฝัง three.js ตรงๆ แล้วเรียก `boot()` ทันที
+แบบ synchronous ทำให้ชน TDZ ของ `combatRunning` (error เพราะ `anim()`/`requestAnimationFrame`
+ถูกเรียกก่อน `boot()` executes จบ) แก้ด้วยการห่อ `boot()` ด้วย `setTimeout(fn,0)` เพื่อคืน
+macrotask boundary เหมือนตอนโหลดผ่าน `<script>` onload จริง — เป็นบั๊กเฉพาะไฟล์แพ็กสำหรับ
+preview เท่านั้น **ไม่กระทบไฟล์เกมหลักที่ commit ไว้** (ไฟล์หลักยังโหลด Three.js ผ่าน CDN
+`loadScript()` แบบเดิมซึ่งมี async boundary ตามธรรมชาติอยู่แล้ว)
+
 ## Priority 1 (gemini_status.md): Stabilize 15-stage run — เสร็จแล้ว
 
 **ขอบเขต**: ทดสอบ flow เกมจริงตั้งแต่ wave 1 ถึง 15 หา error/404 ใน console แล้วแก้ให้หมด
