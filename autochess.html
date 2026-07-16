@@ -438,7 +438,7 @@ const HERO_DEFS = {
 // ============================================================
 const SKILL_DEFS = {
   fighter: {
-    skill_id:'power_strike', skill_name:'Power Strike', mana_cost:100, cast_time:0.45,
+    skill_id:'power_strike', skill_name:'Power Strike', mana_cost:100, max_mana:100, cast_time:0.45,
     target_type:'current_target',
     damage_payload:{ damage_type:'physical', p_atk_multiplier:1.6, m_atk_multiplier:0, base_damage:0, max_targets:1 },
     status_effects:[
@@ -446,21 +446,21 @@ const SKILL_DEFS = {
     ],
   },
   swordman: {
-    skill_id:'blade_arc', skill_name:'Blade Arc', mana_cost:100, cast_time:0.5,
+    skill_id:'blade_arc', skill_name:'Blade Arc', mana_cost:100, max_mana:100, cast_time:0.5,
     target_type:'current_target_front_arc',
     damage_payload:{ damage_type:'physical', p_atk_multiplier:1.3, m_atk_multiplier:0, base_damage:0, max_targets:3,
       area_shape:'front_arc', area_range:1 },
     status_effects:[],
   },
   archer: {
-    skill_id:'piercing_arrow', skill_name:'Piercing Arrow', mana_cost:100, cast_time:0.6,
+    skill_id:'piercing_arrow', skill_name:'Piercing Arrow', mana_cost:100, max_mana:100, cast_time:0.6,
     target_type:'farthest_enemy',
     damage_payload:{ damage_type:'physical', p_atk_multiplier:1.45, m_atk_multiplier:0, base_damage:0, max_targets:4,
       area_shape:'line', line_length:6, pierces_targets:true, damage_falloff_per_target_pct:15, minimum_damage_multiplier:0.7 },
     status_effects:[],
   },
   mage: {
-    skill_id:'arcane_burst', skill_name:'Arcane Burst', mana_cost:100, cast_time:0.75,
+    skill_id:'arcane_burst', skill_name:'Arcane Burst', mana_cost:100, max_mana:100, cast_time:0.75,
     target_type:'largest_enemy_cluster',
     damage_payload:{ damage_type:'magic', p_atk_multiplier:0, m_atk_multiplier:1.5, base_damage:0, max_targets:9,
       area_shape:'circle', area_radius:1 },
@@ -470,7 +470,7 @@ const SKILL_DEFS = {
     ],
   },
   summoner: {
-    skill_id:'spirit_familiar', skill_name:'Spirit Familiar', mana_cost:100, cast_time:0.9,
+    skill_id:'spirit_familiar', skill_name:'Spirit Familiar', mana_cost:100, max_mana:100, cast_time:0.9,
     target_type:'adjacent_empty_tile',
     damage_payload:{ damage_type:'none', p_atk_multiplier:0, m_atk_multiplier:0, base_damage:0, max_targets:0 },
     summon_payload:{
@@ -483,7 +483,7 @@ const SKILL_DEFS = {
     status_effects:[],
   },
   acolyte: {
-    skill_id:'healing_light', skill_name:'Healing Light', mana_cost:100, cast_time:0.7,
+    skill_id:'healing_light', skill_name:'Healing Light', mana_cost:100, max_mana:100, cast_time:0.7,
     target_type:'lowest_hp_ally',
     damage_payload:{ damage_type:'none', p_atk_multiplier:0, m_atk_multiplier:0, base_damage:0, max_targets:0 },
     heal_payload:{ m_atk_multiplier:1.2, base_heal:0, max_targets:1, can_target_self:true, exclude_full_hp_targets:true },
@@ -492,13 +492,180 @@ const SKILL_DEFS = {
     ],
   },
   merchant: {
-    skill_id:'golden_opportunity', skill_name:'Golden Opportunity', mana_cost:100, cast_time:0.55,
+    skill_id:'golden_opportunity', skill_name:'Golden Opportunity', mana_cost:100, max_mana:100, cast_time:0.55,
     target_type:'lowest_hp_enemy',
     damage_payload:{ damage_type:'physical', p_atk_multiplier:1.2, m_atk_multiplier:0, base_damage:0, max_targets:1 },
     reward_payload:{ mark_duration:4, gold_on_marked_target_death:1, max_gold_triggers_per_wave:2,
       reward_owner:'player', requires_caster_alive:false },
     status_effects:[
       { status_id:'slow', duration:3, chance:1, modifiers:{ move_speed_pct:-20 }, stack_rule:'strongest' },
+    ],
+  },
+  // ---- Tier-2 (14 heroes) — dynamic max_mana per hero, richer targeting/payloads/conditions ----
+  knight: {
+    skill_id:'guardians_challenge', skill_name:"Guardian's Challenge", mana_cost:120, max_mana:120, cast_time:0.45,
+    target_type:'self_aoe_radius_3',
+    damage_payload:{ damage_type:'none', p_atk_multiplier:0, m_atk_multiplier:0, base_damage:0, max_targets:0 },
+    shield_payload:{ target_type:'self', max_hp_multiplier:0.22, base_shield:0, duration:4 },
+    status_effects:[
+      { status_id:'taunt', target_scope:'enemies_in_radius', duration:3, chance:1, area_radius:3, stack_rule:'refresh' },
+      { status_id:'p_def_up', target_scope:'self', duration:4, chance:1, modifiers:{ p_def_pct:25 }, stack_rule:'refresh' },
+      { status_id:'m_def_up', target_scope:'self', duration:4, chance:1, modifiers:{ m_def_pct:25 }, stack_rule:'refresh' },
+    ],
+  },
+  berserker: {
+    skill_id:'blood_frenzy', skill_name:'Blood Frenzy', mana_cost:80, max_mana:80, cast_time:0.25,
+    target_type:'self',
+    damage_payload:{ damage_type:'none', p_atk_multiplier:0, m_atk_multiplier:0, base_damage:0, max_targets:0 },
+    status_effects:[
+      { status_id:'p_atk_up', target_scope:'self', duration:6, chance:1, stack_rule:'refresh',
+        conditional_modifiers:[
+          { condition:'hp_pct_above_or_equal_50', modifiers:{ p_atk_pct:25 } },
+          { condition:'hp_pct_below_50', modifiers:{ p_atk_pct:50 } },
+        ] },
+      { status_id:'attack_speed_up', target_scope:'self', duration:6, chance:1, stack_rule:'refresh',
+        conditional_modifiers:[
+          { condition:'hp_pct_above_or_equal_50', modifiers:{ attack_speed_pct:40 } },
+          { condition:'hp_pct_below_50', modifiers:{ attack_speed_pct:70 } },
+        ] },
+      { status_id:'lifesteal_up', target_scope:'self', duration:6, chance:1, modifiers:{ physical_lifesteal_pct:20 }, stack_rule:'refresh' },
+    ],
+  },
+  blade_master: {
+    skill_id:'three_tile_crescent', skill_name:'Three-Tile Crescent', mana_cost:110, max_mana:110, cast_time:0.75,
+    target_type:'current_target_front_arc',
+    damage_payload:{ damage_type:'physical', p_atk_multiplier:1.85, m_atk_multiplier:0, base_damage:0, max_targets:6,
+      area_shape:'front_arc', area_range:3, armor_penetration_pct:20 },
+    status_effects:[
+      { status_id:'bleed', target_scope:'damaged_targets', duration:4, chance:1, tick_interval:1,
+        damage_per_tick:{ damage_type:'physical', p_atk_multiplier:0.2, base_damage:0 }, grants_mana:false, stack_rule:'refresh' },
+    ],
+  },
+  duelist: {
+    skill_id:'duelists_verdict', skill_name:"Duelist's Verdict", mana_cost:90, max_mana:90, cast_time:0.35,
+    target_type:'highest_max_hp_enemy',
+    damage_payload:{ damage_type:'physical', p_atk_multiplier:2.05, m_atk_multiplier:0, base_damage:0, max_targets:1,
+      conditional_multiplier:{ condition:'target_current_hp_greater_than_caster_current_hp', bonus_multiplier:0.35 },
+      execute_threshold_pct:12 },
+    status_effects:[
+      { status_id:'p_def_down', target_scope:'primary_target', duration:5, chance:1, modifiers:{ p_def_pct:-25 }, stack_rule:'refresh' },
+      { status_id:'attack_speed_up', target_scope:'self', duration:4, chance:1, modifiers:{ attack_speed_pct:30 }, stack_rule:'refresh' },
+    ],
+  },
+  sniper: {
+    skill_id:'deadeye_shot', skill_name:'Deadeye Shot', mana_cost:150, max_mana:150, cast_time:1.3,
+    target_type:'farthest_enemy',
+    damage_payload:{ damage_type:'physical', p_atk_multiplier:2.75, m_atk_multiplier:0, base_damage:0, max_targets:1,
+      distance_scaling:{ bonus_damage_pct_per_tile:8, max_bonus_damage_pct:48 },
+      armor_penetration:{ base_pct:25, bonus_pct_per_tile:5, max_total_pct:60 } },
+    status_effects:[
+      { status_id:'bleed', target_scope:'primary_target', duration:5, chance:1, tick_interval:1,
+        damage_per_tick:{ damage_type:'physical', p_atk_multiplier:0.18, base_damage:0 }, grants_mana:false, stack_rule:'refresh' },
+    ],
+  },
+  ranger: {
+    skill_id:'triple_volley', skill_name:'Triple Volley', mana_cost:60, max_mana:60, cast_time:0.3,
+    target_type:'three_nearest_enemies_in_range',
+    damage_payload:{ damage_type:'physical', p_atk_multiplier:0.9, m_atk_multiplier:0, base_damage:0,
+      projectile_count:3, max_targets:3, allow_repeat_target:true, repeat_target_multipliers:[1, 0.75, 0.55] },
+    status_effects:[
+      { status_id:'slow', target_scope:'damaged_targets', duration:3, chance:0.4, modifiers:{ move_speed_pct:-25 }, stack_rule:'strongest' },
+    ],
+  },
+  archmage: {
+    skill_id:'grand_arcane_inferno', skill_name:'Grand Arcane Inferno', mana_cost:180, max_mana:180, cast_time:1.4,
+    target_type:'largest_enemy_cluster',
+    damage_payload:{ damage_type:'magic', p_atk_multiplier:0, m_atk_multiplier:2, base_damage:0, max_targets:12,
+      area_shape:'circle', area_radius:2 },
+    status_effects:[
+      { status_id:'burn', target_scope:'damaged_targets', duration:5, chance:1, tick_interval:1,
+        damage_per_tick:{ damage_type:'magic', m_atk_multiplier:0.22, base_damage:0 }, grants_mana:false, stack_rule:'refresh' },
+      { status_id:'m_def_down', target_scope:'damaged_targets', duration:5, chance:1, modifiers:{ m_def_pct:-20 }, stack_rule:'refresh' },
+    ],
+  },
+  frost_weaver: {
+    skill_id:'frozen_domain', skill_name:'Frozen Domain', mana_cost:120, max_mana:120, cast_time:1,
+    target_type:'largest_enemy_cluster',
+    damage_payload:{ damage_type:'magic', p_atk_multiplier:0, m_atk_multiplier:1.35, base_damage:0, max_targets:12,
+      area_shape:'circle', area_radius:2 },
+    status_effects:[
+      { status_id:'slow', target_scope:'damaged_targets', duration:5, chance:1,
+        modifiers:{ move_speed_pct:-35, attack_speed_pct:-30 }, stack_rule:'strongest' },
+      { status_id:'freeze', target_scope:'targets_already_slowed', duration:1.75, chance:1, kind:'freeze', stack_rule:'refresh' },
+    ],
+  },
+  beast_lord: {
+    skill_id:'call_spirit_dragon', skill_name:'Call Spirit Dragon', mana_cost:150, max_mana:150, cast_time:1.2,
+    target_type:'adjacent_empty_tile',
+    damage_payload:{ damage_type:'none', p_atk_multiplier:0, m_atk_multiplier:0, base_damage:0, max_targets:0 },
+    summon_payload:{
+      summon_def_id:'spirit_dragon', summon_limit:1, replace_existing:false, if_summon_exists:'heal_existing_summon',
+      existing_summon_heal_pct_max_hp:40, hp_source:'caster_max_hp', hp_multiplier:0.6,
+      attack_type:'magic', attack_stat_source:'caster_m_atk', attack_stat_multiplier:0.7,
+      attack_range:1, attack_speed:1.15, move_speed:2.3, occupies_grid_tile:true,
+      counts_toward_field_limit:false, despawn_on_wave_end:true,
+      special_attack:{ trigger:'every_3_basic_attacks', area_shape:'line', line_length:2, damage_type:'magic', m_atk_multiplier:0.85 },
+    },
+    status_effects:[
+      { status_id:'attack_speed_up', target_scope:'all_allies_while_summon_alive', duration:-1, chance:1,
+        modifiers:{ attack_speed_pct:10 }, remove_condition:'summon_dead', stack_rule:'unique' },
+    ],
+  },
+  spirit_blade: {
+    skill_id:'spirit_merge', skill_name:'Spirit Merge', mana_cost:100, max_mana:100, cast_time:0.55,
+    target_type:'self',
+    damage_payload:{ damage_type:'none', p_atk_multiplier:0, m_atk_multiplier:0, base_damage:0, max_targets:0 },
+    status_effects:[
+      { status_id:'p_atk_up', target_scope:'self', duration:7, chance:1, modifiers:{ p_atk_pct:35 }, stack_rule:'refresh' },
+      { status_id:'attack_speed_up', target_scope:'self', duration:7, chance:1, modifiers:{ attack_speed_pct:40 }, stack_rule:'refresh' },
+      { status_id:'spirit_edge', target_scope:'self', duration:7, chance:1, stack_rule:'refresh',
+        on_basic_attack_payload:{ damage_type:'magic', m_atk_multiplier:0.3, base_damage:0 } },
+    ],
+  },
+  priest: {
+    skill_id:'divine_restoration', skill_name:'Divine Restoration', mana_cost:160, max_mana:160, cast_time:1.25,
+    target_type:'lowest_hp_ally',
+    damage_payload:{ damage_type:'none', p_atk_multiplier:0, m_atk_multiplier:0, base_damage:0, max_targets:0 },
+    heal_payload:{ m_atk_multiplier:2.2, base_heal:0, max_targets:1, can_target_self:true, exclude_full_hp_targets:true,
+      overflow_heal_to_shield_pct:50, cleanse_negative_status_count:1 },
+    revive_payload:{ enabled:true, uses_per_wave:1, trigger_condition:'no_valid_injured_ally_and_dead_ally_exists',
+      target_type:'most_recent_dead_ally', revive_hp_pct:35, revive_mana_pct:0, invulnerability_duration:1 },
+    status_effects:[
+      { status_id:'m_def_up', target_scope:'healed_target', duration:5, chance:1, modifiers:{ m_def_pct:25 }, stack_rule:'refresh' },
+    ],
+  },
+  inquisitor: {
+    skill_id:'holy_judgment', skill_name:'Holy Judgment', mana_cost:100, max_mana:100, cast_time:0.7,
+    target_type:'lowest_hp_enemy',
+    damage_payload:{ damage_type:'magic', p_atk_multiplier:0, m_atk_multiplier:1.8, base_damage:0, max_targets:1, execute_threshold_pct:10 },
+    heal_payload:{ source:'damage_dealt', heal_pct_of_damage:35, target_type:'all_allies', distribution:'even', max_targets:99 },
+    status_effects:[
+      { status_id:'m_def_down', target_scope:'primary_target', duration:5, chance:1, modifiers:{ m_def_pct:-25 }, stack_rule:'refresh' },
+      { status_id:'silence', target_scope:'primary_target', duration:2, chance:0.5, stack_rule:'refresh' },
+    ],
+  },
+  tycoon: {
+    skill_id:'profitable_contract', skill_name:'Profitable Contract', mana_cost:70, max_mana:70, cast_time:0.35,
+    target_type:'lowest_hp_enemy',
+    damage_payload:{ damage_type:'physical', p_atk_multiplier:1.45, m_atk_multiplier:0, base_damage:0, max_targets:1 },
+    reward_payload:{ mark_duration:6, gold_on_marked_target_death:2, max_gold_triggers_per_wave:3,
+      reward_owner:'player', requires_caster_alive:false, next_wave_interest_bonus:1, next_wave_interest_bonus_cap:1 },
+    status_effects:[
+      { status_id:'p_def_down', target_scope:'primary_target', duration:6, chance:1, modifiers:{ p_def_pct:-15 }, stack_rule:'refresh' },
+      { status_id:'m_def_down', target_scope:'primary_target', duration:6, chance:1, modifiers:{ m_def_pct:-15 }, stack_rule:'refresh' },
+    ],
+  },
+  trickster: {
+    skill_id:'loaded_dice', skill_name:'Loaded Dice', mana_cost:50, max_mana:50, cast_time:0.25,
+    target_type:'largest_enemy_cluster',
+    damage_payload:{ damage_type:'magic', p_atk_multiplier:0, m_atk_multiplier:1.15, base_damage:0, max_targets:6,
+      area_shape:'circle', area_radius:1 },
+    buff_steal_payload:{ enabled:true, target_selection:'strongest_buffed_enemy_in_area', max_buffs_stolen:1,
+      copy_duration_mode:'remaining_duration', remove_from_target:true, apply_to_caster:true,
+      excluded_status_tags:['unique','boss_only','revive'] },
+    status_effects:[
+      { status_id:'stun', target_scope:'damaged_targets', duration:1.25, chance:0.65, kind:'stun', stack_rule:'refresh' },
+      { status_id:'attack_speed_down', target_scope:'damaged_targets', duration:4, chance:1, modifiers:{ attack_speed_pct:-20 }, stack_rule:'strongest' },
     ],
   },
 };
@@ -673,6 +840,7 @@ function returnEquipmentToInventory(heroInst) {
   });
 }
 const ATTACK_SPEED_MIN = 0.2, ATTACK_SPEED_MAX = 3.0;
+const RATE_STAT_KEYS = new Set(['physical_lifesteal']); // see the _pct handling note in buildCombatStats
 // Builds hero.combatStats from hero.baseStats (never mutated) + equipped item stats:
 // flat `stats` add first, then `percent_stats` multiply (if an item defines any), then
 // clamp attack_speed to [0.2, 3.0] and floor hp/p_atk/m_atk/p_def/m_def at 0.
@@ -701,26 +869,51 @@ function buildCombatStats(hero, itemDefs) {
   // status_effects (buffs/debuffs) layer on top of the equipment-adjusted stats, before the
   // clamp. Each status's `modifiers` uses a `<stat>_flat` / `<stat>_pct` key convention (e.g.
   // p_def_pct, m_def_flat) — flat modifiers across all active statuses apply first, then percent.
+  // `conditional_modifiers` (e.g. Berserker's Blood Frenzy) resolve to whichever branch's
+  // `modifiers` matches the hero's CURRENT hp% every time this runs, so it stays live as hp changes.
+  // move_speed is intentionally skipped here — getEffectiveMoveSpeed() is the single source of
+  // truth for it (folding it in here too would double-apply move_speed_pct for heroes).
+  const effectiveModifiers = (status) => {
+    if (status.modifiers) return status.modifiers;
+    if (status.conditional_modifiers) {
+      const match = status.conditional_modifiers.find((cm) => evaluateStatusCondition(hero, cm.condition));
+      return match ? match.modifiers : null;
+    }
+    return null;
+  };
   (hero.statuses || []).forEach((status) => {
-    if (!status.modifiers) return;
-    for (const modKey in status.modifiers) {
+    const mods = effectiveModifiers(status);
+    if (!mods) return;
+    for (const modKey in mods) {
       if (!modKey.endsWith('_flat')) continue;
       const statKey = modKey.slice(0, -5);
-      if (stats[statKey] != null) stats[statKey] += status.modifiers[modKey];
+      if (statKey !== 'move_speed' && stats[statKey] != null) stats[statKey] += mods[modKey];
     }
   });
   (hero.statuses || []).forEach((status) => {
-    if (!status.modifiers) return;
-    for (const modKey in status.modifiers) {
+    const mods = effectiveModifiers(status);
+    if (!mods) return;
+    for (const modKey in mods) {
       if (!modKey.endsWith('_pct')) continue;
       const statKey = modKey.slice(0, -4);
-      if (stats[statKey] != null) stats[statKey] *= (1 + status.modifiers[modKey] / 100);
+      if (statKey === 'move_speed' || stats[statKey] == null) continue;
+      // rate-type stats (e.g. lifesteal) start at 0 and ARE a percentage themselves — a "_pct"
+      // modifier on them means "grant this much", not "multiply the existing value by it"
+      // (multiplying a base of 0 would always stay 0), unlike p_atk_pct/m_def_pct/etc.
+      if (RATE_STAT_KEYS.has(statKey)) stats[statKey] += mods[modKey];
+      else stats[statKey] *= (1 + mods[modKey] / 100);
     }
   });
   stats.attack_speed = Math.min(ATTACK_SPEED_MAX, Math.max(ATTACK_SPEED_MIN, stats.attack_speed));
   ['hp', 'p_atk', 'm_atk', 'p_def', 'm_def'].forEach((k) => { stats[k] = Math.max(0, stats[k]); });
   hero.combatStats = stats;
   return stats;
+}
+function evaluateStatusCondition(unit, condition) {
+  const hpPct = unit.maxHp ? unit.hp / unit.maxHp : 1;
+  if (condition === 'hp_pct_above_or_equal_50') return hpPct >= 0.5;
+  if (condition === 'hp_pct_below_50') return hpPct < 0.5;
+  return false;
 }
 
 // ============================================================
@@ -887,11 +1080,11 @@ function applyPreCombatLinkBuffs() {
 // Applied per-attack during combat: dmgPct/armorPen come from the attacker's team snapshot,
 // damageReductionPct comes from the defending team's snapshot (only meaningful when a player
 // hero is the target, i.e. an enemy is attacking it).
-function applyCombatLinkModifiers(rawDmg, attacker, target) {
+function applyCombatLinkModifiers(rawDmg, attacker, target, bonusArmorPen) {
   const atkBuffs = attacker.team === 'player' ? combatLinkBuffs : null;
   let dmg = rawDmg;
   if (atkBuffs) dmg *= (1 + atkBuffs.dmgPct / 100);
-  dmg = mitigateDamage(dmg, attacker, target, atkBuffs ? atkBuffs.armorPenPct : 0);
+  dmg = mitigateDamage(dmg, attacker, target, (atkBuffs ? atkBuffs.armorPenPct : 0) + (bonusArmorPen || 0));
   if (target.team === 'player' && combatLinkBuffs) dmg *= (1 - combatLinkBuffs.damageReductionPct / 100);
   return dmg;
 }
@@ -1074,7 +1267,8 @@ function resetForWave(u) {
   u.animState = 'idle'; u.animFrame = 0;
   // Skill/Mana/Status reset between waves (equipment + Link/synergy state are untouched)
   u.current_mana = 0; u.statuses = []; u.action_state = 'idle'; u.current_target = null;
-  u.castTimer = 0; u.castTarget = null; u.skillGoldTriggers = 0;
+  u.castTimer = 0; u.castTarget = null; u.castTargetList = null; u.skillGoldTriggers = 0;
+  u.reviveUsesThisWave = 0; u.shield = 0; u.shieldTimer = 0;
   if (u.baseStats) buildCombatStats(u, ITEM_DEFS_BY_ID); // statuses cleared -> combatStats must drop any lingering modifier
   occupied.add(key(u.c, u.r));
 }
@@ -1197,6 +1391,11 @@ function grantMana(u, amount) {
 function hasHardCC(u) {
   return !!(u.statuses && u.statuses.some((s) => s.kind === 'stun' || s.kind === 'freeze'));
 }
+// Silence (Inquisitor) is a soft CC: it only blocks starting a NEW cast, unlike hard CC which
+// also interrupts attack/movement — an in-progress cast is not interrupted by silence landing.
+function hasSilence(u) {
+  return !!(u.statuses && u.statuses.some((s) => s.status_id === 'silence'));
+}
 // Enemies/bosses use the legacy `armor` (%) stat instead of combatStats.p_def — a `p_def_pct`
 // status modifier (e.g. Fighter's Power Strike) is applied here as the closest equivalent so
 // hero debuffs still do something against monsters without touching their base data.
@@ -1209,7 +1408,9 @@ function getEffectiveArmor(target) {
   return Math.max(0, armor);
 }
 // move_speed slows/hastes apply to ANY unit (hero or enemy) since both data shapes carry a
-// move-speed value, unlike the hero-only p_atk/m_atk/p_def/m_def combatStats pipeline.
+// move-speed value. buildCombatStats() deliberately EXCLUDES move_speed_pct from its own fold
+// (see the statKey !== 'move_speed' guards there) so this stays the single source of truth and
+// never double-applies for heroes.
 function getEffectiveMoveSpeed(u) {
   let speed = u.combatStats ? u.combatStats.move_speed : u.moveSpeed;
   (u.statuses || []).forEach((st) => {
@@ -1217,11 +1418,30 @@ function getEffectiveMoveSpeed(u) {
   });
   return Math.max(0, speed);
 }
+// attack_speed, unlike move_speed, IS folded into combatStats by buildCombatStats (heroes only
+// — that's already the single source of truth there), so this only needs its own live status
+// scan for enemies/summons, which never get a combatStats object built for them at all.
+function getEffectiveAttackSpeed(u) {
+  if (u.combatStats) return u.combatStats.attack_speed;
+  let speed = u.atkSpeed;
+  (u.statuses || []).forEach((st) => {
+    if (st.modifiers && st.modifiers.attack_speed_pct != null) speed *= (1 + st.modifiers.attack_speed_pct / 100);
+  });
+  return Math.max(0.1, speed);
+}
 // Recompute a hero's combatStats immediately after its statuses change (equipment never
 // changes mid-battle, but status durations do) — no-op for units without baseStats (enemies).
 function refreshCombatStats(u) {
   if (u.baseStats) buildCombatStats(u, ITEM_DEFS_BY_ID);
 }
+// Re-run buildCombatStats after an hp change ONLY if the unit actually has a conditional_modifiers
+// status active (e.g. Berserker's Blood Frenzy) — otherwise hp changes have no bearing on stats.
+function onHpChanged(u) {
+  if (u.baseStats && (u.statuses || []).some((s) => s.conditional_modifiers)) refreshCombatStats(u);
+}
+// tracks player-team deaths for the CURRENT wave/battle only (Priest's most_recent_dead_ally) —
+// reset in startBattleBtn.onclick, entries removed again once a unit is revived.
+let deadAlliesThisWave = [];
 // Centralizes what happens when any unit's HP reaches 0, regardless of the damage source
 // (basic attack / skill / DoT tick) — kill-mana for the killer, and Merchant's mark payout.
 function handleUnitDeath(target, killer) {
@@ -1229,6 +1449,7 @@ function handleUnitDeath(target, killer) {
   target.alive = false;
   occupied.delete(key(target.c, target.r));
   target.deathT = 0;
+  if (target.team === 'player' && target.baseStats) deadAlliesThisWave.push(target); // real heroes only, not summons
   if (killer) grantMana(killer, MANA_PER_KILL);
   const mark = (target.statuses || []).find((s) => s.rewardOnDeath);
   if (mark) {
@@ -1240,16 +1461,30 @@ function handleUnitDeath(target, killer) {
     }
   }
 }
+// A unit's shield (Knight's Guardian's Challenge, Priest's heal overflow) absorbs damage before
+// HP — call this on every damage source (skills/DoT already route through dealSkillDamage below;
+// basic attacks apply it inline since they have their own hit-flash/knockback flourish).
+function absorbWithShield(target, dmg) {
+  if (target.shield > 0 && dmg > 0) {
+    const absorbed = Math.min(target.shield, dmg);
+    target.shield -= absorbed;
+    dmg -= absorbed;
+  }
+  return dmg;
+}
 // Shared damage-resolution path for skill damage_payload hits and DoT ticks (Link buffs +
-// hp-bar update + death handling) — kept separate from the basic-attack block above, which
-// has its own hit-flash/knockback visual flourish that isn't relevant to skills/DoT.
-function dealSkillDamage(casterTeam, damageType, rawDmg, target, casterRef, grantsMana) {
+// shield absorption + invulnerability + hp-bar update + death handling) — kept separate from
+// the basic-attack block, which has its own hit-flash/knockback visual flourish.
+function dealSkillDamage(casterTeam, damageType, rawDmg, target, casterRef, grantsMana, armorPenPct) {
   if (!target.alive) return 0;
-  const dmg = applyCombatLinkModifiers(rawDmg, { team: casterTeam, attackType: damageType }, target);
+  if ((target.statuses || []).some((s) => s.invulnerable)) return 0; // Priest's revive grace period
+  let dmg = applyCombatLinkModifiers(rawDmg, { team: casterTeam, attackType: damageType }, target, armorPenPct);
+  dmg = absorbWithShield(target, dmg);
   target.hp -= dmg;
   target.hpBar.scale.x = Math.max(0, target.hp/target.maxHp);
   target.hpBar.position.x = -0.36*(1-target.hpBar.scale.x);
   if (grantsMana) grantMana(target, MANA_PER_DAMAGE_TAKEN);
+  onHpChanged(target);
   if (target.hp <= 0) handleUnitDeath(target, casterRef);
   return dmg;
 }
@@ -1263,15 +1498,17 @@ function applyStatusEffectToUnit(target, se, caster) {
   const isDot = !!se.tick_interval;
   const newStatus = {
     status_id: se.status_id,
-    kind: isDot ? 'dot' : (Object.values(se.modifiers || {}).some((v) => v < 0) ? 'debuff' : 'buff'),
+    kind: se.kind || (isDot ? 'dot' : (Object.values(se.modifiers || {}).some((v) => v < 0) ? 'debuff' : 'buff')),
     modifiers: se.modifiers ? { ...se.modifiers } : undefined,
+    conditional_modifiers: se.conditional_modifiers ? se.conditional_modifiers.map((cm) => ({ ...cm })) : undefined,
+    on_basic_attack_payload: se.on_basic_attack_payload || undefined,
     remaining: se.duration,
+    casterRef: caster, // also doubles as "who applied this" for taunt's forced-target lookup
   };
   if (isDot) {
     newStatus.tick_interval = se.tick_interval;
     newStatus.tickTimer = se.tick_interval;
     newStatus.grants_mana = !!se.grants_mana;
-    newStatus.casterRef = caster;
     newStatus.casterTeam = caster.team;
     newStatus.tickDamageType = se.damage_per_tick.damage_type;
     const cs = caster.combatStats || {};
@@ -1283,7 +1520,7 @@ function applyStatusEffectToUnit(target, se, caster) {
     target.statuses.push(newStatus);
   } else if (se.stack_rule === 'strongest') {
     if (statusMagnitude(newStatus) >= statusMagnitude(target.statuses[idx])) target.statuses[idx] = newStatus;
-  } else { // 'refresh' (default) — replace with the fresh instance
+  } else { // 'refresh'/'unique' (default) — replace with the fresh instance
     target.statuses[idx] = newStatus;
   }
   refreshCombatStats(target);
@@ -1292,9 +1529,12 @@ function applyDamageTick(target, st) {
   if (!target.alive) return;
   dealSkillDamage(st.casterTeam, st.tickDamageType, st.tickDamageAmount, target, st.casterRef, st.grants_mana);
 }
-// Runs every frame for every living unit: advances DoT ticks and status durations, dropping
-// expired statuses and refreshing combatStats (hero-only) whenever the list actually changes.
+// Runs every frame for every living unit: advances DoT ticks, status durations (a `remaining`
+// of exactly -1 marks a persistent/aura-driven status with no timer, e.g. Beast Lord's "while
+// summon alive" buff — that one is removed by updateSummonAuras(), not a countdown here), and
+// the shield timer — dropping expired statuses/shield and refreshing combatStats when they change.
 function tickStatuses(u, dt) {
+  if (u.shieldTimer > 0) { u.shieldTimer -= dt; if (u.shieldTimer <= 0) { u.shield = 0; u.shieldTimer = 0; } }
   if (!u.statuses || u.statuses.length === 0) return;
   let expired = false;
   for (let i = u.statuses.length - 1; i >= 0; i--) {
@@ -1303,6 +1543,7 @@ function tickStatuses(u, dt) {
       st.tickTimer -= dt;
       if (st.tickTimer <= 0) { st.tickTimer += st.tick_interval; applyDamageTick(u, st); }
     }
+    if (st.remaining < 0) continue; // persistent (aura-linked) status — no timer expiry
     st.remaining -= dt;
     if (st.remaining <= 0) { u.statuses.splice(i, 1); expired = true; }
   }
@@ -1316,7 +1557,8 @@ function findFarthestEnemy(caster) {
   return best;
 }
 // Steps grid tiles from the caster toward `aim` (Bresenham-ish, rounded) up to lineLength,
-// collecting living enemies it passes through — the "pierce" line for Archer's Piercing Arrow.
+// collecting living enemies it passes through — the "pierce" line for Archer's Piercing Arrow
+// (and Beast Lord's dragon special attack, and Blade Master-style line AoEs).
 function collectLineTargets(caster, aim, lineLength, maxTargets) {
   const dx = aim.c - caster.c, dy = aim.r - caster.r;
   const dist = Math.max(Math.abs(dx), Math.abs(dy)) || 1;
@@ -1341,6 +1583,20 @@ function findClusterCenter(caster) {
   });
   return best;
 }
+function findHighestMaxHpEnemy(caster) {
+  const enemies = units.filter((o) => o.alive && o.team !== caster.team);
+  if (!enemies.length) return null;
+  return enemies.reduce((best, o) => (o.maxHp > best.maxHp ? o : best));
+}
+// Returns an ARRAY (unlike every other resolver here) sorted nearest-first — Ranger's Triple
+// Volley fires `projectile_count` shots at this list, repeating targets if allow_repeat_target
+// and fewer than that many distinct enemies are actually in range.
+function findThreeNearestEnemiesInRange(caster) {
+  const atkRange = caster.combatStats ? caster.combatStats.attack_range : caster.range;
+  const inRange = units.filter((o) => o.alive && o.team !== caster.team && gridDist(o, caster) <= atkRange)
+    .sort((a, b) => gridDist(a, caster) - gridDist(b, caster));
+  return inRange.length ? inRange : null;
+}
 function findAdjacentEmptyTile(caster) {
   const dirs = [[0,-1],[0,1],[-1,0],[1,0],[-1,-1],[1,-1],[-1,1],[1,1]];
   for (const [dc,dr] of dirs) {
@@ -1362,21 +1618,63 @@ function findLowestHpEnemy(caster) {
   if (enemies.length === 0) return null;
   return enemies.reduce((low, o) => (o.hp/o.maxHp < low.hp/low.maxHp ? o : low));
 }
+// most_recent_dead_ally (Priest's revive redirect) — last player-team death this wave, or null.
+function findMostRecentDeadAlly(caster) {
+  for (let i = deadAlliesThisWave.length - 1; i >= 0; i--) {
+    if (deadAlliesThisWave[i].team === caster.team) return deadAlliesThisWave[i];
+  }
+  return null;
+}
 function resolveSkillTarget(caster, skillDef) {
   switch (skillDef.target_type) {
     case 'current_target':
     case 'current_target_front_arc':
       return (caster.current_target && caster.current_target.alive) ? caster.current_target : selectTarget(caster);
+    case 'self':
+    case 'self_aoe_radius_3':
+      return caster;
     case 'farthest_enemy': return findFarthestEnemy(caster);
     case 'largest_enemy_cluster': return findClusterCenter(caster);
+    case 'highest_max_hp_enemy': return findHighestMaxHpEnemy(caster);
+    case 'three_nearest_enemies_in_range': return findThreeNearestEnemiesInRange(caster);
     case 'adjacent_empty_tile': return findAdjacentEmptyTile(caster);
-    case 'lowest_hp_ally': return findLowestHpAlly(caster, skillDef.heal_payload || {});
+    case 'most_recent_dead_ally': return findMostRecentDeadAlly(caster);
+    case 'lowest_hp_ally': {
+      // Priest: normally heals the lowest-% ally, but redirects to reviving the most recently
+      // dead ally when trigger_condition (no valid injured ally + a dead ally exists) is met.
+      const healTarget = findLowestHpAlly(caster, skillDef.heal_payload || {});
+      if (healTarget) return healTarget;
+      if (skillDef.revive_payload && skillDef.revive_payload.enabled) {
+        const dead = findMostRecentDeadAlly(caster);
+        if (dead && (caster.reviveUsesThisWave || 0) < skillDef.revive_payload.uses_per_wave) return dead;
+      }
+      return null;
+    }
     case 'lowest_hp_enemy': return findLowestHpEnemy(caster);
     default: return (caster.current_target && caster.current_target.alive) ? caster.current_target : selectTarget(caster);
   }
 }
 
 // ---- payload execution ----
+function computeArmorPenPct(payload, distance) {
+  if (payload.armor_penetration_pct != null) return payload.armor_penetration_pct;
+  if (payload.armor_penetration) {
+    const ap = payload.armor_penetration;
+    const total = (ap.base_pct || 0) + (ap.bonus_pct_per_tile || 0) * distance;
+    return ap.max_total_pct != null ? Math.min(ap.max_total_pct, total) : total;
+  }
+  return 0;
+}
+function computeDistanceScalingMult(payload, distance) {
+  if (!payload.distance_scaling) return 1;
+  const ds = payload.distance_scaling;
+  const bonusPct = (ds.bonus_damage_pct_per_tile || 0) * distance;
+  return 1 + (ds.max_bonus_damage_pct != null ? Math.min(ds.max_bonus_damage_pct, bonusPct) : bonusPct) / 100;
+}
+function evaluateDamageCondition(condition, caster, target) {
+  if (condition === 'target_current_hp_greater_than_caster_current_hp') return target.hp > caster.hp;
+  return false;
+}
 function resolveDamageTargets(caster, skillDef, primary) {
   const payload = skillDef.damage_payload;
   const maxT = payload.max_targets || 1;
@@ -1396,27 +1694,130 @@ function resolveDamageTargets(caster, skillDef, primary) {
   }
   return [{ unit: primary, mult: 1 }];
 }
+// Returns { units: [unique units hit], totalDamage } — totalDamage feeds Inquisitor's
+// damage-dealt-sourced team heal, which needs to know how much this cast actually dealt.
 function applyDamagePayload(caster, skillDef, primary) {
   const payload = skillDef.damage_payload;
   const cs = caster.combatStats || {};
-  const raw = (payload.p_atk_multiplier || 0) * (cs.p_atk || 0) + (payload.m_atk_multiplier || 0) * (cs.m_atk || 0) + (payload.base_damage || 0);
-  const hits = resolveDamageTargets(caster, skillDef, primary);
+  const baseRaw = (payload.p_atk_multiplier || 0) * (cs.p_atk || 0) + (payload.m_atk_multiplier || 0) * (cs.m_atk || 0) + (payload.base_damage || 0);
   const affected = [];
-  hits.forEach(({ unit, mult }) => {
-    if (!unit.alive) return;
-    dealSkillDamage(caster.team, payload.damage_type, raw * mult, unit, caster, true);
-    affected.push(unit);
-  });
-  return affected;
+  let totalDamage = 0;
+  const resolveOneHit = (unit, mult) => {
+    if (!unit || !unit.alive) return;
+    const distance = gridDist(caster, unit);
+    let raw = baseRaw * (mult != null ? mult : 1);
+    raw *= computeDistanceScalingMult(payload, distance);
+    if (payload.conditional_multiplier && evaluateDamageCondition(payload.conditional_multiplier.condition, caster, unit)) {
+      raw *= (1 + payload.conditional_multiplier.bonus_multiplier);
+    }
+    const armorPenPct = computeArmorPenPct(payload, distance);
+    totalDamage += dealSkillDamage(caster.team, payload.damage_type, raw, unit, caster, true, armorPenPct);
+    if (payload.execute_threshold_pct != null && unit.alive && (unit.hp / unit.maxHp) * 100 <= payload.execute_threshold_pct) {
+      unit.hp = 0;
+      handleUnitDeath(unit, caster);
+    }
+    if (!affected.includes(unit)) affected.push(unit);
+  };
+  if (Array.isArray(primary)) { // three_nearest_enemies_in_range (Ranger) — repeat-target volley
+    const shots = payload.projectile_count || primary.length;
+    const mults = payload.repeat_target_multipliers || [];
+    for (let i = 0; i < shots; i++) resolveOneHit(primary[i % primary.length], mults[i] != null ? mults[i] : 1);
+    return { units: affected, totalDamage };
+  }
+  resolveDamageTargets(caster, skillDef, primary).forEach(({ unit, mult }) => resolveOneHit(unit, mult));
+  return { units: affected, totalDamage };
 }
 function applyHealPayload(caster, skillDef, target) {
   if (!target || !target.alive) return;
   const payload = skillDef.heal_payload;
   const cs = caster.combatStats || {};
   const healAmt = (payload.m_atk_multiplier || 0) * (cs.m_atk || 0) + (payload.base_heal || 0);
-  target.hp = Math.min(target.maxHp, target.hp + healAmt);
+  const missing = target.maxHp - target.hp;
+  const applied = Math.min(missing, healAmt);
+  target.hp += applied;
   target.hpBar.scale.x = Math.max(0, target.hp/target.maxHp);
   target.hpBar.position.x = -0.36*(1-target.hpBar.scale.x);
+  const overflow = healAmt - applied;
+  if (overflow > 0 && payload.overflow_heal_to_shield_pct) {
+    target.shield = (target.shield || 0) + overflow * (payload.overflow_heal_to_shield_pct / 100);
+    target.shieldTimer = Math.max(target.shieldTimer || 0, 4); // no explicit duration in the data — reuses the other tier-2 shield's 4s
+  }
+  if (payload.cleanse_negative_status_count) {
+    let toCleanse = payload.cleanse_negative_status_count;
+    target.statuses = (target.statuses || []).filter((s) => {
+      if (toCleanse > 0 && (s.kind === 'debuff' || s.kind === 'dot')) { toCleanse--; return false; }
+      return true;
+    });
+    refreshCombatStats(target);
+  }
+  onHpChanged(target);
+}
+// Inquisitor's Holy Judgment: heals the WHOLE team for a % of the damage this cast just dealt,
+// split evenly — a completely different mechanic from the target-based heal_payload above.
+function applyDamageBasedHeal(caster, skillDef, damageDealt) {
+  const payload = skillDef.heal_payload;
+  const totalHeal = damageDealt * ((payload.heal_pct_of_damage || 0) / 100);
+  const allies = units.filter((o) => o.alive && o.team === caster.team);
+  if (!allies.length || totalHeal <= 0) return;
+  const share = totalHeal / allies.length;
+  allies.forEach((a) => {
+    a.hp = Math.min(a.maxHp, a.hp + share);
+    a.hpBar.scale.x = Math.max(0, a.hp/a.maxHp);
+    a.hpBar.position.x = -0.36*(1-a.hpBar.scale.x);
+    onHpChanged(a);
+  });
+}
+function applyShieldPayload(caster, skillDef, target) {
+  const payload = skillDef.shield_payload;
+  const shieldTarget = payload.target_type === 'self' ? caster : target;
+  if (!shieldTarget || !shieldTarget.alive) return;
+  const amount = (payload.max_hp_multiplier || 0) * (shieldTarget.maxHp || 0) + (payload.base_shield || 0);
+  shieldTarget.shield = (shieldTarget.shield || 0) + amount;
+  shieldTarget.shieldTimer = Math.max(shieldTarget.shieldTimer || 0, payload.duration || 0);
+}
+// Priest's emergency revive: only reachable via the lowest_hp_ally -> dead-ally redirect above.
+function applyRevivePayload(caster, skillDef, deadUnit) {
+  const payload = skillDef.revive_payload;
+  deadUnit.alive = true;
+  deadUnit.hp = Math.max(1, Math.round(deadUnit.maxHp * (payload.revive_hp_pct / 100)));
+  if (deadUnit.current_mana !== undefined) deadUnit.current_mana = Math.round((deadUnit.max_mana || 100) * ((payload.revive_mana_pct || 0) / 100));
+  deadUnit.hpBar.visible = true;
+  deadUnit.hpBar.scale.x = Math.max(0, deadUnit.hp/deadUnit.maxHp);
+  deadUnit.hpBar.position.x = -0.36*(1-deadUnit.hpBar.scale.x);
+  deadUnit.body.material.opacity = 1; deadUnit.body.rotation.z = 0;
+  deadUnit.group.visible = true; deadUnit.group.children[2].visible = true;
+  deadUnit.shadow.material.opacity = 0.35;
+  deadUnit.deathT = undefined;
+  occupied.add(key(deadUnit.c, deadUnit.r));
+  deadUnit.statuses = deadUnit.statuses || [];
+  deadUnit.statuses.push({ status_id: 'revive_invulnerability', kind: 'buff', remaining: payload.invulnerability_duration || 0, invulnerable: true });
+  caster.reviveUsesThisWave = (caster.reviveUsesThisWave || 0) + 1;
+  const idx = deadAlliesThisWave.indexOf(deadUnit);
+  if (idx >= 0) deadAlliesThisWave.splice(idx, 1);
+}
+// Trickster's Loaded Dice: steals the strongest positive buff from a hit enemy onto itself.
+function applyBuffStealPayload(caster, skillDef, hitEnemies) {
+  const payload = skillDef.buff_steal_payload;
+  if (!payload || !payload.enabled) return;
+  let bestEnemy = null, bestStatus = null, bestMag = -1;
+  hitEnemies.forEach((e) => {
+    (e.statuses || []).forEach((s) => {
+      if (s.kind !== 'buff') return;
+      if ((payload.excluded_status_tags || []).includes(s.status_id)) return;
+      const mag = statusMagnitude(s);
+      if (mag > bestMag) { bestMag = mag; bestEnemy = e; bestStatus = s; }
+    });
+  });
+  if (!bestStatus) return;
+  if (payload.remove_from_target) {
+    bestEnemy.statuses = bestEnemy.statuses.filter((s) => s !== bestStatus);
+    refreshCombatStats(bestEnemy);
+  }
+  if (payload.apply_to_caster) {
+    caster.statuses = caster.statuses || [];
+    caster.statuses.push({ ...bestStatus, modifiers: bestStatus.modifiers ? { ...bestStatus.modifiers } : undefined });
+    refreshCombatStats(caster);
+  }
 }
 function applySummonPayload(caster, skillDef, tile) {
   const payload = skillDef.summon_payload;
@@ -1442,6 +1843,7 @@ function applySummonPayload(caster, skillDef, tile) {
     summonerId: caster.instanceId, isSummon: true,
   });
   u.baseMaxHp = hp;
+  if (payload.special_attack) { u.specialAttack = payload.special_attack; u.specialAttackCounter = 0; } // Beast Lord's dragon
 }
 function applyRewardPayload(caster, skillDef, target) {
   if (!target) return;
@@ -1451,32 +1853,108 @@ function applyRewardPayload(caster, skillDef, target) {
     rewardOnDeath: { casterRef: caster, gold: payload.gold_on_marked_target_death,
       maxTriggers: payload.max_gold_triggers_per_wave, requiresCasterAlive: payload.requires_caster_alive } });
 }
+// Aura statuses that persist "while a specific summon is alive" (Beast Lord) don't apply through
+// the normal per-target status loop — they're registered once per caster and (de)applied to every
+// living ally whenever the summon's alive/dead state flips, via updateSummonAuras() each frame.
+let summonAuras = [];
+function registerSummonAuraIfNeeded(caster, se) {
+  if (summonAuras.some((a) => a.caster === caster && a.se.status_id === se.status_id)) return;
+  summonAuras.push({ caster, se, active: false });
+}
+function updateSummonAuras() {
+  summonAuras.forEach((entry) => {
+    const summon = units.find((u) => u.isSummon && u.summonerId === entry.caster.instanceId && u.alive);
+    const shouldBeActive = !!summon;
+    if (shouldBeActive === entry.active) return;
+    entry.active = shouldBeActive;
+    const allies = placedUnits.filter((u) => u.alive);
+    if (shouldBeActive) {
+      allies.forEach((a) => applyStatusEffectToUnit(a, entry.se, entry.caster));
+    } else {
+      allies.forEach((a) => {
+        a.statuses = (a.statuses || []).filter((s) => s.status_id !== entry.se.status_id);
+        refreshCombatStats(a);
+      });
+    }
+  });
+}
+// Dispatches a skill's status_effects to the right unit(s) per `target_scope` — tier-1 skills
+// have no target_scope at all, so the default falls back to the old "every damaged/healed unit"
+// behavior for full backward compatibility.
+function resolveStatusTargets(se, ctx) {
+  switch (se.target_scope) {
+    case 'self': return [ctx.caster];
+    case 'primary_target': return ctx.primaryTarget && !Array.isArray(ctx.primaryTarget) ? [ctx.primaryTarget] : [];
+    case 'damaged_targets': return ctx.damagedUnits || [];
+    case 'healed_target': return ctx.healedTarget ? [ctx.healedTarget] : [];
+    case 'enemies_in_radius': return units.filter((o) => o.alive && o.team !== ctx.caster.team && gridDist(o, ctx.caster) <= (se.area_radius || 1));
+    case 'targets_already_slowed': return (ctx.damagedUnits || []).filter((u) => (u.statuses || []).some((s) => s.status_id === 'slow'));
+    default: return ctx.damagedUnits || (ctx.primaryTarget && !Array.isArray(ctx.primaryTarget) ? [ctx.primaryTarget] : []);
+  }
+}
 function executeSkill(caster, skillDef, target) {
-  // reward_payload (the "mark") must land BEFORE damage_payload resolves — Merchant's skill
-  // damages and marks the same target in one cast, and a killing blow must still count as a
-  // death-while-marked, not slip past the reward because the target died one step too early.
-  if (skillDef.reward_payload && target) applyRewardPayload(caster, skillDef, target);
+  // Priest's revive only ever gets reached via the lowest_hp_ally -> dead-ally redirect —
+  // it fully replaces this cast's normal payloads.
+  if (skillDef.revive_payload && target && !Array.isArray(target) && !target.alive) {
+    applyRevivePayload(caster, skillDef, target);
+    return;
+  }
+  // reward_payload (the "mark") must land BEFORE damage_payload resolves — a killing blow must
+  // still count as a death-while-marked, not slip past the reward one step too early.
+  if (skillDef.reward_payload && target && !Array.isArray(target)) applyRewardPayload(caster, skillDef, target);
   let affected = [];
+  let damageDealt = 0;
   if (skillDef.damage_payload && skillDef.damage_payload.damage_type !== 'none') {
-    affected = applyDamagePayload(caster, skillDef, target);
+    const res = applyDamagePayload(caster, skillDef, target);
+    affected = res.units; damageDealt = res.totalDamage;
   }
+  let healTargetRef = null;
   if (skillDef.heal_payload) {
-    applyHealPayload(caster, skillDef, target);
-    if (target && target.alive && !affected.includes(target)) affected.push(target);
+    if (skillDef.heal_payload.source === 'damage_dealt') {
+      applyDamageBasedHeal(caster, skillDef, damageDealt);
+    } else if (target && !Array.isArray(target)) {
+      applyHealPayload(caster, skillDef, target);
+      if (target.alive) { healTargetRef = target; if (!affected.includes(target)) affected.push(target); }
+    }
   }
+  if (skillDef.shield_payload) applyShieldPayload(caster, skillDef, target && !Array.isArray(target) ? target : null);
   if (skillDef.summon_payload) applySummonPayload(caster, skillDef, target);
-  if (skillDef.reward_payload && target && !affected.includes(target)) affected.push(target);
+  if (skillDef.reward_payload && target && !Array.isArray(target) && !affected.includes(target)) affected.push(target);
+  if (skillDef.buff_steal_payload) applyBuffStealPayload(caster, skillDef, affected.filter((u2) => u2.team !== caster.team));
   (skillDef.status_effects || []).forEach((se) => {
-    affected.forEach((u) => { if (u.alive && Math.random() <= (se.chance != null ? se.chance : 1)) applyStatusEffectToUnit(u, se, caster); });
+    if (se.target_scope === 'all_allies_while_summon_alive') { registerSummonAuraIfNeeded(caster, se); return; }
+    const targets = resolveStatusTargets(se, { caster, primaryTarget: target, damagedUnits: affected, healedTarget: healTargetRef });
+    targets.forEach((u2) => { if (u2 && u2.alive && Math.random() <= (se.chance != null ? se.chance : 1)) applyStatusEffectToUnit(u2, se, caster); });
   });
 }
 function despawnSummons() {
   units.filter((u) => u.isSummon).forEach(removeUnit);
 }
+// Spirit Blade's Spirit Edge (on_basic_attack_payload): tag-along bonus damage whenever the
+// status owner's basic attack lands — doesn't grant its own "damage taken" mana (the main
+// attack already did) to avoid double-counting a single attack event.
+function applyOnBasicAttackBonus(attacker, target) {
+  (attacker.statuses || []).forEach((st) => {
+    if (!st.on_basic_attack_payload || !target.alive) return;
+    const p = st.on_basic_attack_payload;
+    const cs = attacker.combatStats || {};
+    const raw = (p.p_atk_multiplier || 0) * (cs.p_atk || 0) + (p.m_atk_multiplier || 0) * (cs.m_atk || 0) + (p.base_damage || 0);
+    dealSkillDamage(attacker.team, p.damage_type, raw, target, attacker, false);
+  });
+}
+// Beast Lord's Spirit Dragon: every 3rd basic attack fires a bonus line AoE instead of/on top
+// of the normal hit. The dragon has no combatStats (it's a simplified flat-stat summon like
+// Priority 6's Spirit Familiar), so it reads its own camelCase pAtk/mAtk directly.
+function triggerSpecialAttack(caster, aimTarget) {
+  const sp = caster.specialAttack;
+  const hits = sp.area_shape === 'line' ? collectLineTargets(caster, aimTarget, sp.line_length || 2, 99) : [aimTarget];
+  const raw = (sp.p_atk_multiplier || 0) * (caster.pAtk || 0) + (sp.m_atk_multiplier || 0) * (caster.mAtk || 0);
+  hits.forEach((t) => dealSkillDamage(caster.team, sp.damage_type, raw, t, caster, true));
+}
 
 function updateUnit(u, dt) {
   if (!u.alive) return; // 1) Dead Check
-  tickStatuses(u, dt); // DoT ticks + status expiry run regardless of what else happens this frame
+  tickStatuses(u, dt); // DoT ticks + status/shield expiry run regardless of what else happens this frame
   if (!u.alive) return; // a DoT tick may have just killed this unit
   if (u.moving) {
     u.moveT += dt*getEffectiveMoveSpeed(u);
@@ -1488,7 +1966,7 @@ function updateUnit(u, dt) {
   }
   u.body.position.y = u.halfH;
 
-  // 2) Hard CC Check (Stun/Freeze) — no CC source wired yet, so u.statuses never contains one today
+  // 2) Hard CC Check (Stun/Freeze)
   if (hasHardCC(u)) {
     if (u.action_state === 'casting') { u.action_state = 'idle'; u.castTimer = 0; u.castTarget = null; } // interrupted — mana untouched, retry once CC clears
     updateAnim(u, dt);
@@ -1500,9 +1978,13 @@ function updateUnit(u, dt) {
   if (u.current_mana !== undefined) {
     const skillDef = SKILL_DEFS[u.heroKey];
     if (u.action_state === 'casting') {
-      // if the target died mid-cast, pick a replacement so the cast doesn't resolve on a corpse
-      if (skillDef && u.castTarget && 'alive' in u.castTarget && !u.castTarget.alive) {
-        u.castTarget = resolveSkillTarget(u, skillDef);
+      // if the target(s) died mid-cast, pick a replacement so the cast doesn't resolve on a corpse
+      if (skillDef && u.castTarget) {
+        if (Array.isArray(u.castTarget)) {
+          if (!u.castTarget.some((t) => t && t.alive)) u.castTarget = resolveSkillTarget(u, skillDef);
+        } else if ('alive' in u.castTarget && !u.castTarget.alive) {
+          u.castTarget = resolveSkillTarget(u, skillDef);
+        }
       }
       u.castTimer -= dt;
       if (u.castTimer <= 0) {
@@ -1510,7 +1992,7 @@ function updateUnit(u, dt) {
           executeSkill(u, skillDef, u.castTarget);
           u.current_mana = Math.max(0, u.current_mana - (skillDef.mana_cost || u.max_mana));
         } else {
-          u.current_mana = Math.max(0, u.current_mana - u.max_mana); // no skill data yet (tier-2) — spend, no effect
+          u.current_mana = Math.max(0, u.current_mana - u.max_mana); // no skill data yet — spend, no effect
         }
         u.action_state = 'idle';
         u.castTarget = null;
@@ -1518,7 +2000,7 @@ function updateUnit(u, dt) {
       updateAnim(u, dt);
       return; // casting locks out basic attack + movement for its whole duration
     }
-    if (u.current_mana >= u.max_mana) {
+    if (u.current_mana >= u.max_mana && !hasSilence(u)) {
       u.action_state = 'casting';
       u.castTimer = skillDef ? skillDef.cast_time : SKILL_CAST_DURATION;
       u.castTarget = skillDef ? resolveSkillTarget(u, skillDef) : null;
@@ -1528,7 +2010,14 @@ function updateUnit(u, dt) {
     }
   }
 
-  if (!u.current_target || !u.current_target.alive) u.current_target = selectTarget(u);
+  // Taunt (Knight) forces the taunted unit to keep attacking whoever taunted it, overriding the
+  // normal nearest-enemy lock, for as long as the taunt status and its caster remain alive.
+  const activeTaunt = (u.statuses || []).find((s) => s.status_id === 'taunt' && s.casterRef && s.casterRef.alive);
+  if (activeTaunt) {
+    u.current_target = activeTaunt.casterRef;
+  } else if (!u.current_target || !u.current_target.alive) {
+    u.current_target = selectTarget(u);
+  }
   const target = u.current_target;
   if (!target) { updateAnim(u,dt); return; }
   const atkRange = u.combatStats ? u.combatStats.attack_range : u.range;
@@ -1539,14 +2028,21 @@ function updateUnit(u, dt) {
     u.atkCooldown -= dt;
     if (u.atkCooldown<=0) {
       const atkSpeedPct = (u.team==='player' && combatLinkBuffs) ? combatLinkBuffs.atkSpeedPct : 0;
-      const baseAtkSpeed = u.combatStats ? u.combatStats.attack_speed : u.atkSpeed;
+      const baseAtkSpeed = getEffectiveAttackSpeed(u);
       u.atkCooldown = 1/(baseAtkSpeed * (1 + atkSpeedPct/100));
       u.animState='attack'; u.animTimer=0;
       let dmg = applyTrait(u, target, attackerRawAtk(u));
       dmg = applyCombatLinkModifiers(dmg, u, target);
+      dmg = (target.statuses || []).some((s) => s.invulnerable) ? 0 : absorbWithShield(target, dmg);
       target.hp -= dmg;
       grantMana(u, MANA_PER_ATTACK);
       grantMana(target, MANA_PER_DAMAGE_TAKEN);
+      onHpChanged(target);
+      const lifestealPct = u.combatStats ? (u.combatStats.physical_lifesteal || 0) : 0;
+      if (lifestealPct > 0 && dmg > 0 && u.attackType !== 'magic') {
+        u.hp = Math.min(u.maxHp, u.hp + dmg * (lifestealPct / 100));
+        onHpChanged(u);
+      }
       const dir = gridToWorld(target.c,target.r).sub(u.group.position).normalize().multiplyScalar(0.12);
       u.body.position.x += dir.x;
       setTimeout(()=>{ if (u.alive) u.body.position.x=0; }, 90);
@@ -1555,6 +2051,11 @@ function updateUnit(u, dt) {
       target.hpBar.scale.x = Math.max(0, target.hp/target.maxHp);
       target.hpBar.position.x = -0.36*(1-target.hpBar.scale.x);
       if (target.hp<=0) handleUnitDeath(target, u);
+      if (target.alive) applyOnBasicAttackBonus(u, target);
+      if (u.specialAttack) {
+        u.specialAttackCounter = (u.specialAttackCounter || 0) + 1;
+        if (u.specialAttackCounter >= 3) { u.specialAttackCounter = 0; triggerSpecialAttack(u, target); }
+      }
     }
     u.body.scale.x = (gridToWorld(target.c,target.r).x < u.group.position.x) ? -1 : 1;
   } else stepToward(u, target); // 5) Movement
@@ -1752,12 +2253,17 @@ function placeHeroAt(benchIdx, c, r) {
     equipment: inst.equipment, combatStats: null }); // carry the SAME equipment array from the bench instance
   u.baseMaxHp = s.hp; // immutable — Link maxHpPct is always recomputed from this, never compounded
   // immutable snapshot buildCombatStats() clones from — never overwritten by equipment/Link math
+  // physical_lifesteal: baseline 0 so status modifiers (e.g. Berserker's physical_lifesteal_pct)
+  // have a real stats-object slot to fold into via buildCombatStats' generic modifier pipeline
   u.baseStats = { hp:s.hp, p_atk:s.p_atk, m_atk:s.m_atk, p_def:s.p_def, m_def:s.m_def,
-    move_speed:s.move_speed, attack_speed:s.attack_speed, attack_range:s.attack_range };
+    move_speed:s.move_speed, attack_speed:s.attack_speed, attack_range:s.attack_range, physical_lifesteal:0 };
   u.origC = c; u.origR = r;   // ไทล์ที่วางไว้ตอนแรก — ใช้สแนปกลับระหว่างด่าน (ดู resetForWave)
-  // Skill/Mana/Status runtime state (Priority 6 backend) — only placed heroes carry these fields
-  u.current_mana = 0; u.max_mana = 100; u.statuses = []; u.action_state = 'idle';
-  u.current_target = null; u.castTimer = 0; u.castTarget = null; u.skillGoldTriggers = 0;
+  // Skill/Mana/Status runtime state — max_mana comes from the hero's own skill data (dynamic per
+  // hero, e.g. Sniper 150 / Archmage 180), falling back to 100 for any hero with no SKILL_DEFS entry
+  const skillDef = SKILL_DEFS[inst.heroKey];
+  u.current_mana = 0; u.max_mana = (skillDef && skillDef.max_mana) || 100; u.statuses = []; u.action_state = 'idle';
+  u.current_target = null; u.castTimer = 0; u.castTarget = null; u.castTargetList = null;
+  u.skillGoldTriggers = 0; u.reviveUsesThisWave = 0; u.shield = 0; u.shieldTimer = 0;
   updateEquipBadge(u);
   placedUnits.push(u);
   selectedBenchIdx = -1;
@@ -2090,6 +2596,7 @@ startBattleBtn.onclick = () => {
   if (placedUnits.length === 0) return;
   phase = 'battle';
   waveTimer = 0;
+  deadAlliesThisWave = []; // most_recent_dead_ally (Priest's revive) only ever looks at this wave
   placedUnits.forEach((u) => buildCombatStats(u, ITEM_DEFS_BY_ID)); // Board Initialization — equipment pipeline
   applyPreCombatLinkBuffs();
   spawnWave(wave);
@@ -2173,6 +2680,7 @@ function animate(now) {
     dt *= speedMul;
     waveTimer += dt;
     for (const u of units) updateUnit(u, dt);
+    updateSummonAuras(); // Beast Lord: sync "while summon alive" aura onto/off all allies
     const pAlive = units.filter(u=>u.alive && u.team==='player').length;
     const eAlive = units.filter(u=>u.alive && u.team==='enemy').length;
     if (eAlive === 0) onWaveCleared();

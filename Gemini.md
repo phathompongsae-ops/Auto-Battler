@@ -160,6 +160,51 @@ Priority 1-7 ที่ `gemini_status.md`
   status effects ทำงานจริง ไม่มี NaN/console error ใหม่ — `baseStats` ไม่ถูกแก้ทับที่จุดใดเลย
   (ตรวจสอบด้วย grep ทั้งไฟล์)
 
+**Skill Execution Engine — ขยายครบ 14 ฮีโร่ tier-2 (เสร็จแล้ว)**
+- `max_mana` เปลี่ยนจากล็อก 100 ตายตัว เป็นดึงจาก `SKILL_DEFS[heroKey].max_mana` ต่อฮีโร่ (fallback
+  100 ถ้าไม่มี entry) — ตรวจแล้วจริง เช่น Sniper ต้องสะสมถึง 150, Archmage ถึง 180 ถึงจะร่ายได้
+  (เพิ่ม `max_mana:100` ให้ 7 ตัว tier-1 เดิมด้วยเพื่อความชัดเจน แม้ fallback ครอบคลุมอยู่แล้ว)
+- Targeting resolvers ใหม่ 4 แบบตามสเปก: `self`/`self_aoe_radius_3` (คืนค่าผู้ร่ายเอง เป็นศูนย์กลาง
+  AoE), `highest_max_hp_enemy`, `three_nearest_enemies_in_range` (คืนค่าเป็น **array** แบบเดียวใน
+  ระบบ — ใช้กับ Ranger's Triple Volley ที่ยิงซ้ำเป้าหมายเดิมได้ถ้าศัตรูในระยะไม่ครบ 3), `most_recent_
+  dead_ally` (เก็บ `deadAlliesThisWave[]` รีเซ็ตทุกครั้งกด "เริ่มการต่อสู้")
+- Payload ใหม่ 3 แบบ: `shield_payload` (ดูดซับดาเมจก่อน HP จริงผ่าน `absorbWithShield()`, มี
+  duration หมดอายุใน `tickStatuses()`), `revive_payload` (Priest — ร่ายผ่าน `lowest_hp_ally` ปกติ
+  แต่ redirect ไปชุบชีวิตถ้าไม่มีเป้าหมายฮีลที่ถูกต้องและมีฝั่งเดียวกันตายอยู่ในเวฟนี้ จำกัดจำนวนครั้ง/เวฟ
+  ต่อผู้ร่าย, ได้ HP%/Mana% ตามกำหนด พร้อม invulnerability ชั่วคราว), `buff_steal_payload`
+  (Trickster — ขโมยบัฟที่แรงที่สุดจากศัตรูในพื้นที่มาใส่ตัวเอง ลบออกจากเป้าหมายเดิม)
+- `damage_payload` เงื่อนไขพิเศษ: `armor_penetration_pct`/`armor_penetration` (object แบบ
+  base+bonus ต่อระยะ capped, Sniper), `distance_scaling` (ดาเมจเพิ่มตามระยะ capped),
+  `conditional_multiplier` (Duelist — โบนัสถ้าเป้าหมาย HP มากกว่าผู้ร่าย), `execute_threshold_pct`
+  (ถ้า HP% หลังโดนดาเมจต่ำกว่าเกณฑ์ ตายทันที — Duelist/Inquisitor), `projectile_count`+
+  `repeat_target_multipliers` (Ranger ยิงซ้ำเป้าหมายเดิมได้)
+- `conditional_modifiers` ใน `buildCombatStats()`: ประเมินเงื่อนไข (เช่น `hp_pct_below_50`) ใหม่
+  ทุกครั้งที่ฟังก์ชันรัน ไม่ใช่ค่าตายตัวตอน apply — Berserker's Blood Frenzy จึงปรับโบนัสสดตาม HP%
+  ปัจจุบันของตัวเอง (`onHpChanged()` เรียก `refreshCombatStats()` ทุกครั้ง HP เปลี่ยนถ้ามี status
+  ประเภทนี้ติดอยู่)
+- `on_basic_attack_payload` (Spirit Blade's Spirit Edge): ดาเมจเวทแถมท้ายทุกครั้งที่โจมตีปกติติด
+  ไม่ให้มานา "โดนดาเมจ" ซ้ำอีกรอบ (การโจมตีหลักให้ไปแล้ว)
+- `physical_lifesteal_pct` (Berserker): แก้บั๊กที่พบระหว่างเทส — สเตตัสเรตแบบนี้ base เป็น 0 เสมอ
+  คูณเปอร์เซ็นต์แล้วได้ 0 ตลอด จึงแยกกลุ่ม `RATE_STAT_KEYS` ให้บวกตรงแทนคูณ ตอนนี้ lifesteal ฮีล
+  จริงตอนโจมตีปกติ (ถือเป็น physical เท่านั้น)
+- Taunt (Knight): บังคับเป้าหมายที่ติดสถานะให้ตี caster เท่านั้นจนกว่าจะหมดเวลาหรือ caster ตาย
+  (override การล็อกเป้าหมายปกติใน `updateUnit()`) — Silence (Inquisitor): บล็อกแค่การ "เริ่ม" ร่าย
+  สกิลใหม่ (มานาสะสมได้ปกติ ถือค้างไว้รอ) ไม่ขัดจังหวะสกิลที่ร่ายอยู่แล้วเหมือน Hard CC
+- Beast Lord's Spirit Dragon: มี `special_attack` (โจมตีพิเศษเป็นเส้นทุก 3 ครั้งที่ตีปกติ, นับผ่าน
+  `specialAttackCounter`) และสถานะ "ทั้งทีมได้ attack_speed เพิ่มตราบใดที่มังกรยังไม่ตาย" ซึ่งไม่ใช่
+  timer ปกติ (`remaining:-1`) แต่ผูกกับ `updateSummonAuras()` เช็กทุกเฟรมว่ามังกรยังอยู่ไหม แล้ว
+  ใส่/ถอดบัฟให้ทุกฮีโร่ในสนามอัตโนมัติ (เรียกจาก `animate()` loop หลัก)
+- แก้บั๊ก move_speed/attack_speed คู่มือ: `buildCombatStats()` เจตนาไม่ fold `move_speed_pct` เข้า
+  combatStats (กัน double-apply กับ `getEffectiveMoveSpeed()`) แต่ `attack_speed_pct` fold ได้ปกติ
+  (เป็น single source of truth สำหรับฮีโร่อยู่แล้ว) — เพิ่ม `getEffectiveAttackSpeed()` ให้มอนสเตอร์
+  ที่ไม่มี `combatStats` เลยก็ยังโดน attack_speed debuff (เช่น Frost Weaver's slow) ได้จริง
+- ทดสอบผ่าน Playwright ครบทุกฮีโร่ tier-2 แยกฟังก์ชัน ตัวเลขดาเมจ/ชิลด์/ฮีล/มานาตรงสูตรเป๊ะทุกกรณี
+  (เช่น Sniper's distance_scaling+armor_penetration ผสมกันตรงเป๊ะ, Beast Lord's dragon special
+  attack ตรงเป๊ะ), แก้ 2 บั๊กที่พบระหว่างเทส (physical_lifesteal_pct ต้องบวกไม่ใช่คูณ, freeze
+  ต้องมี `kind:'freeze'` ชัดเจนถึงจะนับเป็น Hard CC), และ**เล่นจริงบังคับ speed x4 หลายเวฟ**ด้วย
+  roster ผสม (Knight/Archmage/Beast Lord/Priest/Sniper) ไม่มี NaN/console error ใหม่ เลย —
+  `baseStats` ไม่ถูกแก้ทับที่จุดใดเลย (grep ทั้งไฟล์ยืนยัน)
+
 **อื่นๆ ที่มีอยู่แล้วก่อนรอบนี้** (ยังทำงานอยู่ ไม่ได้แตะ): ระบบ wave 1-15 พร้อมด่านบอสจริงที่
 stage 5/10/13/15 (`bossWave()`), quota แพ้ได้ 3 ครั้งต่อรัน, bench คนละ 6 ช่อง, field สูงสุด 5 ตัว
 
