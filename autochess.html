@@ -20,18 +20,23 @@
     color: var(--text-dim); font-family: monospace; font-size: 18px; background: var(--bg); z-index: 30;
   }
 
-  /* ----- แถบบนสุด ----- */
+  /* ----- 3D Canvas: full-viewport background layer, everything else floats above it ----- */
+  #boardContainer { position: fixed; inset: 0; z-index: 0; }
+
+  /* ----- แถบบนสุด: ซ้าย (เมนู) / กลาง (Gold, Wave, HP — center) / ขวา (speed/pause) ----- */
   #topbar {
-    position: fixed; top: 0; left: 0; right: 0; display: flex; align-items: center;
-    gap: 12px; padding: 10px 16px; background: linear-gradient(#0c0d10, rgba(12,13,16,0));
-    color: var(--text); font-size: 15px; z-index: 10; pointer-events: none; flex-wrap: wrap;
+    position: fixed; top: 0; left: 0; right: 0; display: flex; align-items: flex-start;
+    justify-content: space-between; gap: 8px; padding: 10px 14px;
+    background: linear-gradient(rgba(6,7,9,0.7), rgba(6,7,9,0));
+    color: var(--text); font-size: 15px; z-index: 10; pointer-events: none;
   }
-  #topbar .pill {
-    background: rgba(26,28,34,0.9); border: 1px solid var(--panel-border); border-radius: 20px;
-    padding: 6px 14px; pointer-events: auto; display: flex; align-items: center; gap: 6px;
+  #topbarLeft, #topbarRight { display: flex; gap: 8px; flex-shrink: 0; pointer-events: auto; }
+  #topbarCenter { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; pointer-events: auto; flex: 1; }
+  .pill {
+    background: rgba(26,28,34,0.82); border: 1px solid var(--panel-border); border-radius: 20px;
+    padding: 6px 14px; pointer-events: auto; display: flex; align-items: center; gap: 6px; white-space: nowrap;
   }
-  #topbar .spacer { flex: 1; }
-  #topbar button {
+  #topbar button, .hudCorner button, #shopToggleBtn, #bagToggleBtn {
     pointer-events: auto; background: #262a33; color: var(--text); border: 1px solid var(--panel-border);
     border-radius: 6px; padding: 6px 12px; cursor: pointer; font-size: 14px;
   }
@@ -39,23 +44,18 @@
   #topbar button.active { background: var(--accent-dim); color: #1a1408; }
   a#back { text-decoration: none; }
 
-  /* ----- โครงกลาง: ซ้าย (Synergy) / กระดาน (สี่เหลี่ยมจัตุรัส ~60% ของจอ) / ขวา (HP ทีม) ----- */
-  #gameGrid {
-    position: fixed; left: 0; right: 0; top: var(--topbar-h, 56px); bottom: var(--bottomui-h, 210px);
-    display: flex; align-items: stretch; z-index: 5;
-  }
-  .sidePanel {
-    flex: 0 0 200px; min-width: 0; margin: 8px; border-radius: 10px; padding: 10px;
-    background: rgba(26,28,34,0.88); border: 1px solid var(--panel-border);
+  /* ----- แผงลอย (Synergy ซ้าย / ทีมในสนาม ขวา / กระเป๋าไอเทม) — ชิดขอบจอซ้าย-ขวาที่สุด
+     เพื่อเปิดทางให้กระดาน 3D ตรงกลางขยายเต็มที่ ไม่กินพื้นที่เลย์เอาต์ (ลอยทับฉาก 3D) ----- */
+  .floatPanel {
+    position: fixed; z-index: 8; width: clamp(130px, 15vw, 165px); max-height: min(48vh, 380px);
+    margin: 0; border-radius: 10px; padding: 8px;
+    background: rgba(20,22,27,0.68); border: 1px solid var(--panel-border);
     color: var(--text); overflow-y: auto; pointer-events: auto;
   }
-  .sidePanel h3 { margin: 0 0 10px; font-size: 13px; color: var(--text-dim); font-weight: normal;
+  .floatPanel h3 { margin: 0 0 8px; font-size: 12px; color: var(--text-dim); font-weight: normal;
     text-transform: uppercase; letter-spacing: 0.5px; display: flex; justify-content: space-between; align-items: center; }
-  #centerCol { flex: 1; min-width: 0; display: flex; align-items: center; justify-content: center; position: relative; }
-  #boardContainer {
-    position: relative; border-radius: 12px; overflow: hidden;
-    box-shadow: 0 0 0 1px var(--panel-border), 0 8px 30px rgba(0,0,0,0.5);
-  }
+  #synergyPanel { left: 4px; top: 60px; }
+  #hpPanel { right: 4px; top: 60px; }
 
   /* ----- Synergy panel (ซ้าย): auto class-count status ----- */
   #synergyList { display: flex; flex-direction: column; gap: 6px; }
@@ -82,25 +82,29 @@
   .teamHpBarTrack { height: 6px; border-radius: 3px; background: #33261a; overflow: hidden; }
   .teamHpBarFill { height: 100%; background: linear-gradient(90deg, var(--accent-green), #7fd99a); transition: width 0.15s linear; }
 
-  /* ----- แผงร้านค้า / ม้านั่งสำรอง (bottom bar, dark minimalist) ----- */
-  #bottomUI {
-    position: fixed; left: 0; right: 0; bottom: 0; z-index: 10; height: 210px;
-    display: flex; flex-direction: row; align-items: stretch; gap: 8px;
-    padding: 8px 10px 10px; pointer-events: none;
-    background: linear-gradient(rgba(12,13,16,0), rgba(8,9,11,0.75) 25%);
+  /* ----- ม้านั่งสำรอง (กึ่งกลางล่าง, ลอยทับฉาก 3D ไม่บังกระดาน) ----- */
+  #benchPanel {
+    position: fixed; left: 50%; bottom: 10px; transform: translateX(-50%); z-index: 9;
+    width: min(64vw, 620px); max-height: 128px;
   }
+  /* ----- ร้านค้า: แผงเลื่อนขึ้นจากขอบล่าง ทับม้านั่ง เมื่อกดปุ่ม Toggle Shop เท่านั้น ----- */
+  #shopDrawer {
+    position: fixed; left: 50%; bottom: 10px; z-index: 12; width: min(64vw, 620px); max-height: 220px;
+    transform: translate(-50%, calc(100% + 20px)); transition: transform 0.25s ease; opacity: 0;
+  }
+  #shopDrawer.open { transform: translate(-50%, 0); opacity: 1; }
   .panel {
     background: var(--panel-bg); border: 1px solid var(--panel-border); border-radius: 10px;
-    box-shadow: 0 4px 14px rgba(0,0,0,0.5); pointer-events: auto; color: var(--text);
+    box-shadow: 0 4px 14px rgba(0,0,0,0.55); pointer-events: auto; color: var(--text);
     padding: 8px 10px; overflow-y: auto;
   }
-  #shopPanel, #benchPanel { flex: 1 1 0; min-width: 0; }
-  #shopPanel h3, #benchPanel h3 { margin: 0 0 6px; font-size: 13px; display: flex; justify-content: space-between; align-items: center; }
-  #shopPanel h3 button {
+  #shopDrawer h3, #benchPanel h3 { margin: 0 0 6px; font-size: 13px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  #shopDrawer h3 button {
     background: var(--accent-green); color: #0c1a10; border: 1px solid #3a8a56; border-radius: 6px;
     padding: 4px 10px; cursor: pointer; font-size: 12px;
   }
-  #shopPanel h3 button:disabled { background: #444; border-color: #555; color: #999; cursor: not-allowed; }
+  #shopDrawer h3 button:disabled { background: #444; border-color: #555; color: #999; cursor: not-allowed; }
+  #shopCloseBtn { background: #262a33 !important; color: var(--text) !important; border-color: var(--panel-border) !important; }
   #shopCards, #benchCards { display: flex; gap: 6px; flex-wrap: wrap; }
   .subcount { font-weight: normal; color: var(--text-dim); font-size: 11px; }
   .card {
@@ -126,11 +130,14 @@
     line-height: 1.2; z-index: 2;
   }
   .teamHpRow .equipBtn, .teamHpRow .sellBtn { top: 4px; }
+  /* ----- กระเป๋าไอเทม: แผงด้านขวา พับเก็บได้ด้วย #bagToggleBtn ----- */
+  #bagToggleBtn { position: fixed; right: 10px; bottom: 176px; z-index: 9; }
   #inventoryPanel {
-    position: fixed; left: 10px; bottom: 216px; z-index: 10; max-width: min(72vw, 440px);
-    pointer-events: none;
+    position: fixed; right: 10px; bottom: 216px; z-index: 8; width: min(60vw, 360px);
+    pointer-events: none; transition: transform 0.2s ease, opacity 0.2s ease; transform-origin: bottom right;
   }
-  #inventoryPanel .panel { pointer-events: auto; padding: 6px 8px; max-height: 88px; }
+  #inventoryPanel.collapsed { transform: translateX(120%); opacity: 0; }
+  #inventoryPanel .panel { pointer-events: auto; padding: 6px 8px; max-height: 96px; }
   #inventoryPanel h3 { margin: 0 0 4px; font-size: 12px; }
   #inventoryCards, #equipModalInventory { display: flex; gap: 5px; overflow-x: auto; max-width: 100%; }
   .itemCard {
@@ -196,13 +203,18 @@
     transform: translate(-50%, -50%) scale(0.86); border-radius: 10px; overflow: hidden;
     background: #333; box-shadow: 0 4px 10px #0008, 0 0 0 2px var(--accent); }
   .benchGhost img { width: 100%; height: 100%; object-fit: cover; display: block; }
-  #startCol { flex: 0 0 150px; display: flex; align-items: center; justify-content: center; }
+  /* ----- มุมล่างซ้าย (Lv./ซื้อ EXP) และมุมล่างขวา (Toggle Shop / เริ่มการต่อสู้) ----- */
+  .hudCorner { position: fixed; bottom: 10px; z-index: 9; display: flex; flex-direction: column; gap: 6px; pointer-events: none; }
+  .hudCorner > * { pointer-events: auto; }
+  #bottomLeft { left: 10px; align-items: flex-start; }
+  #bottomRight { right: 10px; align-items: stretch; width: 150px; }
   #startBattleBtn {
     pointer-events: auto; background: var(--accent); color: #1a1408;
     border: 1px solid var(--accent-dim); border-radius: 10px; font-size: 15px; font-weight: bold;
-    padding: 14px 18px; cursor: pointer; letter-spacing: 0.5px; width: 100%; height: 100%;
+    padding: 12px 14px; cursor: pointer; letter-spacing: 0.5px;
   }
   #startBattleBtn:disabled { background: #444; border-color: #555; color: #999; cursor: not-allowed; }
+  #shopToggleBtn.active { background: var(--accent-dim); color: #1a1408; }
 
   /* ----- โมดัลผลลัพธ์ ----- */
   #resultModal {
@@ -219,54 +231,81 @@
     background: var(--accent); color: #1a1408; border: 1px solid var(--accent-dim);
     border-radius: 8px; font-size: 16px; font-weight: bold; padding: 10px 28px; cursor: pointer;
   }
+
+  /* ----- Responsive: มือถือแนวนอน (จอเตี้ย, ความสูง <= 430px) — ย่อแผง/ปุ่มลงเล็กน้อยกันล้นจอ ----- */
+  @media (max-height: 430px) {
+    .floatPanel { max-height: 40vh; padding: 6px; }
+    .floatPanel h3 { font-size: 11px; margin-bottom: 6px; }
+    .pill { padding: 4px 10px; font-size: 13px; }
+    #topbar button, .hudCorner button, #shopToggleBtn, #bagToggleBtn { padding: 5px 9px; font-size: 12px; }
+    #startBattleBtn { padding: 9px 10px; font-size: 13px; }
+    #benchPanel, #shopDrawer { max-height: 100px; }
+  }
+  /* ----- Responsive: แท็บเล็ต/ไอแพด (จอกว้าง >= 900px) — ขยายแผง/ตัวอักษรขึ้นเล็กน้อย ไม่ให้เล็กจิ๋วบนจอใหญ่ ----- */
+  @media (min-width: 900px) {
+    .floatPanel { width: clamp(165px, 15vw, 220px); padding: 12px; }
+    .floatPanel h3 { font-size: 14px; }
+    #benchPanel, #shopDrawer { width: min(52vw, 640px); }
+    .pill, #startBattleBtn, #shopToggleBtn, #bagToggleBtn { font-size: 16px; }
+  }
 </style>
 </head>
 <body>
 <div id="loading">กำลังเตรียมสนามประลอง...</div>
 
+<div id="boardContainer"></div>
+
 <div id="topbar">
-  <a id="back" href="index.html"><button>&larr; เมนู</button></a>
-  <div class="pill">💰 <span id="goldLabel">0</span></div>
-  <div class="pill">⭐ Lv.<span id="levelLabel">1</span> <span id="expLabel">(0/4)</span> <button id="buyExpBtn">ซื้อ EXP</button></div>
-  <div class="pill">🌊 ด่าน <span id="waveLabel">1</span>/<span id="waveTotal">3</span></div>
-  <div class="pill" id="livesPill">❤️ <span id="livesLabel">3</span>/<span id="livesTotal">3</span></div>
-  <div class="pill" id="phaseLabel">เตรียมทีม</div>
-  <div class="pill" id="stageLabel" style="display:none"></div>
-  <div class="spacer"></div>
-  <button id="speedBtn">x1</button>
-  <button id="pauseBtn">⏸ หยุด</button>
-</div>
-
-<div id="gameGrid">
-  <div id="synergyPanel" class="sidePanel">
-    <h3>โบนัสอาชีพ</h3>
-    <div id="synergyList"></div>
+  <div id="topbarLeft"><a id="back" href="index.html"><button>&larr; เมนู</button></a></div>
+  <div id="topbarCenter">
+    <div class="pill">💰 <span id="goldLabel">0</span></div>
+    <div class="pill">🌊 ด่าน <span id="waveLabel">1</span>/<span id="waveTotal">3</span></div>
+    <div class="pill" id="livesPill">❤️ <span id="livesLabel">3</span>/<span id="livesTotal">3</span></div>
+    <div class="pill" id="phaseLabel">เตรียมทีม</div>
+    <div class="pill" id="stageLabel" style="display:none"></div>
   </div>
-  <div id="centerCol"><div id="boardContainer"></div></div>
-  <div id="hpPanel" class="sidePanel">
-    <h3>ทีมในสนาม <span id="fieldCount" class="subcount"></span></h3>
-    <div id="teamHpList"></div>
+  <div id="topbarRight">
+    <button id="speedBtn">x1</button>
+    <button id="pauseBtn">⏸ หยุด</button>
   </div>
 </div>
 
-<div id="inventoryPanel">
+<div id="synergyPanel" class="floatPanel">
+  <h3>โบนัสอาชีพ</h3>
+  <div id="synergyList"></div>
+</div>
+<div id="hpPanel" class="floatPanel">
+  <h3>ทีมในสนาม <span id="fieldCount" class="subcount"></span></h3>
+  <div id="teamHpList"></div>
+</div>
+
+<button id="bagToggleBtn" title="กระเป๋าไอเทม">🎒 กระเป๋า</button>
+<div id="inventoryPanel" class="collapsed">
   <div class="panel">
     <h3>กระเป๋าไอเทม <span id="invCount" class="subcount"></span></h3>
     <div id="inventoryCards"></div>
   </div>
 </div>
 
-<div id="bottomUI">
-  <div class="panel" id="shopPanel">
-    <h3>ร้านค้า <button id="rerollBtn">รีโรล (2💰)</button></h3>
-    <div id="shopCards"></div>
-  </div>
-  <div class="panel" id="benchPanel">
-    <h3>ม้านั่งสำรอง <span id="benchCount" class="subcount"></span></h3>
-    <div id="benchCards"></div>
-    <div id="hint"></div>
-  </div>
-  <div id="startCol"><button id="startBattleBtn">⚔ เริ่มการต่อสู้</button></div>
+<div id="bottomLeft" class="hudCorner">
+  <div class="pill">⭐ Lv.<span id="levelLabel">1</span> <span id="expLabel">(0/4)</span></div>
+  <button id="buyExpBtn">ซื้อ EXP</button>
+</div>
+
+<div class="panel" id="benchPanel">
+  <h3>ม้านั่งสำรอง <span id="benchCount" class="subcount"></span></h3>
+  <div id="benchCards"></div>
+  <div id="hint"></div>
+</div>
+
+<div class="panel" id="shopDrawer">
+  <h3>ร้านค้า <span><button id="rerollBtn">รีโรล (2💰)</button> <button id="shopCloseBtn">✕</button></span></h3>
+  <div id="shopCards"></div>
+</div>
+
+<div id="bottomRight" class="hudCorner">
+  <button id="shopToggleBtn">🛒 ร้านค้า</button>
+  <button id="startBattleBtn">⚔ เริ่มการต่อสู้</button>
 </div>
 
 <div id="resultModal">
@@ -344,28 +383,21 @@ const SHOP_ECONOMY = {
     consume_free_reroll_first: true,
   },
 };
-const CAMERA_ANGLE_DEG = 55, CAMERA_YAW_DEG = 15, CAMERA_ZOOM = 5.0; // was 7.2 — zoomed in so the 8x8 grid fills more of the screen
+const CAMERA_ANGLE_DEG = 55, CAMERA_YAW_DEG = 15, CAMERA_ZOOM = 4.5; // was 5.0 — zoomed in further (verified via corner-projection so the full 8x8 grid still stays within the viewport, no clipping) so the grid fills more of the full-screen canvas
 // เลื่อนจุดที่กล้องมองไปทาง "แถวผู้เล่น" เล็กน้อยให้อยู่กลางพื้นที่ 3D ที่เหลือพอดี
 const LOOK_TARGET = new THREE.Vector3(0, 0, 1.3);
-// กระดานต่อสู้เป็นสี่เหลี่ยมจัตุรัสเสมอ กินพื้นที่ ~60% ของจอ (ฝัง #boardContainer ไว้ในเลย์เอาต์
-// ซ้าย-กลาง-ขวา) — คำนวณด้าน + จัดตำแหน่ง #gameGrid ให้เว้นที่ topbar/bottomUI ไว้เสมอ
-const BOARD_SIZE_RATIO = 0.6;
+// #boardContainer เป็นพื้นหลังเต็มจอ (100vw/100vh) เสมอ — UI ทั้งหมดลอยทับด้านบนแทน จึงไม่ต้องคำนวณ
+// ขนาดกระดานสี่เหลี่ยมจัตุรัสอีกต่อไป แค่ปรับ renderer + camera frustum ตามสัดส่วนจอจริงทุกครั้งที่ resize
 const boardContainerEl = document.getElementById('boardContainer');
-function computeBoardSize() {
-  const topbarH = document.getElementById('topbar').offsetHeight;
-  const bottomH = document.getElementById('bottomUI').offsetHeight;
-  document.documentElement.style.setProperty('--topbar-h', topbarH + 'px');
-  document.documentElement.style.setProperty('--bottomui-h', bottomH + 'px');
-  const availW = window.innerWidth - 2*(200 + 16); // เผื่อพื้นที่แผงซ้าย-ขวา (sidePanel 200px + margin)
-  const availH = window.innerHeight - topbarH - bottomH - 16;
-  const target = Math.min(window.innerWidth, window.innerHeight) * BOARD_SIZE_RATIO;
-  return Math.max(200, Math.min(target, availW, availH));
-}
 function layoutBoard() {
-  const size = computeBoardSize();
-  boardContainerEl.style.width = size + 'px';
-  boardContainerEl.style.height = size + 'px';
-  return size;
+  const w = window.innerWidth, h = window.innerHeight;
+  renderer.setSize(w, h);
+  const aspect = w / h;
+  camera.left = -CAMERA_ZOOM * aspect;
+  camera.right = CAMERA_ZOOM * aspect;
+  camera.top = CAMERA_ZOOM;
+  camera.bottom = -CAMERA_ZOOM;
+  camera.updateProjectionMatrix();
 }
 
 // ============================================================
@@ -373,16 +405,15 @@ function layoutBoard() {
 // ============================================================
 const renderer = new THREE.WebGLRenderer({ antialias: false });
 renderer.setPixelRatio(1);
-const initialBoardSize = layoutBoard();
-renderer.setSize(initialBoardSize, initialBoardSize);
+renderer.setSize(window.innerWidth, window.innerHeight);
 boardContainerEl.appendChild(renderer.domElement);
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x1c1510);
 scene.fog = new THREE.Fog(0x1c1510, 18, 34);
 
-const aspect = 1; // #boardContainer is always a square, so the frustum never needs an aspect skew
-const camera = new THREE.OrthographicCamera(-CAMERA_ZOOM*aspect, CAMERA_ZOOM*aspect, CAMERA_ZOOM, -CAMERA_ZOOM, 0.1, 1000);
+const initialAspect = window.innerWidth / window.innerHeight;
+const camera = new THREE.OrthographicCamera(-CAMERA_ZOOM*initialAspect, CAMERA_ZOOM*initialAspect, CAMERA_ZOOM, -CAMERA_ZOOM, 0.1, 1000);
 const camDist = 20;
 const aR = THREE.MathUtils.degToRad(CAMERA_ANGLE_DEG), yR = THREE.MathUtils.degToRad(CAMERA_YAW_DEG);
 camera.position.set(camDist*Math.cos(aR)*Math.cos(yR), camDist*Math.sin(aR), camDist*Math.cos(aR)*Math.sin(yR));
@@ -2564,6 +2595,28 @@ const rerollBtn = document.getElementById('rerollBtn');
 const startBattleBtn = document.getElementById('startBattleBtn');
 const hintEl = document.getElementById('hint');
 document.getElementById('waveTotal').textContent = WAVE_TOTAL;
+
+// ----- Shop drawer: hidden by default, slides up over the bench only when toggled -----
+const shopDrawerEl = document.getElementById('shopDrawer');
+const shopToggleBtn = document.getElementById('shopToggleBtn');
+function setShopOpen(open) {
+  shopOpen = open;
+  shopDrawerEl.classList.toggle('open', open);
+  shopToggleBtn.classList.toggle('active', open);
+}
+let shopOpen = false;
+shopToggleBtn.onclick = () => setShopOpen(!shopOpen);
+document.getElementById('shopCloseBtn').onclick = () => setShopOpen(false);
+
+// ----- Item bag: collapsible side drawer, hidden by default -----
+const inventoryPanelEl = document.getElementById('inventoryPanel');
+const bagToggleBtn = document.getElementById('bagToggleBtn');
+let bagOpen = false;
+bagToggleBtn.onclick = () => {
+  bagOpen = !bagOpen;
+  inventoryPanelEl.classList.toggle('collapsed', !bagOpen);
+  bagToggleBtn.classList.toggle('active', bagOpen);
+};
 document.getElementById('livesTotal').textContent = MAX_LOSSES;
 
 function pickShopOffers() {
@@ -2647,8 +2700,13 @@ function renderUI() {
   else { stageLabelEl.style.display = 'none'; }
   synergyBuffs = computeSynergyBuffs(); // recompute live so the shop panel/reroll discount always reflect the current field
   renderSynergyPanel();
-  document.getElementById('bottomUI').style.display = phase==='shop' ? 'flex' : 'none';
-  document.getElementById('inventoryPanel').style.display = phase==='shop' ? 'block' : 'none';
+  const shopPhase = phase === 'shop';
+  document.getElementById('benchPanel').style.display = shopPhase ? 'block' : 'none';
+  document.getElementById('bottomLeft').style.display = shopPhase ? 'flex' : 'none';
+  document.getElementById('bottomRight').style.display = shopPhase ? 'flex' : 'none';
+  bagToggleBtn.style.display = shopPhase ? '' : 'none';
+  if (!shopPhase) { setShopOpen(false); inventoryPanelEl.style.display = 'none'; }
+  else inventoryPanelEl.style.display = '';
   if (phase !== 'shop' && inspectingHero) closeEquipModal(); // Equipment UI only makes sense during shop phase
   startBattleBtn.disabled = placedUnits.length === 0 || !!pendingEvolution;
   const fieldFull = placedUnits.length >= MAX_FIELD;
@@ -3396,10 +3454,7 @@ loadAllSprites(() => {
   requestAnimationFrame(animate);
 });
 
-window.addEventListener('resize', () => {
-  const size = layoutBoard(); // #boardContainer is always square, so the camera frustum never needs an aspect skew
-  renderer.setSize(size, size);
-});
+window.addEventListener('resize', layoutBoard);
 </script>
 </body>
 </html>
