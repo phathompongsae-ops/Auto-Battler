@@ -163,19 +163,68 @@ const tileGeo = new THREE.PlaneGeometry(TILE*0.98, TILE*0.98);
 const tileMeshes = [];
 for (let r=0;r<GRID_ROWS;r++) for (let c=0;c<GRID_COLS;c++) {
   const isPlayerZone = PLAYER_ROWS.includes(r);
-  const isBench = r === BENCH_ROW; // แถวล่างสุด: โซนม้านั่งสำรอง — สีเข้ม/ต่างจากโซนรบให้แยกออกชัดเจน
-  const tint = isBench ? 0x5c5140 : (isPlayerZone ? 0x9fc98a : 0xffffff);
-  const mat = new THREE.MeshBasicMaterial({ map: (c+r)%2===0?texA:texB, color: tint, side: THREE.DoubleSide });
+  const isBench = r === BENCH_ROW; // แถวล่างสุด: โซนม้านั่งสำรอง — เข้มกว่าโซนอื่นให้แยกออก
+  // โทนปกติจางลงมากจากเดิม (เส้น/โซนแทบกลืนเป็นพื้นเวทีเดียว) — สีเขียว/แดงชัดๆ ใช้เฉพาะตอน
+  // เลือก/ลากวางผ่าน updateTileHighlights() เท่านั้น
+  const baseTint = isBench ? 0x7d6f58 : (isPlayerZone ? 0xb7c9b4 : 0xbfc4cf);
+  const mat = new THREE.MeshBasicMaterial({ map: (c+r)%2===0?texA:texB, color: baseTint, side: THREE.DoubleSide, transparent: true });
   const m = new THREE.Mesh(tileGeo, mat);
   m.rotation.x = -Math.PI/2;
   const p = gridToWorld(c,r);
   m.position.set(p.x, 0, p.z);
-  m.userData = { isTile: true, c, r, playerZone: isPlayerZone || isBench, isBench };
+  m.userData = { isTile: true, c, r, playerZone: isPlayerZone || isBench, isBench, baseTint };
   scene.add(m);
   tileMeshes.push(m);
 }
-const ground = new THREE.Mesh(new THREE.PlaneGeometry(60,60), new THREE.MeshBasicMaterial({ color: 0x241c14 }));
+// ไฮไลต์ช่องวางตัว: ทำงานเฉพาะตอนกำลังเลือก (selectedUnit) หรือกำลังลาก (unitDrag.moved) —
+// ช่องผู้เล่นที่ว่าง = เขียวอ่อน (แถวม้านั่ง = ฟ้าอ่อน), ช่องที่ใช้งานอยู่/วางไม่ได้ = แดงโปร่งใส,
+// เวลาปกติทุกช่องกลับเป็นสีพื้นจางๆ (baseTint) — แตะแค่ material color/opacity ไม่แตะพิกัด/กติกาวางตัว
+function updateTileHighlights() {
+  const placing = !!selectedUnit || !!(unitDrag && unitDrag.moved);
+  tileMeshes.forEach((m) => {
+    const ud = m.userData;
+    if (!placing || !ud.playerZone) {
+      m.material.color.set(ud.baseTint);
+      m.material.opacity = 1;
+      return;
+    }
+    if (occupied.has(key(ud.c, ud.r))) {
+      m.material.color.set(0xe07a70);
+      m.material.opacity = 0.72;
+    } else {
+      m.material.color.set(ud.isBench ? 0x9fd8e8 : 0x8fe6a8);
+      m.material.opacity = 1;
+    }
+  });
+}
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(60,60), new THREE.MeshBasicMaterial({ color: 0x1a1c26 }));
 ground.rotation.x = -Math.PI/2; ground.position.y = -0.02; scene.add(ground);
+
+// ----- กรอบเวทีแฟนตาซี (stage frame) รอบกระดาน 8x7: ขอบหินโทนน้ำเงินเทา + เสาหัวมุมยอดทอง —
+// geometry ล้วนตาม asset policy (ไม่มี asset ใหม่) อยู่นอกพื้นที่ไทล์ ไม่ถูกรวมใน raycast ใดๆ
+// จึงไม่กระทบการคลิก/วางตัว และไม่บังตัวละคร/หลอด HP (สูงแค่ ~0.1 หน่วยจากพื้น)
+{
+  const rimMat = new THREE.MeshLambertMaterial({ color: 0x2c3448 });
+  const trimMat = new THREE.MeshLambertMaterial({ color: 0xd8ad4d });
+  const rimH = 0.1, rimT = 0.24;
+  const halfW = GRID_COLS / 2 * TILE, halfD = GRID_ROWS / 2 * TILE;
+  const addRim = (w, d, x, z) => {
+    const m = new THREE.Mesh(new THREE.BoxGeometry(w, rimH, d), rimMat);
+    m.position.set(x, rimH / 2 - 0.01, z);
+    scene.add(m);
+  };
+  addRim(GRID_COLS * TILE + rimT * 2, rimT, 0, -(halfD + rimT / 2)); // ขอบหลัง (ฝั่งศัตรู)
+  addRim(GRID_COLS * TILE + rimT * 2, rimT, 0, halfD + rimT / 2);   // ขอบหน้า (ฝั่งม้านั่ง)
+  addRim(rimT, GRID_ROWS * TILE, -(halfW + rimT / 2), 0);           // ขอบซ้าย
+  addRim(rimT, GRID_ROWS * TILE, halfW + rimT / 2, 0);              // ขอบขวา
+  [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([sx, sz]) => {
+    const px = sx * (halfW + rimT / 2), pz = sz * (halfD + rimT / 2);
+    const post = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.34, 0.3), rimMat);
+    post.position.set(px, 0.16, pz); scene.add(post);
+    const cap = new THREE.Mesh(new THREE.BoxGeometry(0.36, 0.07, 0.36), trimMat);
+    cap.position.set(px, 0.37, pz); scene.add(cap);
+  });
+}
 
 function brokenPillar(x,z,h,tilt){
   const m=new THREE.Mesh(new THREE.CylinderGeometry(0.28,0.34,h,6), new THREE.MeshLambertMaterial({color:0x7a7060}));
@@ -2386,7 +2435,6 @@ bagToggleBtn.onclick = () => {
   inventoryPanelEl.classList.toggle('collapsed', !bagOpen);
   bagToggleBtn.classList.toggle('active', bagOpen);
 };
-document.getElementById('livesTotal').textContent = MAX_LOSSES;
 
 function pickShopOffers() {
   ensureTier2ShopUnlocked();
@@ -2486,6 +2534,70 @@ function renderTeamHpPanel() {
     listEl.appendChild(div);
   });
 }
+// ============================================================
+// MONSTER PANEL (ขวาบน) — ศัตรูของ "เวฟปัจจุบัน" จัดกลุ่มตามชนิด (sprite): icon + ชื่อ + จำนวนรอด
+// + หลอด HP รวมของชนิดนั้น, บอสมีกรอบทอง+มงกุฎ — ช่วง shop เป็นพรีวิวจาก buildWave(wave) (ยังไม่
+// spawn), ช่วง battle อ่านจากยูนิตศัตรูจริง — อ่านข้อมูลอย่างเดียว ไม่แตะ stats/AI/wave schedule เลย
+// ============================================================
+function monsterGroupsForCurrentWave() {
+  const enemies = units.filter((u) => u.team === 'enemy');
+  const source = enemies.length ? enemies : (buildWave(wave) || []);
+  const groups = new Map();
+  source.forEach((m) => {
+    const g = groups.get(m.sprite) || {
+      sprite: m.sprite, boss: false, total: 0, alive: 0, hp: 0, maxHp: 0, color: m.placeholderColor,
+      label: (m.name || m.sprite).replace(/\s+(\d+|[A-Z])$/, ''), // "Slime 1"/"Golem A" -> ชื่อชนิด
+    };
+    const isAlive = m.alive !== false; // cfg พรีวิว (ยังไม่ spawn) ไม่มีฟิลด์ alive = ถือว่ารอดทุกตัว
+    g.total += 1;
+    if (isAlive) { g.alive += 1; g.hp += m.hp || 0; }
+    g.maxHp += m.maxHp || m.hp || 0;
+    if (m.unitType === 'boss') g.boss = true;
+    groups.set(m.sprite, g);
+  });
+  return [...groups.values()];
+}
+// rebuild DOM เฉพาะ event ใหญ่ (renderUI) — ระหว่างต่อสู้ใช้ updateMonsterPanelBars() ด้านล่างแทน
+function renderMonsterPanel() {
+  const groups = monsterGroupsForCurrentWave();
+  document.getElementById('monsterCount').textContent = `(${groups.reduce((s, g) => s + g.alive, 0)} ตัว)`;
+  const listEl = document.getElementById('monsterList');
+  listEl.innerHTML = '';
+  if (groups.length === 0) {
+    const empty = document.createElement('div');
+    empty.className = 'monEmpty';
+    empty.textContent = 'ไม่มีข้อมูลศัตรูของเวฟนี้';
+    listEl.appendChild(empty);
+    return;
+  }
+  groups.forEach((g) => {
+    const row = document.createElement('div');
+    row.className = 'monRow' + (g.boss ? ' boss' : '') + (g.alive === 0 ? ' wiped' : '');
+    row.dataset.sprite = g.sprite;
+    const meta = ASSET_META[g.sprite];
+    const icon = meta
+      ? `<img src="${meta.path}" alt="">`
+      : `<span class="monSwatch" style="background:#${(g.color || 0x888888).toString(16).padStart(6, '0')}"></span>`;
+    const hpPct = g.maxHp ? Math.round((g.hp / g.maxHp) * 100) : 100;
+    row.innerHTML = icon +
+      `<div class="monInfo"><div class="monName">${g.boss ? '<span class="bossBadge">👑 </span>' : ''}${g.label}</div>` +
+      `<div class="monBarTrack"><div class="monBarFill" style="width:${hpPct}%"></div></div></div>` +
+      `<span class="monCount">${g.alive}/${g.total}</span>`;
+    listEl.appendChild(row);
+  });
+}
+// per-frame ระหว่างต่อสู้: อัปเดตเฉพาะ width หลอด + ตัวนับของแถวเดิม ไม่ rebuild DOM ทั้งแผง
+function updateMonsterPanelBars() {
+  const listEl = document.getElementById('monsterList');
+  monsterGroupsForCurrentWave().forEach((g) => {
+    const row = listEl.querySelector(`[data-sprite="${g.sprite}"]`);
+    if (!row) return;
+    row.querySelector('.monBarFill').style.width = (g.maxHp ? Math.round((g.hp / g.maxHp) * 100) : 0) + '%';
+    row.querySelector('.monCount').textContent = `${g.alive}/${g.total}`;
+    row.classList.toggle('wiped', g.alive === 0);
+  });
+}
+
 // Cheap per-frame HP refresh during combat — only touches the bar width/dead class of existing
 // rows (no rebuild/re-listen), unlike renderTeamHpPanel() which is for discrete UI events only.
 function updateTeamHpBars() {
@@ -2505,7 +2617,11 @@ function renderUI() {
   levelLabel.textContent = level;
   expLabel.textContent = `(${exp}/${expNeededForLevel(level)})`;
   document.getElementById('buyExpBtn').disabled = phase !== 'shop' || gold < BUY_EXP_COST;
-  document.getElementById('livesLabel').textContent = MAX_LOSSES - losses;
+  // HP ผู้เล่นบนแถบบน: แปลงโควตาแพ้เดิม (MAX_LOSSES-losses) เป็นหลอด 100/100 — การแสดงผลล้วนๆ
+  // ลอจิกแพ้/จบเกมยังอิง losses/MAX_LOSSES เดิมทุกจุด ไม่มีระบบ HP ใหม่
+  const playerHp = Math.round(((MAX_LOSSES - losses) / MAX_LOSSES) * 100);
+  document.getElementById('playerHpFill').style.width = playerHp + '%';
+  document.getElementById('playerHpLabel').textContent = `${playerHp}/100`;
   phaseLabel.textContent = phase==='shop' ? 'เตรียมทีม' : phase==='battle' ? 'กำลังต่อสู้' : '';
   const stageLabelEl = document.getElementById('stageLabel');
   if (STAGE_LABEL[wave]) { stageLabelEl.textContent = STAGE_LABEL[wave]; stageLabelEl.style.display = ''; }
@@ -2514,8 +2630,8 @@ function renderUI() {
   synergyBuffs = computeSynergyBuffs(); // recompute live so the Link panel/reroll discount always reflect the current selection
   renderLinkPanel();
   updateLinkedHeroVisuals();
+  updateTileHighlights(); // ไฮไลต์ช่องวางตัวตามสถานะเลือกปัจจุบัน (เลือกอยู่ = โชว์, ไม่เลือก = สีพื้นจาง)
   const shopPhase = phase === 'shop';
-  document.getElementById('bottomLeft').style.display = shopPhase ? 'flex' : 'none';
   document.getElementById('bottomRight').style.display = shopPhase ? 'flex' : 'none';
   bagToggleBtn.style.display = shopPhase ? '' : 'none';
   if (!shopPhase) { setShopOpen(false); inventoryPanelEl.style.display = 'none'; }
@@ -2558,6 +2674,7 @@ function renderUI() {
   }
 
   renderTeamHpPanel(); // right-side panel: replaces the old bottom-row fieldCards list entirely
+  renderMonsterPanel(); // right-side top panel: current wave's enemies (preview in shop, live in battle)
 
   placedUnits.forEach(updateEquipBadge); // Equipment Core: floating badge on any hero with an item equipped
   renderInventory();
@@ -2883,6 +3000,7 @@ document.addEventListener('pointermove', (e) => {
   if (!unitDrag.moved && Math.hypot(dx, dy) > 6) {
     unitDrag.moved = true;
     startBenchGhost(unitDrag, e.clientX, e.clientY);
+    updateTileHighlights(); // เริ่มลากจริง -> โชว์ช่องที่วางได้ (เขียว/ฟ้า) และช่องที่วางไม่ได้ (แดงโปร่ง)
   }
   if (unitDrag.moved) moveBenchGhost(unitDrag, e.clientX, e.clientY);
 });
@@ -2895,6 +3013,7 @@ document.addEventListener('pointerup', (e) => {
       if (tile && tile.isTile && tile.playerZone && !occupied.has(key(tile.c, tile.r))) {
         moveUnitTo(ud.unit, tile.c, tile.r);
       }
+      updateTileHighlights(); // จบการลาก (สำเร็จหรือไม่ก็ตาม) -> เคลียร์/รีเฟรชไฮไลต์เสมอ
     } else {
       // tap (no drag) — ฮีโร่บนสนามรบ: เปิด/ปิดสถานะ Link (ระบบ Manual Link Selection)
       // ฮีโร่บนม้านั่ง: toggle-select สำหรับย้าย/ไอเทม/ขาย เหมือนเดิม (ม้านั่งห้ามเข้า Link)
@@ -2917,7 +3036,7 @@ document.addEventListener('pointerup', (e) => {
   }
 });
 document.addEventListener('pointercancel', () => {
-  if (unitDrag) { endBenchGhost(unitDrag); unitDrag = null; }
+  if (unitDrag) { endBenchGhost(unitDrag); unitDrag = null; updateTileHighlights(); }
 });
 
 // ============================================================
@@ -3245,7 +3364,10 @@ function animate(now) {
     if (eAlive === 0) onWaveCleared();
     else if (pAlive === 0) onWaveFailed('ทีมฮีโร่ถูกกวาดล้าง');
     else if (waveTimer > WAVE_TIMEOUT) onWaveFailed('หมดเวลาด่านนี้');
-    else updateTeamHpBars(); // keep the right-side HP panel live during combat (renderUI() itself only fires on discrete UI events)
+    else {
+      updateTeamHpBars(); // keep the right-side HP panel live during combat (renderUI() itself only fires on discrete UI events)
+      updateMonsterPanelBars(); // same for the monster panel — bar widths/counts only, no DOM rebuild
+    }
   }
 
   for (const u of units) {

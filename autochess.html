@@ -2,14 +2,14 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Auto Battler — โหมด Auto Chess</title>
 <style>
-  /* ----- Dark minimalist palette ----- */
+  /* ----- Fantasy dark palette: น้ำเงินเข้ม/เทา + ขอบทอง (Art Direction: mobile stylized) ----- */
   :root {
-    --bg: #0c0d10; --panel-bg: #1a1c22; --panel-border: #2c2f38; --panel-border-soft: #23262e;
-    --text: #e6e8ee; --text-dim: #8b8f9c; --accent: #d8ad4d; --accent-dim: #a8843c;
-    --accent-green: #4caf6e; --accent-red: #d9534f; --card-bg: #20232b; --card-border: #343947;
+    --bg: #0b0d13; --panel-bg: #151a26; --panel-border: #2b3347; --panel-border-soft: #222838;
+    --text: #e6e8ee; --text-dim: #8b90a0; --accent: #d8ad4d; --accent-dim: #a8843c;
+    --accent-green: #4caf6e; --accent-red: #d9534f; --card-bg: #1c2231; --card-border: #363f56;
   }
   html, body { margin: 0; padding: 0; overflow: hidden; background: var(--bg); font-family: 'Trebuchet MS', sans-serif; }
   canvas { display: block; width: 100%; height: 100%; }
@@ -23,21 +23,31 @@
   /* ----- 3D Canvas: full-viewport background layer, everything else floats above it ----- */
   #boardContainer { position: fixed; inset: 0; z-index: 0; }
 
-  /* ----- แถบบนสุด: ซ้าย (เมนู) / กลาง (Gold, Wave, HP — center) / ขวา (speed/pause) ----- */
+  /* ----- Top Status Bar (เตี้ย ไม่บังกระดาน): HP หลอด / Wave / Gold / Lv+EXP / Speed —
+     รองรับ safe area ของ iPad/iPhone ด้วย env(safe-area-inset-*) ----- */
   #topbar {
     position: fixed; top: 0; left: 0; right: 0; display: flex; align-items: flex-start;
-    justify-content: space-between; gap: 8px; padding: 10px 14px;
-    background: linear-gradient(rgba(6,7,9,0.7), rgba(6,7,9,0));
-    color: var(--text); font-size: 15px; z-index: 10; pointer-events: none;
+    justify-content: space-between; gap: 6px;
+    padding: 6px max(10px, env(safe-area-inset-right)) 4px max(10px, env(safe-area-inset-left));
+    background: linear-gradient(rgba(5,7,12,0.78), rgba(5,7,12,0));
+    color: var(--text); font-size: 14px; z-index: 10; pointer-events: none;
   }
-  #topbarLeft, #topbarRight { display: flex; gap: 8px; flex-shrink: 0; pointer-events: auto; }
-  #topbarCenter { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; pointer-events: auto; flex: 1; }
+  #topbarLeft, #topbarRight { display: flex; gap: 6px; flex-shrink: 0; pointer-events: auto; }
+  #topbarCenter { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; pointer-events: auto; flex: 1; }
   .pill {
-    background: rgba(26,28,34,0.82); border: 1px solid var(--panel-border); border-radius: 20px;
-    padding: 6px 14px; pointer-events: auto; display: flex; align-items: center; gap: 6px; white-space: nowrap;
+    background: rgba(21,26,38,0.85); border: 1px solid var(--panel-border); border-radius: 16px;
+    padding: 4px 10px; pointer-events: auto; display: flex; align-items: center; gap: 5px; white-space: nowrap;
   }
+  /* หลอด HP ผู้เล่นในแถบบน — แสดงผลจากโควตาแพ้เดิม ไม่ใช่ระบบใหม่ */
+  .hpTrack {
+    display: inline-block; width: 64px; height: 8px; border-radius: 4px; overflow: hidden;
+    background: #33261a; border: 1px solid rgba(0,0,0,0.4);
+  }
+  #playerHpFill { display: block; height: 100%; width: 100%; border-radius: 4px;
+    background: linear-gradient(90deg, #d9534f, #e88a6a); transition: width 0.2s ease; }
+  #buyExpBtn { padding: 2px 8px !important; font-size: 12px !important; border-radius: 10px !important; }
   #topbar button, .hudCorner button, #shopToggleBtn, #bagToggleBtn {
-    pointer-events: auto; background: #262a33; color: var(--text); border: 1px solid var(--panel-border);
+    pointer-events: auto; background: #232a3c; color: var(--text); border: 1px solid var(--panel-border);
     border-radius: 6px; padding: 6px 12px; cursor: pointer; font-size: 14px;
   }
   #topbar button:disabled { opacity: 0.4; cursor: not-allowed; }
@@ -56,8 +66,38 @@
     text-transform: uppercase; letter-spacing: 0.5px; display: flex; justify-content: space-between; align-items: center; }
   /* แผง Link สูงกว่าค่า default ของ .floatPanel เล็กน้อย — ช่อง Portrait 3 ช่อง + บัฟสูงสุด 3 แถว
      ต้องเห็นครบพร้อมกันโดยไม่ต้องเลื่อน (เนื้อหาสั้นคงที่ ไม่ใช่ลิสต์ยาวแบบรายการอาชีพเดิม) */
-  #synergyPanel { left: 4px; top: 60px; max-height: min(62vh, 380px); }
-  #hpPanel { right: 4px; top: 60px; }
+  #synergyPanel { left: max(4px, env(safe-area-inset-left)); top: 48px; max-height: min(62vh, 380px); }
+
+  /* ----- คอลัมน์ขวา: Monster Panel (ศัตรูเวฟนี้, บน) + ทีมในสนาม (ล่าง) ซ้อนแนวตั้งชิดขอบขวา ----- */
+  #rightCol {
+    position: fixed; right: max(4px, env(safe-area-inset-right)); top: 48px; z-index: 8;
+    display: flex; flex-direction: column; gap: 6px; width: clamp(130px, 15vw, 165px);
+    max-height: calc(100vh - 56px); pointer-events: none;
+  }
+  #rightCol .floatPanel { position: static; width: 100%; pointer-events: auto; }
+  #monsterPanel { max-height: 36vh; }
+  #hpPanel { max-height: 42vh; }
+
+  /* ----- Monster Panel: แถวละประเภทมอนสเตอร์ (icon + ชื่อ + จำนวนรอด + หลอด HP รวม) — บอสมีกรอบทอง
+     หลอด/ตัวนับอัปเดตสดระหว่างต่อสู้ผ่าน updateMonsterPanelBars() โดยไม่ rebuild DOM ทั้งแผง ----- */
+  #monsterList { display: flex; flex-direction: column; gap: 5px; }
+  .monRow {
+    display: flex; align-items: center; gap: 6px;
+    background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 8px; padding: 4px 6px;
+  }
+  .monRow.boss { border-color: var(--accent); background: rgba(216,173,77,0.10); }
+  .monRow.wiped { opacity: 0.4; }
+  .monRow img, .monRow .monSwatch {
+    width: 26px; height: 26px; border-radius: 5px; object-fit: cover; object-position: top;
+    background: #2a2f3d; flex-shrink: 0;
+  }
+  .monInfo { flex: 1; min-width: 0; }
+  .monName { font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 2px; }
+  .monName .bossBadge { color: var(--accent); font-weight: bold; }
+  .monBarTrack { height: 5px; border-radius: 3px; background: #33261a; overflow: hidden; }
+  .monBarFill { height: 100%; width: 100%; background: linear-gradient(90deg, #c25a44, #e08a6a); transition: width 0.12s linear; }
+  .monCount { flex-shrink: 0; font-size: 10px; color: var(--text-dim); font-weight: bold; }
+  .monEmpty { color: var(--text-dim); font-size: 10px; line-height: 1.4; }
 
   /* ----- Link panel (ซ้าย): ช่อง Portrait 3 ช่องของทีม Link + สรุปบัฟที่ทำงานจริง
      (แทนรายการอาชีพ 7 แถวของ Auto Synergy เดิม) — 3 ช่องต้องเห็นพร้อมกันเสมอ ไม่มี scroll ----- */
@@ -149,12 +189,13 @@
   }
   .teamHpRow .equipBtn, .teamHpRow .sellBtn { top: 4px; }
   /* ----- กระเป๋าไอเทม: แผงด้านขวา พับเก็บได้ด้วย #bagToggleBtn ----- */
-  #bagToggleBtn { position: fixed; right: 10px; bottom: 144px; z-index: 9; }
+  /* กระเป๋าไอเทมย้ายมามุมล่างซ้าย (ที่ว่างจากการย้าย Lv./EXP ขึ้นแถบบน) — เลิกชนคอลัมน์ขวาใหม่ */
+  #bagToggleBtn { position: fixed; left: max(10px, env(safe-area-inset-left)); bottom: max(2px, env(safe-area-inset-bottom)); z-index: 9; }
   #inventoryPanel {
-    position: fixed; right: 10px; bottom: 184px; z-index: 8; width: min(60vw, 360px);
-    pointer-events: none; transition: transform 0.2s ease, opacity 0.2s ease; transform-origin: bottom right;
+    position: fixed; left: max(10px, env(safe-area-inset-left)); bottom: 44px; z-index: 8; width: min(60vw, 360px);
+    pointer-events: none; transition: transform 0.2s ease, opacity 0.2s ease; transform-origin: bottom left;
   }
-  #inventoryPanel.collapsed { transform: translateX(120%); opacity: 0; }
+  #inventoryPanel.collapsed { transform: translateX(-120%); opacity: 0; }
   #inventoryPanel .panel { pointer-events: auto; padding: 6px 8px; max-height: 96px; }
   #inventoryPanel h3 { margin: 0 0 4px; font-size: 12px; }
   #inventoryCards, #equipModalInventory { display: flex; gap: 5px; overflow-x: auto; max-width: 100%; }
@@ -221,11 +262,10 @@
     transform: translate(-50%, -50%) scale(0.86); border-radius: 10px; overflow: hidden;
     background: #333; box-shadow: 0 4px 10px #0008, 0 0 0 2px var(--accent); }
   .benchGhost img { width: 100%; height: 100%; object-fit: cover; display: block; }
-  /* ----- มุมล่างซ้าย (Lv./ซื้อ EXP) และมุมล่างขวา (Toggle Shop / เริ่มการต่อสู้) ----- */
-  .hudCorner { position: fixed; bottom: 2px; z-index: 9; display: flex; flex-direction: column; gap: 6px; pointer-events: none; }
+  /* ----- มุมล่างขวา (Toggle Shop / เริ่มการต่อสู้) — Lv./EXP ย้ายขึ้นแถบบนแล้ว ----- */
+  .hudCorner { position: fixed; bottom: max(2px, env(safe-area-inset-bottom)); z-index: 9; display: flex; flex-direction: column; gap: 6px; pointer-events: none; }
   .hudCorner > * { pointer-events: auto; }
-  #bottomLeft { left: 10px; align-items: flex-start; }
-  #bottomRight { right: 10px; align-items: stretch; width: 150px; }
+  #bottomRight { right: max(10px, env(safe-area-inset-right)); align-items: stretch; width: 150px; }
   #startBattleBtn {
     pointer-events: auto; background: var(--accent); color: #1a1408;
     border: 1px solid var(--accent-dim); border-radius: 10px; font-size: 15px; font-weight: bold;
@@ -255,17 +295,25 @@
     .floatPanel { max-height: 40vh; padding: 6px; }
     #synergyPanel { max-height: 62vh; } /* แผง Link: 3 Portrait + บัฟ 3 แถวต้องเห็นครบไม่มี scroll แม้จอเตี้ย */
     .floatPanel h3 { font-size: 11px; margin-bottom: 6px; }
-    .pill { padding: 4px 10px; font-size: 13px; }
+    .pill { padding: 3px 8px; font-size: 12px; }
+    #phaseLabel { display: none !important; } /* จอเตี้ย: ตัดข้อความสถานะออก (ปุ่มเริ่มต่อสู้บอกเฟสอยู่แล้ว) — ข้อมูลสำคัญอื่นคงครบ */
     #topbar button, .hudCorner button, #shopToggleBtn, #bagToggleBtn { padding: 5px 9px; font-size: 12px; }
     #startBattleBtn { padding: 9px 10px; font-size: 13px; }
     #shopDrawer { max-height: 100px; }
+    #monsterPanel { max-height: 32vh; }
+    #hpPanel { max-height: 38vh; }
   }
   /* ----- Responsive: แท็บเล็ต/ไอแพด (จอกว้าง >= 900px) — ขยายแผง/ตัวอักษรขึ้นเล็กน้อย ไม่ให้เล็กจิ๋วบนจอใหญ่ ----- */
   @media (min-width: 900px) {
     .floatPanel { width: clamp(165px, 15vw, 220px); padding: 12px; }
+    #rightCol { width: clamp(165px, 15vw, 220px); }
+    #rightCol .floatPanel { width: 100%; }
     .floatPanel h3 { font-size: 14px; }
     #shopDrawer { width: min(52vw, 640px); }
     .pill, #startBattleBtn, #shopToggleBtn, #bagToggleBtn { font-size: 16px; }
+    .monName { font-size: 12px; }
+    .monRow img, .monRow .monSwatch { width: 32px; height: 32px; }
+    .hpTrack { width: 84px; height: 10px; }
   }
 </style>
 </head>
@@ -277,9 +325,15 @@
 <div id="topbar">
   <div id="topbarLeft"><a id="back" href="index.html"><button>&larr; เมนู</button></a></div>
   <div id="topbarCenter">
+    <!-- HP ผู้เล่นแสดงเป็นหลอด 100/100 — แปลงมาจากโควตาแพ้เดิม (MAX_LOSSES-losses)/MAX_LOSSES
+         เป็นการแสดงผลล้วนๆ ไม่แตะลอจิกแพ้/ชนะเดิมเลย (ดู renderUI) -->
+    <div class="pill" id="livesPill">❤️
+      <span class="hpTrack"><span id="playerHpFill"></span></span>
+      <span id="playerHpLabel">100/100</span>
+    </div>
+    <div class="pill">🌊 <span id="waveLabel">1</span>/<span id="waveTotal">3</span></div>
     <div class="pill">💰 <span id="goldLabel">0</span></div>
-    <div class="pill">🌊 ด่าน <span id="waveLabel">1</span>/<span id="waveTotal">3</span></div>
-    <div class="pill" id="livesPill">❤️ <span id="livesLabel">3</span>/<span id="livesTotal">3</span></div>
+    <div class="pill">⭐ Lv.<span id="levelLabel">1</span> <span id="expLabel">(0/4)</span> <button id="buyExpBtn">+EXP</button></div>
     <div class="pill" id="phaseLabel">เตรียมทีม</div>
     <div class="pill" id="stageLabel" style="display:none"></div>
   </div>
@@ -294,9 +348,15 @@
   <div id="linkSlots"></div>
   <div id="linkBuffList"></div>
 </div>
-<div id="hpPanel" class="floatPanel">
-  <h3>ทีมในสนาม <span id="fieldCount" class="subcount"></span></h3>
-  <div id="teamHpList"></div>
+<div id="rightCol">
+  <div id="monsterPanel" class="floatPanel">
+    <h3>ศัตรูเวฟนี้ <span id="monsterCount" class="subcount"></span></h3>
+    <div id="monsterList"></div>
+  </div>
+  <div id="hpPanel" class="floatPanel">
+    <h3>ทีมในสนาม <span id="fieldCount" class="subcount"></span></h3>
+    <div id="teamHpList"></div>
+  </div>
 </div>
 
 <button id="bagToggleBtn" title="กระเป๋าไอเทม">🎒 กระเป๋า</button>
@@ -305,11 +365,6 @@
     <h3>กระเป๋าไอเทม <span id="invCount" class="subcount"></span></h3>
     <div id="inventoryCards"></div>
   </div>
-</div>
-
-<div id="bottomLeft" class="hudCorner">
-  <div class="pill">⭐ Lv.<span id="levelLabel">1</span> <span id="expLabel">(0/4)</span></div>
-  <button id="buyExpBtn">ซื้อ EXP</button>
 </div>
 
 <!-- ม้านั่งสำรองรวมเป็นแถวล่างสุดของกระดาน 3D แล้ว (ดูสีเข้มแยกโซนในฉาก) — เหลือแค่แถบลอยเล็กๆ
