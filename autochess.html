@@ -336,8 +336,21 @@
   </div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" onerror="document.getElementById('loading').textContent='โหลดไลบรารีกราฟิก (Three.js) ไม่สำเร็จ — เช็คการเชื่อมต่ออินเทอร์เน็ต/Ad-blocker แล้วรีเฟรชหน้านี้ใหม่';"></script>
 <script>
+// หาก Three.js โหลดไม่สำเร็จ (network/CDN ล่ม) ให้ขึ้นข้อความแจ้งเตือนชัดเจนแทนจอมืดเงียบๆ
+if (typeof THREE === 'undefined') {
+  document.getElementById('loading').textContent = 'โหลดไลบรารีกราฟิก (Three.js) ไม่สำเร็จ — เช็คการเชื่อมต่ออินเทอร์เน็ต/Ad-blocker แล้วรีเฟรชหน้านี้ใหม่';
+  throw new Error('THREE.js failed to load — aborting game init');
+}
+// เผื่อ error อื่นระหว่าง init (ก่อน loadAllSprites ซ่อนจอโหลด) ให้ขึ้นข้อความชัดเจนแทนจอมืดเงียบๆ
+window.addEventListener('error', (ev) => {
+  const loadingEl = document.getElementById('loading');
+  if (loadingEl && loadingEl.style.display !== 'none') {
+    loadingEl.textContent = 'เกิดข้อผิดพลาดระหว่างโหลดเกม: ' + (ev.message || 'unknown error') + ' — รีเฟรชหน้านี้ใหม่';
+    loadingEl.style.display = 'flex';
+  }
+});
 // ============================================================
 // CONFIG
 // ============================================================
@@ -390,7 +403,9 @@ const LOOK_TARGET = new THREE.Vector3(0, 0, 1.3);
 // ขนาดกระดานสี่เหลี่ยมจัตุรัสอีกต่อไป แค่ปรับ renderer + camera frustum ตามสัดส่วนจอจริงทุกครั้งที่ resize
 const boardContainerEl = document.getElementById('boardContainer');
 function layoutBoard() {
-  const w = window.innerWidth, h = window.innerHeight;
+  // เผื่อกรณี window.innerHeight เป็น 0 ชั่วขณะ (เช่น browser chrome กำลัง animate ตอน rotate จอ) —
+  // ป้องกัน aspect กลายเป็น Infinity/NaN ซึ่งจะทำให้ camera frustum พัง จอมืดสนิท
+  const w = window.innerWidth || 1, h = window.innerHeight || 1;
   renderer.setSize(w, h);
   const aspect = w / h;
   camera.left = -CAMERA_ZOOM * aspect;
@@ -405,14 +420,14 @@ function layoutBoard() {
 // ============================================================
 const renderer = new THREE.WebGLRenderer({ antialias: false });
 renderer.setPixelRatio(1);
-renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setSize(window.innerWidth || 1, window.innerHeight || 1);
 boardContainerEl.appendChild(renderer.domElement);
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x1c1510);
 scene.fog = new THREE.Fog(0x1c1510, 18, 34);
 
-const initialAspect = window.innerWidth / window.innerHeight;
+const initialAspect = (window.innerWidth || 1) / (window.innerHeight || 1);
 const camera = new THREE.OrthographicCamera(-CAMERA_ZOOM*initialAspect, CAMERA_ZOOM*initialAspect, CAMERA_ZOOM, -CAMERA_ZOOM, 0.1, 1000);
 const camDist = 20;
 const aR = THREE.MathUtils.degToRad(CAMERA_ANGLE_DEG), yR = THREE.MathUtils.degToRad(CAMERA_YAW_DEG);
