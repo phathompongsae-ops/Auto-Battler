@@ -82,14 +82,14 @@
   .teamHpBarTrack { height: 6px; border-radius: 3px; background: #33261a; overflow: hidden; }
   .teamHpBarFill { height: 100%; background: linear-gradient(90deg, var(--accent-green), #7fd99a); transition: width 0.15s linear; }
 
-  /* ----- ม้านั่งสำรอง (กึ่งกลางล่าง, ลอยทับฉาก 3D ไม่บังกระดาน) ----- */
+  /* ----- ม้านั่งสำรอง (ชิดขอบล่างสุดของจอ, ลอยทับฉาก 3D ที่ขยายใหญ่+ดึงลงมาแล้ว ไม่บังกระดาน) ----- */
   #benchPanel {
-    position: fixed; left: 50%; bottom: 10px; transform: translateX(-50%); z-index: 9;
-    width: min(64vw, 620px); max-height: 128px;
+    position: fixed; left: 50%; bottom: 2px; transform: translateX(-50%); z-index: 9;
+    width: min(64vw, 620px); max-height: 104px;
   }
   /* ----- ร้านค้า: แผงเลื่อนขึ้นจากขอบล่าง ทับม้านั่ง เมื่อกดปุ่ม Toggle Shop เท่านั้น ----- */
   #shopDrawer {
-    position: fixed; left: 50%; bottom: 10px; z-index: 12; width: min(64vw, 620px); max-height: 220px;
+    position: fixed; left: 50%; bottom: 2px; z-index: 12; width: min(64vw, 620px); max-height: 220px;
     transform: translate(-50%, calc(100% + 20px)); transition: transform 0.25s ease; opacity: 0;
   }
   #shopDrawer.open { transform: translate(-50%, 0); opacity: 1; }
@@ -131,9 +131,9 @@
   }
   .teamHpRow .equipBtn, .teamHpRow .sellBtn { top: 4px; }
   /* ----- กระเป๋าไอเทม: แผงด้านขวา พับเก็บได้ด้วย #bagToggleBtn ----- */
-  #bagToggleBtn { position: fixed; right: 10px; bottom: 176px; z-index: 9; }
+  #bagToggleBtn { position: fixed; right: 10px; bottom: 144px; z-index: 9; }
   #inventoryPanel {
-    position: fixed; right: 10px; bottom: 216px; z-index: 8; width: min(60vw, 360px);
+    position: fixed; right: 10px; bottom: 184px; z-index: 8; width: min(60vw, 360px);
     pointer-events: none; transition: transform 0.2s ease, opacity 0.2s ease; transform-origin: bottom right;
   }
   #inventoryPanel.collapsed { transform: translateX(120%); opacity: 0; }
@@ -204,7 +204,7 @@
     background: #333; box-shadow: 0 4px 10px #0008, 0 0 0 2px var(--accent); }
   .benchGhost img { width: 100%; height: 100%; object-fit: cover; display: block; }
   /* ----- มุมล่างซ้าย (Lv./ซื้อ EXP) และมุมล่างขวา (Toggle Shop / เริ่มการต่อสู้) ----- */
-  .hudCorner { position: fixed; bottom: 10px; z-index: 9; display: flex; flex-direction: column; gap: 6px; pointer-events: none; }
+  .hudCorner { position: fixed; bottom: 2px; z-index: 9; display: flex; flex-direction: column; gap: 6px; pointer-events: none; }
   .hudCorner > * { pointer-events: auto; }
   #bottomLeft { left: 10px; align-items: flex-start; }
   #bottomRight { right: 10px; align-items: stretch; width: 150px; }
@@ -396,22 +396,54 @@ const SHOP_ECONOMY = {
     consume_free_reroll_first: true,
   },
 };
-const CAMERA_ANGLE_DEG = 55, CAMERA_YAW_DEG = 15, CAMERA_ZOOM = 4.5; // was 5.0 — zoomed in further (verified via corner-projection so the full 8x8 grid still stays within the viewport, no clipping) so the grid fills more of the full-screen canvas
+// มุมกล้องหน้าตรงสมส่วนแบบ threejs-2_5d-clean-v5.html เดิม (angle 45°, ไม่มี yaw เฉียงข้าง)
+// แทนที่มุม 55°/yaw 15° เดิม เพื่อความรู้สึกหน้าตรง-สมส่วนกว่า
+const CAMERA_ANGLE_DEG = 45, CAMERA_YAW_DEG = 0;
 // เลื่อนจุดที่กล้องมองไปทาง "แถวผู้เล่น" เล็กน้อยให้อยู่กลางพื้นที่ 3D ที่เหลือพอดี
 const LOOK_TARGET = new THREE.Vector3(0, 0, 1.3);
-// #boardContainer เป็นพื้นหลังเต็มจอ (100vw/100vh) เสมอ — UI ทั้งหมดลอยทับด้านบนแทน จึงไม่ต้องคำนวณ
-// ขนาดกระดานสี่เหลี่ยมจัตุรัสอีกต่อไป แค่ปรับ renderer + camera frustum ตามสัดส่วนจอจริงทุกครั้งที่ resize
+// #boardContainer เป็นพื้นหลังเต็มจอ (100vw/100vh) เสมอ — UI ทั้งหมดลอยทับด้านบนแทน
 const boardContainerEl = document.getElementById('boardContainer');
+// ----- Contain-fit frustum (เทคนิคเดียวกับ Clean V5 เดิม) -----
+// แทนที่จะเดา CAMERA_ZOOM คงที่ ให้ project มุมกระดานจริง (world space) เข้าไปใน camera-local
+// space ด้วย camera.worldToLocal() เพื่อรู้ขนาดกระดานบนจอจริงตามมุมกล้องปัจจุบัน แล้วค่อยตั้ง
+// frustum ให้กระดานกิน BOARD_FILL_RATIO ของความสูงจอ และเลื่อนกึ่งกลางจอลงด้วย BOARD_DOWN_BIAS
+// ให้กระดานไปอยู่โซนล่างเกือบชิดขอบจอ (เว้นด้านบนให้ topbar ใช้งานได้)
+// หมายเหตุ: FILL_RATIO สูงเกินไป (เช่น 0.94) แทบไม่เหลือพื้นที่ว่าง (slack) ให้ดันลงล่างได้เลย —
+// ต้องเผื่อ slack ไว้พอสมควรก่อน ถึงจะมีที่ให้ดันกระดานลงไปชิดขอบล่างได้จริงตามที่ต้องการ
+const BOARD_FILL_RATIO = 0.84; // กระดานกินความสูงจอ ~84% — ใหญ่ แต่เหลือ slack ~16% ให้ดันลงล่าง
+const BOARD_DOWN_BIAS = 0.97;  // 0 = ชิดขอบบน, 0.5 = กึ่งกลางจอ, 1 = ชิดขอบล่างสุด
+const boardPlayHalf = GRID / 2 * TILE + 0.25;
+const boardCorners = [
+  new THREE.Vector3(-boardPlayHalf, 0, -boardPlayHalf), new THREE.Vector3(boardPlayHalf, 0, -boardPlayHalf),
+  new THREE.Vector3(-boardPlayHalf, 0, boardPlayHalf), new THREE.Vector3(boardPlayHalf, 0, boardPlayHalf),
+];
 function layoutBoard() {
   // เผื่อกรณี window.innerHeight เป็น 0 ชั่วขณะ (เช่น browser chrome กำลัง animate ตอน rotate จอ) —
   // ป้องกัน aspect กลายเป็น Infinity/NaN ซึ่งจะทำให้ camera frustum พัง จอมืดสนิท
   const w = window.innerWidth || 1, h = window.innerHeight || 1;
   renderer.setSize(w, h);
   const aspect = w / h;
-  camera.left = -CAMERA_ZOOM * aspect;
-  camera.right = CAMERA_ZOOM * aspect;
-  camera.top = CAMERA_ZOOM;
-  camera.bottom = -CAMERA_ZOOM;
+
+  camera.updateMatrixWorld(true); // worldToLocal ต้องใช้ matrixWorld ล่าสุดของกล้อง
+  let contentHalfW = 0, contentHalfH = 0;
+  boardCorners.forEach((p) => {
+    const local = camera.worldToLocal(p.clone());
+    contentHalfW = Math.max(contentHalfW, Math.abs(local.x));
+    contentHalfH = Math.max(contentHalfH, Math.abs(local.y));
+  });
+
+  let halfH = contentHalfH / BOARD_FILL_RATIO;
+  let halfW = halfH * aspect;
+  if (halfW < contentHalfW * 1.02) { // จอแคบมาก (เช่นแนวตั้ง): fit ตามความกว้างแทนกันกระดานล้นซ้าย-ขวา
+    halfW = contentHalfW * 1.02;
+    halfH = halfW / aspect;
+  }
+  // BOARD_DOWN_BIAS แปลงเป็นตำแหน่งกึ่งกลาง frustum จริง: slack ทั้งหมด (halfH-contentHalfH)
+  // ถูกแบ่งเป็นขอบบน/ขอบล่างตามสัดส่วน BIAS (BIAS=1 → slack ทั้งหมดอยู่ขอบบน, กระดานชิดขอบล่างสนิท)
+  const slack = halfH - contentHalfH;
+  const cY = slack * (2 * BOARD_DOWN_BIAS - 1);
+  camera.left = -halfW; camera.right = halfW;
+  camera.top = cY + halfH; camera.bottom = cY - halfH;
   camera.updateProjectionMatrix();
 }
 
@@ -427,13 +459,14 @@ const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x1c1510);
 scene.fog = new THREE.Fog(0x1c1510, 18, 34);
 
-const initialAspect = (window.innerWidth || 1) / (window.innerHeight || 1);
-const camera = new THREE.OrthographicCamera(-CAMERA_ZOOM*initialAspect, CAMERA_ZOOM*initialAspect, CAMERA_ZOOM, -CAMERA_ZOOM, 0.1, 1000);
+// กรอบ frustum ชั่วคราว — layoutBoard() (เรียกด้านล่างหลังตั้งตำแหน่งกล้อง) จะคำนวณค่าจริงทับให้ทันที
+const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 1000);
 const camDist = 20;
 const aR = THREE.MathUtils.degToRad(CAMERA_ANGLE_DEG), yR = THREE.MathUtils.degToRad(CAMERA_YAW_DEG);
 camera.position.set(camDist*Math.cos(aR)*Math.cos(yR), camDist*Math.sin(aR), camDist*Math.cos(aR)*Math.sin(yR));
 camera.position.add(LOOK_TARGET);
 camera.lookAt(LOOK_TARGET);
+layoutBoard(); // ตั้ง frustum จริงตามเทคนิค contain-fit (ต้องเรียกหลัง position/lookAt เสมอ)
 
 scene.add(new THREE.AmbientLight(0x8a7a68, 0.9));
 const torch = new THREE.DirectionalLight(0xffb060, 0.7);
