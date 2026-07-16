@@ -78,25 +78,50 @@
   #monsterPanel { max-height: 36vh; }
   #hpPanel { max-height: 42vh; }
 
-  /* ----- Monster Panel: แถวละประเภทมอนสเตอร์ (icon + ชื่อ + จำนวนรอด + หลอด HP รวม) — บอสมีกรอบทอง
-     หลอด/ตัวนับอัปเดตสดระหว่างต่อสู้ผ่าน updateMonsterPanelBars() โดยไม่ rebuild DOM ทั้งแผง ----- */
-  #monsterList { display: flex; flex-direction: column; gap: 5px; }
+  /* ----- Monster Panel: แถวละประเภทมอนสเตอร์ (portrait + ชื่อ + จำนวนรอด x/N + หลอด HP พร้อมเลข
+     ปัจจุบัน/สูงสุดทับบนหลอด + badge ประเภท/specialBehavior มุมล่างขวาของ portrait) — บอสแยกเป็น
+     ส่วนพิเศษด้านล่าง (#bossSection) กรอบทอง portrait ใหญ่กว่า + ชื่อสกิลพิเศษใต้หลอด HP — หลอด/
+     ตัวนับอัปเดตสดระหว่างต่อสู้ผ่าน updateMonsterPanelBars() โดยไม่ rebuild DOM ทั้งแผง ----- */
+  #monsterList, #bossList { display: flex; flex-direction: column; gap: 5px; }
   .monRow {
-    display: flex; align-items: center; gap: 6px;
-    background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 8px; padding: 4px 6px;
+    display: flex; align-items: center; gap: 7px;
+    background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 8px; padding: 5px 7px;
   }
-  .monRow.boss { border-color: var(--accent); background: rgba(216,173,77,0.10); }
+  .monRow.boss { border-color: var(--accent); background: rgba(216,173,77,0.14); }
   .monRow.wiped { opacity: 0.4; }
+  .monPortraitWrap { position: relative; flex-shrink: 0; }
   .monRow img, .monRow .monSwatch {
-    width: 26px; height: 26px; border-radius: 5px; object-fit: cover; object-position: top;
+    display: block; width: 30px; height: 30px; border-radius: 6px; object-fit: cover; object-position: top;
     background: #2a2f3d; flex-shrink: 0;
   }
+  .monRow.boss .monPortraitWrap img, .monRow.boss .monPortraitWrap .monSwatch { width: 40px; height: 40px; border-radius: 7px; }
+  .monTypeBadge {
+    position: absolute; bottom: -3px; right: -3px; width: 15px; height: 15px; border-radius: 50%;
+    background: #1c2231; border: 1px solid var(--card-border); font-size: 9px; line-height: 1;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .monRow.boss .monTypeBadge { background: #2a2010; border-color: var(--accent); width: 17px; height: 17px; font-size: 10px; }
   .monInfo { flex: 1; min-width: 0; }
-  .monName { font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 2px; }
-  .monName .bossBadge { color: var(--accent); font-weight: bold; }
-  .monBarTrack { height: 5px; border-radius: 3px; background: #33261a; overflow: hidden; }
-  .monBarFill { height: 100%; width: 100%; background: linear-gradient(90deg, #c25a44, #e08a6a); transition: width 0.12s linear; }
+  .monNameRow { display: flex; align-items: baseline; justify-content: space-between; gap: 4px; margin-bottom: 3px; }
+  .monName { font-size: 10px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .monRow.boss .monName { color: var(--accent); font-size: 11px; }
   .monCount { flex-shrink: 0; font-size: 10px; color: var(--text-dim); font-weight: bold; }
+  .monBarTrack {
+    position: relative; height: 13px; border-radius: 4px; background: #2a1410;
+    border: 1px solid rgba(0,0,0,0.35); overflow: hidden;
+  }
+  .monBarFill { height: 100%; width: 100%; background: linear-gradient(90deg, #a8362f, #d9534f); transition: width 0.12s linear; }
+  .monRow.boss .monBarFill { background: linear-gradient(90deg, #8a2a24, #c25a44); }
+  .monHpText {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    font-size: 8px; font-weight: 600; color: #f4f1ea; text-shadow: 0 1px 1px rgba(0,0,0,0.85);
+    pointer-events: none; white-space: nowrap;
+  }
+  .monSkillName { margin-top: 3px; font-size: 9px; color: var(--accent-dim); font-style: italic; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .monSectionHeader {
+    margin: 8px 0 5px; padding-top: 7px; border-top: 1px solid var(--card-border);
+    font-size: 11px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.5px; font-weight: bold;
+  }
   .monEmpty { color: var(--text-dim); font-size: 10px; line-height: 1.4; }
 
   /* ----- Link panel (ซ้าย): ช่อง Portrait 3 ช่องของทีม Link + สรุปบัฟที่ทำงานจริง
@@ -302,6 +327,8 @@
     #shopDrawer { max-height: 100px; }
     #monsterPanel { max-height: 32vh; }
     #hpPanel { max-height: 38vh; }
+    /* จอเตี้ย: ตัดเฉพาะข้อความรอง (ชื่อสกิลบอส) เพื่อประหยัดพื้นที่ — ชื่อ/จำนวนรอด/HP ต้องเห็นครบเสมอ */
+    .monSkillName { display: none; }
   }
   /* ----- Responsive: แท็บเล็ต/ไอแพด (จอกว้าง >= 900px) — ขยายแผง/ตัวอักษรขึ้นเล็กน้อย ไม่ให้เล็กจิ๋วบนจอใหญ่ ----- */
   @media (min-width: 900px) {
@@ -312,7 +339,10 @@
     #shopDrawer { width: min(52vw, 640px); }
     .pill, #startBattleBtn, #shopToggleBtn, #bagToggleBtn { font-size: 16px; }
     .monName { font-size: 12px; }
-    .monRow img, .monRow .monSwatch { width: 32px; height: 32px; }
+    .monRow img, .monRow .monSwatch { width: 34px; height: 34px; }
+    .monRow.boss .monPortraitWrap img, .monRow.boss .monPortraitWrap .monSwatch { width: 46px; height: 46px; }
+    .monBarTrack { height: 14px; }
+    .monHpText { font-size: 9px; }
     .hpTrack { width: 84px; height: 10px; }
   }
 </style>
@@ -352,6 +382,10 @@
   <div id="monsterPanel" class="floatPanel">
     <h3>ศัตรูเวฟนี้ <span id="monsterCount" class="subcount"></span></h3>
     <div id="monsterList"></div>
+    <div id="bossSection" style="display:none">
+      <div class="monSectionHeader">👑 บอสรอบนี้</div>
+      <div id="bossList"></div>
+    </div>
   </div>
   <div id="hpPanel" class="floatPanel">
     <h3>ทีมในสนาม <span id="fieldCount" class="subcount"></span></h3>

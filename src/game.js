@@ -2605,10 +2605,21 @@ function renderTeamHpPanel() {
   });
 }
 // ============================================================
-// MONSTER PANEL (ขวาบน) — ศัตรูของ "เวฟปัจจุบัน" จัดกลุ่มตามชนิด (sprite): icon + ชื่อ + จำนวนรอด
-// + หลอด HP รวมของชนิดนั้น, บอสมีกรอบทอง+มงกุฎ — ช่วง shop เป็นพรีวิวจาก buildWave(wave) (ยังไม่
-// spawn), ช่วง battle อ่านจากยูนิตศัตรูจริง — อ่านข้อมูลอย่างเดียว ไม่แตะ stats/AI/wave schedule เลย
+// MONSTER PANEL (ขวาบน) — ศัตรูของ "เวฟปัจจุบัน" จัดกลุ่มตามชนิด (sprite): portrait + ชื่อ + จำนวน
+// รอด x/N + หลอด HP รวมของชนิดนั้นพร้อมเลข current/max ทับบนหลอด + badge ประเภท/specialBehavior —
+// บอสแยกเป็นส่วนพิเศษ #bossSection (กรอบทอง, portrait ใหญ่กว่า, ชื่อสกิลพิเศษจาก BOSS_SKILLS) —
+// ช่วง shop เป็นพรีวิวจาก buildWave(wave) (ยังไม่ spawn), ช่วง battle อ่านจากยูนิตศัตรูจริง — อ่าน
+// ข้อมูลอย่างเดียว ไม่แตะ stats/AI/wave schedule/boss skill เลย
 // ============================================================
+// badge สั้นบอกประเภทการเล็งเป้า (specialBehavior) ของมอนสเตอร์แต่ละแถว — ใช้ emoji ล้วนตาม asset
+// policy (ไม่มี asset ภาพใหม่) เหมือนแนวทาง CLASS_ICON_MAP ของแผง Link เดิม
+const MONSTER_BEHAVIOR_ICON = {
+  hunter: '🎯',       // StoneWolf: เล็ง HP% เหลือน้อยสุด
+  ranged: '🏹',       // SpiritArcher: รักษาระยะ
+  backline: '🗡️',     // ShadowAssassin: พุ่งเล็งแนวหลัง
+  frontline: '🛡️',    // OrcBrute: เล็งแนวหน้า
+  stun_attack: '💫',  // Golem: สตันทุกโจมตีที่ 4
+};
 function monsterGroupsForCurrentWave() {
   const enemies = units.filter((u) => u.team === 'enemy');
   const source = enemies.length ? enemies : (buildWave(wave) || []);
@@ -2617,52 +2628,74 @@ function monsterGroupsForCurrentWave() {
     const g = groups.get(m.sprite) || {
       sprite: m.sprite, boss: false, total: 0, alive: 0, hp: 0, maxHp: 0, color: m.placeholderColor,
       label: (m.name || m.sprite).replace(/\s+(\d+|[A-Z])$/, ''), // "Slime 1"/"Golem A" -> ชื่อชนิด
+      behaviorType: (m.specialBehavior && m.specialBehavior.type) || null, bossSkillId: null,
     };
     const isAlive = m.alive !== false; // cfg พรีวิว (ยังไม่ spawn) ไม่มีฟิลด์ alive = ถือว่ารอดทุกตัว
     g.total += 1;
     if (isAlive) { g.alive += 1; g.hp += m.hp || 0; }
     g.maxHp += m.maxHp || m.hp || 0;
-    if (m.unitType === 'boss') g.boss = true;
+    if (m.unitType === 'boss') { g.boss = true; g.bossSkillId = m.bossSkillId || g.bossSkillId; }
     groups.set(m.sprite, g);
   });
   return [...groups.values()];
 }
+function buildMonRowEl(g) {
+  const row = document.createElement('div');
+  row.className = 'monRow' + (g.boss ? ' boss' : '') + (g.alive === 0 ? ' wiped' : '');
+  row.dataset.sprite = g.sprite;
+  const meta = ASSET_META[g.sprite];
+  const icon = meta
+    ? `<img src="${meta.path}" alt="">`
+    : `<span class="monSwatch" style="background:#${(g.color || 0x888888).toString(16).padStart(6, '0')}"></span>`;
+  const badge = g.boss ? '👑' : (MONSTER_BEHAVIOR_ICON[g.behaviorType] || '');
+  const hpPct = g.maxHp ? Math.round((g.hp / g.maxHp) * 100) : 100;
+  const hpCur = Math.max(0, Math.round(g.hp)), hpMax = Math.round(g.maxHp);
+  const skillName = g.boss && g.bossSkillId && BOSS_SKILLS[g.bossSkillId] ? BOSS_SKILLS[g.bossSkillId].name : '';
+  row.innerHTML =
+    `<div class="monPortraitWrap">${icon}${badge ? `<span class="monTypeBadge">${badge}</span>` : ''}</div>` +
+    `<div class="monInfo">` +
+      `<div class="monNameRow"><span class="monName">${g.label}</span><span class="monCount">${g.alive}/${g.total}</span></div>` +
+      `<div class="monBarTrack"><div class="monBarFill" style="width:${hpPct}%"></div><span class="monHpText">${hpCur}/${hpMax}</span></div>` +
+      (skillName ? `<div class="monSkillName">${skillName}</div>` : '') +
+    `</div>`;
+  return row;
+}
 // rebuild DOM เฉพาะ event ใหญ่ (renderUI) — ระหว่างต่อสู้ใช้ updateMonsterPanelBars() ด้านล่างแทน
 function renderMonsterPanel() {
   const groups = monsterGroupsForCurrentWave();
+  const regularGroups = groups.filter((g) => !g.boss);
+  const bossGroups = groups.filter((g) => g.boss);
   document.getElementById('monsterCount').textContent = `(${groups.reduce((s, g) => s + g.alive, 0)} ตัว)`;
   const listEl = document.getElementById('monsterList');
   listEl.innerHTML = '';
-  if (groups.length === 0) {
+  if (regularGroups.length === 0 && bossGroups.length === 0) {
     const empty = document.createElement('div');
     empty.className = 'monEmpty';
     empty.textContent = 'ไม่มีข้อมูลศัตรูของเวฟนี้';
     listEl.appendChild(empty);
-    return;
+  } else {
+    regularGroups.forEach((g) => listEl.appendChild(buildMonRowEl(g)));
   }
-  groups.forEach((g) => {
-    const row = document.createElement('div');
-    row.className = 'monRow' + (g.boss ? ' boss' : '') + (g.alive === 0 ? ' wiped' : '');
-    row.dataset.sprite = g.sprite;
-    const meta = ASSET_META[g.sprite];
-    const icon = meta
-      ? `<img src="${meta.path}" alt="">`
-      : `<span class="monSwatch" style="background:#${(g.color || 0x888888).toString(16).padStart(6, '0')}"></span>`;
-    const hpPct = g.maxHp ? Math.round((g.hp / g.maxHp) * 100) : 100;
-    row.innerHTML = icon +
-      `<div class="monInfo"><div class="monName">${g.boss ? '<span class="bossBadge">👑 </span>' : ''}${g.label}</div>` +
-      `<div class="monBarTrack"><div class="monBarFill" style="width:${hpPct}%"></div></div></div>` +
-      `<span class="monCount">${g.alive}/${g.total}</span>`;
-    listEl.appendChild(row);
-  });
+  const bossSectionEl = document.getElementById('bossSection');
+  const bossListEl = document.getElementById('bossList');
+  bossListEl.innerHTML = '';
+  if (bossGroups.length === 0) {
+    bossSectionEl.style.display = 'none';
+  } else {
+    bossSectionEl.style.display = '';
+    bossGroups.forEach((g) => bossListEl.appendChild(buildMonRowEl(g)));
+  }
 }
-// per-frame ระหว่างต่อสู้: อัปเดตเฉพาะ width หลอด + ตัวนับของแถวเดิม ไม่ rebuild DOM ทั้งแผง
+// per-frame ระหว่างต่อสู้: อัปเดตเฉพาะ width หลอด + เลข HP + ตัวนับของแถวเดิม ไม่ rebuild DOM ทั้งแผง
+// (querySelector บน #monsterPanel ทั้งก้อนครอบคลุมทั้ง #monsterList ปกติและ #bossList แยกในทีเดียว)
 function updateMonsterPanelBars() {
-  const listEl = document.getElementById('monsterList');
+  const panelEl = document.getElementById('monsterPanel');
   monsterGroupsForCurrentWave().forEach((g) => {
-    const row = listEl.querySelector(`[data-sprite="${g.sprite}"]`);
+    const row = panelEl.querySelector(`[data-sprite="${g.sprite}"]`);
     if (!row) return;
-    row.querySelector('.monBarFill').style.width = (g.maxHp ? Math.round((g.hp / g.maxHp) * 100) : 0) + '%';
+    const hpPct = g.maxHp ? Math.round((g.hp / g.maxHp) * 100) : 0;
+    row.querySelector('.monBarFill').style.width = hpPct + '%';
+    row.querySelector('.monHpText').textContent = `${Math.max(0, Math.round(g.hp))}/${Math.round(g.maxHp)}`;
     row.querySelector('.monCount').textContent = `${g.alive}/${g.total}`;
     row.classList.toggle('wiped', g.alive === 0);
   });
