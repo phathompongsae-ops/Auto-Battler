@@ -167,7 +167,9 @@ for (let r=0;r<GRID_ROWS;r++) for (let c=0;c<GRID_COLS;c++) {
   // โทนปกติจางลงมากจากเดิม (เส้น/โซนแทบกลืนเป็นพื้นเวทีเดียว) — สีเขียว/แดงชัดๆ ใช้เฉพาะตอน
   // เลือก/ลากวางผ่าน updateTileHighlights() เท่านั้น
   const baseTint = isBench ? 0x7d6f58 : (isPlayerZone ? 0xb7c9b4 : 0xbfc4cf);
-  const mat = new THREE.MeshBasicMaterial({ map: (c+r)%2===0?texA:texB, color: baseTint, side: THREE.DoubleSide, transparent: true });
+  // MeshStandardMaterial (แทน MeshBasicMaterial เดิม) ให้ไทล์รับแสง/เงาจาก DirectionalLight จริง —
+  // ดูเป็นพื้นเวที ไม่ใช่กริด UI แบนๆ — ยังคง .color/.opacity ที่ updateTileHighlights() แก้ได้เหมือนเดิม
+  const mat = new THREE.MeshStandardMaterial({ map: (c+r)%2===0?texA:texB, color: baseTint, side: THREE.DoubleSide, transparent: true, roughness: 1, metalness: 0 });
   const m = new THREE.Mesh(tileGeo, mat);
   m.rotation.x = -Math.PI/2;
   const p = gridToWorld(c,r);
@@ -197,15 +199,54 @@ function updateTileHighlights() {
     }
   });
 }
-const ground = new THREE.Mesh(new THREE.PlaneGeometry(60,60), new THREE.MeshBasicMaterial({ color: 0x1a1c26 }));
+// พื้นเวทีรอบนอก (arena floor): แทนที่พื้นสีล้วนเดิมด้วยลายหินโมเสกแบบ procedural (ตาม asset
+// policy — วาดด้วย canvas ล้วน ไม่ใช้ asset ภายนอก) ปูซ้ำ (RepeatWrapping) ให้ดูเป็นลานหินจริง
+function arenaFloorTexture() {
+  const cv = makeCanvas(128,128), g = cv.getContext('2d');
+  g.fillStyle = '#23283a'; g.fillRect(0,0,128,128);
+  let s = 731; const rnd = () => (s=(s*16807)%2147483647)/2147483647;
+  for (let gy=0; gy<128; gy+=16) for (let gx=0; gx<128; gx+=16) {
+    g.strokeStyle = 'rgba(10,12,20,0.55)'; g.lineWidth = 1;
+    g.strokeRect(gx+0.5, gy+0.5, 16-1, 16-1);
+    g.fillStyle = rnd() < 0.5 ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.05)';
+    g.fillRect(gx+2, gy+2, 12, 12);
+  }
+  for (let i=0;i<200;i++){ g.fillStyle = rnd()<0.5?'rgba(0,0,0,0.12)':'rgba(216,173,77,0.05)'; g.fillRect((rnd()*128)|0,(rnd()*128)|0,1,1); }
+  return toTexture(cv);
+}
+const arenaFloorTex = arenaFloorTexture();
+arenaFloorTex.wrapS = arenaFloorTex.wrapT = THREE.RepeatWrapping;
+arenaFloorTex.repeat.set(10, 10);
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(60,60),
+  new THREE.MeshStandardMaterial({ map: arenaFloorTex, color: 0x9aa0b8, roughness: 1, metalness: 0 }));
 ground.rotation.x = -Math.PI/2; ground.position.y = -0.02; scene.add(ground);
 
-// ----- กรอบเวทีแฟนตาซี (stage frame) รอบกระดาน 8x7: ขอบหินโทนน้ำเงินเทา + เสาหัวมุมยอดทอง —
-// geometry ล้วนตาม asset policy (ไม่มี asset ใหม่) อยู่นอกพื้นที่ไทล์ ไม่ถูกรวมใน raycast ใดๆ
-// จึงไม่กระทบการคลิก/วางตัว และไม่บังตัวละคร/หลอด HP (สูงแค่ ~0.1 หน่วยจากพื้น)
+// ----- กรอบเวทีแฟนตาซี (stage frame) รอบกระดาน 8x7: ขอบหินโทนน้ำเงินเทา + เสาหัวมุมยอดทอง +
+// ธงมุมเวที + คบเพลิงฝั่งม้านั่ง — geometry/canvas-texture ล้วนตาม asset policy (ไม่มี asset ใหม่)
+// อยู่นอกพื้นที่ไทล์ ไม่ถูกรวมใน raycast ใดๆ (ไม่อยู่ใน tileMeshes/units) จึงไม่กระทบการคลิก/วางตัว
+// และไม่บังตัวละคร/หลอด HP (เสา/ธง/คบเพลิงทั้งหมดอยู่นอกขอบ halfW/halfD ของกระดาน)
+function clothBannerTexture(colorA, colorB) {
+  const cv = makeCanvas(32,64), g = cv.getContext('2d');
+  g.fillStyle = colorA; g.fillRect(0,0,32,64);
+  g.fillStyle = colorB; g.fillRect(0,0,32,10); g.fillRect(0,54,32,10);
+  g.fillStyle = 'rgba(216,173,77,0.9)';
+  g.beginPath(); g.moveTo(16,22); g.lineTo(24,32); g.lineTo(16,42); g.lineTo(8,32); g.closePath(); g.fill();
+  return toTexture(cv);
+}
+const bannerTex = clothBannerTexture('#2c3448', '#1b3a63');
+function glowFlareTexture() {
+  const cv = makeCanvas(32,32), g = cv.getContext('2d');
+  const grd = g.createRadialGradient(16,16,0,16,16,16);
+  grd.addColorStop(0, 'rgba(255,200,120,0.95)');
+  grd.addColorStop(0.5, 'rgba(255,140,50,0.45)');
+  grd.addColorStop(1, 'rgba(255,140,50,0)');
+  g.fillStyle = grd; g.fillRect(0,0,32,32);
+  return toTexture(cv);
+}
+const flareTex = glowFlareTexture();
 {
-  const rimMat = new THREE.MeshLambertMaterial({ color: 0x2c3448 });
-  const trimMat = new THREE.MeshLambertMaterial({ color: 0xd8ad4d });
+  const rimMat = new THREE.MeshStandardMaterial({ color: 0x2c3448, roughness: 0.95, metalness: 0.05 });
+  const trimMat = new THREE.MeshStandardMaterial({ color: 0xd8ad4d, roughness: 0.6, metalness: 0.3 });
   const rimH = 0.1, rimT = 0.24;
   const halfW = GRID_COLS / 2 * TILE, halfD = GRID_ROWS / 2 * TILE;
   const addRim = (w, d, x, z) => {
@@ -217,23 +258,45 @@ ground.rotation.x = -Math.PI/2; ground.position.y = -0.02; scene.add(ground);
   addRim(GRID_COLS * TILE + rimT * 2, rimT, 0, halfD + rimT / 2);   // ขอบหน้า (ฝั่งม้านั่ง)
   addRim(rimT, GRID_ROWS * TILE, -(halfW + rimT / 2), 0);           // ขอบซ้าย
   addRim(rimT, GRID_ROWS * TILE, halfW + rimT / 2, 0);              // ขอบขวา
+  // เสามุมเวที: สูงขึ้นจากเดิม (เสาหัวมุมเตี้ย -> เสาเวทีจริง) + ธงทุกมุม + คบเพลิงเฉพาะฝั่งม้านั่ง (sz=1,
+  // ใกล้กล้อง/ผู้เล่นมากสุด) — จำกัดจำนวนแสง/เอฟเฟกต์ตาม art direction (ไม่เพิ่ม PointLight จริง ใช้
+  // Sprite เรืองแสง additive แทนเพื่อคุม cost การเรนเดอร์ให้เท่าเดิม)
+  const postH = 0.9;
   [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([sx, sz]) => {
     const px = sx * (halfW + rimT / 2), pz = sz * (halfD + rimT / 2);
-    const post = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.34, 0.3), rimMat);
-    post.position.set(px, 0.16, pz); scene.add(post);
-    const cap = new THREE.Mesh(new THREE.BoxGeometry(0.36, 0.07, 0.36), trimMat);
-    cap.position.set(px, 0.37, pz); scene.add(cap);
+    const post = new THREE.Mesh(new THREE.BoxGeometry(0.3, postH, 0.3), rimMat);
+    post.position.set(px, postH / 2 - 0.01, pz); scene.add(post);
+    const cap = new THREE.Mesh(new THREE.BoxGeometry(0.36, 0.09, 0.36), trimMat);
+    cap.position.set(px, postH - 0.01 + 0.045, pz); scene.add(cap);
+
+    const banner = new THREE.Mesh(new THREE.PlaneGeometry(0.34, 0.68),
+      new THREE.MeshStandardMaterial({ map: bannerTex, side: THREE.DoubleSide, roughness: 1, metalness: 0 }));
+    banner.position.set(px - sx * 0.24, postH - 0.42, pz);
+    banner.rotation.y = sx * 0.5;
+    scene.add(banner);
+
+    if (sz === 1) { // คบเพลิง 2 อันฝั่งม้านั่ง (ใกล้กล้องสุด) — แกนไม้ + เปลวไฟเรืองแสงเบาๆ ไม่มีไฟจริงเพิ่ม
+      const torchPole = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.06, 0.4, 6),
+        new THREE.MeshStandardMaterial({ color: 0x4a3826, roughness: 1 }));
+      torchPole.position.set(px, postH + 0.2, pz); scene.add(torchPole);
+      const flameCore = new THREE.Mesh(new THREE.ConeGeometry(0.09, 0.22, 8),
+        new THREE.MeshBasicMaterial({ color: 0xffb347 }));
+      flameCore.position.set(px, postH + 0.5, pz); scene.add(flameCore);
+      const flare = new THREE.Sprite(new THREE.SpriteMaterial({ map: flareTex, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }));
+      flare.scale.set(0.7, 0.7, 1);
+      flare.position.set(px, postH + 0.52, pz); scene.add(flare);
+    }
   });
 }
 
 function brokenPillar(x,z,h,tilt){
-  const m=new THREE.Mesh(new THREE.CylinderGeometry(0.28,0.34,h,6), new THREE.MeshLambertMaterial({color:0x7a7060}));
+  const m=new THREE.Mesh(new THREE.CylinderGeometry(0.28,0.34,h,6), new THREE.MeshStandardMaterial({color:0x7a7060, roughness:1}));
   m.position.set(x,h/2-0.02,z); m.rotation.z=tilt; scene.add(m);
-  const base=new THREE.Mesh(new THREE.BoxGeometry(0.7,0.25,0.7), new THREE.MeshLambertMaterial({color:0x685e4e}));
+  const base=new THREE.Mesh(new THREE.BoxGeometry(0.7,0.25,0.7), new THREE.MeshStandardMaterial({color:0x685e4e, roughness:1}));
   base.position.set(x,0.1,z); scene.add(base);
 }
 function rubble(x,z,s){
-  const m=new THREE.Mesh(new THREE.DodecahedronGeometry(s,0), new THREE.MeshLambertMaterial({color:0x6a6152}));
+  const m=new THREE.Mesh(new THREE.DodecahedronGeometry(s,0), new THREE.MeshStandardMaterial({color:0x6a6152, roughness:1}));
   m.position.set(x,s*0.5,z); m.rotation.set(Math.random()*3,Math.random()*3,0); scene.add(m);
 }
 brokenPillar(-5.2,-5.0,2.6,0.05); brokenPillar(5.0,-5.2,1.4,-0.12);
