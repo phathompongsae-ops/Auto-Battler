@@ -276,6 +276,8 @@
 <div id="synergyPanel" class="floatPanel">
   <h3>โบนัสอาชีพ</h3>
   <div id="synergyList"></div>
+  <h3 style="margin-top:10px">บัฟทีม 3 คน <span id="teamComboCount" class="subcount"></span></h3>
+  <div id="teamComboSection"></div>
 </div>
 <div id="hpPanel" class="floatPanel">
   <h3>ทีมในสนาม <span id="fieldCount" class="subcount"></span></h3>
@@ -1274,6 +1276,41 @@ const SYNERGY_DEFS = {
   merchant: { class_key:'merchant', name:'Merchant Guild',     requirement:{ class:'merchant', unit_count:SYNERGY_REQUIRED_UNITS }, applies_to:'player_economy',   effects:{ bonus_gold_on_wave_win:1, shop_reroll_discount_gold:1, minimum_reroll_cost:1 } },
 };
 
+// ============================================================
+// TEAM COMBO BUFF — เงื่อนไขพิเศษเพิ่มเติมจาก Synergy System เดิม: เปิดใช้งานเมื่อลงสนามรบ
+// (placedUnits) "ครบ 3 ตัวพอดี" เท่านั้น (มากกว่าหรือน้อยกว่า 3 ไม่เปิด) แต่ละฮีโร่ (นับตาม root
+// class เดียวกับ Synergy) มีบัฟเฉพาะตัวของตัวเอง รวม 3 ตัวเข้าด้วยกันเป็นบัฟทีมชุดเดียว — ถ้าตัวไหน
+// ในเซ็ต 3 ตัวเป็น tier-2 (evolve/star แล้ว) บัฟของฮีโร่ตัวนั้นจะอัปเกรดแรงขึ้นแทนค่า tier-1 ปกติ
+// effect key ใช้ชื่อเดียวกับ SYNERGY_DEFS.effects เป๊ะ เพื่อพับรวมเข้า computeSynergyBuffs() ด้านล่าง
+// ได้โดยตรง (ใช้ integration point เดิมทั้งหมด — buildCombatStats/gold reward/healing ฯลฯ ไม่ต้องแก้)
+const TEAM_COMBO_SIZE = 3;
+const TEAM_COMBO_ROOT_BUFFS = {
+  fighter:  { label:'พลังนักสู้',     tier1:{ max_hp_pct:8 },                                    tier2:{ max_hp_pct:15 } },
+  swordman: { label:'ความเร็วดาบ',   tier1:{ attack_speed_pct:8 },                              tier2:{ attack_speed_pct:15 } },
+  archer:   { label:'สายตาแม่นยำ',   tier1:{ p_atk_pct:8 },                                     tier2:{ p_atk_pct:15 } },
+  mage:     { label:'พลังเวท',        tier1:{ m_atk_pct:8 },                                     tier2:{ m_atk_pct:15 } },
+  summoner: { label:'พลังอัญเชิญ',   tier1:{ summon_damage_pct:10, summon_max_hp_pct:10 },      tier2:{ summon_damage_pct:18, summon_max_hp_pct:18 } },
+  acolyte:  { label:'พรผู้พิทักษ์',   tier1:{ healing_received_pct:10 },                         tier2:{ healing_received_pct:18 } },
+  merchant: { label:'โชคลาภ',        tier1:{ bonus_gold_on_wave_win:2 },                        tier2:{ bonus_gold_on_wave_win:4 } },
+};
+// คืน null ถ้าไม่ครบ 3 ตัวพอดี — ไม่งั้นคืน { effects, contributions } ให้ computeSynergyBuffs พับรวม
+// และให้ renderTeamComboPanel ใช้แสดงผล UI
+function computeTeamComboBuff() {
+  if (placedUnits.length !== TEAM_COMBO_SIZE) return null;
+  const effects = {};
+  const contributions = [];
+  placedUnits.forEach((u) => {
+    const root = getRootClass(u.heroKey);
+    const def = TEAM_COMBO_ROOT_BUFFS[root];
+    if (!def) return;
+    const isTier2 = HERO_DEFS[u.heroKey].class_tier === 2;
+    const vals = isTier2 ? def.tier2 : def.tier1;
+    Object.entries(vals).forEach(([k, v]) => { effects[k] = (effects[k] || 0) + v; });
+    contributions.push({ heroName: HERO_DEFS[u.heroKey].name, label: def.label, isTier2 });
+  });
+  return { effects, contributions };
+}
+
 // ---- hero instance identity ----
 let nextInstanceSeq = 1;
 function createHeroInstance(heroKey, starLevel = 1) {
@@ -1330,6 +1367,22 @@ function computeSynergyBuffs() {
     if (e.shop_reroll_discount_gold) buffs.shopRerollDiscountGold += e.shop_reroll_discount_gold;
     if (e.minimum_reroll_cost) buffs.minimumRerollCost = Math.max(buffs.minimumRerollCost, e.minimum_reroll_cost);
   });
+  // Team Combo Buff (exactly 3 heroes on the field) พับรวมเข้ากับ effect fields เดียวกันเป๊ะ — ใช้
+  // integration point เดิมทุกจุดที่อ่าน synergyBuffs อยู่แล้ว (buildCombatStats/gold reward/healing ฯลฯ)
+  const combo = computeTeamComboBuff();
+  buffs.teamComboActive = !!combo;
+  buffs.teamComboContributions = combo ? combo.contributions : [];
+  if (combo) {
+    const e = combo.effects;
+    if (e.max_hp_pct) buffs.maxHpPct += e.max_hp_pct;
+    if (e.attack_speed_pct) buffs.attackSpeedPct += e.attack_speed_pct;
+    if (e.p_atk_pct) buffs.pAtkPct += e.p_atk_pct;
+    if (e.m_atk_pct) buffs.mAtkPct += e.m_atk_pct;
+    if (e.summon_max_hp_pct) buffs.summonMaxHpPct += e.summon_max_hp_pct;
+    if (e.summon_damage_pct) buffs.summonDamagePct += e.summon_damage_pct;
+    if (e.healing_received_pct) buffs.healingReceivedPct += e.healing_received_pct;
+    if (e.bonus_gold_on_wave_win) buffs.bonusGoldOnWaveWin += e.bonus_gold_on_wave_win;
+  }
   return buffs;
 }
 // Recomputed on every renderUI() (shop-phase display + reroll discount always reflect the
@@ -2718,6 +2771,22 @@ function renderSynergyPanel() {
     div.title = effParts.join(', ');
     listEl.appendChild(div);
   });
+  // Team Combo Buff: เปิดใช้งานเฉพาะตอนลงสนามรบครบ 3 ตัวพอดี (ไม่นับม้านั่ง) — แต่ละฮีโร่ในเซ็ตนี้
+  // ให้บัฟของ root class ตัวเอง (อัปเกรดแรงขึ้นถ้าเป็น tier-2) รวมกันเป็นบัฟทีมเดียว
+  document.getElementById('teamComboCount').textContent = `(${placedUnits.length}/${TEAM_COMBO_SIZE})`;
+  const comboSectionEl = document.getElementById('teamComboSection');
+  comboSectionEl.innerHTML = '';
+  const combo = computeTeamComboBuff();
+  const comboDiv = document.createElement('div');
+  if (combo) {
+    comboDiv.className = 'synergyItem active';
+    comboDiv.innerHTML = `<div class="synergyName">ทำงาน! ${combo.contributions.map((c) => c.heroName + (c.isTier2 ? '★' : '')).join(', ')}</div>`;
+    comboDiv.title = combo.contributions.map((c) => `${c.heroName}: ${c.label}${c.isTier2 ? ' (อัปเกรดจาก tier-2)' : ''}`).join('\n');
+  } else {
+    comboDiv.className = 'synergyItem';
+    comboDiv.innerHTML = `<div class="synergyName">ต้องมีฮีโร่ในสนามรบพอดี 3 ตัว</div>`;
+  }
+  comboSectionEl.appendChild(comboDiv);
 }
 function renderTeamHpPanel() {
   const listEl = document.getElementById('teamHpList');
