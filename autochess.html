@@ -126,6 +126,26 @@
     background: linear-gradient(#e0c060, #a8843c); color: #2a1e10; border: 2px solid #6b4a24;
     border-radius: 8px; font-size: 14px; font-weight: bold; padding: 8px 22px; cursor: pointer;
   }
+  /* ----- Evolution System: player-choice merge modal ----- */
+  #evolutionModal {
+    position: fixed; inset: 0; display: none; align-items: center; justify-content: center;
+    background: rgba(10,7,4,0.8); z-index: 26;
+  }
+  #evolutionBox {
+    background: linear-gradient(#2a2014, #1a130c); border: 2px solid #ffe178; border-radius: 12px;
+    padding: 24px 30px; text-align: center; color: #f0e6c8; min-width: 300px;
+  }
+  #evolutionBox h3 { margin: 0 0 4px; }
+  #evolutionBox .evoSub { color: #d7c9a7; font-size: 12px; margin-bottom: 16px; }
+  #evolutionOptions { display: flex; gap: 16px; justify-content: center; }
+  .evoOption {
+    width: 110px; background: #fbf6e6; border: 2px solid #b89858; border-radius: 8px; overflow: hidden;
+    cursor: pointer; text-align: center; font-size: 11px; user-select: none; padding-bottom: 6px;
+  }
+  .evoOption:hover { border-color: #ffe178; box-shadow: 0 0 0 2px #ffe178; }
+  .evoOption img { width: 100%; height: 90px; object-fit: cover; display: block; background: #333; }
+  .evoOption .name { font-weight: bold; padding: 6px 2px 0; }
+  .evoOption .tags { color: #6b8f42; padding: 0 2px; font-size: 10px; }
   /* drag-to-place ghost: floats above the pointer (offset applied in JS) so the
      sprite doesn't cover the tile the player is about to drop on, and reads a touch
      smaller than the bench card it came from */
@@ -216,6 +236,14 @@
       <div id="equipModalInventory"></div>
     </div>
     <button id="equipCloseBtn">ปิด</button>
+  </div>
+</div>
+
+<div id="evolutionModal">
+  <div id="evolutionBox">
+    <h3>🌟 <span id="evolutionSourceName"></span> พร้อมเปลี่ยนคลาส!</h3>
+    <div class="evoSub">รวม 3 ตัวสำเร็จ — เลือกคลาส Tier-2 (ไอเทมที่เก็บมา <span id="evolutionItemCount">0</span> ชิ้น จะสวมให้อัตโนมัติสูงสุด 2 ชิ้น ที่เหลือกลับกระเป๋า)</div>
+    <div id="evolutionOptions"></div>
   </div>
 </div>
 
@@ -429,6 +457,19 @@ const HERO_DEFS = {
     stats:{ hp:570, p_atk:0, m_atk:60, p_def:25, m_def:38, move_speed:2.8, attack_speed:1.35, attack_range:4 },
     active_skill:{ name:'Loaded Dice', description:'โยนลูกเต๋าเวทใส่พื้นที่เป้าหมาย สร้างความเสียหายเวท 140% ของ M.Atk และทำให้ศัตรูติด Stun 1.5 วินาที พร้อมขโมยบัฟเชิงบวก 1 อย่างจากศัตรูที่แข็งแกร่งที่สุดในพื้นที่' } },
 };
+// ============================================================
+// EVOLUTION_TREE — derived from HERO_DEFS.evolves_from (never hand-duplicated, so it can't
+// drift from the roster) — shape matches the evolution_tree spec given for the Merge & Evolution
+// System. tier/required_star/required_count are always 1/1/3 in this game (there is no separate
+// star-upgrade system — every hero instance is implicitly star 1), merge_location is always
+// 'bench_only' since bench composition is the only place matching heroes are ever grouped/counted.
+// ============================================================
+const EVOLUTION_TREE = {};
+Object.keys(HERO_DEFS).forEach((key) => {
+  if (HERO_DEFS[key].class_tier !== 1) return;
+  const evolutions = Object.keys(HERO_DEFS).filter((k) => HERO_DEFS[k].evolves_from === key);
+  if (evolutions.length) EVOLUTION_TREE[key] = { tier: 1, required_star: 1, required_count: 3, merge_location: 'bench_only', evolutions };
+});
 // ============================================================
 // SKILL_DEFS — mechanical active-skill data for the 7 tier-1 heroes (kept separate from
 // HERO_DEFS.active_skill, which stays as display-only name/description text — these numbers
@@ -827,18 +868,6 @@ function unequipItem(hero, slotIndex) {
   playerState.inventory.itemInstanceIds.push(itemInstanceId);
   return true;
 }
-// Used when a hero instance is removed from play without the player explicitly
-// unequipping first (auto-merge consuming bench copies) — items must never be
-// silently destroyed, so force them back to the inventory bypassing capacity.
-function returnEquipmentToInventory(heroInst) {
-  heroInst.equipment.forEach((itemInstanceId, slotIndex) => {
-    if (!itemInstanceId) return;
-    const inst = playerState.itemInstances[itemInstanceId];
-    if (inst) { inst.location = 'inventory'; inst.ownerHeroId = null; }
-    playerState.inventory.itemInstanceIds.push(itemInstanceId);
-    heroInst.equipment[slotIndex] = null;
-  });
-}
 const ATTACK_SPEED_MIN = 0.2, ATTACK_SPEED_MAX = 3.0;
 const RATE_STAT_KEYS = new Set(['physical_lifesteal']); // see the _pct handling note in buildCombatStats
 // Builds hero.combatStats from hero.baseStats (never mutated) + equipped item stats:
@@ -1177,7 +1206,7 @@ let losses = 0;               // จำนวนครั้งที่แพ�
 let phase = 'shop';           // 'shop' | 'battle' | 'result' | 'gameover'
 let speedMul = 1;
 let paused = false;
-// ร้านค้าขายเฉพาะ tier-1 — tier-2 ได้จากการเมิร์จ (checkAndMergeUnits) เท่านั้น
+// ร้านค้าขายเฉพาะ tier-1 — tier-2 ได้จากการรวมร่าง (scanForMergeCandidate/chooseEvolution) เท่านั้น
 let ownedPool = Object.keys(HERO_DEFS).filter(k => HERO_DEFS[k].class_tier === 1);   // ฮีโร่ที่ยังไม่ได้ซื้อ
 let benchHeroes = [];                      // key[] ที่ซื้อแล้วแต่ยังไม่วาง
 let placedUnits = [];                      // unit[] ฝั่งผู้เล่นที่วางแล้ว (อ้างอิงตัวยูนิตตรงๆ ไม่ใช่ตำแหน่ง
@@ -2120,7 +2149,7 @@ function renderUI() {
   document.getElementById('bottomUI').style.display = phase==='shop' ? 'flex' : 'none';
   document.getElementById('inventoryPanel').style.display = phase==='shop' ? 'block' : 'none';
   if (phase !== 'shop' && inspectingHero) closeEquipModal(); // Equipment UI only makes sense during shop phase
-  startBattleBtn.disabled = placedUnits.length === 0;
+  startBattleBtn.disabled = placedUnits.length === 0 || !!pendingEvolution;
   const fieldFull = placedUnits.length >= MAX_FIELD;
   const benchFull = benchHeroes.length >= MAX_BENCH;
   if (fieldFull) selectedBenchIdx = -1;
@@ -2136,7 +2165,7 @@ function renderUI() {
     div.onclick = () => buyHero(hkey);
     shopCardsEl.appendChild(div);
   });
-  rerollBtn.disabled = gold < 2 || ownedPool.length === 0;
+  rerollBtn.disabled = gold < 2 || ownedPool.length === 0 || !!pendingEvolution;
 
   benchCardsEl.innerHTML = '';
   benchHeroes.forEach((inst, i) => {
@@ -2184,38 +2213,87 @@ function renderUI() {
   placedUnits.forEach(updateEquipBadge); // Equipment Core: floating badge on any hero with an item equipped
   renderInventory();
   if (inspectingHero) renderEquipModal();
+  if (pendingEvolution) renderEvolutionModal();
 }
 
-// Auto-merge: whenever the bench holds 3+ copies of the same tier-1 hero, remove those 3
-// and add 1 tier-2 hero in their place (evolves_from lookup; if a tier-1 hero has 2 possible
-// evolutions, one is picked at random). Loops so multiple merges from a single bench change
-// (e.g. several different tier-1 heroes all hitting 3 at once) all resolve in one call.
-// Called after anything that pushes a hero onto benchHeroes (buyHero, unplaceUnit).
-function checkAndMergeUnits() {
-  let mergedAny = false, mergedThisPass = true;
-  while (mergedThisPass) {
-    mergedThisPass = false;
-    const counts = {};
-    benchHeroes.forEach((inst) => { counts[inst.heroKey] = (counts[inst.heroKey] || 0) + 1; });
-    for (const hkey in counts) {
-      const def = HERO_DEFS[hkey];
-      if (!def || def.class_tier !== 1 || counts[hkey] < 3) continue;
-      const evolutions = Object.keys(HERO_DEFS).filter((k) => HERO_DEFS[k].evolves_from === hkey);
-      if (evolutions.length === 0) continue; // no evolution defined for this hero — leave as-is
-      const chosen = evolutions[Math.floor(Math.random() * evolutions.length)];
-      let removed = 0;
-      for (let i = benchHeroes.length - 1; i >= 0 && removed < 3; i--) {
-        if (benchHeroes[i].heroKey === hkey) {
-          returnEquipmentToInventory(benchHeroes[i]); // never destroy equipped items on auto-merge
-          benchHeroes.splice(i, 1); removed++;
-        }
-      }
-      benchHeroes.push(createHeroInstance(chosen));
-      mergedThisPass = true; mergedAny = true;
-      break; // bench mutated — rebuild counts fresh before continuing
-    }
+// ============================================================
+// EVOLUTION SYSTEM — player-choice merge (replaces the old auto-merge-to-random-evolution).
+// scanForMergeCandidate() is called on every "bench changed" event (buyHero, unplaceUnit — this
+// game has no drag-hero-into-a-specific-bench-slot UI, bench composition only ever changes at
+// those two points) and enters `pendingEvolution` when 3 matching tier-1 heroes are found.
+// Only one merge can be pending at a time (block_additional_merge_while_pending).
+// ============================================================
+let pendingEvolution = null; // { sourceHeroDefId, sourceInstanceIds, availableEvolutionIds, collectedItemInstanceIds, status }
+function scanForMergeCandidate() {
+  if (pendingEvolution) return;
+  const counts = {};
+  benchHeroes.forEach((inst) => { counts[inst.heroKey] = (counts[inst.heroKey] || 0) + 1; });
+  for (const heroKey in counts) {
+    if (counts[heroKey] >= 3 && EVOLUTION_TREE[heroKey]) { lockMergeSources(heroKey); return; }
   }
-  return mergedAny;
+}
+// Removes exactly 3 matching source heroes from the bench, pools their equipment (in
+// source1-slot1/slot2, source2-slot1/slot2, source3-slot1/slot2 order — the priority order
+// restoreEquipment reads from later), and opens the evolution choice modal.
+function lockMergeSources(heroKey) {
+  const sourceIdx = [];
+  for (let i = 0; i < benchHeroes.length && sourceIdx.length < 3; i++) {
+    if (benchHeroes[i].heroKey === heroKey) sourceIdx.push(i);
+  }
+  if (sourceIdx.length < 3) return;
+  const sourceInstances = sourceIdx.map((i) => benchHeroes[i]);
+  const collectedItemInstanceIds = [];
+  sourceInstances.forEach((inst) => {
+    inst.equipment.forEach((itemInstanceId, slotIndex) => {
+      if (!itemInstanceId) return;
+      const item = playerState.itemInstances[itemInstanceId];
+      if (item) { item.location = 'merge_pool'; item.ownerHeroId = null; } // held in escrow — not equippable, not in the inventory bar
+      collectedItemInstanceIds.push(itemInstanceId);
+      inst.equipment[slotIndex] = null;
+    });
+  });
+  [...sourceIdx].sort((a, b) => b - a).forEach((i) => benchHeroes.splice(i, 1)); // highest index first so earlier indices stay valid
+  pendingEvolution = {
+    sourceHeroDefId: heroKey,
+    sourceInstanceIds: sourceInstances.map((s) => s.instanceId),
+    availableEvolutionIds: EVOLUTION_TREE[heroKey].evolutions,
+    collectedItemInstanceIds,
+    status: 'waiting_for_choice',
+  };
+  openEvolutionModal();
+  renderUI();
+}
+// Creates the chosen tier-2 hero on the bench, auto-equips the first 2 pooled items (in
+// collection-priority order), and returns any overflow to the player's inventory — items are
+// never destroyed, matching equipment_transfer_policy.never_destroy_overflow_items.
+function chooseEvolution(evolutionId) {
+  if (!pendingEvolution) return;
+  if (!pendingEvolution.availableEvolutionIds.includes(evolutionId)) return;
+  if (HERO_DEFS[evolutionId].evolves_from !== pendingEvolution.sourceHeroDefId) return;
+  if (benchHeroes.length >= MAX_BENCH) return; // practically unreachable (3 slots were just freed for 1 new hero), defensive only
+  const newInst = createHeroInstance(evolutionId);
+  benchHeroes.push(newInst);
+  const collected = pendingEvolution.collectedItemInstanceIds;
+  let equipped = 0;
+  for (let i = 0; i < collected.length && equipped < 2; i++) {
+    const item = playerState.itemInstances[collected[i]];
+    if (!item) continue;
+    newInst.equipment[equipped] = collected[i];
+    item.location = 'equipped';
+    item.ownerHeroId = newInst.instanceId;
+    equipped++;
+  }
+  for (let i = equipped; i < collected.length; i++) {
+    const item = playerState.itemInstances[collected[i]];
+    if (!item) continue;
+    item.location = 'inventory';
+    item.ownerHeroId = null;
+    playerState.inventory.itemInstanceIds.push(collected[i]);
+  }
+  pendingEvolution = null;
+  closeEvolutionModal();
+  renderUI();
+  scanForMergeCandidate(); // a second group may have completed while this one was pending
 }
 
 function buyHero(hkey) {
@@ -2226,11 +2304,11 @@ function buyHero(hkey) {
   ownedPool = ownedPool.filter(k => k !== hkey);
   shopOffers = shopOffers.filter(k => k !== hkey);
   benchHeroes.push(createHeroInstance(hkey));
-  checkAndMergeUnits();
+  scanForMergeCandidate();
   renderUI();
 }
 rerollBtn.onclick = () => {
-  if (gold < 2 || ownedPool.length===0) return;
+  if (gold < 2 || ownedPool.length===0 || pendingEvolution) return;
   gold -= 2;
   ownedPool.push(...shopOffers); // คืนตัวเลือกเดิมกลับพูล แล้วสุ่มใหม่
   shopOffers = [];
@@ -2285,7 +2363,7 @@ function unplaceUnit(u) {
   });
   benchHeroes.push(benchInst);
   if (inspectingHero === u) inspectingHero = benchInst; // keep an open equip modal pointed at the same hero
-  checkAndMergeUnits();
+  scanForMergeCandidate();
   renderUI();
 }
 
@@ -2456,6 +2534,31 @@ function renderEquipModal() {
 }
 document.getElementById('equipCloseBtn').onclick = () => { closeEquipModal(); renderUI(); };
 
+// ---- Evolution modal (player-choice merge — no close button; a choice is required) ----
+const evolutionModalEl = document.getElementById('evolutionModal');
+function openEvolutionModal() {
+  renderEvolutionModal();
+  evolutionModalEl.style.display = 'flex';
+}
+function closeEvolutionModal() {
+  evolutionModalEl.style.display = 'none';
+}
+function renderEvolutionModal() {
+  if (!pendingEvolution) return;
+  document.getElementById('evolutionSourceName').textContent = HERO_DEFS[pendingEvolution.sourceHeroDefId].name;
+  document.getElementById('evolutionItemCount').textContent = pendingEvolution.collectedItemInstanceIds.length;
+  const optionsEl = document.getElementById('evolutionOptions');
+  optionsEl.innerHTML = '';
+  pendingEvolution.availableEvolutionIds.forEach((evoId) => {
+    const def = HERO_DEFS[evoId];
+    const div = document.createElement('div');
+    div.className = 'evoOption';
+    div.innerHTML = `<img src="${heroPortraitSrc(evoId)}"><div class="name">${def.name}</div><div class="tags">${tagLabel(evoId)}</div>`;
+    div.onclick = () => chooseEvolution(evoId);
+    optionsEl.appendChild(div);
+  });
+}
+
 // ---- item drag: same ghost-follows-pointer pattern as benchDrag, offset above the finger ----
 const ITEM_GHOST_Y_OFFSET = 40;
 let itemDrag = null; // { itemInstanceId, source:'inventory'|'equipped', heroRef, slotIndex, startX, startY, moved, pointerId, ghostEl, originX, originY }
@@ -2593,7 +2696,7 @@ function healPlayerTeam() {
 }
 
 startBattleBtn.onclick = () => {
-  if (placedUnits.length === 0) return;
+  if (placedUnits.length === 0 || pendingEvolution) return; // block_combat_start_while_pending
   phase = 'battle';
   waveTimer = 0;
   deadAlliesThisWave = []; // most_recent_dead_ally (Priest's revive) only ever looks at this wave
