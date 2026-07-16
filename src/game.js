@@ -238,9 +238,9 @@ function loadAllSprites(onDone) {
 // berserker, swordman, archer, ranger, mage, acolyte, priest, inquisitor, merchant, tycoon,
 // spirit_blade) has NO dedicated art yet, so it's mapped to the closest existing sprite by
 // role/attack_type as a placeholder — swap these once real art lands.
-// Class Synergy System (replaces the old manual Link System V2): each hero's synergy class is
-// its tier-1 lineage root — `evolves_from` for tier-2 heroes, or the hero's own key for tier-1 —
-// see getRootClass()/SYNERGY_DEFS below. No extra per-hero tagging field is needed for this.
+// Manual Link Selection: each hero's buff class is its tier-1 lineage root — `evolves_from`
+// for tier-2 heroes, or the hero's own key for tier-1 — see getRootClass()/LINK_CLASS_BUFFS
+// below. No extra per-hero tagging field is needed for this.
 const HERO_DEFS = {
   fighter:      { name:'Fighter',      class_tier:1, cost:2, sprite:'BladeMaster', synergy:['Warrior'], attack_type:'physical',
     stats:{ hp:500, p_atk:25, m_atk:0, p_def:30, m_def:15, move_speed:2.5, attack_speed:1.1, attack_range:1 },
@@ -909,98 +909,72 @@ function evaluateStatusCondition(unit, condition) {
 }
 
 // ============================================================
-// SYNERGY SYSTEM — automatic class-count team bonuses (replaces the manual Link System V2).
-// count_rule: activation_mode "at_least" — a class needs >= required_units (3) on the FIELD to
-// activate; more_than_required uses "same_bonus_as_3" (max_effective_units:3), i.e. no scaling
-// beyond 3 — a synergy is simply active or inactive, never stacks multiple tiers of itself.
-// A hero's synergy class is its tier-1 lineage root (getRootClass), so e.g. Fighter/Knight/
-// Berserker all count toward the same "fighter" synergy regardless of evolution tier.
+// MANUAL LINK SELECTION — แทนที่ Auto Class Synergy (นับอาชีพซ้ำ 3 ตัว) และ Team Combo Buff
+// (ครบ 3 ตัวพอดีอัตโนมัติ) เดิมทั้งคู่: ผู้เล่น "เลือกเอง" ว่าฮีโร่บนสนามรบตัวไหนเข้าทีม Link
+// สูงสุด 3 ตัว (ฮีโร่ม้านั่งเลือกไม่ได้) — แต่ละตัวที่เลือกเปิดบัฟของ root class ตัวเองทันที
+// อาชีพซ้ำกันนับครั้งเดียว (ไม่ stack) — ระบุตัวด้วย instanceId เสมอ ห้ามใช้ heroKey เพราะผู้เล่น
+// มีฮีโร่ตัวเดียวกันซ้ำหลายตัวได้ — effect key ใช้ชุดเดียวกับ pipeline เดิมเป๊ะ เพื่อให้
+// computeSynergyBuffs() ป้อนทุก integration point เดิม (buildCombatStats/gold/healing ฯลฯ) ต่อได้เลย
 // ============================================================
-const SYNERGY_REQUIRED_UNITS = 3;
-const SYNERGY_DEFS = {
-  fighter:  { class_key:'fighter',  name:'Fighter Vanguard',    requirement:{ class:'fighter',  unit_count:SYNERGY_REQUIRED_UNITS }, applies_to:'all_allied_units', effects:{ max_hp_pct:12, p_def_flat:8 } },
-  swordman: { class_key:'swordman', name:'Swordman Formation', requirement:{ class:'swordman', unit_count:SYNERGY_REQUIRED_UNITS }, applies_to:'all_allied_units', effects:{ p_atk_pct:10, physical_reflect_pct:6 } },
-  archer:   { class_key:'archer',   name:'Archer Volley',      requirement:{ class:'archer',   unit_count:SYNERGY_REQUIRED_UNITS }, applies_to:'all_allied_units', effects:{ attack_speed_pct:12, p_def_penetration_pct:8 } },
-  mage:     { class_key:'mage',     name:'Arcane Convergence', requirement:{ class:'mage',     unit_count:SYNERGY_REQUIRED_UNITS }, applies_to:'all_allied_units', effects:{ m_atk_pct:12, m_def_penetration_pct:10 } },
-  summoner: { class_key:'summoner', name:'Spirit Pact',        requirement:{ class:'summoner', unit_count:SYNERGY_REQUIRED_UNITS }, applies_to:'all_allied_units', effects:{ mana_on_basic_attack_bonus:2, summon_max_hp_pct:15, summon_damage_pct:10 } },
-  acolyte:  { class_key:'acolyte',  name:'Sacred Covenant',    requirement:{ class:'acolyte',  unit_count:SYNERGY_REQUIRED_UNITS }, applies_to:'all_allied_units', effects:{ healing_received_pct:12, start_battle_shield_pct_max_hp:8 } },
-  merchant: { class_key:'merchant', name:'Merchant Guild',     requirement:{ class:'merchant', unit_count:SYNERGY_REQUIRED_UNITS }, applies_to:'player_economy',   effects:{ bonus_gold_on_wave_win:1, shop_reroll_discount_gold:1, minimum_reroll_cost:1 } },
+const MAX_LINKED_HEROES = 3;
+const linkedHeroIds = new Set(); // instanceId ของฮีโร่สนามรบที่เลือกเข้า Link (สูงสุด MAX_LINKED_HEROES)
+const CLASS_ICON_MAP = {
+  fighter: '🛡️', swordman: '⚔️', archer: '🏹', mage: '🔮',
+  summoner: '👻', acolyte: '✨', merchant: '💰',
 };
-
-// ============================================================
-// TEAM COMBO BUFF — เงื่อนไขพิเศษเพิ่มเติมจาก Synergy System เดิม: เปิดใช้งานเมื่อลงสนามรบ
-// (placedUnits) "ครบ 3 ตัวพอดี" เท่านั้น (มากกว่าหรือน้อยกว่า 3 ไม่เปิด) แต่ละฮีโร่ (นับตาม root
-// class เดียวกับ Synergy) มีบัฟเฉพาะตัวของตัวเอง รวม 3 ตัวเข้าด้วยกันเป็นบัฟทีมชุดเดียว — ถ้าตัวไหน
-// ในเซ็ต 3 ตัวเป็น tier-2 (evolve/star แล้ว) บัฟของฮีโร่ตัวนั้นจะอัปเกรดแรงขึ้นแทนค่า tier-1 ปกติ
-// effect key ใช้ชื่อเดียวกับ SYNERGY_DEFS.effects เป๊ะ เพื่อพับรวมเข้า computeSynergyBuffs() ด้านล่าง
-// ได้โดยตรง (ใช้ integration point เดิมทั้งหมด — buildCombatStats/gold reward/healing ฯลฯ ไม่ต้องแก้)
-const TEAM_COMBO_SIZE = 3;
-const TEAM_COMBO_ROOT_BUFFS = {
-  fighter:  { label:'พลังนักสู้',     tier1:{ max_hp_pct:8 },                                    tier2:{ max_hp_pct:15 } },
-  swordman: { label:'ความเร็วดาบ',   tier1:{ attack_speed_pct:8 },                              tier2:{ attack_speed_pct:15 } },
-  archer:   { label:'สายตาแม่นยำ',   tier1:{ p_atk_pct:8 },                                     tier2:{ p_atk_pct:15 } },
-  mage:     { label:'พลังเวท',        tier1:{ m_atk_pct:8 },                                     tier2:{ m_atk_pct:15 } },
-  summoner: { label:'พลังอัญเชิญ',   tier1:{ summon_damage_pct:10, summon_max_hp_pct:10 },      tier2:{ summon_damage_pct:18, summon_max_hp_pct:18 } },
-  acolyte:  { label:'พรผู้พิทักษ์',   tier1:{ healing_received_pct:10 },                         tier2:{ healing_received_pct:18 } },
-  merchant: { label:'โชคลาภ',        tier1:{ bonus_gold_on_wave_win:2 },                        tier2:{ bonus_gold_on_wave_win:4 } },
+const LINK_CLASS_BUFFS = {
+  fighter:  { name:'Fighter',  effects:{ max_hp_pct:15, p_def_flat:5 } },
+  swordman: { name:'Swordman', effects:{ p_atk_pct:15, physical_reflect_pct:8 } },
+  archer:   { name:'Archer',   effects:{ p_atk_pct:12, p_def_penetration_pct:10 } },
+  mage:     { name:'Mage',     effects:{ m_atk_pct:15, m_def_penetration_pct:10 } },
+  summoner: { name:'Summoner', effects:{ mana_on_basic_attack_bonus:5, summon_max_hp_pct:20, summon_damage_pct:20 } },
+  acolyte:  { name:'Acolyte',  effects:{ healing_received_pct:15, start_battle_shield_pct_max_hp:10 } },
+  merchant: { name:'Merchant', effects:{ bonus_gold_on_wave_win:1, shop_reroll_discount_gold:1, minimum_reroll_cost:1 } },
 };
-// คืน null ถ้าไม่ครบ 3 ตัวพอดี — ไม่งั้นคืน { effects, contributions } ให้ computeSynergyBuffs พับรวม
-// และให้ renderTeamComboPanel ใช้แสดงผล UI
-function computeTeamComboBuff() {
-  if (placedUnits.length !== TEAM_COMBO_SIZE) return null;
-  const effects = {};
-  const contributions = [];
-  placedUnits.forEach((u) => {
-    const root = getRootClass(u.heroKey);
-    const def = TEAM_COMBO_ROOT_BUFFS[root];
-    if (!def) return;
-    const isTier2 = HERO_DEFS[u.heroKey].class_tier === 2;
-    const vals = isTier2 ? def.tier2 : def.tier1;
-    Object.entries(vals).forEach(([k, v]) => { effects[k] = (effects[k] || 0) + v; });
-    contributions.push({ heroName: HERO_DEFS[u.heroKey].name, label: def.label, isTier2 });
-  });
-  return { effects, contributions };
+// ฮีโร่ที่ Link อยู่จริงตอนนี้ ในลำดับเดียวกับ placedUnits (ข้าม id ที่ตายค้างใน Set — sanitize เก็บกวาดทีหลัง)
+function getLinkedHeroes() {
+  return placedUnits.filter((u) => linkedHeroIds.has(u.instanceId));
 }
-
-// ---- hero instance identity ----
-let nextInstanceSeq = 1;
-function createHeroInstance(heroKey, starLevel = 1) {
-  return { instanceId: 'inst_' + (nextInstanceSeq++), heroKey, equipment: [null, null], starLevel: normalizeStarLevel(starLevel) };
+// root class ที่ไม่ซ้ำกันจากฮีโร่ที่เลือก — อาชีพเดียวกันซ้ำหลายตัวให้บัฟครั้งเดียว (ห้าม stack)
+function getActiveLinkedClasses() {
+  return [...new Set(getLinkedHeroes().map((u) => getRootClass(u.heroKey)).filter(Boolean))];
 }
-
-// A tier-2 hero's synergy class is its tier-1 root (evolves_from); a tier-1 hero is its own root.
-function getRootClass(heroKey) {
-  const def = HERO_DEFS[heroKey];
-  if (!def) return null;
-  return def.class_tier === 1 ? heroKey : def.evolves_from;
+// ล้าง id ที่ไม่ได้อยู่บนสนามรบแล้วออกจาก Link อัตโนมัติ (ถูกถอนกลับม้านั่ง/ขาย/รวมร่าง/รวมดาว —
+// ทุกเส้นทางจบที่ renderUI ซึ่งเรียกฟังก์ชันนี้เสมอ จึงไม่ต้องไปดัก hook ทีละจุด)
+function sanitizeLinkedHeroes() {
+  const fieldIds = new Set(placedUnits.map((u) => u.instanceId));
+  [...linkedHeroIds].forEach((id) => { if (!fieldIds.has(id)) linkedHeroIds.delete(id); });
 }
-// Counts only units currently PLACED on the field (state that persists across shop<->battle).
-function getRootClassCounts() {
-  const counts = {};
-  placedUnits.forEach((u) => {
-    if (u.alive === false) return;
-    const root = getRootClass(u.heroKey);
-    if (!root) return;
-    counts[root] = (counts[root] || 0) + 1;
-  });
-  return counts;
+// แตะฮีโร่บนสนามรบเพื่อเปิด/ปิด Link — เลือกได้เฉพาะช่วงเตรียมทีม (phase 'shop') เท่านั้น
+// ระหว่างต่อสู้สมาชิก Link ถูกล็อกไว้ตาม snapshot ที่ applyPreCombatSynergyBuffs ตรึงตอนเริ่มด่าน
+function toggleLinkedHero(instanceId) {
+  if (phase !== 'shop') return;
+  const unit = placedUnits.find((u) => u.instanceId === instanceId);
+  if (!unit) return;
+  if (linkedHeroIds.has(instanceId)) {
+    linkedHeroIds.delete(instanceId);
+  } else {
+    if (linkedHeroIds.size >= MAX_LINKED_HEROES) {
+      spawnFloatingText(unit, `เลือก Link ได้สูงสุด ${MAX_LINKED_HEROES} ตัว`, '#ff8855');
+      return;
+    }
+    linkedHeroIds.add(instanceId);
+  }
+  renderUI();
 }
-function getActiveSynergyDefs() {
-  const counts = getRootClassCounts();
-  return Object.values(SYNERGY_DEFS).filter((syn) => (counts[syn.requirement.class] || 0) >= syn.requirement.unit_count);
-}
-// Sums effects across every currently-active synergy (no per-class overlap today, so plain
-// addition is safe) into one flat buffs object every combat/economy hook below reads from.
-function computeSynergyBuffs() {
+// รวมบัฟจาก root class ที่เลือก (ไม่ซ้ำ) — คืน object ฟิลด์เดียวกับ computeSynergyBuffs เดิม
+function computeLinkedBuffs() {
   const buffs = {
     maxHpPct:0, pDefFlat:0, pAtkPct:0, physicalReflectPct:0, attackSpeedPct:0, pDefPenetrationPct:0,
     mAtkPct:0, mDefPenetrationPct:0, manaOnBasicAttackBonus:0, summonMaxHpPct:0, summonDamagePct:0,
     healingReceivedPct:0, startBattleShieldPctMaxHp:0, bonusGoldOnWaveWin:0, shopRerollDiscountGold:0,
     minimumRerollCost:0, activeClassKeys:[],
   };
-  getActiveSynergyDefs().forEach((syn) => {
-    const e = syn.effects;
-    buffs.activeClassKeys.push(syn.class_key);
+  getActiveLinkedClasses().forEach((cls) => {
+    const def = LINK_CLASS_BUFFS[cls];
+    if (!def) return;
+    const e = def.effects;
+    buffs.activeClassKeys.push(cls);
     if (e.max_hp_pct) buffs.maxHpPct += e.max_hp_pct;
     if (e.p_def_flat) buffs.pDefFlat += e.p_def_flat;
     if (e.p_atk_pct) buffs.pAtkPct += e.p_atk_pct;
@@ -1018,23 +992,25 @@ function computeSynergyBuffs() {
     if (e.shop_reroll_discount_gold) buffs.shopRerollDiscountGold += e.shop_reroll_discount_gold;
     if (e.minimum_reroll_cost) buffs.minimumRerollCost = Math.max(buffs.minimumRerollCost, e.minimum_reroll_cost);
   });
-  // Team Combo Buff (exactly 3 heroes on the field) พับรวมเข้ากับ effect fields เดียวกันเป๊ะ — ใช้
-  // integration point เดิมทุกจุดที่อ่าน synergyBuffs อยู่แล้ว (buildCombatStats/gold reward/healing ฯลฯ)
-  const combo = computeTeamComboBuff();
-  buffs.teamComboActive = !!combo;
-  buffs.teamComboContributions = combo ? combo.contributions : [];
-  if (combo) {
-    const e = combo.effects;
-    if (e.max_hp_pct) buffs.maxHpPct += e.max_hp_pct;
-    if (e.attack_speed_pct) buffs.attackSpeedPct += e.attack_speed_pct;
-    if (e.p_atk_pct) buffs.pAtkPct += e.p_atk_pct;
-    if (e.m_atk_pct) buffs.mAtkPct += e.m_atk_pct;
-    if (e.summon_max_hp_pct) buffs.summonMaxHpPct += e.summon_max_hp_pct;
-    if (e.summon_damage_pct) buffs.summonDamagePct += e.summon_damage_pct;
-    if (e.healing_received_pct) buffs.healingReceivedPct += e.healing_received_pct;
-    if (e.bonus_gold_on_wave_win) buffs.bonusGoldOnWaveWin += e.bonus_gold_on_wave_win;
-  }
   return buffs;
+}
+
+// ---- hero instance identity ----
+let nextInstanceSeq = 1;
+function createHeroInstance(heroKey, starLevel = 1) {
+  return { instanceId: 'inst_' + (nextInstanceSeq++), heroKey, equipment: [null, null], starLevel: normalizeStarLevel(starLevel) };
+}
+
+// A tier-2 hero's synergy class is its tier-1 root (evolves_from); a tier-1 hero is its own root.
+function getRootClass(heroKey) {
+  const def = HERO_DEFS[heroKey];
+  if (!def) return null;
+  return def.class_tier === 1 ? heroKey : def.evolves_from;
+}
+// Pipeline entry point every combat/economy hook reads from — the NAME stays (so no call site
+// changes), but the SOURCE is now the manual Link selection above instead of class counting.
+function computeSynergyBuffs() {
+  return computeLinkedBuffs();
 }
 // Recomputed on every renderUI() (shop-phase display + reroll discount always reflect the
 // current field) and re-frozen at battle start via applyPreCombatSynergyBuffs() below. Starts
@@ -1262,6 +1238,14 @@ const EQUIP_BADGE_TEX = (() => {
   ctx.fillText('⚙️', 16, 17);
   return new THREE.CanvasTexture(c);
 })();
+// shared 1x texture for the Link System chain badge sprite (see makeUnit/updateLinkedHeroVisuals)
+const LINK_BADGE_TEX = (() => {
+  const c = document.createElement('canvas'); c.width = 32; c.height = 32;
+  const ctx = c.getContext('2d');
+  ctx.font = '24px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText('🔗', 16, 17);
+  return new THREE.CanvasTexture(c);
+})();
 function makeUnit(cfg) {
   const group = new THREE.Group();
   const meta = ASSET_META[cfg.sprite];
@@ -1325,11 +1309,27 @@ function makeUnit(cfg) {
   equipBadge.position.set(0.34, barY + 0.2, 0.01);
   equipBadge.visible = false;
   group.add(equipBadge);
+  // Link System visuals: gold ring on the ground + small chain badge above-left of the HP bar
+  // (mirroring equipBadge's above-right spot so neither covers the HP/mana bars) — hidden until
+  // the hero is actually linked, toggled by updateLinkedHeroVisuals() on every renderUI()
+  let linkRing = null, linkBadge = null;
+  if (cfg.team === 'player' && !cfg.isSummon) {
+    linkRing = new THREE.Mesh(new THREE.RingGeometry(0.34, 0.44, 24),
+      new THREE.MeshBasicMaterial({ color: 0xd8ad4d, transparent: true, opacity: 0.9, side: THREE.DoubleSide }));
+    linkRing.rotation.x = -Math.PI/2; linkRing.position.y = 0.02; linkRing.visible = false;
+    group.add(linkRing);
+    linkBadge = new THREE.Sprite(new THREE.SpriteMaterial({ map: LINK_BADGE_TEX, transparent: true, depthTest: false }));
+    linkBadge.scale.set(0.3, 0.3, 1);
+    linkBadge.position.set(-0.34, barY + 0.2, 0.01);
+    linkBadge.visible = false;
+    group.add(linkBadge);
+  }
   const p = gridToWorld(cfg.c, cfg.r);
   group.position.set(p.x, 0, p.z);
   scene.add(group);
   occupied.add(key(cfg.c, cfg.r));
   const u = { ...cfg, group, body, hpBar, manaBar, starBadge, shadow, tex, frames, halfH: h/2, equipBadge,
+    linkRing, linkBadge,
     maxHp: cfg.hp, alive: true, atkCooldown: 0,
     moving: false, moveFrom: null, moveTo: null, moveT: 0,
     animState: 'idle', animTimer: 0, animFrame: 0 };
@@ -2408,36 +2408,63 @@ const SYNERGY_EFFECT_LABEL_TH = {
   healing_received_pct:'การรักษาที่ได้รับ', start_battle_shield_pct_max_hp:'โล่เริ่มด่าน',
   bonus_gold_on_wave_win:'ทองโบนัสเมื่อชนะ', shop_reroll_discount_gold:'ส่วนลดรีโรล', minimum_reroll_cost:'รีโรลขั้นต่ำ',
 };
-function renderSynergyPanel() {
-  const counts = getRootClassCounts();
-  const listEl = document.getElementById('synergyList');
-  listEl.innerHTML = '';
-  Object.values(SYNERGY_DEFS).forEach((syn) => {
-    const count = Math.min(counts[syn.requirement.class] || 0, SYNERGY_REQUIRED_UNITS);
-    const active = count >= syn.requirement.unit_count;
+// แผงซ้าย "ทีม Link": ช่อง Portrait 3 ช่อง (ว่าง = "+") + สรุปเฉพาะบัฟที่ทำงานจริง —
+// แทนที่รายการอาชีพ 7 แถว 0/3 ของ Auto Synergy เดิมทั้งหมด
+function renderLinkPanel() {
+  document.getElementById('linkCount').textContent = `(${linkedHeroIds.size}/${MAX_LINKED_HEROES})`;
+  const slotsEl = document.getElementById('linkSlots');
+  slotsEl.innerHTML = '';
+  const linked = getLinkedHeroes();
+  for (let i = 0; i < MAX_LINKED_HEROES; i++) {
+    const u = linked[i];
     const div = document.createElement('div');
-    div.className = 'synergyItem' + (active ? ' active' : '');
-    const effParts = Object.entries(syn.effects).map(([k, v]) => `${SYNERGY_EFFECT_LABEL_TH[k] || k} +${v}${k.endsWith('_pct')?'%':''}`);
-    div.innerHTML = `<div class="synergyName">${syn.name}</div><div class="synergyCount">${count}/${syn.requirement.unit_count}</div>`;
-    div.title = effParts.join(', ');
-    listEl.appendChild(div);
-  });
-  // Team Combo Buff: เปิดใช้งานเฉพาะตอนลงสนามรบครบ 3 ตัวพอดี (ไม่นับม้านั่ง) — แต่ละฮีโร่ในเซ็ตนี้
-  // ให้บัฟของ root class ตัวเอง (อัปเกรดแรงขึ้นถ้าเป็น tier-2) รวมกันเป็นบัฟทีมเดียว
-  document.getElementById('teamComboCount').textContent = `(${placedUnits.length}/${TEAM_COMBO_SIZE})`;
-  const comboSectionEl = document.getElementById('teamComboSection');
-  comboSectionEl.innerHTML = '';
-  const combo = computeTeamComboBuff();
-  const comboDiv = document.createElement('div');
-  if (combo) {
-    comboDiv.className = 'synergyItem active';
-    comboDiv.innerHTML = `<div class="synergyName">ทำงาน! ${combo.contributions.map((c) => c.heroName + (c.isTier2 ? '★' : '')).join(', ')}</div>`;
-    comboDiv.title = combo.contributions.map((c) => `${c.heroName}: ${c.label}${c.isTier2 ? ' (อัปเกรดจาก tier-2)' : ''}`).join('\n');
-  } else {
-    comboDiv.className = 'synergyItem';
-    comboDiv.innerHTML = `<div class="synergyName">ต้องมีฮีโร่ในสนามรบพอดี 3 ตัว</div>`;
+    if (u) {
+      const def = HERO_DEFS[u.heroKey];
+      const root = getRootClass(u.heroKey);
+      div.className = 'linkSlot filled';
+      div.innerHTML = `<img src="${heroPortraitSrc(u.heroKey)}">` +
+        `<span class="linkClassIcon">${CLASS_ICON_MAP[root] || ''}</span>` +
+        (def.class_tier === 2 ? `<span class="linkStar">${'⭐'.repeat(normalizeStarLevel(u.starLevel || 1))}</span>` : '') +
+        `<span class="linkName">${def.name}</span>`;
+      div.title = `${def.name} — แตะเพื่อถอดออกจาก Link`;
+      div.onclick = () => toggleLinkedHero(u.instanceId);
+    } else {
+      div.className = 'linkSlot';
+      div.textContent = '+';
+      div.title = 'แตะฮีโร่บนสนามรบเพื่อเพิ่มเข้า Link';
+    }
+    slotsEl.appendChild(div);
   }
-  comboSectionEl.appendChild(comboDiv);
+  const buffListEl = document.getElementById('linkBuffList');
+  buffListEl.innerHTML = '';
+  const classes = getActiveLinkedClasses();
+  if (classes.length === 0) {
+    const empty = document.createElement('div');
+    empty.className = 'linkBuffEmpty';
+    empty.textContent = `แตะฮีโร่บนสนามรบเพื่อเลือกเข้า Link (สูงสุด ${MAX_LINKED_HEROES} ตัว)`;
+    buffListEl.appendChild(empty);
+    return;
+  }
+  classes.forEach((cls) => {
+    const def = LINK_CLASS_BUFFS[cls];
+    if (!def) return;
+    const parts = Object.entries(def.effects).map(([k, v]) => `${SYNERGY_EFFECT_LABEL_TH[k] || k} +${v}${k.endsWith('_pct') ? '%' : ''}`);
+    const row = document.createElement('div');
+    row.className = 'linkBuffRow';
+    row.textContent = `${CLASS_ICON_MAP[cls] || ''} ${def.name}: ${parts.join(', ')}`;
+    buffListEl.appendChild(row);
+  });
+}
+// เปิด/ปิดวงแหวนทอง + ป้ายโซ่ 🔗 บนยูนิต 3D ตามสถานะ Link ปัจจุบัน — เรียกทุก renderUI() จึง
+// ครอบคลุมทั้ง toggle ปกติ, การย้ายตำแหน่ง (moveUnitTo สร้างยูนิตใหม่แต่ instanceId เดิม), และ
+// การหลุดจาก Link อัตโนมัติผ่าน sanitizeLinkedHeroes()
+function updateLinkedHeroVisuals() {
+  units.forEach((u) => {
+    if (!u.linkRing) return;
+    const on = linkedHeroIds.has(u.instanceId);
+    u.linkRing.visible = on;
+    u.linkBadge.visible = on;
+  });
 }
 function renderTeamHpPanel() {
   const listEl = document.getElementById('teamHpList');
@@ -2483,8 +2510,10 @@ function renderUI() {
   const stageLabelEl = document.getElementById('stageLabel');
   if (STAGE_LABEL[wave]) { stageLabelEl.textContent = STAGE_LABEL[wave]; stageLabelEl.style.display = ''; }
   else { stageLabelEl.style.display = 'none'; }
-  synergyBuffs = computeSynergyBuffs(); // recompute live so the shop panel/reroll discount always reflect the current field
-  renderSynergyPanel();
+  sanitizeLinkedHeroes(); // ฮีโร่ที่หลุดจากสนามรบ (ถอน/ขาย/รวมร่าง/รวมดาว) ต้องหลุดจาก Link ก่อนคำนวณบัฟเสมอ
+  synergyBuffs = computeSynergyBuffs(); // recompute live so the Link panel/reroll discount always reflect the current selection
+  renderLinkPanel();
+  updateLinkedHeroVisuals();
   const shopPhase = phase === 'shop';
   document.getElementById('bottomLeft').style.display = shopPhase ? 'flex' : 'none';
   document.getElementById('bottomRight').style.display = shopPhase ? 'flex' : 'none';
@@ -2867,9 +2896,15 @@ document.addEventListener('pointerup', (e) => {
         moveUnitTo(ud.unit, tile.c, tile.r);
       }
     } else {
-      // tap (no drag) — toggle-select this unit
-      selectedUnit = (selectedUnit === ud.unit) ? null : ud.unit;
-      renderUI();
+      // tap (no drag) — ฮีโร่บนสนามรบ: เปิด/ปิดสถานะ Link (ระบบ Manual Link Selection)
+      // ฮีโร่บนม้านั่ง: toggle-select สำหรับย้าย/ไอเทม/ขาย เหมือนเดิม (ม้านั่งห้ามเข้า Link)
+      // การย้ายตำแหน่งฮีโร่สนามรบยังทำได้ตามปกติผ่านการลาก (drag) ด้านบน
+      if (placedUnits.includes(ud.unit)) {
+        toggleLinkedHero(ud.unit.instanceId);
+      } else {
+        selectedUnit = (selectedUnit === ud.unit) ? null : ud.unit;
+        renderUI();
+      }
     }
     return;
   }
