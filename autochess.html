@@ -1212,72 +1212,92 @@ function applyReflectDamage(target, dmg, attackerUnit, damageType) {
   onHpChanged(attackerUnit);
   if (attackerUnit.hp <= 0) handleUnitDeath(attackerUnit, target);
 }
-// สถิติพื้นฐานของศัตรูทั่วไป (ก่อนสเกลตามด่าน) — ธีมกองทัพซากอารีน่าหิน + ค่าเกราะ (ลดดาเมจ %)
+// สถิติพื้นฐานของศัตรูทั่วไป — มอนสเตอร์/บอสฐานข้อมูลจากทีม Backend (Codex): แปลง row/col ของต้นฉบับ
+// เป็น c/r ให้ตรงกับเอนจินนี้, atk -> pAtk, p_def -> armor (% ลดดาเมจ, เอนจินนี้มีค่าเกราะสถิติเดียว
+// ไม่แยกกายภาพ/เวทเหมือนต้นฉบับที่มีทั้ง p_def/m_def จึงตัด m_def ทิ้งและใช้ p_def แทนค่าเกราะ %
+// เดิม — ทุกมอนสเตอร์ในเกมนี้โจมตีกายภาพเหมือนกันหมดอยู่แล้ว ไม่กระทบ) — ตัดสูตร "+12%/ด่าน" เดิมออก
+// เพราะ wave schedule ของ Codex มีเส้นโค้งความยากอยู่แล้วจากการเลือกชนิด/จำนวนมอนสเตอร์ต่อเวฟ ถ้าคง
+// สูตรสเกลเดิมไว้ด้วยจะยากเกินจริง (สเกลซ้อนสเกล)
 const ENEMY_BASE = {
-  Skeleton:       { hp:90, pAtk:12, atkSpeed:0.9, range:1, moveSpeed:1.8, armor:5 },
-  StoneWolf:      { hp:75, pAtk:11, atkSpeed:1.4, range:1, moveSpeed:2.6, armor:10 },
-  SpiritArcher:   { hp:80, pAtk:14, atkSpeed:1.0, range:3, moveSpeed:1.7, armor:0 },
-  ShadowAssassin: { hp:70, pAtk:18, atkSpeed:1.3, range:1, moveSpeed:3.0, armor:5 },
+  Slime:          { hp:85,  pAtk:9,  atkSpeed:0.8,  range:1, moveSpeed:1.6, armor:2,
+    placeholderColor:0x6fcf5a }, // ไม่มีภาพจริง — ใช้กล่องสีเขียวพื้นฐานแทนไปก่อน (game_assets policy)
+  Skeleton:       { hp:110, pAtk:13, atkSpeed:1.0,  range:1, moveSpeed:1.8, armor:5 },
+  StoneWolf:      { hp:125, pAtk:16, atkSpeed:1.25, range:1, moveSpeed:2.6, armor:6,
+    specialBehavior:{ type:'hunter' } }, // เล็งศัตรูที่ HP% เหลือน้อยที่สุด
+  SpiritArcher:   { hp:90,  pAtk:18, atkSpeed:1.05, range:4, moveSpeed:1.7, armor:2,
+    specialBehavior:{ type:'ranged' } }, // รักษาระยะ+เล็งใกล้สุดในระยะ — ระบบเดิม (d<=atkRange + nearest) ทำแบบนี้อยู่แล้วโดยไม่ต้องแยกเคส
+  ShadowAssassin: { hp:105, pAtk:22, atkSpeed:1.4,  range:1, moveSpeed:3.0, armor:3,
+    specialBehavior:{ type:'backline' } }, // พุ่งเล็งแนวหลังผู้เล่น (แถว r มากสุด)
+  OrcBrute:       { hp:185, pAtk:20, atkSpeed:0.75, range:1, moveSpeed:1.5, armor:10,
+    placeholderColor:0xa0522d, // ไม่มีภาพจริง — กล่องสีน้ำตาลแทนไปก่อน
+    specialBehavior:{ type:'frontline' } }, // เล็งแนวหน้าผู้เล่นที่ใกล้สุด (แถว r น้อยสุด)
+  Golem:          { hp:280, pAtk:24, atkSpeed:0.6,  range:1, moveSpeed:1.1, armor:16, frameSize:{ w:1.3, h:1.5 },
+    specialBehavior:{ type:'stun_attack', triggerEveryHits:4, stunDuration:1.2 } }, // ทุกการโจมตีครั้งที่ 4 ทำให้เป้าหมายสตัน
 };
 // ช่องวางศัตรูฝั่งบนกระดาน (แถว 0-1) — วนใช้ซ้ำถ้าจำนวนตัวเกินจำนวนช่อง
 const ENEMY_SLOTS = [ [3,0],[1,1],[6,1],[0,0],[7,0],[2,1],[5,1],[4,0] ];
-function scaledStat(type, stage) {
-  const b = ENEMY_BASE[type];
-  const mul = 1 + (stage - 1) * 0.12;   // ด่านหลังยากขึ้นทีละ ~12%
-  return { hp: Math.round(b.hp*mul), pAtk: Math.round(b.pAtk*mul), atkSpeed: b.atkSpeed, range: b.range, moveSpeed: b.moveSpeed, armor: b.armor };
-}
 function fillerWave(stage, comp) {
   const units = []; let slot = 0;
   comp.forEach(({ type, count }) => {
+    const base = ENEMY_BASE[type];
     for (let i = 0; i < count; i++) {
       const [c, r] = ENEMY_SLOTS[slot++ % ENEMY_SLOTS.length];
-      units.push({ name: `${type} ${i+1}`, sprite: type, c, r, ...scaledStat(type, stage) });
+      units.push({
+        name: `${type} ${i+1}`, sprite: type, c, r,
+        hp: base.hp, pAtk: base.pAtk, atkSpeed: base.atkSpeed, range: base.range, moveSpeed: base.moveSpeed,
+        armor: base.armor, frameSize: base.frameSize, placeholderColor: base.placeholderColor,
+        specialBehavior: base.specialBehavior ? { ...base.specialBehavior } : null,
+      });
     }
   });
   return units;
 }
-// เนื้อหาแมพ 1 ตาม GDD: บทสอนด่าน 1-3, มินิบอสด่าน 5/10, ด่านมังกร 13, บอสด่าน 15
+// Wave schedule 1-15 จากทีม Backend (Codex) — คอมโพสิชันมอนสเตอร์ต่อเวฟตรงตามที่ส่งมา
+// (ทองรางวัลต่อเวฟยังคงใช้สูตร SHOP_ECONOMY.income เดิม ไม่ใช้ goldReward ของ Codex ตรงๆ
+// เพราะจะซ้อนทับ/ขัดกับระบบเศรษฐกิจที่ทำเสร็จและเทสแล้วก่อนหน้านี้)
 const STAGE_PLAN = {
-  1:  [{ type:'Skeleton', count:2 }],
-  2:  [{ type:'Skeleton', count:2 }, { type:'StoneWolf', count:1 }],
-  3:  [{ type:'Skeleton', count:2 }, { type:'StoneWolf', count:1 }, { type:'SpiritArcher', count:1 }],
-  4:  [{ type:'Skeleton', count:3 }, { type:'StoneWolf', count:2 }],
-  6:  [{ type:'Skeleton', count:3 }, { type:'SpiritArcher', count:2 }],
-  7:  [{ type:'StoneWolf', count:2 }, { type:'SpiritArcher', count:2 }, { type:'ShadowAssassin', count:1 }],
-  8:  [{ type:'Skeleton', count:4 }, { type:'StoneWolf', count:2 }],
-  9:  [{ type:'SpiritArcher', count:3 }, { type:'ShadowAssassin', count:2 }],
-  11: [{ type:'Skeleton', count:4 }, { type:'ShadowAssassin', count:3 }],
-  12: [{ type:'StoneWolf', count:3 }, { type:'SpiritArcher', count:3 }, { type:'ShadowAssassin', count:2 }],
-  14: [{ type:'Skeleton', count:3 }, { type:'StoneWolf', count:3 }, { type:'SpiritArcher', count:2 }, { type:'ShadowAssassin', count:2 }],
+  1:  [{ type:'Slime', count:3 }],
+  2:  [{ type:'Slime', count:2 }, { type:'Skeleton', count:2 }],
+  3:  [{ type:'Skeleton', count:3 }, { type:'SpiritArcher', count:1 }],
+  4:  [{ type:'StoneWolf', count:2 }, { type:'SpiritArcher', count:2 }, { type:'ShadowAssassin', count:1 }],
+  6:  [{ type:'OrcBrute', count:2 }, { type:'SpiritArcher', count:2 }],
+  7:  [{ type:'StoneWolf', count:3 }, { type:'ShadowAssassin', count:2 }],
+  8:  [{ type:'OrcBrute', count:2 }, { type:'Golem', count:1 }, { type:'SpiritArcher', count:2 }],
+  9:  [{ type:'Golem', count:2 }, { type:'ShadowAssassin', count:2 }, { type:'SpiritArcher', count:2 }],
+  11: [{ type:'OrcBrute', count:3 }, { type:'ShadowAssassin', count:2 }, { type:'SpiritArcher', count:2 }],
+  12: [{ type:'Golem', count:2 }, { type:'StoneWolf', count:3 }, { type:'ShadowAssassin', count:2 }],
+  13: [{ type:'OrcBrute', count:3 }, { type:'Golem', count:2 }, { type:'SpiritArcher', count:3 }],
+  14: [{ type:'Golem', count:3 }, { type:'ShadowAssassin', count:3 }, { type:'SpiritArcher', count:3 }],
 };
 const STAGE_LABEL = {
-  5:  '⚠ มินิบอส: หัวหน้าผู้คุมสังเวียน',
-  10: '⚠ มินิบอส: โกเลมหินอารีน่า',
-  13: '🐉 ด่านมังกร',
-  15: '💀 บอสใหญ่: แชมเปี้ยนอมตะ',
+  5:  '⚠ มินิบอส: Arena Warden',
+  10: '⚠ มินิบอส: Bone Dragon',
+  15: '💀 บอสใหญ่: Immortal Champion',
 };
+// บอสทั้ง 3 ตัวใช้สถิติจากฐานข้อมูล Codex ตรงๆ (สเปรตรูปเดิมของโปรเจกต์ที่มีอยู่แล้วผูกไว้ตามธีมที่
+// ใกล้เคียงที่สุด) — ยังไม่ได้ทำท่าพิเศษเฉพาะบอส (area_taunt/cone_breath/arena_curse) เพราะเป็นระบบ
+// สกิลใหม่ทั้งหมดที่ Codex ส่งมาโดยละเอียดยังไม่พอสำหรับ implement ตรงนี้ (cooldown/AOE/debuff แบบ
+// เต็มรูปแบบ) และอยู่นอกขอบเขตที่ขอมาตอนนี้ (แค่ specialBehavior หลัก 4 แบบ) ใช้แค่สถิติพื้นฐานไปก่อน
 function bossWave(stage) {
   if (stage === 5) return [
-    { name:'หัวหน้าผู้คุมสังเวียน', sprite:'Warden', c:3, r:0, hp:340, pAtk:20, atkSpeed:0.8, range:1, moveSpeed:1.4, armor:15 },
-    { name:'Skeleton Guard A', sprite:'Skeleton', c:1, r:1, hp:100, pAtk:13, atkSpeed:0.9, range:1, moveSpeed:1.8, armor:5 },
-    { name:'Skeleton Guard B', sprite:'Skeleton', c:5, r:1, hp:100, pAtk:13, atkSpeed:0.9, range:1, moveSpeed:1.8, armor:5 },
+    { name:'Arena Warden', sprite:'Warden', c:3, r:0, hp:650, pAtk:32, atkSpeed:0.85, range:1, moveSpeed:1.4, armor:22 },
+    { name:'Skeleton Guard A', sprite:'Skeleton', c:1, r:1, hp:110, pAtk:13, atkSpeed:1.0, range:1, moveSpeed:1.8, armor:5 },
+    { name:'Skeleton Guard B', sprite:'Skeleton', c:5, r:1, hp:110, pAtk:13, atkSpeed:1.0, range:1, moveSpeed:1.8, armor:5 },
   ];
   if (stage === 10) return [
-    { name:'โกเลมหินอารีน่า', sprite:'Golem', c:3, r:0, hp:680, pAtk:31, atkSpeed:0.6, range:1, moveSpeed:1.1, frameSize:{ w:1.4, h:1.7 }, armor:28 },
-    { name:'Stone Wolf A', sprite:'StoneWolf', c:1, r:1, hp:175, pAtk:20, atkSpeed:1.4, range:1, moveSpeed:2.6, armor:10 },
-    { name:'Stone Wolf B', sprite:'StoneWolf', c:6, r:1, hp:175, pAtk:20, atkSpeed:1.4, range:1, moveSpeed:2.6, armor:10 },
-    { name:'Spirit Archer', sprite:'SpiritArcher', c:3, r:1, hp:150, pAtk:23, atkSpeed:1.0, range:3, moveSpeed:1.7, armor:0 },
-  ];
-  if (stage === 13) return [
-    { name:'มังกรกระดูก', sprite:'BoneDragon', c:3, r:0, hp:840, pAtk:36, atkSpeed:0.85, range:2, moveSpeed:1.3, frameSize:{ w:2.0, h:1.6 }, armor:18 },
-    { name:'Spirit Archer A', sprite:'SpiritArcher', c:1, r:1, hp:165, pAtk:25, atkSpeed:1.0, range:3, moveSpeed:1.7, armor:0 },
-    { name:'Spirit Archer B', sprite:'SpiritArcher', c:6, r:1, hp:165, pAtk:25, atkSpeed:1.0, range:3, moveSpeed:1.7, armor:0 },
+    { name:'Bone Dragon', sprite:'BoneDragon', c:3, r:0, hp:980, pAtk:40, atkSpeed:0.9, range:3, moveSpeed:1.6, frameSize:{ w:2.0, h:1.6 }, armor:18 },
+    { name:'Golem', sprite:'Golem', c:3, r:1, hp:280, pAtk:24, atkSpeed:0.6, range:1, moveSpeed:1.1, frameSize:{ w:1.3, h:1.5 }, armor:16 },
+    { name:'Spirit Archer A', sprite:'SpiritArcher', c:1, r:1, hp:90, pAtk:18, atkSpeed:1.05, range:4, moveSpeed:1.7, armor:2 },
+    { name:'Spirit Archer B', sprite:'SpiritArcher', c:6, r:1, hp:90, pAtk:18, atkSpeed:1.05, range:4, moveSpeed:1.7, armor:2 },
   ];
   if (stage === 15) return [
-    { name:'แชมเปี้ยนอมตะ', sprite:'ChampionBig', c:3, r:0, hp:1200, pAtk:42, atkSpeed:0.9, range:1, moveSpeed:1.3, frameSize:{ w:1.9, h:2.6 }, armor:24 },
-    { name:'Skeleton Honor Guard A', sprite:'Skeleton', c:1, r:1, hp:200, pAtk:27, atkSpeed:0.9, range:1, moveSpeed:1.8, armor:5 },
-    { name:'Skeleton Honor Guard B', sprite:'Skeleton', c:6, r:1, hp:200, pAtk:27, atkSpeed:0.9, range:1, moveSpeed:1.8, armor:5 },
-    { name:'Shadow Assassin', sprite:'ShadowAssassin', c:4, r:1, hp:175, pAtk:29, atkSpeed:1.3, range:1, moveSpeed:3.0, armor:5 },
+    { name:'Immortal Champion', sprite:'ChampionBig', c:3, r:0, hp:1450, pAtk:48, atkSpeed:1.0, range:2, moveSpeed:1.8, frameSize:{ w:1.9, h:2.6 }, armor:28 },
+    { name:'Golem A', sprite:'Golem', c:1, r:1, hp:280, pAtk:24, atkSpeed:0.6, range:1, moveSpeed:1.1, frameSize:{ w:1.3, h:1.5 }, armor:16 },
+    { name:'Golem B', sprite:'Golem', c:6, r:1, hp:280, pAtk:24, atkSpeed:0.6, range:1, moveSpeed:1.1, frameSize:{ w:1.3, h:1.5 }, armor:16 },
+    { name:'Shadow Assassin A', sprite:'ShadowAssassin', c:2, r:1, hp:105, pAtk:22, atkSpeed:1.4, range:1, moveSpeed:3.0, armor:3 },
+    { name:'Shadow Assassin B', sprite:'ShadowAssassin', c:5, r:1, hp:105, pAtk:22, atkSpeed:1.4, range:1, moveSpeed:3.0, armor:3 },
+    { name:'Spirit Archer A', sprite:'SpiritArcher', c:0, r:1, hp:90, pAtk:18, atkSpeed:1.05, range:4, moveSpeed:1.7, armor:2 },
+    { name:'Spirit Archer B', sprite:'SpiritArcher', c:7, r:1, hp:90, pAtk:18, atkSpeed:1.05, range:4, moveSpeed:1.7, armor:2 },
   ];
   return null;
 }
@@ -1361,18 +1381,29 @@ const EQUIP_BADGE_TEX = (() => {
 function makeUnit(cfg) {
   const group = new THREE.Group();
   const meta = ASSET_META[cfg.sprite];
-  const frames = meta.frames;
-  let tex = SPRITES[cfg.sprite];
-  if (frames > 1) { tex = tex.clone(); tex.needsUpdate = true; tex.repeat.set(1/frames, 1); tex.offset.set(0, 0); }
-  const defaultW = frames > 1 ? 0.8 : 1.1, defaultH = frames > 1 ? 1.4 : 1.6;
-  const w = cfg.frameSize ? cfg.frameSize.w : defaultW;
-  const h = cfg.frameSize ? cfg.frameSize.h : defaultH;
-  const body = new THREE.Mesh(new THREE.PlaneGeometry(w, h),
-    new THREE.MeshBasicMaterial({ map: tex, side: THREE.DoubleSide, transparent: true, alphaTest: 0.5 }));
+  let frames = 1, tex = null, w, h, body, shadowRefW = 1.1;
+  if (meta) {
+    frames = meta.frames;
+    tex = SPRITES[cfg.sprite];
+    if (frames > 1) { tex = tex.clone(); tex.needsUpdate = true; tex.repeat.set(1/frames, 1); tex.offset.set(0, 0); }
+    const defaultW = frames > 1 ? 0.8 : 1.1, defaultH = frames > 1 ? 1.4 : 1.6;
+    w = cfg.frameSize ? cfg.frameSize.w : defaultW;
+    h = cfg.frameSize ? cfg.frameSize.h : defaultH;
+    shadowRefW = defaultW;
+    body = new THREE.Mesh(new THREE.PlaneGeometry(w, h),
+      new THREE.MeshBasicMaterial({ map: tex, side: THREE.DoubleSide, transparent: true, alphaTest: 0.5 }));
+  } else {
+    // Geometric placeholder (no sprite art yet — per game_assets policy, a plain colored box
+    // stands in until real art lands, instead of spending time generating character art).
+    w = cfg.frameSize ? cfg.frameSize.w : 0.9;
+    h = cfg.frameSize ? cfg.frameSize.h : 1.3;
+    body = new THREE.Mesh(new THREE.BoxGeometry(w, h, w * 0.6),
+      new THREE.MeshBasicMaterial({ color: cfg.placeholderColor || 0x888888 }));
+  }
   body.position.y = h/2;
   body.userData = { isUnit: true };
   group.add(body);
-  const shadow = new THREE.Mesh(new THREE.CircleGeometry(0.26 * (w/defaultW), 12), new THREE.MeshBasicMaterial({ color:0x000000, transparent:true, opacity:0.35 }));
+  const shadow = new THREE.Mesh(new THREE.CircleGeometry(0.26 * (w/shadowRefW), 12), new THREE.MeshBasicMaterial({ color:0x000000, transparent:true, opacity:0.35 }));
   shadow.rotation.x = -Math.PI/2; shadow.position.y = 0.01; group.add(shadow);
   const barY = h + 0.14;
   const hpBg = new THREE.Mesh(new THREE.PlaneGeometry(0.72,0.08), new THREE.MeshBasicMaterial({ color:0x2a1410, side:THREE.DoubleSide }));
@@ -1515,9 +1546,34 @@ function astar(sc, sr, tc, tr, ignoreKey) {
   return null;
 }
 function gridDist(a,b) { return Math.abs(a.c-b.c)+Math.abs(a.r-b.r); }
+// specialBehavior targeting (monsterPool/bossPool ต้นฉบับจาก Codex) — ผูกไว้เฉพาะมอนสเตอร์ที่มี
+// u.specialBehavior เท่านั้น (ฮีโร่ผู้เล่นไม่มีฟิลด์นี้เลย จึงตกลงไปใช้ nearest-target เดิมเสมอ)
+// 'ranged' ไม่ต้องแยกเคส เพราะพฤติกรรม "รักษาระยะ+เล็งใกล้สุดในระยะ" ก็คือ nearest-target เดิม
+// ผสมกับ d<=atkRange ที่ updateUnit เช็กอยู่แล้ว
 function selectTarget(u) {
+  const enemies = units.filter((o) => o.alive && o.team !== u.team);
+  if (enemies.length === 0) return null;
+  const behaviorType = u.specialBehavior && u.specialBehavior.type;
+  if (behaviorType === 'hunter') { // Stone Wolf: เล็งศัตรูที่ HP% เหลือน้อยที่สุด
+    let best = null, bestRatio = Infinity;
+    enemies.forEach((o) => {
+      const ratio = o.maxHp ? o.hp / o.maxHp : 0;
+      if (ratio < bestRatio) { bestRatio = ratio; best = o; }
+    });
+    return best;
+  }
+  if (behaviorType === 'backline' || behaviorType === 'frontline') {
+    // แถวศัตรูอยู่บน (r น้อย) แถวผู้เล่นอยู่ล่าง (r มาก) — แนวหน้า = r น้อยสุดในกลุ่มเป้าหมาย,
+    // แนวหลัง = r มากสุด (Shadow Assassin พุ่งเจาะแนวหลัง / Orc Brute เข้าปะทะแนวหน้า)
+    const rows = enemies.map((o) => o.r);
+    const targetRow = behaviorType === 'backline' ? Math.max(...rows) : Math.min(...rows);
+    const rowCandidates = enemies.filter((o) => o.r === targetRow);
+    let best = null, bd = Infinity;
+    rowCandidates.forEach((o) => { const d = gridDist(u, o); if (d < bd) { bd = d; best = o; } });
+    return best;
+  }
   let best=null, bd=Infinity;
-  for (const o of units) { if (!o.alive||o.team===u.team) continue; const d=gridDist(u,o); if (d<bd){bd=d;best=o;} }
+  for (const o of enemies) { const d=gridDist(u,o); if (d<bd){bd=d;best=o;} }
   return best;
 }
 function stepToward(u, target) {
@@ -2227,6 +2283,16 @@ function updateUnit(u, dt) {
       if (u.specialAttack) {
         u.specialAttackCounter = (u.specialAttackCounter || 0) + 1;
         if (u.specialAttackCounter >= 3) { u.specialAttackCounter = 0; triggerSpecialAttack(u, target); }
+      }
+      // Stone Golem's stun_attack specialBehavior: every Nth basic attack stuns the target
+      // (reuses the existing hard-CC status pipeline — hasHardCC() already blocks move+attack).
+      if (target.alive && u.specialBehavior && u.specialBehavior.type === 'stun_attack') {
+        u.hitCount = (u.hitCount || 0) + 1;
+        if (u.hitCount >= (u.specialBehavior.triggerEveryHits || 4)) {
+          u.hitCount = 0;
+          applyStatusEffectToUnit(target, { status_id:'stun_attack', kind:'stun',
+            duration: u.specialBehavior.stunDuration || 1.2, stack_rule:'refresh' }, u);
+        }
       }
     }
     u.body.scale.x = (gridToWorld(target.c,target.r).x < u.group.position.x) ? -1 : 1;
