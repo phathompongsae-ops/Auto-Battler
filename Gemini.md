@@ -118,33 +118,47 @@ Priority 1-7 ที่ `gemini_status.md`
   บล็อกถูกต้อง, ถอนฮีโร่ที่สวมไอเทมแล้วของยังติดไปด้วย, ออโต้เมิร์จฮีโร่ที่สวมไอเทมไม่ทำของหาย,
   สู้จริงหลัง equip แล้ว `combatStats` สะท้อนโบนัสถูกต้อง ไม่มี NaN
 
-**Mana System & Skill Cast Backend (เสร็จแล้ว — รอเชื่อมต่อกับข้อมูล Active Skill ของฮีโร่จริง)**
-- ฮีโร่ทุกตัวที่วางลงกระดาน (`placeHeroAt`) มี state ใหม่: `current_mana:0`, `max_mana:100`,
-  `statuses:[]`, `action_state:'idle'`, `current_target:null`, `castTimer:0` — ศัตรู/บอสไม่มี
-  field พวกนี้เลย (เหมือน `combatStats`) ดังนั้นระบบนี้ไม่กระทบมอนสเตอร์เดิม
-- `grantMana(u, amount)`: เพิ่ม/ลดมานาแบบ clamp [0, max_mana] เสมอ, no-op ถ้า unit ไม่มี field
-  `current_mana` (เช่นมอนสเตอร์) — เรียกใน `updateUnit()`: โจมตีสำเร็จ +10, โดนดาเมจ +5 (ยังไม่มี
-  DoT ในเกมให้ยกเว้นจริงๆ แต่โค้ดเผื่อไว้), ฆ่าเป้าหมายได้ +10 (ถ้าโจมตีจังหวะเดียวฆ่าได้เลย
-  ทั้ง 3 โบนัสจะเข้าพร้อมกันในเฟรมเดียว ถูกต้องตามสเปก)
-- State Machine ใน `updateUnit()` เรียงลำดับตามสเปกเป๊ะ: 1) Dead Check → 2) Hard CC Check
-  (`hasHardCC()` เช็ก `statuses` ที่มี kind `stun`/`freeze` — ยังไม่มีตัวไหนสร้าง status ได้จริง
-  เป็นแค่ stub รอสกิลจริง) → 3) Mana Check (`current_mana >= max_mana` → เข้า `action_state:
-  'casting'` ล็อก `SKILL_CAST_DURATION` วินาที ระหว่างนั้นข้ามการโจมตี/เดินเคลื่อนที่ทั้งหมด
-  พอครบเวลาค่อยหักมานาเต็มถังแล้วกลับ `idle`) → 4) Basic Attack → 5) Movement — ถ้าโดน Hard CC
-  ขณะกำลังร่าย จะยกเลิกร่ายทันที คืน `action_state` เป็น `idle` โดยไม่หักมานา (รอร่ายใหม่ได้)
-- `u.current_target` เปลี่ยนจากคำนวณ nearest-enemy ใหม่ทุกเฟรม เป็น "ล็อกเป้าหมายเดิมจนตาย"
-  (reselect เฉพาะตอนไม่มีเป้าหมายหรือเป้าหมายตายแล้ว) — ใช้ร่วมกับทั้งฮีโร่และมอนสเตอร์
-  (`selectTarget()` เดิมไม่เปลี่ยน แค่เรียกน้อยลง)
-- `buildCombatStats()`: เพิ่ม layer สถานะ (`hero.statuses[].stats`/`percent_stats`) ต่อจาก
-  equipment (flat ก่อน แล้วค่อย percent) ก่อนเข้า clamp ขั้นสุดท้าย — ยังไม่มี status ตัวไหนถูก
-  สร้างจริงในเกม (รอสกิลจริง) แต่ pipeline พร้อมรับแล้ว
-- `resetForWave()`: รีเซ็ต `current_mana=0, statuses=[], action_state='idle', current_target=null,
-  castTimer=0` ทุกครั้งที่จบ wave/แพ้ — equipment และ Link/synergy ไม่ถูกแตะ
-- ทดสอบผ่าน Playwright ครบ: ค่าเริ่มต้น field ถูกต้อง, `grantMana` clamp ทั้งขอบบน/ล่างและ
-  no-op กับ unit ที่ไม่มี field, วงจร cast ครบ (เริ่ม-มานาไม่ลดจนจบ-หักเต็มถังตอนจบ), Hard CC
-  ขัดจังหวะการร่ายแล้วคืนมานาถูกต้อง, `buildCombatStats` ผสม status buff/debuff ก่อน clamp
-  ถูกต้อง (baseStats ไม่ถูกแก้ทับ), มานาได้ตามเหตุการณ์จริงระหว่างสู้ (โจมตี/โดนตี/ฆ่า),
-  `resetForWave` เคลียร์ค่าแต่คง equipment ไว้, เล่นจริงหลายวินาทีไม่มี NaN/console error ใหม่
+**Mana System & Skill Cast Backend (เสร็จแล้ว)**
+- ฮีโร่ทุกตัวที่วางลงกระดาน (`placeHeroAt`) มี state: `current_mana:0`, `max_mana:100`,
+  `statuses:[]`, `action_state:'idle'`, `current_target:null`, `castTimer:0`, `castTarget:null`,
+  `skillGoldTriggers:0` — ศัตรู/บอสไม่มี field พวกนี้เลย (เหมือน `combatStats`) จึงไม่กระทบมอนสเตอร์เดิม
+- `grantMana(u, amount)`: clamp [0, max_mana] เสมอ, no-op ถ้า unit ไม่มี field `current_mana` —
+  เรียกจากทั้ง basic attack (โจมตีสำเร็จ +10, โดนดาเมจ +5, ฆ่าได้ +10) และดาเมจจากสกิล/DoT (ผ่าน
+  `dealSkillDamage`) — DoT tick แต่ละอันเลือกเองได้ว่าจะให้มานาหรือไม่ผ่าน `status.grants_mana`
+- State Machine ใน `updateUnit()`: 1) Dead Check → tick statuses (DoT+หมดอายุ) → 2) Hard CC Check
+  → **3) Mana Check ทำงานอิสระจากการมีเป้าหมายศัตรู** (แก้บั๊กที่พบระหว่างเทส: เดิม gate ไว้หลัง
+  target-lock ทำให้สกิลซัพพอร์ตอย่าง heal/summon ร่ายไม่ได้เลยถ้าไม่มีศัตรูบนกระดาน) → 4) Basic
+  Attack → 5) Movement (`getEffectiveMoveSpeed()` รวม slow status ด้วย) — โดน Hard CC ขณะร่ายจะ
+  ยกเลิกทันที คืนมานา ไม่หัก
+
+**Skill Execution Engine — 7 ฮีโร่ tier-1 (เสร็จแล้ว, ข้อมูลจาก `SKILL_DEFS`)**
+- `SKILL_DEFS[heroKey]`: ข้อมูลกลไกเต็มของ fighter/swordman/archer/mage/summoner/acolyte/merchant
+  (mana_cost, cast_time, target_type, damage/heal/summon/reward_payload, status_effects) — แยก
+  จาก `HERO_DEFS.active_skill` (ยังเป็นแค่ name/description) โดยตั้งใจ ฮีโร่ tier-2 ยังไม่มี entry
+  ที่นี่ ตอนมานาเต็มจะ fallback เป็นพฤติกรรมเดิม (หักมานา ไม่มีผล)
+- Targeting resolvers ครบ 7 แบบ: `current_target`/`current_target_front_arc` (ล้อมรอบเป้าหมาย
+  ปัจจุบันในรัศมี 1), `farthest_enemy` (+ `collectLineTargets` เดินเส้นทะลวงจริงบนกริดแบบ
+  Bresenham), `largest_enemy_cluster` (นับเพื่อนบ้านในรัศมี 1 หาความหนาแน่นสูงสุด),
+  `adjacent_empty_tile`, `lowest_hp_ally`/`lowest_hp_enemy` (เทียบ % HP)
+- Payload ครบ 4 แบบ: `damage_payload` (คูณ p_atk/m_atk จาก `combatStats` ของผู้ร่าย, รองรับ AoE
+  shape line/circle/front_arc + falloff ต่อเป้าหมายที่ทะลวงสำหรับ Archer), `heal_payload`
+  (เช็ก exclude_full_hp_targets/can_target_self), `summon_payload` (สร้าง Spirit Familiar จริง
+  ไม่นับ field limit เพราะไม่ผ่าน `placeHeroAt`, ฮีลตัวเดิมถ้ามีอยู่แล้วแทนสร้างซ้ำ, สลายตอนจบ wave
+  ผ่าน `despawnSummons()`), `reward_payload` (ปัก mark ให้ **ก่อน** damage เสมอ — บั๊กที่พบระหว่าง
+  เทส: เดิมปัก mark หลังดาเมจ ทำให้ดาบฟันตายในจังหวะเดียวไม่ได้ทองเพราะ mark ยังไม่ทันติด, จำกัด
+  `skillGoldTriggers` ต่อผู้ร่ายต่อ wave)
+- Status Effects: `applyStatusEffectToUnit()` รองรับ `modifiers` แบบ `<stat>_flat`/`<stat>_pct`
+  (เช่น `p_def_pct`, `m_def_flat`, `move_speed_pct`) ผสมเข้า `buildCombatStats()` (flat ก่อน
+  percent ทีหลัง เหมือน equipment) ก่อนเข้า clamp — สำหรับมอนสเตอร์ (ใช้ `armor`% ไม่ใช่ p_def)
+  ใช้ `getEffectiveArmor()`/`getEffectiveMoveSpeed()` แทนเพื่อให้ debuff ยังมีผลจริงโดยไม่ต้องแก้
+  data model มอนสเตอร์ — DoT (`burn`) มี `tickStatuses()` ยิงดาเมจตาม `tick_interval` จริง ไม่ให้
+  มานาตาม `grants_mana:false`
+- `stack_rule`: `refresh` (แทนที่ของเดิม) และ `strongest` (เทียบขนาด modifier รวม เก็บตัวแรงกว่า)
+- ทดสอบผ่าน Playwright ครบทุกฮีโร่แยกฟังก์ชัน (ตัวเลขดาเมจ/ฮีล/มานาตรงตามสูตรเป๊ะทุกกรณี),
+  แก้ 2 บั๊กที่พบระหว่างเทส (mana-check ต้องไม่ผูกกับเป้าหมายศัตรู, mark ต้องปักก่อนดาเมจ), และ
+  **เล่นจริงที่บังคับ speed x4 หลายเวฟ** เห็นสกิลร่ายจริง (summoner/archer/mage), summon ปรากฏจริง,
+  status effects ทำงานจริง ไม่มี NaN/console error ใหม่ — `baseStats` ไม่ถูกแก้ทับที่จุดใดเลย
+  (ตรวจสอบด้วย grep ทั้งไฟล์)
 
 **อื่นๆ ที่มีอยู่แล้วก่อนรอบนี้** (ยังทำงานอยู่ ไม่ได้แตะ): ระบบ wave 1-15 พร้อมด่านบอสจริงที่
 stage 5/10/13/15 (`bossWave()`), quota แพ้ได้ 3 ครั้งต่อรัน, bench คนละ 6 ช่อง, field สูงสุด 5 ตัว

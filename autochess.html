@@ -429,6 +429,79 @@ const HERO_DEFS = {
     stats:{ hp:570, p_atk:0, m_atk:60, p_def:25, m_def:38, move_speed:2.8, attack_speed:1.35, attack_range:4 },
     active_skill:{ name:'Loaded Dice', description:'โยนลูกเต๋าเวทใส่พื้นที่เป้าหมาย สร้างความเสียหายเวท 140% ของ M.Atk และทำให้ศัตรูติด Stun 1.5 วินาที พร้อมขโมยบัฟเชิงบวก 1 อย่างจากศัตรูที่แข็งแกร่งที่สุดในพื้นที่' } },
 };
+// ============================================================
+// SKILL_DEFS — mechanical active-skill data for the 7 tier-1 heroes (kept separate from
+// HERO_DEFS.active_skill, which stays as display-only name/description text — these numbers
+// are what the Skill Execution Engine in the SKILL/MANA/STATUS section below actually reads).
+// Tier-2 heroes have no entry here yet — hitting max mana with no SKILL_DEFS match falls back
+// to the old stub (spend the bar, no effect), unchanged from the previous mana/state-machine task.
+// ============================================================
+const SKILL_DEFS = {
+  fighter: {
+    skill_id:'power_strike', skill_name:'Power Strike', mana_cost:100, cast_time:0.45,
+    target_type:'current_target',
+    damage_payload:{ damage_type:'physical', p_atk_multiplier:1.6, m_atk_multiplier:0, base_damage:0, max_targets:1 },
+    status_effects:[
+      { status_id:'p_def_down', duration:4, chance:1, modifiers:{ p_def_pct:-10 }, stack_rule:'refresh' },
+    ],
+  },
+  swordman: {
+    skill_id:'blade_arc', skill_name:'Blade Arc', mana_cost:100, cast_time:0.5,
+    target_type:'current_target_front_arc',
+    damage_payload:{ damage_type:'physical', p_atk_multiplier:1.3, m_atk_multiplier:0, base_damage:0, max_targets:3,
+      area_shape:'front_arc', area_range:1 },
+    status_effects:[],
+  },
+  archer: {
+    skill_id:'piercing_arrow', skill_name:'Piercing Arrow', mana_cost:100, cast_time:0.6,
+    target_type:'farthest_enemy',
+    damage_payload:{ damage_type:'physical', p_atk_multiplier:1.45, m_atk_multiplier:0, base_damage:0, max_targets:4,
+      area_shape:'line', line_length:6, pierces_targets:true, damage_falloff_per_target_pct:15, minimum_damage_multiplier:0.7 },
+    status_effects:[],
+  },
+  mage: {
+    skill_id:'arcane_burst', skill_name:'Arcane Burst', mana_cost:100, cast_time:0.75,
+    target_type:'largest_enemy_cluster',
+    damage_payload:{ damage_type:'magic', p_atk_multiplier:0, m_atk_multiplier:1.5, base_damage:0, max_targets:9,
+      area_shape:'circle', area_radius:1 },
+    status_effects:[
+      { status_id:'burn', duration:3, chance:1, tick_interval:1,
+        damage_per_tick:{ damage_type:'magic', m_atk_multiplier:0.15, base_damage:0 }, grants_mana:false, stack_rule:'refresh' },
+    ],
+  },
+  summoner: {
+    skill_id:'spirit_familiar', skill_name:'Spirit Familiar', mana_cost:100, cast_time:0.9,
+    target_type:'adjacent_empty_tile',
+    damage_payload:{ damage_type:'none', p_atk_multiplier:0, m_atk_multiplier:0, base_damage:0, max_targets:0 },
+    summon_payload:{
+      summon_def_id:'spirit_familiar', summon_limit:1, replace_existing:false, if_summon_exists:'heal_existing_summon',
+      existing_summon_heal_pct_max_hp:40, hp_source:'caster_max_hp', hp_multiplier:0.35,
+      attack_type:'magic', attack_stat_source:'caster_m_atk', attack_stat_multiplier:0.5,
+      attack_range:1, attack_speed:1.1, move_speed:2.5, occupies_grid_tile:true,
+      counts_toward_field_limit:false, despawn_on_wave_end:true,
+    },
+    status_effects:[],
+  },
+  acolyte: {
+    skill_id:'healing_light', skill_name:'Healing Light', mana_cost:100, cast_time:0.7,
+    target_type:'lowest_hp_ally',
+    damage_payload:{ damage_type:'none', p_atk_multiplier:0, m_atk_multiplier:0, base_damage:0, max_targets:0 },
+    heal_payload:{ m_atk_multiplier:1.2, base_heal:0, max_targets:1, can_target_self:true, exclude_full_hp_targets:true },
+    status_effects:[
+      { status_id:'m_def_up', duration:4, chance:1, modifiers:{ m_def_flat:10 }, stack_rule:'refresh' },
+    ],
+  },
+  merchant: {
+    skill_id:'golden_opportunity', skill_name:'Golden Opportunity', mana_cost:100, cast_time:0.55,
+    target_type:'lowest_hp_enemy',
+    damage_payload:{ damage_type:'physical', p_atk_multiplier:1.2, m_atk_multiplier:0, base_damage:0, max_targets:1 },
+    reward_payload:{ mark_duration:4, gold_on_marked_target_death:1, max_gold_triggers_per_wave:2,
+      reward_owner:'player', requires_caster_alive:false },
+    status_effects:[
+      { status_id:'slow', duration:3, chance:1, modifiers:{ move_speed_pct:-20 }, stack_rule:'strongest' },
+    ],
+  },
+};
 // Synergy tags now live directly on each HERO_DEFS entry (def.synergy) instead of a separate
 // HERO_TAGS map, so they can't go stale relative to the roster. NOTE: the old SYNERGIES combo
 // list below (trade_route/arcane_duo/warband) was written for the old tag vocabulary
@@ -626,14 +699,23 @@ function buildCombatStats(hero, itemDefs) {
     }
   });
   // status_effects (buffs/debuffs) layer on top of the equipment-adjusted stats, before the
-  // clamp — no producer wired yet (skills aren't implemented), so hero.statuses is always [].
+  // clamp. Each status's `modifiers` uses a `<stat>_flat` / `<stat>_pct` key convention (e.g.
+  // p_def_pct, m_def_flat) — flat modifiers across all active statuses apply first, then percent.
   (hero.statuses || []).forEach((status) => {
-    if (!status.stats) return;
-    for (const statKey in status.stats) { if (stats[statKey] != null) stats[statKey] += status.stats[statKey]; }
+    if (!status.modifiers) return;
+    for (const modKey in status.modifiers) {
+      if (!modKey.endsWith('_flat')) continue;
+      const statKey = modKey.slice(0, -5);
+      if (stats[statKey] != null) stats[statKey] += status.modifiers[modKey];
+    }
   });
   (hero.statuses || []).forEach((status) => {
-    if (!status.percent_stats) return;
-    for (const statKey in status.percent_stats) { if (stats[statKey] != null) stats[statKey] *= (1 + status.percent_stats[statKey] / 100); }
+    if (!status.modifiers) return;
+    for (const modKey in status.modifiers) {
+      if (!modKey.endsWith('_pct')) continue;
+      const statKey = modKey.slice(0, -4);
+      if (stats[statKey] != null) stats[statKey] *= (1 + status.modifiers[modKey] / 100);
+    }
   });
   stats.attack_speed = Math.min(ATTACK_SPEED_MAX, Math.max(ATTACK_SPEED_MIN, stats.attack_speed));
   ['hp', 'p_atk', 'm_atk', 'p_def', 'm_def'].forEach((k) => { stats[k] = Math.max(0, stats[k]); });
@@ -991,7 +1073,9 @@ function resetForWave(u) {
   u.deathT = undefined;
   u.animState = 'idle'; u.animFrame = 0;
   // Skill/Mana/Status reset between waves (equipment + Link/synergy state are untouched)
-  u.current_mana = 0; u.statuses = []; u.action_state = 'idle'; u.current_target = null; u.castTimer = 0;
+  u.current_mana = 0; u.statuses = []; u.action_state = 'idle'; u.current_target = null;
+  u.castTimer = 0; u.castTarget = null; u.skillGoldTriggers = 0;
+  if (u.baseStats) buildCombatStats(u, ITEM_DEFS_BY_ID); // statuses cleared -> combatStats must drop any lingering modifier
   occupied.add(key(u.c, u.r));
 }
 
@@ -1023,7 +1107,7 @@ function attackerRawAtk(attacker) {
 }
 function mitigateDamage(rawDmg, attacker, target, armorPenPct) {
   if (target.armor != null) {
-    const effArmor = Math.max(0, target.armor - (armorPenPct || 0));
+    const effArmor = Math.max(0, getEffectiveArmor(target) - (armorPenPct || 0));
     return rawDmg * (1 - effArmor / 100);
   }
   const isMagic = attacker.attackType === 'magic';
@@ -1096,14 +1180,14 @@ function stepToward(u, target) {
   }
 }
 // ============================================================
-// SKILL / MANA / STATUS EFFECTS — backend only (no UI, no real active_skill effects yet;
-// this wires the cast-and-spend-mana mechanic + status-effect stat hooks so a later task can
-// plug in each hero's actual HERO_DEFS.active_skill without touching the state machine again).
+// SKILL / MANA / STATUS EFFECTS — mana economy, the priority state machine, and the Skill
+// Execution Engine that reads SKILL_DEFS (tier-1 heroes only; tier-2 falls back to the old
+// spend-mana-no-effect stub below). Data + logic only — no skill UI/VFX.
 // ============================================================
 const MANA_PER_ATTACK = 10;
-const MANA_PER_DAMAGE_TAKEN = 5; // "damage taken" mana gain — excludes DoT, but no DoT source exists yet
+const MANA_PER_DAMAGE_TAKEN = 5; // "damage taken" mana gain — DoT ticks opt out via status.grants_mana
 const MANA_PER_KILL = 10;
-const SKILL_CAST_DURATION = 0.6; // seconds — placeholder cast time until per-hero skill data wires in
+const SKILL_CAST_DURATION = 0.6; // fallback cast time for any hero with no SKILL_DEFS entry (tier-2)
 // Only units created via placeHeroAt carry the mana/skill fields (u.current_mana !== undefined) —
 // enemies/bosses never do, so they fall through untouched, same convention as combatStats.
 function grantMana(u, amount) {
@@ -1113,11 +1197,289 @@ function grantMana(u, amount) {
 function hasHardCC(u) {
   return !!(u.statuses && u.statuses.some((s) => s.kind === 'stun' || s.kind === 'freeze'));
 }
+// Enemies/bosses use the legacy `armor` (%) stat instead of combatStats.p_def — a `p_def_pct`
+// status modifier (e.g. Fighter's Power Strike) is applied here as the closest equivalent so
+// hero debuffs still do something against monsters without touching their base data.
+function getEffectiveArmor(target) {
+  if (target.armor == null) return null;
+  let armor = target.armor;
+  (target.statuses || []).forEach((st) => {
+    if (st.modifiers && st.modifiers.p_def_pct != null) armor *= (1 + st.modifiers.p_def_pct / 100);
+  });
+  return Math.max(0, armor);
+}
+// move_speed slows/hastes apply to ANY unit (hero or enemy) since both data shapes carry a
+// move-speed value, unlike the hero-only p_atk/m_atk/p_def/m_def combatStats pipeline.
+function getEffectiveMoveSpeed(u) {
+  let speed = u.combatStats ? u.combatStats.move_speed : u.moveSpeed;
+  (u.statuses || []).forEach((st) => {
+    if (st.modifiers && st.modifiers.move_speed_pct != null) speed *= (1 + st.modifiers.move_speed_pct / 100);
+  });
+  return Math.max(0, speed);
+}
+// Recompute a hero's combatStats immediately after its statuses change (equipment never
+// changes mid-battle, but status durations do) — no-op for units without baseStats (enemies).
+function refreshCombatStats(u) {
+  if (u.baseStats) buildCombatStats(u, ITEM_DEFS_BY_ID);
+}
+// Centralizes what happens when any unit's HP reaches 0, regardless of the damage source
+// (basic attack / skill / DoT tick) — kill-mana for the killer, and Merchant's mark payout.
+function handleUnitDeath(target, killer) {
+  if (!target.alive) return;
+  target.alive = false;
+  occupied.delete(key(target.c, target.r));
+  target.deathT = 0;
+  if (killer) grantMana(killer, MANA_PER_KILL);
+  const mark = (target.statuses || []).find((s) => s.rewardOnDeath);
+  if (mark) {
+    const r = mark.rewardOnDeath;
+    const casterOk = !r.requiresCasterAlive || (r.casterRef && r.casterRef.alive);
+    if (casterOk && (r.casterRef.skillGoldTriggers || 0) < r.maxTriggers) {
+      gold += r.gold;
+      r.casterRef.skillGoldTriggers = (r.casterRef.skillGoldTriggers || 0) + 1;
+    }
+  }
+}
+// Shared damage-resolution path for skill damage_payload hits and DoT ticks (Link buffs +
+// hp-bar update + death handling) — kept separate from the basic-attack block above, which
+// has its own hit-flash/knockback visual flourish that isn't relevant to skills/DoT.
+function dealSkillDamage(casterTeam, damageType, rawDmg, target, casterRef, grantsMana) {
+  if (!target.alive) return 0;
+  const dmg = applyCombatLinkModifiers(rawDmg, { team: casterTeam, attackType: damageType }, target);
+  target.hp -= dmg;
+  target.hpBar.scale.x = Math.max(0, target.hp/target.maxHp);
+  target.hpBar.position.x = -0.36*(1-target.hpBar.scale.x);
+  if (grantsMana) grantMana(target, MANA_PER_DAMAGE_TAKEN);
+  if (target.hp <= 0) handleUnitDeath(target, casterRef);
+  return dmg;
+}
+
+// ---- status effect application + DoT ticking ----
+function statusMagnitude(status) {
+  return Object.values(status.modifiers || {}).reduce((sum, v) => sum + Math.abs(v), 0);
+}
+function applyStatusEffectToUnit(target, se, caster) {
+  target.statuses = target.statuses || [];
+  const isDot = !!se.tick_interval;
+  const newStatus = {
+    status_id: se.status_id,
+    kind: isDot ? 'dot' : (Object.values(se.modifiers || {}).some((v) => v < 0) ? 'debuff' : 'buff'),
+    modifiers: se.modifiers ? { ...se.modifiers } : undefined,
+    remaining: se.duration,
+  };
+  if (isDot) {
+    newStatus.tick_interval = se.tick_interval;
+    newStatus.tickTimer = se.tick_interval;
+    newStatus.grants_mana = !!se.grants_mana;
+    newStatus.casterRef = caster;
+    newStatus.casterTeam = caster.team;
+    newStatus.tickDamageType = se.damage_per_tick.damage_type;
+    const cs = caster.combatStats || {};
+    newStatus.tickDamageAmount = (se.damage_per_tick.p_atk_multiplier || 0) * (cs.p_atk || 0)
+      + (se.damage_per_tick.m_atk_multiplier || 0) * (cs.m_atk || 0) + (se.damage_per_tick.base_damage || 0);
+  }
+  const idx = target.statuses.findIndex((s) => s.status_id === se.status_id);
+  if (idx < 0) {
+    target.statuses.push(newStatus);
+  } else if (se.stack_rule === 'strongest') {
+    if (statusMagnitude(newStatus) >= statusMagnitude(target.statuses[idx])) target.statuses[idx] = newStatus;
+  } else { // 'refresh' (default) — replace with the fresh instance
+    target.statuses[idx] = newStatus;
+  }
+  refreshCombatStats(target);
+}
+function applyDamageTick(target, st) {
+  if (!target.alive) return;
+  dealSkillDamage(st.casterTeam, st.tickDamageType, st.tickDamageAmount, target, st.casterRef, st.grants_mana);
+}
+// Runs every frame for every living unit: advances DoT ticks and status durations, dropping
+// expired statuses and refreshing combatStats (hero-only) whenever the list actually changes.
+function tickStatuses(u, dt) {
+  if (!u.statuses || u.statuses.length === 0) return;
+  let expired = false;
+  for (let i = u.statuses.length - 1; i >= 0; i--) {
+    const st = u.statuses[i];
+    if (st.tick_interval) {
+      st.tickTimer -= dt;
+      if (st.tickTimer <= 0) { st.tickTimer += st.tick_interval; applyDamageTick(u, st); }
+    }
+    st.remaining -= dt;
+    if (st.remaining <= 0) { u.statuses.splice(i, 1); expired = true; }
+  }
+  if (expired) refreshCombatStats(u);
+}
+
+// ---- targeting resolvers (per skill target_type) ----
+function findFarthestEnemy(caster) {
+  let best = null, bd = -1;
+  units.forEach((o) => { if (!o.alive || o.team === caster.team) return; const d = gridDist(caster, o); if (d > bd) { bd = d; best = o; } });
+  return best;
+}
+// Steps grid tiles from the caster toward `aim` (Bresenham-ish, rounded) up to lineLength,
+// collecting living enemies it passes through — the "pierce" line for Archer's Piercing Arrow.
+function collectLineTargets(caster, aim, lineLength, maxTargets) {
+  const dx = aim.c - caster.c, dy = aim.r - caster.r;
+  const dist = Math.max(Math.abs(dx), Math.abs(dy)) || 1;
+  const stepC = dx / dist, stepR = dy / dist;
+  const seen = new Set(), hits = [];
+  for (let step = 1; step <= lineLength && hits.length < maxTargets; step++) {
+    const c = Math.round(caster.c + stepC*step), r = Math.round(caster.r + stepR*step);
+    const k = c + ',' + r;
+    if (seen.has(k)) continue;
+    seen.add(k);
+    const found = units.find((o) => o.alive && o.team !== caster.team && o.c === c && o.r === r);
+    if (found) hits.push(found);
+  }
+  return hits;
+}
+function findClusterCenter(caster) {
+  const enemies = units.filter((o) => o.alive && o.team !== caster.team);
+  let best = null, bestCount = -1;
+  enemies.forEach((e) => {
+    const count = enemies.reduce((n, o) => n + ((o !== e && gridDist(e, o) <= 1) ? 1 : 0), 0);
+    if (count > bestCount) { bestCount = count; best = e; }
+  });
+  return best;
+}
+function findAdjacentEmptyTile(caster) {
+  const dirs = [[0,-1],[0,1],[-1,0],[1,0],[-1,-1],[1,-1],[-1,1],[1,1]];
+  for (const [dc,dr] of dirs) {
+    const c = caster.c+dc, r = caster.r+dr;
+    if (c<0||r<0||c>=GRID||r>=GRID) continue;
+    if (!occupied.has(key(c,r))) return { c, r };
+  }
+  return null;
+}
+function findLowestHpAlly(caster, healPayload) {
+  const pool = units.filter((o) => o.alive && o.team === caster.team
+    && (healPayload.can_target_self !== false || o !== caster)
+    && !(healPayload.exclude_full_hp_targets && o.hp >= o.maxHp));
+  if (pool.length === 0) return null;
+  return pool.reduce((low, o) => (o.hp/o.maxHp < low.hp/low.maxHp ? o : low));
+}
+function findLowestHpEnemy(caster) {
+  const enemies = units.filter((o) => o.alive && o.team !== caster.team);
+  if (enemies.length === 0) return null;
+  return enemies.reduce((low, o) => (o.hp/o.maxHp < low.hp/low.maxHp ? o : low));
+}
+function resolveSkillTarget(caster, skillDef) {
+  switch (skillDef.target_type) {
+    case 'current_target':
+    case 'current_target_front_arc':
+      return (caster.current_target && caster.current_target.alive) ? caster.current_target : selectTarget(caster);
+    case 'farthest_enemy': return findFarthestEnemy(caster);
+    case 'largest_enemy_cluster': return findClusterCenter(caster);
+    case 'adjacent_empty_tile': return findAdjacentEmptyTile(caster);
+    case 'lowest_hp_ally': return findLowestHpAlly(caster, skillDef.heal_payload || {});
+    case 'lowest_hp_enemy': return findLowestHpEnemy(caster);
+    default: return (caster.current_target && caster.current_target.alive) ? caster.current_target : selectTarget(caster);
+  }
+}
+
+// ---- payload execution ----
+function resolveDamageTargets(caster, skillDef, primary) {
+  const payload = skillDef.damage_payload;
+  const maxT = payload.max_targets || 1;
+  if (!primary) return [];
+  if (payload.area_shape === 'line' && payload.pierces_targets) {
+    const hits = collectLineTargets(caster, primary, payload.line_length || maxT, maxT);
+    return hits.map((unit, idx) => ({ unit, mult: Math.max(payload.minimum_damage_multiplier ?? 0,
+      1 - (payload.damage_falloff_per_target_pct || 0)/100 * idx) }));
+  }
+  if (payload.area_shape === 'circle') {
+    return units.filter((o) => o.alive && o.team !== caster.team && gridDist(o, primary) <= (payload.area_radius || 1))
+      .slice(0, maxT).map((unit) => ({ unit, mult: 1 }));
+  }
+  if (payload.area_shape === 'front_arc') {
+    return units.filter((o) => o.alive && o.team !== caster.team && gridDist(o, primary) <= (payload.area_range || 1))
+      .sort((a,b) => gridDist(a,primary) - gridDist(b,primary)).slice(0, maxT).map((unit) => ({ unit, mult: 1 }));
+  }
+  return [{ unit: primary, mult: 1 }];
+}
+function applyDamagePayload(caster, skillDef, primary) {
+  const payload = skillDef.damage_payload;
+  const cs = caster.combatStats || {};
+  const raw = (payload.p_atk_multiplier || 0) * (cs.p_atk || 0) + (payload.m_atk_multiplier || 0) * (cs.m_atk || 0) + (payload.base_damage || 0);
+  const hits = resolveDamageTargets(caster, skillDef, primary);
+  const affected = [];
+  hits.forEach(({ unit, mult }) => {
+    if (!unit.alive) return;
+    dealSkillDamage(caster.team, payload.damage_type, raw * mult, unit, caster, true);
+    affected.push(unit);
+  });
+  return affected;
+}
+function applyHealPayload(caster, skillDef, target) {
+  if (!target || !target.alive) return;
+  const payload = skillDef.heal_payload;
+  const cs = caster.combatStats || {};
+  const healAmt = (payload.m_atk_multiplier || 0) * (cs.m_atk || 0) + (payload.base_heal || 0);
+  target.hp = Math.min(target.maxHp, target.hp + healAmt);
+  target.hpBar.scale.x = Math.max(0, target.hp/target.maxHp);
+  target.hpBar.position.x = -0.36*(1-target.hpBar.scale.x);
+}
+function applySummonPayload(caster, skillDef, tile) {
+  const payload = skillDef.summon_payload;
+  const existing = units.find((o) => o.alive && o.summonerId === caster.instanceId);
+  if (existing) {
+    if (payload.if_summon_exists === 'heal_existing_summon') {
+      existing.hp = Math.min(existing.maxHp, existing.hp + existing.maxHp * (payload.existing_summon_heal_pct_max_hp/100));
+      existing.hpBar.scale.x = Math.max(0, existing.hp/existing.maxHp);
+      existing.hpBar.position.x = -0.36*(1-existing.hpBar.scale.x);
+    }
+    return;
+  }
+  if (!tile) return; // no room around the caster — skip this cast's summon, mana is still spent
+  const cs = caster.combatStats || {};
+  const hp = Math.max(1, Math.round((cs.hp || caster.maxHp || 0) * (payload.hp_multiplier || 1)));
+  const atk = Math.round((cs.m_atk || 0) * (payload.attack_stat_multiplier || 1));
+  const isMagic = payload.attack_type === 'magic';
+  const u = makeUnit({
+    team: caster.team, name: 'Spirit Familiar', sprite: caster.sprite, c: tile.c, r: tile.r,
+    hp, pAtk: isMagic ? 0 : atk, mAtk: isMagic ? atk : 0, pDef: 0, mDef: 0,
+    attackType: payload.attack_type || 'magic', atkSpeed: payload.attack_speed || 1,
+    range: payload.attack_range || 1, moveSpeed: payload.move_speed || 2,
+    summonerId: caster.instanceId, isSummon: true,
+  });
+  u.baseMaxHp = hp;
+}
+function applyRewardPayload(caster, skillDef, target) {
+  if (!target) return;
+  const payload = skillDef.reward_payload;
+  target.statuses = target.statuses || [];
+  target.statuses.push({ status_id: 'merchant_mark', kind: 'debuff', remaining: payload.mark_duration,
+    rewardOnDeath: { casterRef: caster, gold: payload.gold_on_marked_target_death,
+      maxTriggers: payload.max_gold_triggers_per_wave, requiresCasterAlive: payload.requires_caster_alive } });
+}
+function executeSkill(caster, skillDef, target) {
+  // reward_payload (the "mark") must land BEFORE damage_payload resolves — Merchant's skill
+  // damages and marks the same target in one cast, and a killing blow must still count as a
+  // death-while-marked, not slip past the reward because the target died one step too early.
+  if (skillDef.reward_payload && target) applyRewardPayload(caster, skillDef, target);
+  let affected = [];
+  if (skillDef.damage_payload && skillDef.damage_payload.damage_type !== 'none') {
+    affected = applyDamagePayload(caster, skillDef, target);
+  }
+  if (skillDef.heal_payload) {
+    applyHealPayload(caster, skillDef, target);
+    if (target && target.alive && !affected.includes(target)) affected.push(target);
+  }
+  if (skillDef.summon_payload) applySummonPayload(caster, skillDef, target);
+  if (skillDef.reward_payload && target && !affected.includes(target)) affected.push(target);
+  (skillDef.status_effects || []).forEach((se) => {
+    affected.forEach((u) => { if (u.alive && Math.random() <= (se.chance != null ? se.chance : 1)) applyStatusEffectToUnit(u, se, caster); });
+  });
+}
+function despawnSummons() {
+  units.filter((u) => u.isSummon).forEach(removeUnit);
+}
 
 function updateUnit(u, dt) {
   if (!u.alive) return; // 1) Dead Check
+  tickStatuses(u, dt); // DoT ticks + status expiry run regardless of what else happens this frame
+  if (!u.alive) return; // a DoT tick may have just killed this unit
   if (u.moving) {
-    u.moveT += dt*u.moveSpeed;
+    u.moveT += dt*getEffectiveMoveSpeed(u);
     if (u.moveT>=1) { u.moveT=1; u.moving=false; u.c=u.moveTo.c; u.r=u.moveTo.r; }
     const a=gridToWorld(u.moveFrom.c,u.moveFrom.r), b=gridToWorld(u.moveTo.c,u.moveTo.r);
     u.group.position.lerpVectors(a,b,u.moveT);
@@ -1126,11 +1488,44 @@ function updateUnit(u, dt) {
   }
   u.body.position.y = u.halfH;
 
-  // 2) Hard CC Check (Stun/Freeze) — no CC source wired yet, so u.statuses is always [] today
+  // 2) Hard CC Check (Stun/Freeze) — no CC source wired yet, so u.statuses never contains one today
   if (hasHardCC(u)) {
-    if (u.action_state === 'casting') { u.action_state = 'idle'; u.castTimer = 0; } // interrupted — mana untouched, retry once CC clears
+    if (u.action_state === 'casting') { u.action_state = 'idle'; u.castTimer = 0; u.castTarget = null; } // interrupted — mana untouched, retry once CC clears
     updateAnim(u, dt);
     return;
+  }
+
+  // 3) Mana Check -> Skill Cast — resolved independent of whether an enemy attack-target
+  // currently exists, since support skills (heal/summon) don't need an enemy at all.
+  if (u.current_mana !== undefined) {
+    const skillDef = SKILL_DEFS[u.heroKey];
+    if (u.action_state === 'casting') {
+      // if the target died mid-cast, pick a replacement so the cast doesn't resolve on a corpse
+      if (skillDef && u.castTarget && 'alive' in u.castTarget && !u.castTarget.alive) {
+        u.castTarget = resolveSkillTarget(u, skillDef);
+      }
+      u.castTimer -= dt;
+      if (u.castTimer <= 0) {
+        if (skillDef) {
+          executeSkill(u, skillDef, u.castTarget);
+          u.current_mana = Math.max(0, u.current_mana - (skillDef.mana_cost || u.max_mana));
+        } else {
+          u.current_mana = Math.max(0, u.current_mana - u.max_mana); // no skill data yet (tier-2) — spend, no effect
+        }
+        u.action_state = 'idle';
+        u.castTarget = null;
+      }
+      updateAnim(u, dt);
+      return; // casting locks out basic attack + movement for its whole duration
+    }
+    if (u.current_mana >= u.max_mana) {
+      u.action_state = 'casting';
+      u.castTimer = skillDef ? skillDef.cast_time : SKILL_CAST_DURATION;
+      u.castTarget = skillDef ? resolveSkillTarget(u, skillDef) : null;
+      u.animState = 'attack'; u.animTimer = 0; // stub visual until real skill VFX exists
+      updateAnim(u, dt);
+      return;
+    }
   }
 
   if (!u.current_target || !u.current_target.alive) u.current_target = selectTarget(u);
@@ -1138,27 +1533,6 @@ function updateUnit(u, dt) {
   if (!target) { updateAnim(u,dt); return; }
   const atkRange = u.combatStats ? u.combatStats.attack_range : u.range;
   const d = gridDist(u,target);
-
-  // 3) Mana Check -> Skill Cast (spends the mana bar on cast completion; no actual skill effect
-  // yet — that plugs into HERO_DEFS.active_skill in a later task per the same priority slot)
-  if (u.current_mana !== undefined) {
-    if (u.action_state === 'casting') {
-      u.castTimer -= dt;
-      if (u.castTimer <= 0) {
-        u.current_mana = Math.max(0, u.current_mana - u.max_mana); // cast completes — spend the bar
-        u.action_state = 'idle';
-      }
-      updateAnim(u, dt);
-      return; // casting locks out basic attack + movement for its whole duration
-    }
-    if (u.current_mana >= u.max_mana) {
-      u.action_state = 'casting';
-      u.castTimer = SKILL_CAST_DURATION;
-      u.animState = 'attack'; u.animTimer = 0; // stub visual until real skill data wires in
-      updateAnim(u, dt);
-      return;
-    }
-  }
 
   // 4) Basic Attack
   if (d<=atkRange) {
@@ -1180,10 +1554,7 @@ function updateUnit(u, dt) {
       setTimeout(()=> target.alive && target.body.material.color.set(0xffffff), 80);
       target.hpBar.scale.x = Math.max(0, target.hp/target.maxHp);
       target.hpBar.position.x = -0.36*(1-target.hpBar.scale.x);
-      if (target.hp<=0) {
-        target.alive=false; occupied.delete(key(target.c,target.r)); target.deathT=0;
-        grantMana(u, MANA_PER_KILL);
-      }
+      if (target.hp<=0) handleUnitDeath(target, u);
     }
     u.body.scale.x = (gridToWorld(target.c,target.r).x < u.group.position.x) ? -1 : 1;
   } else stepToward(u, target); // 5) Movement
@@ -1386,7 +1757,7 @@ function placeHeroAt(benchIdx, c, r) {
   u.origC = c; u.origR = r;   // ไทล์ที่วางไว้ตอนแรก — ใช้สแนปกลับระหว่างด่าน (ดู resetForWave)
   // Skill/Mana/Status runtime state (Priority 6 backend) — only placed heroes carry these fields
   u.current_mana = 0; u.max_mana = 100; u.statuses = []; u.action_state = 'idle';
-  u.current_target = null; u.castTimer = 0;
+  u.current_target = null; u.castTimer = 0; u.castTarget = null; u.skillGoldTriggers = 0;
   updateEquipBadge(u);
   placedUnits.push(u);
   selectedBenchIdx = -1;
@@ -1737,6 +2108,7 @@ function onWaveCleared() {
   const reward = waveReward(wave) + (combatLinkBuffs ? combatLinkBuffs.goldPerVictory : 0);
   gold += reward;
   clearEnemies();
+  despawnSummons(); // summon_payload.despawn_on_wave_end
   if (wave >= WAVE_TOTAL) {
     showResult('🏆 พิชิตซากอารีน่าหินสำเร็จ!', `ทำครบ ${WAVE_TOTAL} ด่าน ได้ทองรวม +${reward} — ขอบคุณที่เล่น!`, () => {
       phase = 'gameover';
@@ -1755,6 +2127,7 @@ function onWaveCleared() {
 }
 function onWaveFailed(reason) {
   clearEnemies();
+  despawnSummons(); // summon_payload.despawn_on_wave_end
   losses += 1;
   if (losses >= MAX_LOSSES) {
     showResult('💀 พ่ายแพ้', `${reason} — ใช้โควตาแพ้ครบ ${MAX_LOSSES} ครั้งแล้ว กดเริ่มใหม่เพื่อลองรันใหม่ทั้งหมด`, () => {
