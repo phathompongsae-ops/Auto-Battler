@@ -29,6 +29,7 @@ jobs:
           mkdir -p _site
           cp autochess.html _site/index.html
           cp -r assets _site/assets
+          cp -r src _site/src
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact
