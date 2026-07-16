@@ -559,9 +559,9 @@ const HERO_DEFS = {
 // ============================================================
 // EVOLUTION_TREE — derived from HERO_DEFS.evolves_from (never hand-duplicated, so it can't
 // drift from the roster) — shape matches the evolution_tree spec given for the Merge & Evolution
-// System. tier/required_star/required_count are always 1/1/3 in this game (there is no separate
-// star-upgrade system — every hero instance is implicitly star 1), merge_location is always
-// 'bench_only' since bench composition is the only place matching heroes are ever grouped/counted.
+// System. tier/required_star/required_count are always 1/1/3 in this game, merge_location is
+// always 'bench_only' since bench composition is where tier-1 matching heroes are grouped/counted
+// (the separate tier-2 Star System below DOES count both bench+board — see scanForStarCombine()).
 // ============================================================
 const EVOLUTION_TREE = {};
 Object.keys(HERO_DEFS).forEach((key) => {
@@ -569,6 +569,76 @@ Object.keys(HERO_DEFS).forEach((key) => {
   const evolutions = Object.keys(HERO_DEFS).filter((k) => HERO_DEFS[k].evolves_from === key);
   if (evolutions.length) EVOLUTION_TREE[key] = { tier: 1, required_star: 1, required_count: 3, merge_location: 'bench_only', evolutions };
 });
+// ============================================================
+// HERO STAR SYSTEM (from Codex's spec, adapted to this engine) — tier-2 heroes only, max 2★.
+// 3x tier-1 same class still opens the existing Evolution modal above (unchanged) and produces
+// a 1★ tier-2 hero; 3x tier-2 SAME class+star instantly auto-combines into 1 higher-star copy —
+// no player choice needed since the class doesn't change, just its power. Multipliers apply to
+// each hero's OWN existing HERO_DEFS[key].stats (not a separate 7-class-only base-stat table —
+// this roster already has distinct stats per tier-2 hero, e.g. Knight != Berserker, so a shared
+// per-root-class table would be wrong for most of them anyway).
+// ============================================================
+const HERO_STAR_MAX = 2;
+const HERO_STAR_MULTIPLIERS = {
+  1: { hp:1,   p_atk:1,   m_atk:1,   p_def:1,   m_def:1,   attack_speed:1,    skill_power:1,   status_duration:1,    summon_power:1 },
+  2: { hp:1.8, p_atk:1.8, m_atk:1.8, p_def:1.5, m_def:1.5, attack_speed:1.12, skill_power:1.5, status_duration:1.15, summon_power:1.5 },
+  // attack_range and move_speed are deliberately never scaled by star level (per spec) — a 2★
+  // Archer/Mage keeps the exact same positioning/kiting range as its 1★ self.
+};
+function normalizeStarLevel(star) { return Math.min(HERO_STAR_MAX, Math.max(1, Math.floor(Number(star) || 1))); }
+function getStarMultiplier(star) { return HERO_STAR_MULTIPLIERS[normalizeStarLevel(star)]; }
+// Applies the star multiplier to a hero's own base stats (HERO_DEFS[key].stats) — used at
+// placement time to build the placed unit's initial/base stats (see placeHeroAt()).
+function getScaledHeroStats(heroKey, starLevel) {
+  const s = HERO_DEFS[heroKey].stats;
+  const m = getStarMultiplier(starLevel);
+  return {
+    hp: Math.round(s.hp * m.hp), p_atk: Math.round(s.p_atk * m.p_atk), m_atk: Math.round(s.m_atk * m.m_atk),
+    p_def: Math.round(s.p_def * m.p_def), m_def: Math.round(s.m_def * m.m_def),
+    attack_speed: Number((s.attack_speed * m.attack_speed).toFixed(2)),
+    attack_range: s.attack_range, move_speed: s.move_speed,
+  };
+}
+// Scales an active skill's damage/heal/shield/summon power and status durations for a 2★ caster
+// — returns a shallow-scaled COPY (SKILL_DEFS is a single shared definition object reused by
+// every instance of that hero regardless of star, so it can never be mutated in place).
+function getScaledSkillDef(caster, skillDef) {
+  const star = normalizeStarLevel(caster.starLevel || 1);
+  if (star <= 1 || !skillDef) return skillDef;
+  const m = getStarMultiplier(star);
+  const scaled = { ...skillDef };
+  if (skillDef.damage_payload) {
+    scaled.damage_payload = { ...skillDef.damage_payload };
+    ['p_atk_multiplier', 'm_atk_multiplier', 'base_damage'].forEach((k) => {
+      if (scaled.damage_payload[k] != null) scaled.damage_payload[k] *= m.skill_power;
+    });
+  }
+  if (skillDef.heal_payload) {
+    scaled.heal_payload = { ...skillDef.heal_payload };
+    ['m_atk_multiplier', 'base_heal', 'heal_pct_of_damage'].forEach((k) => {
+      if (scaled.heal_payload[k] != null) scaled.heal_payload[k] *= m.skill_power;
+    });
+  }
+  if (skillDef.shield_payload) {
+    scaled.shield_payload = { ...skillDef.shield_payload };
+    ['max_hp_multiplier', 'base_shield'].forEach((k) => {
+      if (scaled.shield_payload[k] != null) scaled.shield_payload[k] *= m.skill_power;
+    });
+    if (scaled.shield_payload.duration != null) scaled.shield_payload.duration *= m.status_duration;
+  }
+  if (skillDef.summon_payload) {
+    scaled.summon_payload = { ...skillDef.summon_payload };
+    ['hp_multiplier', 'attack_stat_multiplier'].forEach((k) => {
+      if (scaled.summon_payload[k] != null) scaled.summon_payload[k] *= m.summon_power;
+    });
+  }
+  if (skillDef.status_effects) {
+    scaled.status_effects = skillDef.status_effects.map((se) => (
+      se.duration != null ? { ...se, duration: se.duration * m.status_duration } : se
+    ));
+  }
+  return scaled;
+}
 // ============================================================
 // SKILL_DEFS — mechanical active-skill data for the 7 tier-1 heroes (kept separate from
 // HERO_DEFS.active_skill, which stays as display-only name/description text — these numbers
@@ -982,6 +1052,11 @@ function getSellValue(heroKey) {
   const cfg = HERO_DEFS[heroKey].class_tier === 1 ? SHOP_ECONOMY.hero_sell.tier_1_star_1 : SHOP_ECONOMY.hero_sell.tier_2_star_1;
   return cfg.sell_value;
 }
+// UI text suffix showing star level — tier-2 heroes only (Hero Star System doesn't apply to tier-1)
+function starLabel(heroKey, starLevel) {
+  if (HERO_DEFS[heroKey].class_tier !== 2) return '';
+  return ' ' + '⭐'.repeat(normalizeStarLevel(starLevel || 1));
+}
 function sellBenchHero(idx) {
   if (phase !== 'shop' || pendingEvolution) return;
   const inst = benchHeroes[idx];
@@ -1110,8 +1185,8 @@ const SYNERGY_DEFS = {
 
 // ---- hero instance identity ----
 let nextInstanceSeq = 1;
-function createHeroInstance(heroKey) {
-  return { instanceId: 'inst_' + (nextInstanceSeq++), heroKey, equipment: [null, null] };
+function createHeroInstance(heroKey, starLevel = 1) {
+  return { instanceId: 'inst_' + (nextInstanceSeq++), heroKey, equipment: [null, null], starLevel: normalizeStarLevel(starLevel) };
 }
 
 // A tier-2 hero's synergy class is its tier-1 root (evolves_from); a tier-1 hero is its own root.
@@ -1307,6 +1382,18 @@ function buildWave(stage) {
 // จำนวนสำเนาของฮีโร่ tier-1 แต่ละตัวที่หมุนเวียนอยู่ในถุงสุ่มของร้านค้า (ต้องมีมากกว่า 1
 // ไม่งั้นผู้เล่นจะซื้อฮีโร่ตัวเดียวกันซ้ำไม่ได้เกิน 1 ตัวตลอดทั้งเกม ทำให้ระบบรวมร่าง (ต้องการ 3 ตัวซ้ำ) เป็นไปไม่ได้จริงผ่านร้านค้า)
 const HERO_POOL_COPIES_PER_TIER1 = 15;
+// Hero Star System: ตั้งแต่เวฟ 6 เป็นต้นไป ร้านค้าเปิดขายฮีโร่ tier-2 (1★) ตรงๆ ได้ด้วย (เดิมได้จาก
+// evolution อย่างเดียว) เพื่อให้ผู้เล่นมีโอกาสสะสมครบ 3 ตัวไปรวมเป็น 2★ ทันภายในลิมิต 15 เวฟ —
+// สำเนาน้อยกว่า tier-1 เพราะต้องการแค่ 3 ตัวครั้งเดียวต่อการรวมดาว ไม่ต้องหมุนเวียนบ่อยเท่า
+const HERO_POOL_COPIES_PER_TIER2 = 6;
+const TIER2_SHOP_UNLOCK_WAVE = 6;
+let tier2ShopUnlocked = false;
+function ensureTier2ShopUnlocked() {
+  if (tier2ShopUnlocked || wave < TIER2_SHOP_UNLOCK_WAVE) return;
+  tier2ShopUnlocked = true;
+  Object.keys(HERO_DEFS).filter((k) => HERO_DEFS[k].class_tier === 2)
+    .forEach((k) => ownedPool.push(...Array(HERO_POOL_COPIES_PER_TIER2).fill(k)));
+}
 
 // คำนวณรายได้ต่อด่านจาก SHOP_ECONOMY.income: base + win_bonus (ถ้าชนะ) + ดอกเบี้ยจากทองที่ถืออยู่ + โบนัสสตรีค
 function computeWaveIncome(isWin) {
@@ -1421,6 +1508,18 @@ function makeUnit(cfg) {
     manaBar = new THREE.Mesh(new THREE.PlaneGeometry(0.72,0.06), new THREE.MeshBasicMaterial({ color:0x3aa0e8, side:THREE.DoubleSide }));
     manaBar.position.y = manaY; manaBar.position.z = 0.001; manaBar.scale.x = 0; group.add(manaBar);
   }
+  // Hero Star System: small ⭐/⭐⭐ badge under the mana bar — tier-2 heroes only (tier-1 heroes
+  // never carry a meaningful star level). Set once at creation — a star-combine always removes
+  // the old unit and spawns a brand-new one at the new star, so this never needs live updating.
+  let starBadge = null;
+  const heroDefForBadge = HERO_DEFS[cfg.heroKey];
+  if (cfg.team === 'player' && !cfg.isSummon && heroDefForBadge && heroDefForBadge.class_tier === 2) {
+    const starTex = makeStarBadgeTexture(cfg.starLevel || 1);
+    starBadge = new THREE.Sprite(new THREE.SpriteMaterial({ map: starTex, transparent: true, depthTest: false }));
+    starBadge.scale.set(0.5, 0.16, 1);
+    starBadge.position.set(0, barY - 0.24, 0.01);
+    group.add(starBadge);
+  }
   // Equipment Core visual feedback: small floating badge above the HP bar, shown only while
   // the hero has at least 1 item equipped (toggled by updateEquipBadge, never created per-hero —
   // one shared canvas texture (EQUIP_BADGE_TEX) reused across every unit's own Sprite instance).
@@ -1433,7 +1532,7 @@ function makeUnit(cfg) {
   group.position.set(p.x, 0, p.z);
   scene.add(group);
   occupied.add(key(cfg.c, cfg.r));
-  const u = { ...cfg, group, body, hpBar, manaBar, shadow, tex, frames, halfH: h/2, equipBadge,
+  const u = { ...cfg, group, body, hpBar, manaBar, starBadge, shadow, tex, frames, halfH: h/2, equipBadge,
     maxHp: cfg.hp, alive: true, atkCooldown: 0,
     moving: false, moveFrom: null, moveTo: null, moveT: 0,
     animState: 'idle', animTimer: 0, animFrame: 0 };
@@ -1446,6 +1545,14 @@ function updateManaBar(u) {
   const pct = u.max_mana ? Math.max(0, Math.min(1, u.current_mana / u.max_mana)) : 0;
   u.manaBar.scale.x = pct;
   u.manaBar.position.x = -0.36 * (1 - pct);
+}
+function makeStarBadgeTexture(starLevel) {
+  const c = makeCanvas(140, 32);
+  const ctx = c.getContext('2d');
+  ctx.font = 'bold 22px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillStyle = '#ffe066';
+  ctx.fillText('⭐'.repeat(normalizeStarLevel(starLevel)), 70, 16);
+  return new THREE.CanvasTexture(c);
 }
 // ============================================================
 // FLOATING TEXT — short callouts above a unit's head (skill name on cast, "Stun!" on stun) —
@@ -2356,7 +2463,7 @@ function updateUnit(u, dt) {
       u.castTimer -= dt;
       if (u.castTimer <= 0) {
         if (skillDef) {
-          executeSkill(u, skillDef, u.castTarget);
+          executeSkill(u, getScaledSkillDef(u, skillDef), u.castTarget); // Hero Star System: 2★ hits harder/heals more/lasts longer
           u.current_mana = Math.max(0, u.current_mana - (skillDef.mana_cost || u.max_mana));
         } else {
           u.current_mana = Math.max(0, u.current_mana - u.max_mana); // no skill data yet — spend, no effect
@@ -2460,6 +2567,7 @@ document.getElementById('waveTotal').textContent = WAVE_TOTAL;
 document.getElementById('livesTotal').textContent = MAX_LOSSES;
 
 function pickShopOffers() {
+  ensureTier2ShopUnlocked();
   const pool = [...ownedPool];
   const offers = [];
   while (offers.length < Math.min(SHOP_ECONOMY.hero_shop.slots, pool.length)) {
@@ -2503,7 +2611,7 @@ function renderTeamHpPanel() {
     const div = document.createElement('div');
     div.className = 'teamHpRow' + (u.alive === false ? ' dead' : '');
     div.innerHTML = `<img src="${heroPortraitSrc(u.heroKey)}">` +
-      `<div class="teamHpInfo"><div class="teamHpName">${def.name}</div>` +
+      `<div class="teamHpInfo"><div class="teamHpName">${def.name}${starLabel(u.heroKey, u.starLevel)}</div>` +
       `<div class="teamHpBarTrack"><div class="teamHpBarFill" style="width:${Math.round(hpPct*100)}%"></div></div></div>` +
       `<button class="equipBtn" title="ไอเทม">⚙${equipped ? ' •' : ''}</button>` +
       `<button class="sellBtn" title="ขาย">💰${getSellValue(u.heroKey)}</button>`;
@@ -2568,7 +2676,7 @@ function renderUI() {
     const div = document.createElement('div');
     div.className = 'card' + (i===selectedBenchIdx ? ' selected' : '') + (fieldFull ? ' disabled' : '');
     const equipped = inst.equipment.some((e) => e);
-    div.innerHTML = `<img src="${heroPortraitSrc(inst.heroKey)}"><div class="name">${def.name}</div><div class="tags">${tagLabel(inst.heroKey)}</div>` +
+    div.innerHTML = `<img src="${heroPortraitSrc(inst.heroKey)}"><div class="name">${def.name}${starLabel(inst.heroKey, inst.starLevel)}</div><div class="tags">${tagLabel(inst.heroKey)}</div>` +
       `<button class="equipBtn" title="ไอเทม">⚙${equipped ? ' •' : ''}</button>` +
       `<button class="sellBtn" title="ขาย">💰${getSellValue(inst.heroKey)}</button>`;
     div.dataset.benchIdx = i; // read by the pointerdown drag-to-place delegate below (tap-to-select fallback lives there too)
@@ -2668,6 +2776,67 @@ function chooseEvolution(evolutionId) {
   closeEvolutionModal();
   renderUI();
   scanForMergeCandidate(); // a second group may have completed while this one was pending
+  scanForStarCombine(); // the freshly-created tier-2 hero might complete a star-combine triple too
+}
+// Hero Star System: 3x tier-2 SAME class+star instantly combine into 1 copy at the next star
+// level — no player choice needed (unlike tier-1's Evolution modal) since the class never
+// changes, just its power. Counts across BOTH benchHeroes and placedUnits (unlike the tier-1
+// scan above, which is bench-only) since the player explicitly wants board copies to count too.
+function scanForStarCombine() {
+  if (pendingEvolution) return;
+  const buckets = {};
+  [...benchHeroes, ...placedUnits].forEach((inst) => {
+    const def = HERO_DEFS[inst.heroKey];
+    if (!def || def.class_tier !== 2) return;
+    const star = normalizeStarLevel(inst.starLevel || 1);
+    if (star >= HERO_STAR_MAX) return;
+    const bucketKey = inst.heroKey + '@' + star;
+    (buckets[bucketKey] = buckets[bucketKey] || []).push(inst);
+  });
+  for (const bucketKey in buckets) {
+    if (buckets[bucketKey].length >= 3) { performStarCombine(buckets[bucketKey].slice(0, 3)); return; }
+  }
+}
+// Removes the 3 source instances from wherever they currently live (bench array splice, or
+// removeUnit()+placedUnits splice for board units), pools their equipment (never destroyed,
+// same overflow policy as chooseEvolution above), and pushes 1 new higher-star bench instance.
+function performStarCombine(sources) {
+  const heroKey = sources[0].heroKey;
+  const newStar = normalizeStarLevel((sources[0].starLevel || 1) + 1);
+  const collectedItemInstanceIds = [];
+  sources.forEach((inst) => {
+    inst.equipment.forEach((itemInstanceId, slotIndex) => {
+      if (!itemInstanceId) return;
+      const item = playerState.itemInstances[itemInstanceId];
+      if (item) { item.location = 'merge_pool'; item.ownerHeroId = null; }
+      collectedItemInstanceIds.push(itemInstanceId);
+      inst.equipment[slotIndex] = null;
+    });
+    const benchIdx = benchHeroes.indexOf(inst);
+    if (benchIdx >= 0) { benchHeroes.splice(benchIdx, 1); return; }
+    const placedIdx = placedUnits.indexOf(inst);
+    if (placedIdx >= 0) { removeUnit(inst); placedUnits.splice(placedIdx, 1); }
+  });
+  if (benchHeroes.length >= MAX_BENCH) return; // practically unreachable — up to 3 slots were just freed for 1 new hero, defensive only
+  const newInst = createHeroInstance(heroKey, newStar);
+  let equipped = 0;
+  for (let i = 0; i < collectedItemInstanceIds.length && equipped < 2; i++) {
+    const item = playerState.itemInstances[collectedItemInstanceIds[i]];
+    if (!item) continue;
+    newInst.equipment[equipped] = collectedItemInstanceIds[i];
+    item.location = 'equipped';
+    item.ownerHeroId = newInst.instanceId;
+    equipped++;
+  }
+  for (let i = equipped; i < collectedItemInstanceIds.length; i++) {
+    const item = playerState.itemInstances[collectedItemInstanceIds[i]];
+    if (!item) continue;
+    item.location = 'inventory';
+    item.ownerHeroId = null;
+    playerState.inventory.itemInstanceIds.push(collectedItemInstanceIds[i]);
+  }
+  benchHeroes.push(newInst);
+  renderUI();
 }
 
 function buyHero(offerIdx) {
@@ -2682,6 +2851,7 @@ function buyHero(offerIdx) {
   shopOffers.splice(offerIdx, 1);
   benchHeroes.push(createHeroInstance(hkey));
   scanForMergeCandidate();
+  scanForStarCombine(); // shop can sell tier-2 heroes directly from wave 6+ — a 3rd bought copy can complete a star-combine too
   renderUI();
 }
 // merchant synergy: shop_reroll_discount_gold reduces the paid reroll cost, floored at
@@ -2717,12 +2887,13 @@ function placeHeroAt(benchIdx, c, r) {
   if (!inst) return;
   benchHeroes.splice(benchIdx, 1);
   const def = HERO_DEFS[inst.heroKey];
-  const s = def.stats;
+  const starLevel = normalizeStarLevel(inst.starLevel || 1);
+  const s = getScaledHeroStats(inst.heroKey, starLevel); // Hero Star System: tier-2 heroes may be 1★ or 2★
   const u = makeUnit({ team:'player', name:def.name, sprite:def.sprite, c, r,
     hp:s.hp, pAtk:s.p_atk, mAtk:s.m_atk, pDef:s.p_def, mDef:s.m_def, attackType:def.attack_type,
     atkSpeed:s.attack_speed, range:s.attack_range, moveSpeed:s.move_speed, heroKey:inst.heroKey,
     instanceId: inst.instanceId, // same identity carries from bench to field (state_model.field_storage)
-    equipment: inst.equipment, combatStats: null }); // carry the SAME equipment array from the bench instance
+    equipment: inst.equipment, starLevel, combatStats: null }); // carry the SAME equipment array from the bench instance
   u.baseMaxHp = s.hp; // immutable — Link maxHpPct is always recomputed from this, never compounded
   // immutable snapshot buildCombatStats() clones from — never overwritten by equipment/Link math
   // physical_lifesteal: baseline 0 so status modifiers (e.g. Berserker's physical_lifesteal_pct)
@@ -2739,6 +2910,7 @@ function placeHeroAt(benchIdx, c, r) {
   updateEquipBadge(u);
   placedUnits.push(u);
   selectedBenchIdx = -1;
+  scanForStarCombine(); // placing may complete a bench+board mixed star-combine triple
   renderUI();
 }
 function unplaceUnit(u) {
@@ -2747,7 +2919,7 @@ function unplaceUnit(u) {
   if (idx < 0) return;
   removeUnit(u);
   placedUnits.splice(idx, 1);
-  const benchInst = createHeroInstance(u.heroKey); // new instance — the old field identity ends here
+  const benchInst = createHeroInstance(u.heroKey, u.starLevel); // new instance — the old field identity ends here (star level carries over)
   benchInst.equipment = u.equipment; // ...but equipped items still carry over, re-owned by the new instance
   benchInst.equipment.forEach((itemInstanceId) => {
     if (itemInstanceId && playerState.itemInstances[itemInstanceId]) {
@@ -2757,6 +2929,7 @@ function unplaceUnit(u) {
   benchHeroes.push(benchInst);
   if (inspectingHero === u) inspectingHero = benchInst; // keep an open equip modal pointed at the same hero
   scanForMergeCandidate();
+  scanForStarCombine();
   renderUI();
 }
 
