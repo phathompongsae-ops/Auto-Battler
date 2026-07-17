@@ -1343,14 +1343,17 @@ let speedMul = 1;
 let paused = false;
 let currentStreak = 0;                     // จำนวนครั้งติดต่อกันของผลลัพธ์ล่าสุด (ชนะติดหรือแพ้ติด)
 let streakType = null;                     // 'win' | 'loss' | null (ยังไม่เคยจบด่าน)
-// EXP/Level — flavor progression bar only (no JSON spec given for it yet): "ซื้อ EXP" spends
-// gold for a level counter. Deliberately NOT wired to shop tier/pool unlocks — SHOP_ECONOMY.
-// hero_shop.hero_pool is "tier_1_only" by design, so leveling has no gameplay effect yet.
+// EXP/Level — "ซื้อ EXP" spends gold for a level counter. Deliberately NOT wired to shop
+// tier/pool unlocks — SHOP_ECONOMY.hero_shop.hero_pool is "tier_1_only" by design. Level's only
+// gameplay effect is battlefield capacity (see fieldCapacity()).
 const BUY_EXP_COST = 4;
 const BUY_EXP_GAIN = 4;
 function expNeededForLevel(lvl) { return 2 + lvl * 2; }
 let level = 1;
 let exp = 0;
+// จำนวนฮีโร่ลงสนามได้พร้อมกัน = level ปัจจุบัน แต่ไม่เกิน MAX_FIELD (เพดานสัมบูรณ์) — จุดเดียวที่คำนวณ
+// ค่านี้ ใช้ร่วมกันทุกที่ที่เช็ก/แสดงความจุสนาม (moveUnitTo, fieldCount, ข้อความสนามเต็ม)
+function fieldCapacity() { return Math.min(level, MAX_FIELD); }
 let freeRerollsRemaining = SHOP_ECONOMY.reroll.free_rerolls_per_wave; // รีเซ็ตเป็น 1 ทุกครั้งที่เข้าเฟส shop ใหม่
 // ร้านค้าขายเฉพาะ tier-1 — tier-2 ได้จากการรวมร่าง (scanForMergeCandidate/chooseEvolution) เท่านั้น
 // มีหลายสำเนาต่อฮีโร่ 1 ตัว (ไม่ใช่แค่ 1) เพื่อให้ซื้อซ้ำจนครบ 3 ตัวสำหรับรวมร่างได้จริงผ่านร้านค้า
@@ -3315,9 +3318,9 @@ function renderUI() {
   if (phase !== 'shop' && inspectingHero) closeEquipModal(); // Equipment UI only makes sense during shop phase
   if (!shopPhase) selectedUnit = null;
   startBattleBtn.disabled = placedUnits.length === 0 || !!pendingEvolution;
-  const fieldFull = placedUnits.length >= MAX_FIELD;
+  const fieldFull = placedUnits.length >= fieldCapacity();
   const benchFull = benchHeroes.length >= MAX_BENCH;
-  document.getElementById('fieldCount').textContent = `(${placedUnits.length}/${MAX_FIELD})`;
+  document.getElementById('fieldCount').textContent = `(${placedUnits.length}/${fieldCapacity()})`;
 
   shopCardsEl.innerHTML = '';
   shopOffers.forEach((hkey, idx) => {
@@ -3344,7 +3347,7 @@ function renderUI() {
   } else {
     selectedUnitBarEl.style.display = 'none';
     hintTextEl.textContent = fieldFull
-      ? `สนามเต็มแล้ว (${MAX_FIELD}/${MAX_FIELD}) — แตะฮีโร่บนกระดานเพื่อย้ายกลับม้านั่งก่อนวางตัวใหม่`
+      ? `สนามเต็มแล้ว (${fieldCapacity()}/${fieldCapacity()}) — แตะฮีโร่บนกระดานเพื่อย้ายกลับม้านั่งก่อนวางตัวใหม่`
       : (placedUnits.length===0 ? 'ยังไม่ได้วางฮีโร่ลงกระดาน — แตะฮีโร่ในแถวม้านั่ง (ล่างสุด) แล้วแตะช่องรบ' : benchFull ? 'ม้านั่งสำรองเต็มแล้ว — ซื้อฮีโร่เพิ่มไม่ได้จนกว่าจะวางลงกระดาน' : '');
     document.getElementById('hintBar').style.display = hintTextEl.textContent ? 'flex' : 'none';
   }
@@ -3593,7 +3596,7 @@ function moveUnitTo(u, c, r) {
   if (occupied.has(key(c, r))) return null;
   const wasBattle = placedUnits.includes(u);
   const goingToBattle = r !== BENCH_ROW;
-  if (goingToBattle && !wasBattle && placedUnits.length >= MAX_FIELD) return null; // สนามเต็ม (สูงสุด 5 ตัว)
+  if (goingToBattle && !wasBattle && placedUnits.length >= fieldCapacity()) return null; // สนามเต็มตามความจุปัจจุบัน
   if (wasBattle) placedUnits.splice(placedUnits.indexOf(u), 1);
   else benchHeroes.splice(benchHeroes.indexOf(u), 1);
   removeUnit(u);
