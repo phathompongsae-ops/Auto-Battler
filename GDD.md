@@ -221,6 +221,11 @@ procedural ที่จับคู่พาเลตต์สีจากชี
 
 ## 9. สถานะโค้ด/เดโมปัจจุบัน
 
+- `threejs-2_5d-clean-v5.html` — **เวอร์ชันหลักปัจจุบัน (Three.js 2.5D)**: กระดาน 8×8 ฉากป่า
+  กล้อง orthographic มุมสูง, layout 4 แถวจริง (HUD/battle/bench/shop) ไม่มี overlay ทับ Canvas,
+  ลาก-วาง + แตะเลือก-แตะวางบนมือถือ/iPad, ระบบต่อสู้ตาม `COMBAT_DECISIONS.md`
+  (wave/targeting/projectile/HP bar), ภาพจริงตัวแรก Swordman จาก `assets/v5/` —
+  ดูรายละเอียดใน `CLAUDE_HANDOFF.md` หัวข้อ "สถานะล่าสุด: V5"
 - `index.html` — เมนู GitHub Pages ลิงก์ไปยังเดโมและแกลเลอรีทั้งหมด
 - `autochess.html` — **โหมด auto chess เต็มลูป 15 ด่านตามสเปกแมพ 1** (ร้านค้า/จัดทัพ/มินิบอส/บอส)
   ดูข้อ 8

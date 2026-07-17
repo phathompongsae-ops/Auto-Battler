@@ -1,0 +1,1958 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>Auto Battler 2.5D — Clean V5</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%E2%9A%94%EF%B8%8F%3C/text%3E%3C/svg%3E">
+<style>
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+  html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#07120d;color:#f7e7ba;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;touch-action:none}
+
+  /* ---------- App grid: 4 real rows, no absolute overlays on the board ---------- */
+  #app{
+    /* fluid sizing: bench/shop scale with the real viewport height so the
+       board always keeps the majority of the screen on any device/viewer */
+    --slot:clamp(34px,8.5vh,58px);
+    --round:clamp(44px,11vh,88px);
+    --pic:clamp(34px,13vh,150px);
+    --side:clamp(64px,9vw,118px);
+    position:fixed;inset:0;
+    display:grid;
+    grid-template-rows:auto minmax(38vh,1fr) auto auto;
+    grid-template-areas:"hud" "battle" "bench" "shop";
+    row-gap:4px;
+    padding-top:max(6px,env(safe-area-inset-top));
+    padding-left:max(6px,env(safe-area-inset-left));
+    padding-right:max(6px,env(safe-area-inset-right));
+    padding-bottom:max(6px,env(safe-area-inset-bottom));
+    gap:6px;
+  }
+
+  /* ---------- Top HUD ---------- */
+  .hud{grid-area:hud;display:flex;align-items:center;gap:6px;padding:0 4px;flex-wrap:nowrap}
+  .pill{display:flex;align-items:center;gap:5px;border:1px solid #9b7840;background:linear-gradient(#241d12,#17130d);color:#f9e3a1;border-radius:14px;padding:5px 10px;font-size:11px;font-weight:800;white-space:nowrap}
+  .pill .xpbar{width:52px;height:5px;border-radius:3px;background:#3a2e1a;overflow:hidden;border:1px solid #6e5730}
+  .pill .xpbar i{display:block;height:100%;background:linear-gradient(#ffe38a,#c9942f)}
+  .btn{pointer-events:auto;border:1px solid #9b7840;background:linear-gradient(#241d12,#17130d);color:#f9e3a1;border-radius:9px;padding:6px 9px;font-size:10px;font-weight:800}
+  .hud .grow{flex:1}
+  .hud .right-btns{display:flex;gap:5px}
+
+  /* ---------- Battle row: left synergy | board | right team ---------- */
+  .battle{grid-area:battle;display:grid;grid-template-columns:var(--side) minmax(0,1fr) var(--side);gap:6px;min-height:0}
+  .side{border:1px solid #806536;border-radius:10px;background:#12110ddb;padding:6px;overflow-y:auto;min-height:0}
+  #synergyPanel{grid-column:1}
+  #teamPanel{grid-column:3}
+  .side h3{margin:0 0 6px;text-align:center;font-size:9px;letter-spacing:.05em;color:#e8c877}
+  .syn-row{display:flex;align-items:center;gap:6px;padding:4px 2px;border-bottom:1px solid #493a22}
+  .syn-icon{width:20px;height:20px;border-radius:5px;flex:none;display:grid;place-items:center;font-size:11px;color:#0c0c0c;font-weight:900;overflow:hidden}
+  .syn-icon canvas{width:100%;height:100%;display:block}
+  .syn-info{min-width:0;flex:1}
+  .syn-info b{display:block;font-size:8px;line-height:1.2}
+  .syn-info span{font-size:8px;color:#c9a862}
+  .team-row{display:flex;align-items:center;gap:5px;padding:3px 1px;border-bottom:1px solid #493a22}
+  .team-row canvas{width:22px;height:22px;border-radius:5px;border:1px solid #7c6636;flex:none}
+  .team-hp{flex:1;min-width:0}
+  .team-hp b{display:block;font-size:8px}
+  .team-hp .bar{height:4px;border-radius:2px;background:#3a2e1a;overflow:hidden;border:1px solid #6e5730}
+  .team-hp .bar i{display:block;height:100%;background:linear-gradient(#8be36a,#3f9c31)}
+  .team-empty{font-size:8px;color:#c9a862;text-align:center;padding-top:8px}
+
+  /* full-bleed scene: the canvas covers the whole screen, UI floats above */
+  .board-wrap{position:fixed;inset:0;z-index:1;pointer-events:auto;background:#0d1d13}
+  #game{display:block;width:100%;height:100%;touch-action:none}
+  .board-hint{display:none}
+  #app{pointer-events:none}
+  .hud,.battle,.bench-row,.shop-row{position:relative;z-index:2}
+  .hud{z-index:3}
+  .side{pointer-events:auto;position:relative;z-index:2}
+
+  /* landscape-only: block play in portrait */
+  #rotate{position:fixed;inset:0;z-index:99;display:none;align-items:center;justify-content:center;flex-direction:column;gap:14px;background:#111d12;color:#f3ead2;text-align:center;font-size:16px;font-weight:800;padding:24px}
+  #rotate .ric{font-size:52px;line-height:1;animation:spin 2.4s ease-in-out infinite}
+  @keyframes spin{0%,60%,100%{transform:rotate(0)}25%{transform:rotate(90deg)}}
+  @media(prefers-reduced-motion:reduce){#rotate .ric{animation:none}}
+  @media(orientation:portrait){#rotate{display:flex}}
+
+  /* ---------- Bench row ---------- */
+  .bench-row{grid-area:bench;display:flex;justify-content:center;margin-top:-2px}
+  .bench{display:grid;grid-template-columns:repeat(6,var(--slot));gap:8px;padding:0;border:0;background:transparent;pointer-events:auto}
+  .slot{width:var(--slot);height:calc(var(--slot)*1.12);border-radius:50%;background:radial-gradient(ellipse at 50% 32%,#7a7160,#4a443a 55%,#332e26 78%);position:relative;border:2px solid #5c5443;box-shadow:0 3px 6px #000a,inset 0 -3px 5px #0007}
+  .slot.filled{border-color:#d0a052}
+  .slot.selected{box-shadow:0 0 0 3px #ffe178}
+  .slot{overflow:visible}
+  .slot canvas{position:absolute;left:50%;bottom:22%;transform:translateX(-50%);width:96%;height:170%;object-fit:contain;object-position:50% 100%;pointer-events:none;filter:drop-shadow(0 3px 3px #0009)}
+  .slot b{position:absolute;bottom:1px;left:0;right:0;font-size:6.5px;text-align:center;color:#f7e7ba;text-shadow:0 1px 1px #000;pointer-events:none}
+  .slot.dragging-source{opacity:.35}
+
+  /* ---------- Shop row ---------- */
+  .shop-row{grid-area:shop;display:grid;grid-template-columns:var(--round) 1fr var(--round);gap:6px;align-items:center}
+  .round{pointer-events:auto;border:2px solid #98723a;border-radius:50%;width:var(--round);height:var(--round);background:radial-gradient(circle,#5c4119,#20150b 75%);color:#ffe6a0;font-weight:900;font-size:9px;line-height:1.5;display:flex;flex-direction:column;align-items:center;justify-content:center}
+  .round small{font-size:9px;color:#ffd873}
+  /* compact centered card strip like the reference — not edge-to-edge */
+  .shop{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;width:min(100%,30vw,380px);margin:0 auto}
+  .card{pointer-events:auto;border:1px solid #80643a;border-radius:9px;background:#14161a;text-align:center;padding:0;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 3px 8px #0009,inset 0 0 0 1px #0006}
+  .card>b{display:block;font-size:9px;font-weight:800;color:#f3ead2;padding:3px 2px;background:#0000004f;border-bottom:1px solid #ffffff12;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:.03em}
+  .card .pic{position:relative;height:var(--pic);overflow:hidden}
+  .card .pic canvas{width:100%;height:100%;object-fit:contain;object-position:50% 100%;filter:drop-shadow(0 3px 3px #0008)}
+  .card .tags{display:flex;flex-direction:column;align-items:center;gap:1px;padding:2px 4px 1px;min-height:10px}
+  .card .tags span{display:flex;align-items:center;gap:4px;font-size:7px;font-weight:700;color:#d8cfae}
+  .card .tags i{width:8px;height:8px;border-radius:3px;flex:none;box-shadow:inset 0 -1px 1px #0007}
+  .card button{display:flex;align-items:center;justify-content:center;gap:4px;margin:2px 5px 5px;border:1px solid #8a6c39;border-radius:6px;background:linear-gradient(#3d3016,#241c0e);color:#ffd873;font-size:9px;font-weight:900;padding:3px 0}
+  .card button .coin{width:10px;height:10px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ffeaa6,#e3b34d 55%,#8a5c14);border:1px solid #6e4c12;display:inline-block}
+  .card button:disabled{opacity:.4}
+  .card.empty{visibility:hidden}
+
+  .start{position:relative;pointer-events:auto;border:1px solid #a77d37;border-radius:8px;background:linear-gradient(#dba43b,#a2701e);color:#2a1a05;padding:7px 10px;font-weight:900;font-size:10px;margin-left:auto}
+  .start:disabled{opacity:.55}
+  .pill.wave{border-color:#c9a04c;background:linear-gradient(#33270f,#1d160a);font-size:12px}
+  .hud .start{margin:0}
+
+  /* ---------- Player HP (global pool — an incomplete wave clear costs HP instead of an instant loss) ---------- */
+  .pill.hp{border-color:#c94c4c;background:linear-gradient(#2a1414,#1a0d0d)}
+  .hpbar{width:60px;height:7px;border-radius:4px;background:#3a1616;overflow:hidden;border:1px solid #7a3030;display:inline-block}
+  .hpbar i{display:block;height:100%;background:linear-gradient(#ff9a86,#c9382f);transition:width .25s}
+
+  .game-over{position:fixed;inset:0;z-index:95;display:none;align-items:center;justify-content:center;background:#000000d9}
+  .game-over.show{display:flex}
+  .go-box{pointer-events:auto;display:flex;flex-direction:column;align-items:center;gap:10px;background:#17130fed;border:1px solid #c94c4c;border-radius:14px;padding:22px 28px;text-align:center}
+  .go-box b{font-size:20px;color:#ff8a7a;letter-spacing:.05em}
+  .go-box span{font-size:12px;color:#e8c877}
+  .go-box button{pointer-events:auto;border:1px solid #a77d37;border-radius:8px;background:linear-gradient(#dba43b,#a2701e);color:#2a1a05;padding:8px 16px;font-weight:900;font-size:11px}
+
+  .toast{position:fixed;left:50%;top:14%;transform:translateX(-50%);max-width:80%;padding:10px 14px;border:1px solid #c28f46;border-radius:10px;background:#17130fed;text-align:center;font-size:12px;z-index:60;display:none;pointer-events:none}
+  .toast.show{display:block}
+
+  .drag-ghost{position:fixed;width:52px;height:58px;pointer-events:none;z-index:80;transform:translate(-50%,-50%);border-radius:50%;box-shadow:0 0 0 2px #ffe178,0 4px 10px #000a;overflow:hidden}
+  .drag-ghost canvas{width:100%;height:100%}
+
+  /* ---------- Weapon shop popup (post-win drop) + inventory-tray drag-to-equip ---------- */
+  .weapon-shop{position:fixed;inset:0;z-index:70;display:none}
+  .weapon-shop.show{display:block}
+  .weapon-shop .wbackdrop{position:absolute;inset:0;background:#000000b3;pointer-events:auto}
+  .weapon-shop .wbox{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:8px;max-width:92vw;background:#17130fed;border:1px solid #c28f46;border-radius:14px;padding:14px 16px;pointer-events:auto}
+  .weapon-shop .wtitle{font-size:12px;font-weight:800;color:#ffe6a0;text-align:center}
+  .weapon-shop .wrow{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+  .wcard{border:2px solid #8a6c39;border-radius:8px;background:#241d12;padding:6px 8px;text-align:center;min-width:70px}
+  .wcard .wicon{width:40px;height:40px;margin:0 auto 4px}
+  .wcard .wicon canvas{width:100%;height:100%;display:block}
+  .wcard b{display:block;font-size:9px;color:#f3ead2;white-space:nowrap}
+  .wcard .wstat{font-size:9px;color:#8ad4ff;margin:3px 0}
+  .wcard button{display:flex;align-items:center;justify-content:center;gap:4px;width:100%;border:1px solid #8a6c39;border-radius:6px;background:linear-gradient(#3d3016,#241c0e);color:#ffd873;font-size:9px;font-weight:900;padding:3px 0}
+  .wcard button .coin{width:9px;height:9px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ffeaa6,#e3b34d 55%,#8a5c14);border:1px solid #6e4c12;display:inline-block}
+  .wcard button:disabled{opacity:.4}
+  .weapon-shop .wskip{pointer-events:auto;border:1px solid #806536;border-radius:7px;background:#2a2213;color:#d8c894;font-size:10px;padding:5px 14px}
+
+  .weapon-inventory{position:fixed;left:50%;top:12%;transform:translateX(-50%);z-index:65;display:none;flex-direction:row;gap:6px;pointer-events:none}
+  .weapon-inventory.show{display:flex}
+  .wslot{display:flex;flex-direction:column;align-items:center;gap:2px;background:#241d12ee;border:2px solid #ffe178;border-radius:10px;padding:5px 8px;pointer-events:auto;cursor:grab;touch-action:none}
+  .wslot canvas{width:26px;height:26px;display:block}
+  .wslot span{font-size:8px;color:#8ad4ff}
+
+  .weapon-ghost{position:fixed;z-index:80;transform:translate(-50%,-50%);pointer-events:none;padding:5px 8px;border-radius:8px;background:#241d12ee;border:2px solid #ffe178;color:#ffe6a0;font-size:9px;font-weight:800;white-space:nowrap}
+
+  .syn-row.active{background:#2c2410;box-shadow:inset 0 0 0 1px #c9a862;border-radius:6px}
+
+  @media(max-height:420px){
+    .board-hint{display:none}
+    .card .tags{display:none}
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="hud">
+    <div class="pill">Lv.<b id="lv">1</b><span class="xpbar"><i id="xpbar" style="width:0%"></i></span><b id="xp">0/4</b></div>
+    <div class="pill">💰 <b id="gold">3</b></div>
+    <div class="pill">👥 <b id="used">0</b>/<b id="cap">1</b></div>
+    <div class="grow"></div>
+    <div class="pill wave">WAVE <b id="wave">1</b></div>
+    <div class="pill hp">❤ <span class="hpbar"><i id="hpbar" style="width:100%"></i></span><b id="hpval">100</b></div>
+    <div class="grow"></div>
+    <div class="right-btns">
+      <button class="btn" id="speed">×1</button>
+      <button class="btn" id="reset">⌂</button>
+    </div>
+    <button class="start" id="start">เริ่มต่อสู้</button>
+  </div>
+
+  <div class="battle">
+    <aside class="side" id="synergyPanel">
+      <h3>SYNERGY</h3>
+    </aside>
+
+    <div class="board-wrap" id="boardWrap">
+      <canvas id="game"></canvas>
+      <div class="board-hint" id="boardHint">ลากฮีโร่จาก Bench หรือแตะเลือกแล้วแตะช่องในกระดาน</div>
+    </div>
+
+    <aside class="side" id="teamPanel">
+      <h3>TEAM</h3>
+      <div class="team-empty" id="teamEmpty">ยังไม่มีฮีโร่</div>
+    </aside>
+  </div>
+
+  <div class="bench-row">
+    <div class="bench" id="bench"></div>
+  </div>
+
+  <div class="shop-row">
+    <button class="round" id="buyXp">BUY EXP<br><small>4💰</small></button>
+    <div class="shop" id="shop"></div>
+    <button class="round" id="refresh">REFRESH<br><small>2💰</small></button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<div class="weapon-shop" id="weaponShop"></div>
+<div class="weapon-inventory" id="weaponInventory"></div>
+<div class="game-over" id="gameOver">
+  <div class="go-box">
+    <b>GAME OVER</b>
+    <span>Player HP หมดแล้ว</span>
+    <button id="goRestart">เริ่มใหม่</button>
+  </div>
+</div>
+<div id="rotate"><div class="ric">⟳</div>กรุณาหมุนเครื่องเป็นแนวนอน<br>เกมนี้เล่นได้เฉพาะแนวนอน</div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ============================== helpers ============================== */
+  const q = id => document.getElementById(id);
+  const toastEl = q('toast');
+  let toastTimer = null;
+  function toast(msg, ms){
+    toastEl.textContent = msg;
+    toastEl.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(()=>toastEl.classList.remove('show'), ms||1600);
+  }
+
+  function shade(hex, percent){
+    const n = parseInt(hex.slice(1),16);
+    let r=(n>>16)+Math.round(255*percent/100);
+    let g=(n>>8&0xff)+Math.round(255*percent/100);
+    let b=(n&0xff)+Math.round(255*percent/100);
+    r=Math.max(0,Math.min(255,r));g=Math.max(0,Math.min(255,g));b=Math.max(0,Math.min(255,b));
+    return '#'+(1<<24|r<<16|g<<8|b).toString(16).slice(1);
+  }
+
+  function mixHex(a, b, t){ // blend hex color a toward b by fraction t
+    const pa = parseInt(a.slice(1),16), pb = parseInt(b.slice(1),16);
+    const ch = s => Math.round(((pa>>s)&255)*(1-t) + ((pb>>s)&255)*t);
+    return '#'+(1<<24|ch(16)<<16|ch(8)<<8|ch(0)).toString(16).slice(1);
+  }
+
+  const TAG_COLORS = {Warrior:'#e0665a', Ranger:'#6fce8f', Mage:'#8ab6ff', Forest:'#8fd16a', Merchant:'#e0b04c'};
+
+  /* ============================== game_config.json ==============================
+     Fetched at boot; the object below is the fallback (mirrors game_config.json
+     exactly) so the game still runs if the file 404s or fetch is blocked (e.g.
+     opened via file://) — same defensive pattern as the asset loaders below. */
+  let CONFIG = {
+    HERO_CONFIG: { MAX_SYNERGY: 3, SHOP_TIER_1_ONLY: true },
+    WEAPON_POOL: {
+      weapon_lvl1: { id:'weapon_lvl1', name:'Basic Weapon',    level:1, pAtk:8  },
+      weapon_lvl2: { id:'weapon_lvl2', name:'Enhanced Weapon', level:2, pAtk:16 },
+      weapon_lvl3: { id:'weapon_lvl3', name:'Elite Weapon',    level:3, pAtk:28 }
+    },
+    FUSION_CONFIG: { inputClassTier:1, outputClassTier:2, requiredCopies:2, allowClass2Fusion:false },
+    FUSION_RULES: [ { input:['app_ninja','app_ninja'], output:'ninja' } ],
+    DROP_TABLE_BY_STAGE: {
+      "1": { dropType:'weapon', dropCount:1, items:[{id:'weapon_lvl1',weight:100}] },
+      "2": { dropType:'weapon', dropCount:1, items:[{id:'weapon_lvl1',weight:75},{id:'weapon_lvl2',weight:25}] },
+      "3": { dropType:'weapon', dropCount:1, items:[{id:'weapon_lvl1',weight:55},{id:'weapon_lvl2',weight:45}] },
+      "4": { dropType:'weapon', dropCount:1, items:[{id:'weapon_lvl1',weight:40},{id:'weapon_lvl2',weight:45},{id:'weapon_lvl3',weight:15}] },
+      "5": { dropType:'weapon', dropCount:1, items:[{id:'weapon_lvl1',weight:25},{id:'weapon_lvl2',weight:45},{id:'weapon_lvl3',weight:30}] }
+    }
+  };
+  function loadConfig(){
+    return fetch('game_config.json')
+      .then(r=>{ if(!r.ok) throw new Error(r.status); return r.json(); })
+      .then(cfg=>{ CONFIG = cfg; })
+      .catch(()=>{}); // keep the built-in fallback above
+  }
+
+  function roundRect(ctx,x,y,w,h,r){
+    ctx.beginPath();
+    ctx.moveTo(x+r,y);
+    ctx.arcTo(x+w,y,x+w,y+h,r);
+    ctx.arcTo(x+w,y+h,x,y+h,r);
+    ctx.arcTo(x,y+h,x,y,r);
+    ctx.arcTo(x,y,x+w,y,r);
+    ctx.closePath();
+  }
+
+  /* ============================== hero data ============================== */
+  // class badge drawn as vector shapes (no emoji), per handoff instructions
+  const CLASS_BADGE = {
+    Warrior:(ctx,x,y,s)=>{ // small blade
+      ctx.strokeStyle='#e8e8e8';ctx.lineWidth=s*.09;ctx.lineCap='round';
+      ctx.beginPath();ctx.moveTo(x-s*.22,y+s*.22);ctx.lineTo(x+s*.22,y-s*.22);ctx.stroke();
+      ctx.strokeStyle='#8a6a2a';ctx.lineWidth=s*.16;
+      ctx.beginPath();ctx.moveTo(x-s*.05,y+s*.30);ctx.lineTo(x+s*.05,y+s*.18);ctx.stroke();
+    },
+    Ranger:(ctx,x,y,s)=>{ // bow arc
+      ctx.strokeStyle='#caa15a';ctx.lineWidth=s*.08;
+      ctx.beginPath();ctx.arc(x,y,s*.26,-Math.PI*.62,Math.PI*.62);ctx.stroke();
+      ctx.strokeStyle='#e8e0c8';ctx.lineWidth=s*.045;
+      ctx.beginPath();ctx.moveTo(x+s*.13,y-s*.21);ctx.lineTo(x+s*.13,y+s*.21);ctx.stroke();
+    },
+    Mage:(ctx,x,y,s)=>{ // staff + orb
+      ctx.strokeStyle='#8a6a3a';ctx.lineWidth=s*.07;ctx.lineCap='round';
+      ctx.beginPath();ctx.moveTo(x-s*.16,y+s*.26);ctx.lineTo(x+s*.16,y-s*.20);ctx.stroke();
+      ctx.fillStyle='#8ad4ff';
+      ctx.beginPath();ctx.arc(x+s*.18,y-s*.24,s*.11,0,Math.PI*2);ctx.fill();
+    }
+  };
+
+  // Class-1 roster (2 gold each) — art set from the chibi card batch.
+  // `card` = the card background hue; all 8 are distinct per design request
+  const HEROES = [
+    {name:'Mage',     cls:'Mage',    tags:['Mage','Forest'],     color:'#6a4a9c', hair:'#241b30', card:'#5b2f8a'},
+    {name:'Fighter',  cls:'Warrior', tags:['Warrior','Forest'],  color:'#a8502f', hair:'#4a2b18', card:'#8a2f26'},
+    {name:'Swordman', cls:'Warrior', tags:['Warrior','Forest'],  color:'#5577a8', hair:'#6a4a2c', card:'#2e4f8e'},
+    {name:'Acolyte',  cls:'Mage',    tags:['Mage','Forest'],     color:'#c9a84c', hair:'#e8d8a8', card:'#8a6d1f'},
+    {name:'Priestess',cls:'Mage',    tags:['Mage','Forest'],     color:'#2f8fd6', hair:'#efe6c8', card:'#1f7a8a'},
+    {name:'Archer',   cls:'Ranger',  tags:['Ranger','Forest'],   color:'#4a7a3c', hair:'#5a3c22', card:'#2f7a34'},
+    {name:'Summoner', cls:'Mage',    tags:['Mage','Forest'],     color:'#2f4f8a', hair:'#2a2320', card:'#8a2f6a'},
+    {name:'Merchant', cls:'Warrior', tags:['Merchant','Forest'], color:'#b07a3c', hair:'#4a3320', card:'#9c5a1f'}
+  ];
+
+  /* real art assets (per-hero, optional) — heroes without files here keep the
+     canvas-drawn placeholder, and any fetch failure falls back the same way */
+  const HERO_ASSETS = {
+    Mage:{face:'assets/v5/face_mage.png', body:'assets/v5/body_mage.png'},
+    Fighter:{face:'assets/v5/face_fighter.png', body:'assets/v5/body_fighter.png'},
+    Swordman:{face:'assets/v5/face_swordman.png', body:'assets/v5/body_swordman.png'},
+    Acolyte:{face:'assets/v5/face_acolyte.png', body:'assets/v5/body_acolyte.png'},
+    Priestess:{face:'assets/v5/face_priestess.png', body:'assets/v5/body_priestess.png'},
+    Archer:{face:'assets/v5/face_archer.png', body:'assets/v5/body_archer.png'},
+    Summoner:{face:'assets/v5/face_summoner.png', body:'assets/v5/body_summoner.png'},
+    Merchant:{face:'assets/v5/face_merchant.png', body:'assets/v5/body_merchant.png'}
+  };
+  const MON_ASSETS = {
+    Slime:'assets/v5/mon_slime.png',
+    Wolf:'assets/v5/mon_wolf.png',
+    Imp:'assets/v5/mon_imp.png',
+    Orc:'assets/v5/mon_orc.png'
+  };
+  const GROUND_ASSET = 'assets/v5/board_ground.jpg'; // painted top-down arena
+  let applyGroundArtFn = null; // set in boot(); called when the texture loads
+  function loadGroundAsset(){
+    fetch(GROUND_ASSET)
+      .then(r=>{ if(!r.ok) throw new Error(r.status); return r.blob(); })
+      .then(b=>createImageBitmap(b))
+      .then(bmp=>{ if(applyGroundArtFn) applyGroundArtFn(bmp); })
+      .catch(()=>{}); // keep the low-poly board
+  }
+  const heroBitmaps = {}; // name -> {face:ImageBitmap, body:ImageBitmap}
+  const monBitmaps = {};  // type -> ImageBitmap
+  function loadHeroAssets(){
+    Object.entries(HERO_ASSETS).forEach(([name, paths])=>{
+      heroBitmaps[name] = heroBitmaps[name] || {};
+      Object.entries(paths).forEach(([kind, url])=>{
+        fetch(url)
+          .then(r=>{ if(!r.ok) throw new Error(r.status); return r.blob(); })
+          .then(b=>createImageBitmap(b))
+          .then(bmp=>{
+            heroBitmaps[name][kind] = bmp;
+            renderAll();
+            if(refreshBoardSpritesFn) refreshBoardSpritesFn();
+          })
+          .catch(()=>{}); // keep placeholder art
+      });
+    });
+    Object.entries(MON_ASSETS).forEach(([type, url])=>{
+      fetch(url)
+        .then(r=>{ if(!r.ok) throw new Error(r.status); return r.blob(); })
+        .then(b=>createImageBitmap(b))
+        .then(bmp=>{ monBitmaps[type] = bmp; })
+        .catch(()=>{}); // keep placeholder art
+    });
+  }
+
+  // synergy tag icons (assets/icons/classes/) — the flat TAG_COLORS square
+  // stays as the fallback backdrop until each icon loads
+  const CLASS_ICON_ASSETS = {
+    Warrior:'assets/icons/classes/warrior.png',
+    Ranger:'assets/icons/classes/ranger.png',
+    Mage:'assets/icons/classes/mage.png',
+    Forest:'assets/icons/classes/forest.png',
+    Merchant:'assets/icons/classes/merchant.png'
+  };
+  const classIconBitmaps = {};
+  function loadClassIcons(){
+    Object.entries(CLASS_ICON_ASSETS).forEach(([tag, url])=>{
+      fetch(url)
+        .then(r=>{ if(!r.ok) throw new Error(r.status); return r.blob(); })
+        .then(b=>createImageBitmap(b))
+        .then(bmp=>{ classIconBitmaps[tag] = bmp; renderSynergy(); })
+        .catch(()=>{}); // keep the flat color square
+    });
+  }
+  function tagIconCanvas(tag, size){
+    const bmp = classIconBitmaps[tag];
+    if(!bmp) return null;
+    const key = 'tagicon|'+tag+'|'+size;
+    if(portraitCache.has(key)) return portraitCache.get(key);
+    const c = document.createElement('canvas'); c.width=c.height=size;
+    c.getContext('2d').drawImage(bmp,0,0,size,size);
+    portraitCache.set(key,c);
+    return c;
+  }
+
+  /* ============================== portrait drawing (canvas, no emoji) ============================== */
+  const portraitCache = new Map();
+  function facePortrait(hero, size){
+    const bmp = heroBitmaps[hero.name] && heroBitmaps[hero.name].face;
+    const key = hero.name+'|f'+size+(bmp?'|a':'');
+    if(portraitCache.has(key)) return portraitCache.get(key);
+    const c = document.createElement('canvas'); c.width=c.height=size;
+    const ctx = c.getContext('2d');
+    if(bmp){
+      roundRect(ctx,0,0,size,size,size*.22); ctx.clip();
+      const grd0 = ctx.createLinearGradient(0,0,0,size);
+      grd0.addColorStop(0, shade(hero.color,10)); grd0.addColorStop(1, shade(hero.color,-40));
+      ctx.fillStyle = grd0; ctx.fillRect(0,0,size,size);
+      const s = Math.max(size/bmp.width, size/bmp.height);
+      const dw = bmp.width*s, dh = bmp.height*s;
+      ctx.drawImage(bmp, (size-dw)/2, (size-dh)/2, dw, dh);
+      portraitCache.set(key,c);
+      return c;
+    }
+    const grd = ctx.createRadialGradient(size*.5,size*.5,2,size*.5,size*.5,size*.62);
+    grd.addColorStop(0, shade(hero.color,18)); grd.addColorStop(1, shade(hero.color,-38));
+    ctx.fillStyle = grd; roundRect(ctx,0,0,size,size,size*.22); ctx.fill();
+    // head
+    ctx.fillStyle='#ffdfc0';
+    ctx.beginPath();ctx.ellipse(size*.5,size*.48,size*.27,size*.29,0,0,Math.PI*2);ctx.fill();
+    // hair back
+    ctx.fillStyle=hero.hair;
+    ctx.beginPath();ctx.ellipse(size*.5,size*.30,size*.31,size*.20,0,Math.PI,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.ellipse(size*.24,size*.42,size*.09,size*.16,0,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.ellipse(size*.76,size*.42,size*.09,size*.16,0,0,Math.PI*2);ctx.fill();
+    // eyes
+    ctx.fillStyle='#2b2b2b';
+    ctx.beginPath();ctx.ellipse(size*.40,size*.49,size*.032,size*.05,0,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.ellipse(size*.60,size*.49,size*.032,size*.05,0,0,Math.PI*2);ctx.fill();
+    // blush
+    ctx.fillStyle='rgba(255,120,120,.35)';
+    ctx.beginPath();ctx.ellipse(size*.33,size*.57,size*.045,size*.025,0,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.ellipse(size*.67,size*.57,size*.045,size*.025,0,0,Math.PI*2);ctx.fill();
+    // class badge, bottom-right
+    if(CLASS_BADGE[hero.cls]) CLASS_BADGE[hero.cls](ctx, size*.78, size*.80, size*.34);
+    portraitCache.set(key,c);
+    return c;
+  }
+
+  function bodyPortrait(hero){
+    const bmp = heroBitmaps[hero.name] && heroBitmaps[hero.name].body;
+    const key = hero.name+'|body'+(bmp?'|a':'');
+    if(portraitCache.has(key)) return portraitCache.get(key);
+    if(bmp){
+      // higher-res canvas for real art; contain-fit, feet at the bottom edge
+      const W=256, H=384;
+      const c2 = document.createElement('canvas'); c2.width=W; c2.height=H;
+      const cx2 = c2.getContext('2d');
+      const s = Math.min(W/bmp.width, H/bmp.height);
+      const dw = bmp.width*s, dh = bmp.height*s;
+      cx2.drawImage(bmp, (W-dw)/2, H-dh, dw, dh);
+      portraitCache.set(key,c2);
+      return c2;
+    }
+    const w=96,h=140;
+    const c = document.createElement('canvas'); c.width=w; c.height=h;
+    const ctx = c.getContext('2d');
+    // legs
+    ctx.fillStyle=shade(hero.color,-45);
+    ctx.fillRect(w*.36,h*.72,w*.11,h*.24);
+    ctx.fillRect(w*.53,h*.72,w*.11,h*.24);
+    // torso/robe
+    ctx.fillStyle=hero.color;
+    roundRect(ctx,w*.28,h*.42,w*.44,h*.36,w*.10);ctx.fill();
+    // arms
+    ctx.fillStyle=shade(hero.color,-15);
+    ctx.fillRect(w*.16,h*.46,w*.13,h*.28);
+    ctx.fillRect(w*.71,h*.46,w*.13,h*.28);
+    // head
+    ctx.fillStyle='#ffdfc0';
+    ctx.beginPath();ctx.ellipse(w*.5,h*.24,w*.22,h*.155,0,0,Math.PI*2);ctx.fill();
+    // hair
+    ctx.fillStyle=hero.hair;
+    ctx.beginPath();ctx.ellipse(w*.5,h*.14,w*.25,h*.11,0,Math.PI,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.ellipse(w*.28,h*.22,w*.07,h*.09,0,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.ellipse(w*.72,h*.22,w*.07,h*.09,0,0,Math.PI*2);ctx.fill();
+    // eyes
+    ctx.fillStyle='#2b2b2b';
+    ctx.beginPath();ctx.ellipse(w*.43,h*.25,w*.025,h*.02,0,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.ellipse(w*.57,h*.25,w*.025,h*.02,0,0,Math.PI*2);ctx.fill();
+    // class weapon accent
+    if(CLASS_BADGE[hero.cls]) CLASS_BADGE[hero.cls](ctx, w*.82, h*.55, w*.30);
+    portraitCache.set(key,c);
+    return c;
+  }
+
+  // forest-themed monster sprites, drawn with canvas like the hero bodies
+  function monsterBody(type){
+    const bmp = monBitmaps[type];
+    const key = 'mon|'+type+(bmp?'|a':'');
+    if(portraitCache.has(key)) return portraitCache.get(key);
+    if(bmp){
+      const W=256, H=Math.round(256*bmp.height/bmp.width);
+      const c2 = document.createElement('canvas'); c2.width=W; c2.height=H;
+      c2.getContext('2d').drawImage(bmp, 0, 0, W, H);
+      portraitCache.set(key,c2);
+      return c2;
+    }
+    const w=96,h=140;
+    const c = document.createElement('canvas'); c.width=w; c.height=h;
+    const ctx = c.getContext('2d');
+    if(type==='Slime'){
+      const g = ctx.createRadialGradient(w*.5,h*.62,6,w*.5,h*.66,w*.5);
+      g.addColorStop(0,'#8ce07f'); g.addColorStop(1,'#3f9c34');
+      ctx.fillStyle=g;
+      ctx.beginPath();ctx.ellipse(w*.5,h*.66,w*.40,h*.30,0,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='rgba(255,255,255,.45)';
+      ctx.beginPath();ctx.ellipse(w*.36,h*.52,w*.10,h*.06,-.5,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='#173a12';
+      ctx.beginPath();ctx.ellipse(w*.40,h*.62,w*.045,h*.045,0,0,Math.PI*2);ctx.fill();
+      ctx.beginPath();ctx.ellipse(w*.60,h*.62,w*.045,h*.045,0,0,Math.PI*2);ctx.fill();
+      ctx.strokeStyle='#173a12';ctx.lineWidth=3;
+      ctx.beginPath();ctx.arc(w*.5,h*.70,w*.08,.15*Math.PI,.85*Math.PI);ctx.stroke();
+    } else if(type==='Wolf'){
+      ctx.fillStyle='#6f7480';
+      ctx.beginPath();ctx.ellipse(w*.5,h*.66,w*.30,h*.22,0,0,Math.PI*2);ctx.fill(); // body
+      ctx.fillStyle='#8a8f9c';
+      ctx.beginPath();ctx.ellipse(w*.5,h*.36,w*.24,h*.17,0,0,Math.PI*2);ctx.fill(); // head
+      // ears
+      ctx.fillStyle='#5b606c';
+      ctx.beginPath();ctx.moveTo(w*.32,h*.28);ctx.lineTo(w*.38,h*.10);ctx.lineTo(w*.46,h*.24);ctx.closePath();ctx.fill();
+      ctx.beginPath();ctx.moveTo(w*.68,h*.28);ctx.lineTo(w*.62,h*.10);ctx.lineTo(w*.54,h*.24);ctx.closePath();ctx.fill();
+      // snout
+      ctx.fillStyle='#c7cad2';
+      ctx.beginPath();ctx.ellipse(w*.5,h*.44,w*.11,h*.07,0,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='#2c2f36';
+      ctx.beginPath();ctx.ellipse(w*.5,h*.42,w*.035,h*.025,0,0,Math.PI*2);ctx.fill();
+      // eyes
+      ctx.fillStyle='#f5d95a';
+      ctx.beginPath();ctx.ellipse(w*.40,h*.33,w*.04,h*.03,0,0,Math.PI*2);ctx.fill();
+      ctx.beginPath();ctx.ellipse(w*.60,h*.33,w*.04,h*.03,0,0,Math.PI*2);ctx.fill();
+      // legs
+      ctx.fillStyle='#5b606c';
+      ctx.fillRect(w*.32,h*.80,w*.10,h*.16);
+      ctx.fillRect(w*.58,h*.80,w*.10,h*.16);
+    } else if(type==='Imp'){
+      ctx.fillStyle='#7a3fb5';
+      roundRect(ctx,w*.32,h*.44,w*.36,h*.32,w*.09);ctx.fill(); // robe body
+      ctx.fillStyle='#9a5bd6';
+      ctx.beginPath();ctx.ellipse(w*.5,h*.30,w*.21,h*.15,0,0,Math.PI*2);ctx.fill(); // head
+      // horns
+      ctx.fillStyle='#e8d9a0';
+      ctx.beginPath();ctx.moveTo(w*.34,h*.24);ctx.lineTo(w*.26,h*.08);ctx.lineTo(w*.42,h*.18);ctx.closePath();ctx.fill();
+      ctx.beginPath();ctx.moveTo(w*.66,h*.24);ctx.lineTo(w*.74,h*.08);ctx.lineTo(w*.58,h*.18);ctx.closePath();ctx.fill();
+      // glowing eyes
+      ctx.fillStyle='#ffd95a';
+      ctx.beginPath();ctx.ellipse(w*.42,h*.30,w*.04,h*.035,0,0,Math.PI*2);ctx.fill();
+      ctx.beginPath();ctx.ellipse(w*.58,h*.30,w*.04,h*.035,0,0,Math.PI*2);ctx.fill();
+      // little wings
+      ctx.fillStyle='#5c2f8a';
+      ctx.beginPath();ctx.moveTo(w*.30,h*.50);ctx.lineTo(w*.10,h*.42);ctx.lineTo(w*.28,h*.62);ctx.closePath();ctx.fill();
+      ctx.beginPath();ctx.moveTo(w*.70,h*.50);ctx.lineTo(w*.90,h*.42);ctx.lineTo(w*.72,h*.62);ctx.closePath();ctx.fill();
+      // legs
+      ctx.fillStyle='#4a2570';
+      ctx.fillRect(w*.38,h*.74,w*.09,h*.20);
+      ctx.fillRect(w*.53,h*.74,w*.09,h*.20);
+    } else { // Orc
+      ctx.fillStyle='#4a3324';
+      ctx.fillRect(w*.34,h*.72,w*.12,h*.24);
+      ctx.fillRect(w*.54,h*.72,w*.12,h*.24); // legs
+      ctx.fillStyle='#6b4a2c';
+      roundRect(ctx,w*.26,h*.42,w*.48,h*.36,w*.10);ctx.fill(); // armor torso
+      ctx.fillStyle='#5f9e3f';
+      ctx.fillRect(w*.14,h*.46,w*.13,h*.26);
+      ctx.fillRect(w*.73,h*.46,w*.13,h*.26); // arms
+      ctx.beginPath();ctx.ellipse(w*.5,h*.24,w*.24,h*.165,0,0,Math.PI*2);ctx.fill(); // head
+      // tusks
+      ctx.fillStyle='#f2ead0';
+      ctx.beginPath();ctx.moveTo(w*.40,h*.32);ctx.lineTo(w*.37,h*.24);ctx.lineTo(w*.45,h*.29);ctx.closePath();ctx.fill();
+      ctx.beginPath();ctx.moveTo(w*.60,h*.32);ctx.lineTo(w*.63,h*.24);ctx.lineTo(w*.55,h*.29);ctx.closePath();ctx.fill();
+      // angry eyes
+      ctx.fillStyle='#2b1b10';
+      ctx.beginPath();ctx.ellipse(w*.42,h*.22,w*.035,h*.022,-.3,0,Math.PI*2);ctx.fill();
+      ctx.beginPath();ctx.ellipse(w*.58,h*.22,w*.035,h*.022,.3,0,Math.PI*2);ctx.fill();
+      // axe accent
+      ctx.strokeStyle='#8a6a2a';ctx.lineWidth=5;ctx.lineCap='round';
+      ctx.beginPath();ctx.moveTo(w*.84,h*.40);ctx.lineTo(w*.84,h*.68);ctx.stroke();
+      ctx.fillStyle='#c9ccd4';
+      ctx.beginPath();ctx.arc(w*.84,h*.40,w*.10,-Math.PI*.9,Math.PI*.1);ctx.fill();
+    }
+    portraitCache.set(key,c);
+    return c;
+  }
+
+  /* ============================== game state ============================== */
+  const XP_NEED = {1:4,2:8,3:12,4:16};
+  const BOARD_N = 8;
+  const PLAYER_ROWS = [5,6,7]; // 3 rows nearest the camera/UI (bottom rows)
+  const PLAYER_MAX_HP = 100;
+  const SHOP_SLOTS = 3;
+
+  const state = {
+    gold:3, level:1, xp:0,
+    bench:new Array(6).fill(null),
+    offers:[],
+    boardCount:0,
+    selectedBench:-1,
+    wave:1,
+    playerHP:PLAYER_MAX_HP, // global HP pool — a wave that isn't fully cleared costs HP instead of an instant loss
+    gameOver:false,
+    phase:'prep', // 'prep' | 'combat'
+    speedMul:1,
+    weaponOffers:[], // 3-4 post-win weapon shop offers (cleared unbought at next battle start)
+    weaponShopOpen:false, // ShowWeaponShopPopup() modal visibility
+    inventory:[],    // purchased weapons not yet equipped on a hero (drag from tray to equip)
+    currentBossId:null, // picked by pickBossId() at battle start on boss waves (5/10/15) — placeholder, unused in combat yet
+    currentBoss:null    // resolved BOSS_POOL entry (name/hp/atk) for currentBossId, via getBossData()
+  };
+  const board = []; // board[r][c] = {hero, sprite, shadow} | null
+  for(let r=0;r<BOARD_N;r++){ board.push(new Array(BOARD_N).fill(null)); }
+
+  function randomHero(){ return HEROES[Math.floor(Math.random()*HEROES.length)]; }
+  // Wave 1's shop always guarantees a Swordman in the first slot (per game design request)
+  function refillOffers(){
+    state.offers = Array.from({length:SHOP_SLOTS}, randomHero);
+    if(state.wave===1) state.offers[0] = HEROES.find(h=>h.name==='Swordman');
+  }
+  // Wave 1-5: x1, 6-10: x3, 11+: x5 — HP lost on an incomplete clear scales with how far in you are
+  function waveDamageMultiplier(wave){
+    if(wave>=11) return 5;
+    if(wave>=6) return 3;
+    return 1;
+  }
+
+  /* ============================== boss spawn scaffold (placeholder — sprite/combat AI come later) ==============================
+     Real name/hp/p_atk/m_atk/p_def/m_def per game design data. Mechanics are documented as
+     comments only — not implemented as combat logic yet (no push/stun/warp/target-switch
+     behavior wired up). No spawnWave()/combat integration yet either: picking still only
+     resolves data, it doesn't spawn a boss unit onto the board. */
+  const BOSS_POOL = [
+    // Stage 5 — Stone Warden: ผู้พิทักษ์ศิลาโบราณ เกราะหนาแต่แพ้เวท
+    // mechanics: ทุกการโจมตีครั้งที่ 4 ใช้ Shield Slam โจมตีพื้นที่ด้านหน้าและผลักเป้าหมาย 1 ช่อง
+    { id:'boss_ph_5a', name:'Stone Warden', hp:900, p_atk:32, m_atk:0, p_def:25, m_def:5 },
+    // Stage 5 — Bone Dragon Whelp: ลูกมังกรกระดูก โจมตีเป็นเวทมนตร์ระยะกลาง
+    // mechanics: ทุก 7 วินาทีพ่นไฟกระดูก (Magic Damage) เป็นเส้นตรงไปยังฮีโร่ที่อยู่ไกลที่สุด
+    { id:'boss_ph_5b', name:'Bone Dragon Whelp', hp:760, p_atk:10, m_atk:28, p_def:10, m_def:20 },
+    // Stage 10 — Arena Golem: โกเลมหินขนาดใหญ่ พลังชีวิตและเกราะกายภาพสูงมาก
+    // mechanics: โจมตีฮีโร่ที่มีพลังโจมตีสูงสุด และหันเกราะหนาไปยังทิศที่รับดาเมจเยอะสุด
+    { id:'boss_ph_10a', name:'Arena Golem', hp:1650, p_atk:40, m_atk:0, p_def:35, m_def:10 },
+    // Stage 10 — Shadow Huntress: นักล่าเงาความเร็วสูง ล้วงแนวหลัง
+    // mechanics: วาร์ปไปโจมตีด้านข้าง/หลังเป้าหมายที่อยู่โดดเดี่ยว ทำโบนัส Physical Damage
+    { id:'boss_ph_10b', name:'Shadow Huntress', hp:1150, p_atk:36, m_atk:15, p_def:15, m_def:15 },
+    // Stage 15 — Immortal Champion: แชมเปียนโบราณ แข็งแกร่งทั้งกายภาพและเวทมนตร์
+    // mechanics: ใช้ King's Judgment สร้างดาเมจรอบเป้าหมายที่มี HP สูงสุด
+    { id:'boss_champion_big', name:'Immortal Champion', hp:3200, p_atk:40, m_atk:30, p_def:30, m_def:30 }
+  ];
+  const BOSS_POOL_BY_ID = {};
+  BOSS_POOL.forEach(b => { BOSS_POOL_BY_ID[b.id] = b; });
+  function getBossData(id){ return BOSS_POOL_BY_ID[id] || null; }
+
+  const STAGE_PLAN = {
+    5:  ['boss_ph_5a', 'boss_ph_5b'],
+    10: ['boss_ph_10a', 'boss_ph_10b'],
+    15: ['boss_champion_big'] // locked — only one choice
+  };
+  function pickBossId(wave){
+    const ids = STAGE_PLAN[wave];
+    if(!ids || !ids.length) return null;
+    return ids[Math.floor(Math.random()*ids.length)];
+  }
+
+  /* ============================== rendering: HUD / bench / shop / synergy / team ============================== */
+  function renderHUD(){
+    q('gold').textContent = state.gold;
+    q('wave').textContent = state.wave;
+    q('lv').textContent = state.level;
+    q('cap').textContent = state.level;
+    q('used').textContent = state.boardCount;
+    q('hpval').textContent = Math.max(0, state.playerHP);
+    q('hpbar').style.width = Math.max(0, state.playerHP/PLAYER_MAX_HP*100)+'%';
+    if(state.level<5){
+      q('xp').textContent = state.xp+'/'+XP_NEED[state.level];
+      q('xpbar').style.width = Math.min(100, state.xp/XP_NEED[state.level]*100)+'%';
+    } else {
+      q('xp').textContent = 'MAX';
+      q('xpbar').style.width = '100%';
+    }
+  }
+
+  function renderBench(){
+    const b = q('bench');
+    b.innerHTML = '';
+    state.bench.forEach((hero,i)=>{
+      const d = document.createElement('div');
+      d.className = 'slot'+(hero?' filled':'')+(state.selectedBench===i?' selected':'');
+      if(hero){
+        d.appendChild(cloneCanvas(bodyPortrait(hero))); // full body standing on the pedestal
+        const label = document.createElement('b');
+        label.textContent = hero.name + (hero.weapon ? ' ⚔+'+hero.weapon.pAtk : '');
+        d.appendChild(label);
+        d.dataset.benchIndex = i;
+      }
+      b.appendChild(d);
+    });
+  }
+
+  function renderShop(){
+    const s = q('shop');
+    s.innerHTML = '';
+    state.offers.forEach((hero, idx)=>{
+      const d = document.createElement('div');
+      d.className = 'card';
+      // two-tone card like the reference: dark edges, bright glow behind
+      // the character (8 distinct hues per hero)
+      const cc = hero.card || hero.color;
+      d.style.background =
+        'radial-gradient(ellipse 90% 55% at 50% 46%,'+mixHex(cc,'#ffffff',.30)+' 0%,'
+        +mixHex(cc,'#0d0f12',.18)+' 62%,'+mixHex(cc,'#0d0f12',.62)+' 100%)';
+      d.style.borderColor = mixHex('#c9a04c',cc,.3);
+      const name = document.createElement('b'); name.textContent = hero.name; d.appendChild(name);
+      const pic = document.createElement('div'); pic.className='pic';
+      pic.appendChild(cloneCanvas(bodyPortrait(hero)));
+      d.appendChild(pic);
+      const btn = document.createElement('button');
+      const coin = document.createElement('span'); coin.className='coin';
+      btn.appendChild(coin);
+      btn.appendChild(document.createTextNode('2'));
+      const benchFull = state.bench.every(x=>x!==null);
+      btn.disabled = state.gold<2 || benchFull;
+      btn.onclick = ()=>buyHero(idx);
+      d.appendChild(btn);
+      s.appendChild(d);
+    });
+  }
+
+  function cloneCanvas(src){
+    const c = document.createElement('canvas'); c.width=src.width; c.height=src.height;
+    c.getContext('2d').drawImage(src,0,0);
+    return c;
+  }
+
+  function renderSynergy(){
+    const panel = q('synergyPanel');
+    panel.querySelectorAll('.syn-row').forEach(el=>el.remove());
+    const counts = {};
+    for(let r=0;r<BOARD_N;r++) for(let c2=0;c2<BOARD_N;c2++){
+      const cell = board[r][c2];
+      if(cell) cell.hero.tags.forEach(t=>{ counts[t]=(counts[t]||0)+1; });
+    }
+    const order = ['Warrior','Ranger','Mage','Forest','Merchant'];
+    // game_config.json HERO_CONFIG.MAX_SYNERGY: at most this many combos are
+    // highlighted as "active" at once (display cap only — counts/thresholds
+    // don't grant any combat bonus yet, see COMBAT_DECISIONS.md item A)
+    const maxSynergy = (CONFIG.HERO_CONFIG && CONFIG.HERO_CONFIG.MAX_SYNERGY) || 3;
+    const active = order.filter(t=>(counts[t]||0)>=2)
+      .sort((a,b)=>(counts[b]||0)-(counts[a]||0))
+      .slice(0, maxSynergy);
+    order.forEach(tag=>{
+      const row = document.createElement('div'); row.className='syn-row'+(active.indexOf(tag)!==-1?' active':'');
+      const icon = document.createElement('div'); icon.className='syn-icon';
+      const iconCv = tagIconCanvas(tag, 20);
+      if(iconCv){ icon.appendChild(iconCv); } // real icon already has its own colored disc baked in
+      else { icon.style.background = TAG_COLORS[tag]; } // fallback flat square until it loads
+      row.appendChild(icon);
+      const info = document.createElement('div'); info.className='syn-info';
+      const b = document.createElement('b'); b.textContent = tag;
+      const span = document.createElement('span'); span.textContent = (counts[tag]||0)+'/2';
+      info.appendChild(b); info.appendChild(span);
+      row.appendChild(info);
+      panel.appendChild(row);
+    });
+  }
+
+  function ownedHeroes(){
+    const list = [];
+    for(let r=0;r<BOARD_N;r++) for(let c2=0;c2<BOARD_N;c2++){ if(board[r][c2]) list.push(board[r][c2].hero); }
+    state.bench.forEach(h=>{ if(h) list.push(h); });
+    return list;
+  }
+
+  function renderTeam(){
+    const panel = q('teamPanel');
+    panel.querySelectorAll('.team-row').forEach(el=>el.remove());
+    let rows;
+    if(state.phase==='combat' && combatView.length){
+      rows = combatView.map(u=>({hero:u.hero, ratio:Math.max(0,u.hp/u.maxHp), dead:u.dead}));
+      state.bench.forEach(h=>{ if(h) rows.push({hero:h, ratio:1, dead:false}); });
+    } else {
+      rows = ownedHeroes().map(h=>({hero:h, ratio:1, dead:false}));
+    }
+    q('teamEmpty').style.display = rows.length ? 'none' : 'block';
+    rows.forEach(({hero,ratio,dead})=>{
+      const row = document.createElement('div'); row.className='team-row';
+      if(dead) row.style.opacity='.35';
+      row.appendChild(cloneCanvas(facePortrait(hero,44)));
+      const hp = document.createElement('div'); hp.className='team-hp';
+      const b = document.createElement('b'); b.textContent = hero.name + (hero.weapon ? ' ⚔+'+hero.weapon.pAtk : '');
+      const bar = document.createElement('div'); bar.className='bar';
+      const i = document.createElement('i'); i.style.width=(ratio*100)+'%';
+      bar.appendChild(i); hp.appendChild(b); hp.appendChild(bar);
+      row.appendChild(hp);
+      panel.appendChild(row);
+    });
+  }
+
+  function renderAll(){
+    renderHUD(); renderBench(); renderShop(); renderSynergy(); renderTeam();
+    renderWeaponShop(); renderWeaponInventory();
+  }
+
+  /* ============================== shop / xp actions ============================== */
+  function buyHero(offerIdx){
+    const template = state.offers[offerIdx];
+    if(state.gold<2){ toast('ทองไม่พอ'); return; }
+    const freeSlot = state.bench.findIndex(x=>x===null);
+    if(freeSlot===-1){ toast('Bench เต็มแล้ว'); return; }
+    state.gold -= 2;
+    // per-purchase copy: HEROES entries are shared templates (randomHero() returns the
+    // same object every time a class is offered), so every hero needs its own copy here
+    // or per-instance state like .weapon would bleed across every hero of that class
+    state.bench[freeSlot] = Object.assign({}, template);
+    checkFusion(ownedHeroes()); // scaffolding only — see checkFusion() comment
+    renderAll();
+  }
+
+  /* ============================== fusion (star-up) scaffold — inert ==============================
+     Validates FUSION_CONFIG.requiredCopies against owned heroes and would merge a matching
+     pair per FUSION_RULES, but no hero in HEROES has an `id` field (they're only matched by
+     `name`), and none of them is "app_ninja" — so `copies` is always empty and this never
+     actually fires. To activate: give a roster entry `id:'app_ninja'` and add a real "ninja"
+     class (STATS entry + roster/asset) for the fusion output to land on. */
+  function checkFusion(ownerList){
+    const fc = CONFIG.FUSION_CONFIG;
+    if(!fc || fc.requiredCopies!==2) return null;
+    for(const rule of (CONFIG.FUSION_RULES||[])){
+      const [a,b] = rule.input;
+      if(a!==b) continue; // this scaffold only supports same-hero pairs
+      const copies = ownerList.filter(h=>h && h.id===a);
+      if(copies.length>=fc.requiredCopies) return {rule, copies:copies.slice(0,fc.requiredCopies)};
+    }
+    return null;
+  }
+
+  /* ============================== weapon icons: atlas loader + single-shape dynamic-color fallback ==============================
+     Real assets not in the repo yet — assumed schema once they land:
+       assets/icons/weapons/weapon_icons.webp  (one sprite sheet)
+       assets/icons/weapons/weapon_icons.json  ({ "<WEAPON_POOL id>": {x,y,w,h}, ... })
+     Until then every weapon reuses one drawn glyph tinted per rarity ("Single SVG,
+     Dynamic Color" reimplemented on <canvas> to keep the project's canvas-only rule). */
+  const RARITY_BY_LEVEL = {1:'common', 2:'rare', 3:'epic'};
+  const RARITY_COLORS = {common:'#9aa0a6', rare:'#4a90e2', epic:'#9b59b6'};
+  function weaponRarity(w){ return RARITY_BY_LEVEL[w.level] || 'common'; }
+
+  let weaponAtlasImg = null, weaponAtlasMap = null;
+  function loadWeaponAtlas(){
+    fetch('assets/icons/weapons/weapon_icons.json').then(r=>r.ok?r.json():null).then(map=>{
+      if(!map) return null;
+      weaponAtlasMap = map;
+      return fetch('assets/icons/weapons/weapon_icons.webp').then(r=>r.ok?r.blob():null);
+    }).then(blob=>blob?createImageBitmap(blob):null).then(bmp=>{
+      if(!bmp) return;
+      weaponAtlasImg = bmp;
+      renderWeaponShop(); renderWeaponInventory();
+    }).catch(()=>{}); // atlas not present yet — procedural glyph stays in use
+  }
+
+  function drawWeaponGlyph(ctx, size, color){
+    const bladeLen = size*0.62, bladeW = size*0.16;
+    ctx.save();
+    ctx.translate(size/2, size/2); ctx.rotate(-Math.PI/4);
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.moveTo(-bladeW/2, -bladeLen/2);
+    ctx.lineTo(bladeW/2, -bladeLen/2);
+    ctx.lineTo(bladeW/2, bladeLen/2-size*0.12);
+    ctx.lineTo(0, bladeLen/2);
+    ctx.lineTo(-bladeW/2, bladeLen/2-size*0.12);
+    ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#3a2c18';
+    ctx.fillRect(-bladeW*0.9, bladeLen/2-size*0.10, bladeW*1.8, size*0.09);
+    ctx.fillRect(-size*0.045, bladeLen/2-size*0.02, size*0.09, size*0.22);
+    ctx.restore();
+  }
+  function weaponIconCanvas(w, size){
+    const cv = document.createElement('canvas'); cv.width=size; cv.height=size;
+    const ctx = cv.getContext('2d');
+    const rarity = weaponRarity(w), rgb = RARITY_COLORS[rarity];
+    ctx.fillStyle = mixHex(rgb,'#0d0f12',.45);
+    roundRect(ctx, 1,1,size-2,size-2, size*0.18); ctx.fill();
+    if(weaponAtlasImg && weaponAtlasMap && weaponAtlasMap[w.id]){
+      const f = weaponAtlasMap[w.id];
+      ctx.drawImage(weaponAtlasImg, f.x, f.y, f.w, f.h, size*0.08, size*0.08, size*0.84, size*0.84);
+    } else {
+      drawWeaponGlyph(ctx, size, mixHex(rgb,'#ffffff',.55));
+    }
+    return cv;
+  }
+
+  /* ============================== weapon shop popup (post-win drop) ============================== */
+  function weaponPrice(w){
+    // NOT specified in game_config.json (WEAPON_POOL has no cost field) — placeholder
+    // scaled off hero cost (2g): level*3g. Flagging for review, see chat summary.
+    return w.level*3;
+  }
+  function rollWeaponOffers(stage){
+    // DROP_TABLE_BY_STAGE only defines stages 1-5; any wave beyond that automatically
+    // falls back to stage 5's table instead of running out of weapon drops forever
+    const table = CONFIG.DROP_TABLE_BY_STAGE[String(stage)] ?? CONFIG.DROP_TABLE_BY_STAGE['5'];
+    if(!table || !table.items || !table.items.length) return [];
+    const totalWeight = table.items.reduce((s,it)=>s+it.weight,0);
+    const count = 3 + Math.floor(Math.random()*2); // 3 or 4 offers per popup
+    const offers = [];
+    for(let i=0;i<count;i++){
+      let roll = Math.random()*totalWeight;
+      let pickedId = table.items[table.items.length-1].id;
+      for(const it of table.items){
+        if(roll<it.weight){ pickedId=it.id; break; }
+        roll -= it.weight;
+      }
+      offers.push(CONFIG.WEAPON_POOL[pickedId]);
+    }
+    return offers;
+  }
+  // Opens the centered weapon-shop modal with a fresh set of offers (called after a Win).
+  function ShowWeaponShopPopup(offers){
+    state.weaponOffers = offers;
+    state.weaponShopOpen = true;
+    renderWeaponShop();
+  }
+  function closeWeaponShopPopup(){
+    state.weaponShopOpen = false;
+    state.weaponOffers = [];
+    renderWeaponShop();
+  }
+  function renderWeaponShop(){
+    const el = q('weaponShop');
+    if(!state.weaponShopOpen || !state.weaponOffers.length){ el.classList.remove('show'); el.innerHTML=''; return; }
+    el.classList.add('show');
+    el.innerHTML = '';
+    const backdrop = document.createElement('div'); backdrop.className='wbackdrop';
+    backdrop.onclick = closeWeaponShopPopup;
+    el.appendChild(backdrop);
+    const box = document.createElement('div'); box.className='wbox';
+    const title = document.createElement('div'); title.className='wtitle';
+    title.textContent = 'ร้านอาวุธ — เลือกซื้อได้หลายชิ้น';
+    box.appendChild(title);
+    const row = document.createElement('div'); row.className='wrow';
+    state.weaponOffers.forEach((w,idx)=>{
+      const rarity = weaponRarity(w);
+      const card = document.createElement('div'); card.className='wcard';
+      card.style.borderColor = RARITY_COLORS[rarity];
+      const iconWrap = document.createElement('div'); iconWrap.className='wicon';
+      iconWrap.appendChild(weaponIconCanvas(w, 40));
+      card.appendChild(iconWrap);
+      const name = document.createElement('b'); name.textContent = w.name; card.appendChild(name);
+      const stat = document.createElement('div'); stat.className='wstat'; stat.textContent = '+'+w.pAtk+' ATK'; card.appendChild(stat);
+      const price = weaponPrice(w);
+      const btn = document.createElement('button');
+      const coin = document.createElement('span'); coin.className='coin'; btn.appendChild(coin);
+      btn.appendChild(document.createTextNode(String(price)));
+      btn.disabled = state.gold<price;
+      btn.onclick = ()=>buyWeapon(idx);
+      card.appendChild(btn);
+      row.appendChild(card);
+    });
+    box.appendChild(row);
+    const skip = document.createElement('button'); skip.className='wskip';
+    skip.textContent = 'ปิด';
+    skip.onclick = closeWeaponShopPopup;
+    box.appendChild(skip);
+    el.appendChild(box);
+  }
+  // Buying deducts coins (state.gold), adds the weapon to the inventory tray, and
+  // closes the popup immediately — equipping onto a hero happens later via drag.
+  function buyWeapon(idx){
+    const w = state.weaponOffers[idx];
+    if(!w) return;
+    const price = weaponPrice(w);
+    if(state.gold<price){ toast('ทองไม่พอ'); return; }
+    state.gold -= price;
+    state.inventory.push(Object.assign({}, w));
+    closeWeaponShopPopup();
+    toast('ได้รับ '+w.name+'! เก็บไว้ในกระเป๋าอาวุธ');
+    renderAll();
+  }
+  function renderWeaponInventory(){
+    const el = q('weaponInventory');
+    el.innerHTML = '';
+    if(!state.inventory.length){ el.classList.remove('show'); return; }
+    el.classList.add('show');
+    state.inventory.forEach((w,idx)=>{
+      const rarity = weaponRarity(w);
+      const slot = document.createElement('div'); slot.className='wslot';
+      slot.style.borderColor = RARITY_COLORS[rarity];
+      slot.dataset.invIndex = idx;
+      slot.appendChild(weaponIconCanvas(w, 26));
+      const span = document.createElement('span'); span.textContent = '+'+w.pAtk; slot.appendChild(span);
+      el.appendChild(slot);
+    });
+  }
+  function equipWeapon(hero, invIndex){
+    const w = state.inventory[invIndex];
+    if(!hero || !w) return;
+    hero.weapon = w;
+    state.inventory.splice(invIndex, 1);
+    toast(hero.name+' สวม '+w.name+' แล้ว (+'+w.pAtk+' ATK)');
+    renderAll();
+  }
+
+  q('refresh').onclick = ()=>{
+    if(state.gold<2){ toast('ทองไม่พอ'); return; }
+    state.gold -= 2; refillOffers(); renderAll();
+  };
+  q('buyXp').onclick = ()=>{
+    if(state.level>=5){ toast('เลเวลสูงสุดแล้ว'); return; }
+    if(state.gold<4){ toast('ทองไม่พอ'); return; }
+    state.gold -= 4; state.xp += 4;
+    while(state.level<5 && state.xp>=XP_NEED[state.level]){ state.xp -= XP_NEED[state.level]; state.level++; }
+    renderAll();
+  };
+  q('start').onclick = ()=>{
+    if(state.phase!=='prep') return;
+    if(state.boardCount<1){ toast('ต้องวางฮีโร่ลงกระดานอย่างน้อย 1 ตัวก่อนเริ่มต่อสู้'); return; }
+    if(!startBattleFn){ toast('โหมดกระดานสำรองยังไม่รองรับการต่อสู้'); return; }
+    startBattleFn();
+  };
+  q('reset').onclick = ()=>{
+    if(!confirm('รีเซ็ตเกม?')) return;
+    location.reload();
+  };
+  q('goRestart').onclick = ()=>location.reload();
+  function showGameOver(){
+    state.gameOver = true;
+    q('gameOver').classList.add('show');
+  }
+  // Game speed multiplier: dt is already scaled by state.speedMul before it reaches
+  // updateCombat() (see the anim() loop), so x2/x3/x4 just simulate more game-seconds
+  // per real frame — attack-range checks use tile distance (unaffected) and the
+  // projectile-hit check treats "distance <= this frame's step" as a hit rather than
+  // letting it overshoot, so higher multipliers can't skip past a target undetected.
+  function setSpeedMul(mul){
+    state.speedMul = mul;
+    q('speed').textContent = '×'+mul;
+  }
+  q('speed').onclick = ()=>{
+    setSpeedMul(state.speedMul>=4 ? 1 : state.speedMul+1);
+  };
+  // debug/test shortcut: number keys 1-4 jump straight to that speed for fast-forwarding
+  // through the 15-stage boss test loop
+  document.addEventListener('keydown', e=>{
+    if(e.key==='1' || e.key==='2' || e.key==='3' || e.key==='4') setSpeedMul(parseInt(e.key, 10));
+  });
+
+  /* ============================== bench pointer: drag + tap-select ============================== */
+  let dragState = null; // {benchIndex, startX, startY, moved, pointerId, ghostEl}
+
+  function benchIndexFromEl(el){
+    while(el && !el.dataset){ el = el.parentElement; }
+    while(el && el.dataset.benchIndex===undefined){ el = el.parentElement; if(el===document.body) return -1; }
+    return el ? parseInt(el.dataset.benchIndex,10) : -1;
+  }
+
+  // native drag/selection gestures fire pointercancel mid-drag — suppress them
+  document.addEventListener('dragstart', e=>e.preventDefault());
+
+  q('bench').addEventListener('pointerdown', e=>{
+    if(state.phase!=='prep') return;
+    const idx = benchIndexFromEl(e.target);
+    if(idx===-1 || !state.bench[idx]) return;
+    e.preventDefault();
+    dragState = {benchIndex:idx, startX:e.clientX, startY:e.clientY, moved:false, pointerId:e.pointerId, ghostEl:null};
+  });
+
+  function startGhost(ds, x, y){
+    const hero = state.bench[ds.benchIndex];
+    const ghost = document.createElement('div'); ghost.className='drag-ghost';
+    ghost.appendChild(cloneCanvas(facePortrait(hero,64)));
+    document.body.appendChild(ghost);
+    ghost.style.left = x+'px'; ghost.style.top = y+'px';
+    ds.ghostEl = ghost;
+    highlightValidTiles(true);
+  }
+  function moveGhost(ds, x, y){
+    if(ds.ghostEl){ ds.ghostEl.style.left = x+'px'; ds.ghostEl.style.top = y+'px'; }
+  }
+  function endGhost(ds){
+    if(ds.ghostEl && ds.ghostEl.parentNode) ds.ghostEl.parentNode.removeChild(ds.ghostEl);
+    highlightValidTiles(false);
+  }
+
+  document.addEventListener('pointermove', e=>{
+    if(!dragState || e.pointerId!==dragState.pointerId) return;
+    const dx=e.clientX-dragState.startX, dy=e.clientY-dragState.startY;
+    if(!dragState.moved && Math.hypot(dx,dy)>6){
+      dragState.moved = true;
+      startGhost(dragState, e.clientX, e.clientY);
+    }
+    if(dragState.moved) moveGhost(dragState, e.clientX, e.clientY);
+  });
+
+  document.addEventListener('pointerup', e=>{
+    if(!dragState || e.pointerId!==dragState.pointerId) return;
+    const ds = dragState; dragState = null;
+    if(ds.moved){
+      endGhost(ds);
+      tryPlaceAtScreenPoint(ds.benchIndex, e.clientX, e.clientY);
+    } else {
+      toggleSelect(ds.benchIndex);
+    }
+  });
+  document.addEventListener('pointercancel', ()=>{
+    if(dragState){ endGhost(dragState); dragState=null; }
+  });
+
+  function toggleSelect(idx){
+    state.selectedBench = (state.selectedBench===idx) ? -1 : idx;
+    highlightValidTiles(state.selectedBench!==-1);
+    renderBench();
+  }
+
+  /* ============================== canvas tap-cell (fallback + drop target) ============================== */
+  let canvasPointer = null; // {startX,startY,pointerId}
+  const canvasEl = q('game');
+
+  canvasEl.addEventListener('pointerdown', e=>{
+    if(dragState) return; // dragging from bench takes priority
+    canvasPointer = {startX:e.clientX, startY:e.clientY, pointerId:e.pointerId};
+  });
+  canvasEl.addEventListener('pointerup', e=>{
+    if(!canvasPointer || e.pointerId!==canvasPointer.pointerId) return;
+    const cp = canvasPointer; canvasPointer = null;
+    const dx=e.clientX-cp.startX, dy=e.clientY-cp.startY;
+    if(Math.hypot(dx,dy)>6) return; // was a camera-drag-like gesture, not a tap
+    if(state.selectedBench!==-1){
+      const idx = state.selectedBench;
+      state.selectedBench = -1;
+      highlightValidTiles(false);
+      tryPlaceAtScreenPoint(idx, e.clientX, e.clientY);
+      renderBench();
+    }
+  });
+
+  /* ============================== placement logic ============================== */
+  function tryPlaceAtScreenPoint(benchIndex, clientX, clientY){
+    if(state.phase!=='prep'){ toast('วางตัวได้เฉพาะช่วงเตรียมทีม'); return; }
+    const hero = state.bench[benchIndex];
+    if(!hero) return;
+    const rect = canvasEl.getBoundingClientRect();
+    if(clientX<rect.left || clientX>rect.right || clientY<rect.top || clientY>rect.bottom){
+      return; // dropped outside the board — cancel silently
+    }
+    const tile = pickTile(clientX, clientY, rect);
+    if(!tile){ toast('วางในช่องกระดานเท่านั้น'); return; }
+    if(PLAYER_ROWS.indexOf(tile.r)===-1){ toast('วางได้เฉพาะ 3 แถวล่างของกระดาน'); return; }
+    if(board[tile.r][tile.c]){ toast('ช่องนี้มีฮีโร่แล้ว'); return; }
+    if(state.boardCount>=state.level){ toast('ลงสนามได้สูงสุด '+state.level+' ตัวที่เลเวลนี้'); return; }
+    placeHero(tile.r, tile.c, hero);
+    state.bench[benchIndex] = null;
+    renderAll();
+  }
+
+  /* ============================== weapon drag-to-equip (from inventory tray) ============================== */
+  let weaponDrag = null; // {startX,startY,moved,pointerId,ghostEl,invIndex}
+
+  q('weaponInventory').addEventListener('pointerdown', e=>{
+    const slot = e.target.closest('.wslot');
+    if(!slot) return;
+    e.preventDefault();
+    const invIndex = parseInt(slot.dataset.invIndex, 10);
+    weaponDrag = {startX:e.clientX, startY:e.clientY, moved:false, pointerId:e.pointerId, ghostEl:null, invIndex};
+  });
+
+  function startWeaponGhost(wd, x, y){
+    const w = state.inventory[wd.invIndex];
+    if(!w) return;
+    const ghost = document.createElement('div'); ghost.className='weapon-ghost';
+    ghost.textContent = w.name;
+    document.body.appendChild(ghost);
+    ghost.style.left = x+'px'; ghost.style.top = y+'px';
+    wd.ghostEl = ghost;
+  }
+  function moveWeaponGhost(wd, x, y){
+    if(wd.ghostEl){ wd.ghostEl.style.left = x+'px'; wd.ghostEl.style.top = y+'px'; }
+  }
+  function endWeaponGhost(wd){
+    if(wd.ghostEl && wd.ghostEl.parentNode) wd.ghostEl.parentNode.removeChild(wd.ghostEl);
+  }
+
+  document.addEventListener('pointermove', e=>{
+    if(!weaponDrag || e.pointerId!==weaponDrag.pointerId) return;
+    const dx=e.clientX-weaponDrag.startX, dy=e.clientY-weaponDrag.startY;
+    if(!weaponDrag.moved && Math.hypot(dx,dy)>6){
+      weaponDrag.moved = true;
+      startWeaponGhost(weaponDrag, e.clientX, e.clientY);
+    }
+    if(weaponDrag.moved) moveWeaponGhost(weaponDrag, e.clientX, e.clientY);
+  });
+  document.addEventListener('pointerup', e=>{
+    if(!weaponDrag || e.pointerId!==weaponDrag.pointerId) return;
+    const wd = weaponDrag; weaponDrag = null;
+    if(wd.moved){
+      endWeaponGhost(wd);
+      tryEquipAtScreenPoint(e.clientX, e.clientY, wd.invIndex);
+    } else {
+      toast('ลากไอคอนอาวุธไปวางบนฮีโร่เพื่อสวมใส่');
+    }
+  });
+  document.addEventListener('pointercancel', ()=>{
+    if(weaponDrag){ endWeaponGhost(weaponDrag); weaponDrag=null; }
+  });
+
+  function tryEquipAtScreenPoint(clientX, clientY, invIndex){
+    if(!state.inventory[invIndex]) return;
+    const domTarget = document.elementFromPoint(clientX, clientY);
+    const benchIdx = benchIndexFromEl(domTarget);
+    if(benchIdx!==-1 && state.bench[benchIdx]){ equipWeapon(state.bench[benchIdx], invIndex); return; }
+    const rect = canvasEl.getBoundingClientRect();
+    if(clientX>=rect.left && clientX<=rect.right && clientY>=rect.top && clientY<=rect.bottom){
+      const tile = pickTile(clientX, clientY, rect);
+      if(tile && board[tile.r][tile.c]){ equipWeapon(board[tile.r][tile.c].hero, invIndex); return; }
+    }
+    toast('ลากไปวางบนฮีโร่ (ม้านั่งหรือในสนาม) เพื่อสวมอาวุธ');
+  }
+
+  /* ============================== Three.js scene ============================== */
+  function loadScript(src, ok, fail){
+    const s = document.createElement('script'); s.src = src; s.onload = ok; s.onerror = fail;
+    document.head.appendChild(s);
+  }
+  loadScript('https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js', boot,
+    ()=>loadScript('https://unpkg.com/three@0.128.0/build/three.min.js', boot,
+    ()=>{ toast('โหลด Three.js ไม่สำเร็จ จึงเปิดโหมดกระดานสำรอง', 3000); fallback(); }));
+
+  let pickTile = ()=>null;
+  let highlightValidTiles = ()=>{};
+  let placeHero = ()=>{};
+  let startBattleFn = null;
+  let combatView = []; // live ally units, read by renderTeam during combat
+  let refreshBoardSpritesFn = null; // swaps placed-sprite textures once real art loads
+
+  function fallback(){
+    const c = canvasEl, x = c.getContext('2d');
+    if(!x){ toast('ไม่สามารถเปิดโหมดกระดานสำรองได้', 3000); return; }
+    const wrap = q('boardWrap');
+    function draw(){
+      const w = wrap.clientWidth, h = wrap.clientHeight;
+      c.width = w*devicePixelRatio; c.height = h*devicePixelRatio;
+      x.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+      x.fillStyle = '#0d1d13'; x.fillRect(0,0,w,h);
+      const size = Math.min(w,h)*0.92;
+      const L = (w-size)/2, T = (h-size)/2;
+      for(let r=0;r<BOARD_N;r++) for(let c2=0;c2<BOARD_N;c2++){
+        x.fillStyle = (r+c2)%2 ? '#3a4a37' : '#33422f';
+        if(PLAYER_ROWS.indexOf(r)!==-1) x.fillStyle = (r+c2)%2 ? '#4a5a3f' : '#425238';
+        x.fillRect(L+c2*size/BOARD_N, T+r*size/BOARD_N, size/BOARD_N-1, size/BOARD_N-1);
+      }
+    }
+    new ResizeObserver(draw).observe(wrap);
+    draw();
+  }
+
+  function boot(){
+    try{
+      const THREE_ = window.THREE;
+      const canvas = canvasEl;
+      const wrap = q('boardWrap');
+      const renderer = new THREE_.WebGLRenderer({canvas, antialias:true, alpha:false});
+      renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));
+      renderer.shadowMap.enabled = true;
+
+      const scene = new THREE_.Scene();
+      scene.background = new THREE_.Color(0x0d1d13);
+      scene.fog = new THREE_.Fog(0x0d1d13, 26, 44);
+
+      // tilted "auto chess" camera (~45°): depth foreshortening makes the square
+      // board project wide-and-short like the reference art, so it fills
+      // landscape screens instead of sitting as a small square in a wide strip.
+      // Orthographic + a dynamic contain-fit in resize() keeps the whole board
+      // visible and tappable on any aspect ratio (very wide/short phones included).
+      const camera = new THREE_.OrthographicCamera(-1, 1, 1, -1, .1, 100);
+      camera.position.set(0, 11, 11);
+      camera.lookAt(0, 0, .4);
+      camera.updateMatrixWorld(true);
+
+      scene.add(new THREE_.HemisphereLight(0xd9f2d1, 0x24351f, .85));
+      const sun = new THREE_.DirectionalLight(0xffedbf, .9);
+      sun.position.set(-6, 12, 7);
+      sun.castShadow = true;
+      scene.add(sun);
+
+      // ground
+      const ground = new THREE_.Mesh(
+        new THREE_.CircleGeometry(15, 48),
+        new THREE_.MeshStandardMaterial({color:0x2c5334, roughness:1})
+      );
+      ground.rotation.x = -Math.PI/2; ground.position.y = -.16; ground.receiveShadow = true;
+      scene.add(ground);
+
+      // board group
+      const boardGroup = new THREE_.Group(); scene.add(boardGroup);
+      const TILE = 1.06;
+      const tileMeshes = []; // visible tiles (small gap, for the grid look)
+      const hitPlanes = [];  // full-coverage invisible planes used for raycasting (no dead gaps between tiles)
+      const playerTileMat = new THREE_.MeshStandardMaterial({color:0x7c896d, roughness:1});
+      const enemyTileMat = new THREE_.MeshStandardMaterial({color:0x6d7c63, roughness:1});
+      const highlightMat = new THREE_.MeshStandardMaterial({color:0x9be36a, roughness:1, emissive:0x2f5c1c, emissiveIntensity:.6});
+      const hitPlaneMat = new THREE_.MeshBasicMaterial({transparent:true, opacity:0, depthWrite:false});
+      for(let r=0;r<BOARD_N;r++) for(let c2=0;c2<BOARD_N;c2++){
+        const isPlayerRow = PLAYER_ROWS.indexOf(r)!==-1;
+        const userData = {r, c:c2, isPlayerRow};
+        const mat = ((r+c2)%2 ? playerTileMat : enemyTileMat).clone();
+        const m = new THREE_.Mesh(new THREE_.BoxGeometry(TILE*.995, .12, TILE*.995), mat);
+        m.position.set((c2-3.5)*TILE, 0, (r-3.5)*TILE);
+        m.receiveShadow = true;
+        m.userData = userData;
+        boardGroup.add(m);
+        tileMeshes.push(m);
+
+        const hit = new THREE_.Mesh(new THREE_.PlaneGeometry(TILE*1.02, TILE*1.02), hitPlaneMat);
+        hit.rotation.x = -Math.PI/2;
+        hit.position.set(m.position.x, .07, m.position.z);
+        hit.userData = userData;
+        boardGroup.add(hit);
+        hitPlanes.push(hit);
+      }
+
+      // nature decor (trees/rocks/water) stays even with the painted ground;
+      // boardDecor (ritual circle, fence, house) is replaced by the art
+      const decorGroup = new THREE_.Group(); scene.add(decorGroup);
+      const boardDecor = new THREE_.Group(); scene.add(boardDecor);
+
+      // circular ritual decal in the center (canvas texture)
+      (function ritualDecal(){
+        const cs = 512;
+        const cc = document.createElement('canvas'); cc.width=cc.height=cs;
+        const cx = cc.getContext('2d');
+        cx.strokeStyle = 'rgba(230,210,150,0.55)'; cx.lineWidth = 5;
+        cx.beginPath(); cx.arc(cs/2,cs/2,cs*0.40,0,Math.PI*2); cx.stroke();
+        cx.beginPath(); cx.arc(cs/2,cs/2,cs*0.30,0,Math.PI*2); cx.stroke();
+        cx.lineWidth = 2;
+        for(let i=0;i<12;i++){
+          const a = i/12*Math.PI*2;
+          cx.beginPath();
+          cx.moveTo(cs/2+Math.cos(a)*cs*0.30, cs/2+Math.sin(a)*cs*0.30);
+          cx.lineTo(cs/2+Math.cos(a)*cs*0.40, cs/2+Math.sin(a)*cs*0.40);
+          cx.stroke();
+        }
+        const tex = new THREE_.CanvasTexture(cc);
+        const decal = new THREE_.Mesh(new THREE_.PlaneGeometry(TILE*3.4, TILE*3.4), new THREE_.MeshBasicMaterial({map:tex, transparent:true, depthWrite:false}));
+        decal.rotation.x = -Math.PI/2; decal.position.y = .07;
+        boardDecor.add(decal);
+      })();
+
+      // fence posts bordering the board
+      const fenceMat = new THREE_.MeshStandardMaterial({color:0x5a4023, roughness:1});
+      const half = BOARD_N/2*TILE + .3;
+      for(let i=-4;i<=4;i++){
+        const xoff = i/4*half;
+        [-half, half].forEach(z=>{
+          const post = new THREE_.Mesh(new THREE_.CylinderGeometry(.05,.06,.5,6), fenceMat);
+          post.position.set(xoff, .1, z);
+          boardDecor.add(post);
+        });
+      }
+      [[-half,0],[half,0]].forEach(([x,zoff])=>{
+        const post = new THREE_.Mesh(new THREE_.CylinderGeometry(.05,.06,.5,6), fenceMat);
+        post.position.set(x, .1, zoff);
+        boardDecor.add(post);
+      });
+
+      // trees ringing the arena — kept close enough to stay inside the
+      // orthographic contain-fit frustum so the forest is actually visible
+      for(let i=0;i<20;i++){
+        const a = i/20*Math.PI*2, r = 5.6+(i%3)*.55;
+        if(Math.sin(a)>.55) continue; // keep the front arc clear so trees never cover the player's rows
+        const trunk = new THREE_.Mesh(new THREE_.CylinderGeometry(.15,.22,1.3,7), new THREE_.MeshStandardMaterial({color:0x573820}));
+        trunk.position.set(Math.cos(a)*r, .65, Math.sin(a)*r);
+        const crown = new THREE_.Mesh(new THREE_.ConeGeometry(.7,1.6,8), new THREE_.MeshStandardMaterial({color:i%2?0x2c6939:0x3c7c44}));
+        crown.position.set(trunk.position.x, 1.7, trunk.position.z);
+        decorGroup.add(trunk); decorGroup.add(crown);
+      }
+      // rocks
+      for(let i=0;i<8;i++){
+        const a = (i+.5)/8*Math.PI*2, r=5.1+((i*2.3)%1)*.9;
+        if(Math.sin(a)>.55) continue;
+        const rock = new THREE_.Mesh(new THREE_.IcosahedronGeometry(.35+Math.random()*.25,0), new THREE_.MeshStandardMaterial({color:0x555a52,roughness:1}));
+        rock.position.set(Math.cos(a)*r, .2, Math.sin(a)*r);
+        rock.rotation.set(Math.random(),Math.random(),Math.random());
+        decorGroup.add(rock);
+      }
+      // small shop house on the left
+      (function house(){
+        const g = new THREE_.Group();
+        const body = new THREE_.Mesh(new THREE_.BoxGeometry(1.6,1.2,1.4), new THREE_.MeshStandardMaterial({color:0x6b4a2c}));
+        body.position.y = .6;
+        const roof = new THREE_.Mesh(new THREE_.ConeGeometry(1.3,.9,4), new THREE_.MeshStandardMaterial({color:0x8a2f22}));
+        roof.rotation.y = Math.PI/4; roof.position.y = 1.55;
+        g.add(body, roof);
+        g.position.set(-7.6, 0, -2.2);
+        g.scale.set(.8,.8,.8);
+        boardDecor.add(g);
+      })();
+      // soft-edged pond on the right
+      (function water(){
+        const cv = document.createElement('canvas'); cv.width = 256; cv.height = 512;
+        const x = cv.getContext('2d');
+        const g = x.createRadialGradient(128,256,20,128,256,250);
+        g.addColorStop(0,'rgba(94,178,196,.95)');
+        g.addColorStop(.62,'rgba(58,132,156,.9)');
+        g.addColorStop(.85,'rgba(40,96,120,.55)');
+        g.addColorStop(1,'rgba(40,96,120,0)');
+        x.fillStyle = g;
+        x.save(); x.translate(128,256); x.scale(1,2); x.beginPath(); x.arc(0,0,126,0,Math.PI*2); x.fill(); x.restore();
+        x.strokeStyle = 'rgba(220,245,250,.35)'; x.lineWidth = 3;
+        for(const [ox,oy,rr] of [[100,150,26],[150,300,34],[95,400,22]]){
+          x.beginPath(); x.ellipse(ox,oy,rr,rr*.35,0,0,Math.PI*2); x.stroke();
+        }
+        const tex = new THREE_.CanvasTexture(cv);
+        const w = new THREE_.Mesh(new THREE_.PlaneGeometry(3.4,7.2), new THREE_.MeshBasicMaterial({map:tex, transparent:true, depthWrite:false}));
+        w.rotation.x = -Math.PI/2; w.position.set(8.8, .012, 0);
+        decorGroup.add(w);
+      })();
+
+      /* ---- resize via ResizeObserver on the canvas container ----
+         Compute how large the play area (board + margin) projects onto the
+         camera's local x/y axes once (camera never moves), then "contain-fit"
+         that rectangle into whatever aspect ratio the container has. This
+         keeps the full board visible & tappable on any device/orientation
+         instead of shrinking to a thin strip on very wide/short screens. */
+      const playHalf = BOARD_N/2*TILE + .25;
+      const corners = [
+        new THREE_.Vector3(-playHalf, 0, -playHalf),
+        new THREE_.Vector3( playHalf, 0, -playHalf),
+        new THREE_.Vector3(-playHalf, 0,  playHalf),
+        new THREE_.Vector3( playHalf, 0,  playHalf)
+      ];
+      let contentHalfW = 0, contentHalfH = 0;
+      corners.forEach(p=>{
+        const local = camera.worldToLocal(p.clone());
+        contentHalfW = Math.max(contentHalfW, Math.abs(local.x));
+        contentHalfH = Math.max(contentHalfH, Math.abs(local.y));
+      });
+      const PADDING = 1.02;
+      contentHalfW *= PADDING; contentHalfH *= PADDING;
+
+      function resize(){
+        const w = wrap.clientWidth, h = wrap.clientHeight;
+        if(w<=0||h<=0) return;
+        renderer.setSize(w,h,false);
+        const aspect = w/h;
+        // full-bleed framing: board occupies ~6%..68% of screen height,
+        // the strip below is scenery under the floating bench/shop UI
+        const B = contentHalfH;
+        let halfH = B/.62;
+        let cY = B - .88*halfH; // negative: view center sits below the board
+        let halfW = halfH*aspect;
+        if(halfW < contentHalfW*1.02){ // narrow screens: fit width, relax the bias
+          halfW = contentHalfW*1.02;
+          halfH = halfW/aspect;
+          cY = -Math.min(.419*B, Math.max(0, halfH - B*1.02));
+        }
+        camera.left = -halfW; camera.right = halfW;
+        camera.top = cY + halfH; camera.bottom = cY - halfH;
+        camera.updateProjectionMatrix();
+        // bench pedestals track the on-screen tile size (like the reference,
+        // where bench slots match board cells)
+        const tilePx = TILE * (w/(2*halfW));
+        q('app').style.setProperty('--slot', Math.max(26, Math.min(58, tilePx*1.05))+'px');
+      }
+      new ResizeObserver(resize).observe(wrap);
+      resize();
+
+      let lastT = performance.now();
+      function anim(){
+        requestAnimationFrame(anim);
+        const now = performance.now();
+        const dt = Math.min(.05, (now-lastT)/1000);
+        lastT = now;
+        updateCombat(dt*state.speedMul);
+        renderer.render(scene,camera);
+      }
+      // first frame is scheduled (not invoked) so the combat engine's
+      // let-bindings below are initialized before updateCombat ever runs
+      requestAnimationFrame(anim);
+
+      /* ---- raycasting from canvas.getBoundingClientRect() ---- */
+      const raycaster = new THREE_.Raycaster();
+      const ndc = new THREE_.Vector2();
+      pickTile = function(clientX, clientY, rectArg){
+        const rect = rectArg || canvas.getBoundingClientRect();
+        ndc.x = ((clientX-rect.left)/rect.width)*2-1;
+        ndc.y = -((clientY-rect.top)/rect.height)*2+1;
+        raycaster.setFromCamera(ndc, camera);
+        const hits = raycaster.intersectObjects(hitPlanes);
+        if(!hits.length) return null;
+        return hits[0].object.userData;
+      };
+
+      let groundArtActive = false;
+      const invisTileMat = new THREE_.MeshBasicMaterial({transparent:true, opacity:0, depthWrite:false});
+      const highlightOverlayMat = new THREE_.MeshBasicMaterial({color:0x9be36a, transparent:true, opacity:.45, depthWrite:false});
+
+      highlightValidTiles = function(show){
+        tileMeshes.forEach(m=>{
+          if(!m.userData.isPlayerRow) return;
+          if(groundArtActive){
+            m.material = show ? highlightOverlayMat : invisTileMat;
+          } else {
+            m.material = show ? highlightMat : (((m.userData.r+m.userData.c)%2) ? playerTileMat : enemyTileMat);
+          }
+        });
+      };
+
+      // swap the low-poly board for the painted arena once its texture loads.
+      // measured on the art: the 8x8 checker spans 1201px of the 2048px image
+      applyGroundArtFn = function(bmp){
+        const boardSpanFrac = 1423/2048; // calibrated against the in-game highlight overlay
+        const size = (BOARD_N*TILE)/boardSpanFrac;
+        const cv = document.createElement('canvas'); cv.width = bmp.width; cv.height = bmp.height;
+        const cx2 = cv.getContext('2d');
+        cx2.drawImage(bmp, 0, 0);
+        cx2.globalCompositeOperation = 'destination-out';
+        const F = Math.round(bmp.width*.055);
+        [[0,0,0,F,'v0'],[0,cv.height-F,0,cv.height,'v1'],[0,0,F,0,'h0'],[cv.width-F,0,cv.width,0,'h1']].forEach(([x0,y0,x1,y1])=>{
+          const gr = cx2.createLinearGradient(x0,y0,x1,y1);
+          gr.addColorStop(0,'rgba(0,0,0,1)'); gr.addColorStop(1,'rgba(0,0,0,0)');
+          cx2.fillStyle = gr;
+          if(y1>y0) cx2.fillRect(0, Math.min(y0,y1), cv.width, F);
+          else cx2.fillRect(Math.min(x0,x1), 0, F, cv.height);
+        });
+        cx2.globalCompositeOperation = 'source-over';
+        const tex = new THREE_.CanvasTexture(cv);
+        const plane = new THREE_.Mesh(
+          new THREE_.PlaneGeometry(size, size),
+          new THREE_.MeshBasicMaterial({map:tex, transparent:true})
+        );
+        plane.rotation.x = -Math.PI/2;
+        plane.position.set(0.014, .02, 0.57);
+        scene.add(plane);
+        // tile the art's own grass outward so the full-bleed screen has no bare patches
+        const gcv = document.createElement('canvas'); gcv.width = gcv.height = 512;
+        const gx = gcv.getContext('2d');
+        gx.drawImage(bmp, 560, 30, 300, 230, 0, 0, 512, 512); // plain grass strip
+        gx.fillStyle = 'rgba(96,116,60,.30)'; // mute detail so the tiling doesn't read
+        gx.fillRect(0,0,512,512);
+        const gtex = new THREE_.CanvasTexture(gcv);
+        gtex.wrapS = gtex.wrapT = THREE_.MirroredRepeatWrapping;
+        gtex.repeat.set(47,47); // ≈1.8 world units per tile
+        const grassPlane = new THREE_.Mesh(new THREE_.PlaneGeometry(84,84), new THREE_.MeshBasicMaterial({map:gtex}));
+        grassPlane.rotation.x = -Math.PI/2; grassPlane.position.y = .005;
+        scene.add(grassPlane);
+        boardDecor.visible = false;            // painted art has its own circle + border
+        tileMeshes.forEach(m=>{ m.material = invisTileMat; });
+        ground.material.color.set(0x364322);   // blend the outer 3D ground with the art's grass
+        scene.background = new THREE_.Color(0x2a3a20);
+        groundArtActive = true;
+      };
+
+      /* ---- placing a hero sprite (billboard, faces camera) ---- */
+      placeHero = function(r, c2, hero){
+        const tileMesh = tileMeshes.find(m=>m.userData.r===r && m.userData.c===c2);
+        const pos = tileMesh.position;
+        const shadow = new THREE_.Mesh(
+          new THREE_.CircleGeometry(.32, 20),
+          new THREE_.MeshBasicMaterial({color:0x000000, transparent:true, opacity:.35})
+        );
+        shadow.rotation.x = -Math.PI/2; shadow.position.set(pos.x, .07, pos.z);
+        scene.add(shadow);
+
+        const bodyCv = bodyPortrait(hero);
+        const tex = new THREE_.CanvasTexture(bodyCv);
+        const mat = new THREE_.SpriteMaterial({map:tex, transparent:true});
+        const sprite = new THREE_.Sprite(mat);
+        sprite.scale.set(1.4*bodyCv.width/bodyCv.height, 1.4, 1); // keep the art's true aspect
+        sprite.position.set(pos.x, .78, pos.z);
+        scene.add(sprite);
+
+        board[r][c2] = {hero, sprite, shadow};
+        state.boardCount++;
+      };
+
+      refreshBoardSpritesFn = function(){
+        for(let r=0;r<BOARD_N;r++) for(let c2=0;c2<BOARD_N;c2++){
+          const cell = board[r][c2];
+          if(!cell) continue;
+          const cv = bodyPortrait(cell.hero);
+          cell.sprite.material.map = new THREE_.CanvasTexture(cv);
+          cell.sprite.material.needsUpdate = true;
+          cell.sprite.scale.set(1.4*cv.width/cv.height, 1.4, 1);
+        }
+      };
+
+      /* ================= combat engine (rules from COMBAT_DECISIONS.md) =================
+         - melee adjacency uses Chebyshev distance (diagonals count as adjacent)
+         - movement/pathfinding is 4-directional BFS, units never share or swap tiles
+         - targets are locked and re-evaluated every 0.4s or when the target dies
+         - tie-breaks: higher threat > shorter path > lower HP% > row/col
+         - ranged attacks ignore line of sight; projectiles home and die with their target
+         - no kiting: ranged units stand and fight when engaged
+         - attack speed hard-capped at 3 hits/sec */
+      const STATS = {
+        Warrior:{hp:115, atk:12, range:1, aspd:1.0, threat:1.6, ms:2.2},
+        Ranger: {hp:75,  atk:10, range:4, aspd:1.2, threat:1.0, ms:2.4},
+        Mage:   {hp:80,  atk:11, range:3, aspd:0.9, threat:1.0, ms:2.0}
+      };
+      const MONSTERS = {
+        Slime:{hp:55,  atk:6,  range:1, aspd:0.8, threat:1.0, ms:1.6, size:1.0},
+        Wolf: {hp:70,  atk:7,  range:1, aspd:1.0, threat:1.0, ms:2.8, size:1.0},
+        Imp:  {hp:60,  atk:8,  range:3, aspd:1.0, threat:1.0, ms:2.0, size:1.0},
+        Orc:  {hp:130, atk:13, range:1, aspd:0.8, threat:1.6, ms:1.8, size:1.3} // tank reads bigger on board
+      };
+      const ATK_MIN_INTERVAL = 1/3;
+
+      let combatRunning = false;
+      const allies=[], enemies=[], projectiles=[], floaties=[];
+      const occ = [];
+      for(let r=0;r<BOARD_N;r++) occ.push(new Array(BOARD_N).fill(null));
+      let teamPanelTimer = 0;
+
+      function tilePos(r,c2){ return {x:(c2-3.5)*TILE, z:(r-3.5)*TILE}; }
+      function cheb(a,b){ return Math.max(Math.abs(a.r-b.r), Math.abs(a.c-b.c)); }
+
+      function makeHpBar(){
+        const cv = document.createElement('canvas'); cv.width=64; cv.height=10;
+        const tex = new THREE_.CanvasTexture(cv);
+        const sp = new THREE_.Sprite(new THREE_.SpriteMaterial({map:tex, transparent:true, depthTest:false}));
+        sp.scale.set(.8,.12,1);
+        return {cv, tex, sp};
+      }
+      function drawHpBar(bar, ratio, isAlly){
+        const x = bar.cv.getContext('2d');
+        x.clearRect(0,0,64,10);
+        x.fillStyle='#111'; x.fillRect(0,0,64,10);
+        x.fillStyle = isAlly ? '#58d24a' : '#e04a3a';
+        x.fillRect(1,1,62*Math.max(0,Math.min(1,ratio)),8);
+        bar.tex.needsUpdate = true;
+      }
+
+      function spawnFloatie(text, pos, color){
+        const cv = document.createElement('canvas'); cv.width=128; cv.height=64;
+        const x = cv.getContext('2d');
+        x.font='900 40px system-ui'; x.textAlign='center';
+        x.strokeStyle='#000'; x.lineWidth=6; x.strokeText(text,64,44);
+        x.fillStyle=color; x.fillText(text,64,44);
+        const sp = new THREE_.Sprite(new THREE_.SpriteMaterial({map:new THREE_.CanvasTexture(cv), transparent:true, depthTest:false}));
+        sp.scale.set(1.1,.55,1);
+        sp.position.set(pos.x, 1.55, pos.z);
+        scene.add(sp);
+        floaties.push({sp, t:0});
+      }
+
+      function makeUnit(def, team, r, c2, sprite, shadow, hero){
+        const weaponBonus = (hero && hero.weapon) ? hero.weapon.pAtk : 0;
+        // Physical/Magic split: BOSS_POOL entries define p_atk/m_atk/p_def/m_def directly.
+        // Existing hero classes (STATS) and monsters (MONSTERS) only ever had a single
+        // `atk` and no defense stat at all — they're treated as pure-physical with 0
+        // defense on both sides, which leaves their current damage output unchanged
+        // (Math.max(0, atk-0) === atk, see computeDamage()).
+        const pAtk = (def.p_atk!=null ? def.p_atk : def.atk) + weaponBonus;
+        const mAtk = def.m_atk!=null ? def.m_atk : 0;
+        const pDef = def.p_def!=null ? def.p_def : 0;
+        const mDef = def.m_def!=null ? def.m_def : 0;
+        const u = {
+          team, r, c:c2,
+          hp:def.hp, maxHp:def.hp, atk:pAtk+mAtk, pAtk, mAtk, pDef, mDef, range:def.range,
+          interval:Math.max(1/def.aspd, ATK_MIN_INTERVAL), threat:def.threat, ms:def.ms,
+          cd:Math.random()*.3, retarget:0, wait:0, target:null, path:null, move:null, dead:false,
+          sprite, shadow, hero:hero||null, bar:makeHpBar()
+        };
+        u.bar.sp.position.set(sprite.position.x, sprite.position.y+.95, sprite.position.z);
+        drawHpBar(u.bar, 1, team==='ally');
+        scene.add(u.bar.sp);
+        occ[r][c2] = u;
+        return u;
+      }
+
+      function setUnitPos(u, x, z){
+        u.sprite.position.x=x; u.sprite.position.z=z;
+        u.shadow.position.x=x; u.shadow.position.z=z;
+        u.bar.sp.position.set(x, u.sprite.position.y+.95, z);
+      }
+
+      // BFS (4-dir) to the closest tile from which the target is within attack range
+      function bfsToAttack(u, target){
+        const inRange = (r,c2)=>Math.max(Math.abs(r-target.r),Math.abs(c2-target.c))<=u.range;
+        if(inRange(u.r,u.c)) return [];
+        const prev = {}, seen = new Set([u.r+','+u.c]);
+        const queue = [{r:u.r,c:u.c}];
+        while(queue.length){
+          const cur = queue.shift();
+          for(const [dr,dc] of [[1,0],[-1,0],[0,1],[0,-1]]){
+            const nr=cur.r+dr, nc=cur.c+dc, k=nr+','+nc;
+            if(nr<0||nr>=BOARD_N||nc<0||nc>=BOARD_N||seen.has(k)) continue;
+            if(occ[nr][nc]) continue;
+            seen.add(k); prev[k]=cur;
+            const node = {r:nr,c:nc};
+            if(inRange(nr,nc)){
+              const path=[node]; let p=cur;
+              while(p && !(p.r===u.r && p.c===u.c)){ path.unshift(p); p=prev[p.r+','+p.c]; }
+              return path;
+            }
+            queue.push(node);
+          }
+        }
+        return null; // unreachable — not a valid primary target
+      }
+
+      function pickTarget(u, foes){
+        const cands = [];
+        for(const f of foes){
+          if(f.dead) continue;
+          const path = bfsToAttack(u, f);
+          if(path===null) continue;
+          cands.push({f, path});
+        }
+        if(!cands.length) return null;
+        cands.sort((a,b)=>
+          (b.f.threat-a.f.threat) ||
+          (a.path.length-b.path.length) ||
+          (a.f.hp/a.f.maxHp - b.f.hp/b.f.maxHp) ||
+          (a.f.r-b.f.r) || (a.f.c-b.f.c));
+        return cands[0];
+      }
+
+      function kill(u){
+        u.dead = true;
+        if(occ[u.r][u.c]===u) occ[u.r][u.c]=null;
+        u.sprite.visible=false; u.shadow.visible=false; u.bar.sp.visible=false;
+      }
+
+      // Physical damage = attacker.pAtk mitigated by target.pDef; Magic damage = attacker.mAtk
+      // mitigated by target.mDef; each is floored at 0 before summing (no healing from over-defense)
+      function computeDamage(attacker, target){
+        const pDmg = Math.max(0, attacker.pAtk - target.pDef);
+        const mDmg = Math.max(0, attacker.mAtk - target.mDef);
+        return pDmg + mDmg;
+      }
+
+      function applyDamage(target, dmg){
+        if(target.dead) return;
+        target.hp -= dmg;
+        drawHpBar(target.bar, target.hp/target.maxHp, target.team==='ally');
+        spawnFloatie('-'+dmg, target.sprite.position, target.team==='ally' ? '#ff8a8a' : '#ffe08a');
+        if(target.hp<=0) kill(target);
+      }
+
+      const projTexCache = {};
+      function projTexture(team){
+        if(projTexCache[team]) return projTexCache[team];
+        const cv = document.createElement('canvas'); cv.width=cv.height=32;
+        const x = cv.getContext('2d');
+        const g = x.createRadialGradient(16,16,2,16,16,14);
+        g.addColorStop(0,'#ffffff');
+        g.addColorStop(1, team==='ally' ? '#8ad4ff' : '#ff9a5a');
+        x.fillStyle=g; x.beginPath(); x.arc(16,16,14,0,Math.PI*2); x.fill();
+        projTexCache[team] = new THREE_.CanvasTexture(cv);
+        return projTexCache[team];
+      }
+      function spawnProjectile(u, target){
+        const sp = new THREE_.Sprite(new THREE_.SpriteMaterial({map:projTexture(u.team), transparent:true, depthTest:false}));
+        sp.scale.set(.3,.3,1);
+        sp.position.copy(u.sprite.position); sp.position.y = 1.0;
+        scene.add(sp);
+        projectiles.push({sp, target, dmg:computeDamage(u, target), speed:9});
+      }
+
+      function updateUnit(u, dt, foes){
+        if(u.dead) return;
+        u.cd -= dt; u.retarget -= dt;
+        if(u.move){ // finish the current tile step before deciding anything else
+          u.move.t += dt*u.ms;
+          const k = Math.min(1, u.move.t);
+          const from = tilePos(u.move.fr,u.move.fc), to = tilePos(u.move.tr,u.move.tc);
+          setUnitPos(u, from.x+(to.x-from.x)*k, from.z+(to.z-from.z)*k);
+          if(k>=1) u.move=null;
+          return;
+        }
+        if(u.retarget<=0 || !u.target || u.target.dead){
+          const res = pickTarget(u, foes);
+          u.retarget = 0.4;
+          if(res){ u.target=res.f; u.path=res.path; }
+          else { u.target=null; u.path=null; return; }
+        }
+        if(cheb(u,u.target)<=u.range){
+          u.path=null;
+          if(u.cd<=0){
+            u.cd = u.interval;
+            if(u.range<=1) applyDamage(u.target, computeDamage(u, u.target));
+            else spawnProjectile(u, u.target);
+          }
+          return;
+        }
+        if(u.path && u.path.length){
+          const next = u.path[0];
+          if(occ[next.r][next.c]){ // blocked: wait briefly, then re-path (decision #10)
+            u.wait += dt;
+            if(u.wait>.3){ u.wait=0; u.retarget=0; u.path=null; }
+            return;
+          }
+          occ[u.r][u.c]=null; occ[next.r][next.c]=u;
+          u.move={fr:u.r, fc:u.c, tr:next.r, tc:next.c, t:0};
+          u.r=next.r; u.c=next.c;
+          u.path.shift();
+        } else {
+          u.retarget = 0;
+        }
+      }
+
+      function spawnWave(){
+        const pool = state.wave>=4 ? ['Slime','Wolf','Imp','Orc']
+                   : state.wave>=2 ? ['Slime','Wolf','Imp']
+                   : ['Slime','Wolf'];
+        const n = Math.min(state.wave, 5); // wave 1 = 1v1 at board level 1, scales with player progression
+        for(let i=0;i<n;i++){
+          const type = pool[Math.floor(Math.random()*pool.length)];
+          let r, c2, guard=0;
+          do{ r=Math.floor(Math.random()*3); c2=Math.floor(Math.random()*BOARD_N); }
+          while(occ[r][c2] && ++guard<100);
+          if(occ[r][c2]) continue;
+          const monCv = monsterBody(type);
+          const tex = new THREE_.CanvasTexture(monCv);
+          const spr = new THREE_.Sprite(new THREE_.SpriteMaterial({map:tex, transparent:true}));
+          const msize = MONSTERS[type].size || 1;
+          let sprW = 1.4*msize*monCv.width/monCv.height, sprH = 1.4*msize;
+          const maxW = 1.15*msize;
+          if(sprW > maxW){ sprH *= maxW/sprW; sprW = maxW; } // squat monsters (slime) stay tile-sized
+          spr.scale.set(sprW, sprH, 1);
+          const p = tilePos(r,c2);
+          spr.position.set(p.x, .07 + sprH/2, p.z);
+          const sh = new THREE_.Mesh(new THREE_.CircleGeometry(.32,20), new THREE_.MeshBasicMaterial({color:0x000000, transparent:true, opacity:.35}));
+          sh.rotation.x=-Math.PI/2; sh.position.set(p.x,.07,p.z);
+          scene.add(spr, sh);
+          enemies.push(makeUnit(MONSTERS[type], 'enemy', r, c2, spr, sh));
+        }
+      }
+
+      function endBattle(win){
+        // captured before the cleanup loop below clears the enemies array
+        const monstersLeft = win ? 0 : enemies.filter(e=>!e.dead).length;
+        combatRunning = false; state.phase='prep'; combatView=[];
+        projectiles.forEach(p=>scene.remove(p.sp)); projectiles.length=0;
+        floaties.forEach(f=>scene.remove(f.sp)); floaties.length=0;
+        enemies.forEach(e=>{ scene.remove(e.sprite); scene.remove(e.shadow); scene.remove(e.bar.sp); });
+        enemies.length=0;
+        allies.forEach(a=>{
+          scene.remove(a.bar.sp);
+          a.sprite.visible=true; a.shadow.visible=true;
+          const p = tilePos(a.home.r, a.home.c);
+          a.sprite.position.set(p.x,.78,p.z);
+          a.shadow.position.set(p.x,.07,p.z);
+        });
+        allies.length=0;
+        for(let r=0;r<BOARD_N;r++) for(let c2=0;c2<BOARD_N;c2++) occ[r][c2]=null;
+        q('start').disabled=false; q('start').textContent='เริ่มต่อสู้';
+        const clearedWave = state.wave; // wave just played, before incrementing
+        if(win){
+          state.gold+=5; state.wave++;
+          refillOffers(); // free hero-shop reroll after every win (still guarantees Swordman while wave 1)
+          // waves beyond stage 5 fall back to the stage-5 drop table (see rollWeaponOffers)
+          const offers = rollWeaponOffers(clearedWave);
+          toast('ชนะ Wave '+clearedWave+'! ได้ 5 ทอง'+(offers.length?' — พบร้านอาวุธ!':''), 2200);
+          if(offers.length) ShowWeaponShopPopup(offers);
+        } else {
+          // no more instant loss: an incomplete clear costs HP (scaled by wave) instead,
+          // then play continues into the next wave (TFT-style), until playerHP runs out
+          const damage = monstersLeft * waveDamageMultiplier(clearedWave);
+          state.playerHP = Math.max(0, state.playerHP - damage);
+          state.gold+=2; closeWeaponShopPopup(); state.wave++;
+          toast(state.playerHP<=0
+            ? 'Player HP หมดแล้ว! -'+damage+' HP'
+            : 'เคลียร์ไม่หมด (เหลือมอนสเตอร์ '+monstersLeft+' ตัว) โดนความเสียหาย -'+damage+' HP', 2400);
+        }
+        renderAll();
+        if(state.playerHP<=0) showGameOver();
+      }
+
+      function updateCombat(dt){
+        if(!combatRunning) return;
+        allies.forEach(u=>updateUnit(u, dt, enemies));
+        enemies.forEach(u=>updateUnit(u, dt, allies));
+        for(let i=projectiles.length-1;i>=0;i--){
+          const p = projectiles[i];
+          if(p.target.dead){ scene.remove(p.sp); projectiles.splice(i,1); continue; }
+          const tp = p.target.sprite.position;
+          const dx=tp.x-p.sp.position.x, dy=(tp.y+.1)-p.sp.position.y, dz=tp.z-p.sp.position.z;
+          const dist = Math.hypot(dx,dy,dz);
+          const step = p.speed*dt;
+          if(dist<=Math.max(step,.15)){
+            applyDamage(p.target, p.dmg);
+            scene.remove(p.sp); projectiles.splice(i,1);
+          } else {
+            p.sp.position.x+=dx/dist*step; p.sp.position.y+=dy/dist*step; p.sp.position.z+=dz/dist*step;
+          }
+        }
+        for(let i=floaties.length-1;i>=0;i--){
+          const f = floaties[i];
+          f.t += dt;
+          f.sp.position.y += dt*.9;
+          f.sp.material.opacity = Math.max(0, 1-f.t/.7);
+          if(f.t>.7){ scene.remove(f.sp); floaties.splice(i,1); }
+        }
+        teamPanelTimer -= dt;
+        if(teamPanelTimer<=0){ teamPanelTimer=.3; renderTeam(); }
+        if(enemies.length && enemies.every(e=>e.dead)) return endBattle(true);
+        if(allies.every(a=>a.dead)) return endBattle(false);
+      }
+
+      startBattleFn = function(){
+        if(combatRunning) return;
+        closeWeaponShopPopup(); // unsold weapon shop offers vanish once the next battle starts
+        for(let r=0;r<BOARD_N;r++) for(let c2=0;c2<BOARD_N;c2++) occ[r][c2]=null;
+        allies.length=0; enemies.length=0;
+        for(let r=0;r<BOARD_N;r++) for(let c2=0;c2<BOARD_N;c2++){
+          const cell = board[r][c2];
+          if(cell){
+            const u = makeUnit(STATS[cell.hero.cls], 'ally', r, c2, cell.sprite, cell.shadow, cell.hero);
+            u.home = {r, c:c2};
+            allies.push(u);
+          }
+        }
+        // placeholder boss-ID pick for stage 5/10/15 — resolves real name/hp/atk from BOSS_POOL,
+        // but still not wired into actual spawning/combat (no boss unit is placed on the board yet)
+        state.currentBossId = pickBossId(state.wave);
+        state.currentBoss = state.currentBossId ? getBossData(state.currentBossId) : null;
+        if(state.currentBoss){
+          const b = state.currentBoss;
+          console.info('[Boss placeholder] wave '+state.wave+' picked:', b.id, b);
+          toast('[Boss Placeholder] Wave '+state.wave+' สุ่มได้: '+b.name+' (HP '+b.hp+' / P.ATK '+b.p_atk+' / M.ATK '+b.m_atk+')', 2600);
+        }
+        spawnWave();
+        combatRunning = true; state.phase='combat'; combatView=allies;
+        state.selectedBench=-1; highlightValidTiles(false);
+        q('start').disabled=true; q('start').textContent='กำลังต่อสู้...';
+        renderBench(); renderTeam();
+      };
+
+    }catch(e){
+      toast('WebGL เริ่มทำงานไม่สำเร็จ: '+e.message, 3000);
+      fallback();
+    }
+  }
+
+  /* ============================== boot UI ============================== */
+  refillOffers();
+  renderAll();
+  loadHeroAssets();
+  loadGroundAsset();
+  loadClassIcons();
+  // loadWeaponAtlas() is intentionally not called yet: assets/icons/weapons/weapon_icons.webp
+  // + .json don't exist in the repo, so calling it only produces a guaranteed 404 on every
+  // boot. Re-enable this once the real atlas files land (tracked in gemini_status.md);
+  // the procedural single-glyph fallback in weaponIconCanvas() covers icons until then.
+  loadConfig().then(renderAll); // re-render once game_config.json overrides the fallback
+})();
+</script>
+</body>
+</html>

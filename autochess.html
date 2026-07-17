@@ -2,136 +2,423 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Auto Battler — โหมด Auto Chess</title>
 <style>
-  html, body { margin: 0; padding: 0; overflow: hidden; background: #14100c; font-family: 'Trebuchet MS', sans-serif; }
-  canvas { display: block; position: fixed; top: 0; left: 0; }
+  /* ----- Fantasy dark palette: น้ำเงินเข้ม/เทา + ขอบทอง (Art Direction: mobile stylized) ----- */
+  :root {
+    --bg: #0b0d13; --panel-bg: #151a26; --panel-border: #2b3347; --panel-border-soft: #222838;
+    --text: #e6e8ee; --text-dim: #8b90a0; --accent: #d8ad4d; --accent-dim: #a8843c;
+    --accent-green: #4caf6e; --accent-red: #d9534f; --card-bg: #1c2231; --card-border: #363f56;
+  }
+  html, body { margin: 0; padding: 0; overflow: hidden; background: var(--bg); font-family: 'Trebuchet MS', sans-serif; }
+  canvas { display: block; width: 100%; height: 100%; }
   * { box-sizing: border-box; }
 
   #loading {
     position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
-    color: #d7c9a7; font-family: monospace; font-size: 18px; background: #14100c; z-index: 30;
+    color: var(--text-dim); font-family: monospace; font-size: 18px; background: var(--bg); z-index: 30;
   }
 
-  /* ----- แถบบนสุด ----- */
+  /* ----- 3D Canvas: full-viewport background layer, everything else floats above it ----- */
+  #boardContainer { position: fixed; inset: 0; z-index: 0; }
+
+  /* ----- Top Status Bar (เตี้ย ไม่บังกระดาน): HP หลอด / Wave / Gold / Lv+EXP / Speed —
+     รองรับ safe area ของ iPad/iPhone ด้วย env(safe-area-inset-*) ----- */
   #topbar {
-    position: fixed; top: 0; left: 0; right: 0; display: flex; align-items: center;
-    gap: 18px; padding: 10px 16px; background: linear-gradient(#1c140c, rgba(28,20,12,0));
-    color: #f0e6c8; font-size: 15px; z-index: 10; pointer-events: none;
+    position: fixed; top: 0; left: 0; right: 0; display: flex; align-items: flex-start;
+    justify-content: space-between; gap: 6px;
+    padding: 6px max(10px, env(safe-area-inset-right)) 4px max(10px, env(safe-area-inset-left));
+    background: linear-gradient(rgba(5,7,12,0.78), rgba(5,7,12,0));
+    color: var(--text); font-size: 14px; z-index: 10; pointer-events: none;
   }
-  #topbar .pill {
-    background: rgba(20,14,8,0.78); border: 1px solid #8a6c40; border-radius: 20px;
-    padding: 6px 14px; pointer-events: auto; display: flex; align-items: center; gap: 6px;
+  #topbarLeft, #topbarRight { display: flex; gap: 6px; flex-shrink: 0; pointer-events: auto; }
+  #topbarCenter { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; pointer-events: auto; flex: 1; }
+  .pill {
+    background: rgba(21,26,38,0.85); border: 1px solid var(--panel-border); border-radius: 16px;
+    padding: 4px 10px; pointer-events: auto; display: flex; align-items: center; gap: 5px; white-space: nowrap;
   }
-  #topbar .spacer { flex: 1; }
-  #topbar button {
-    pointer-events: auto; background: #4a3a24; color: #f0e6c8; border: 1px solid #a8843c;
+  /* หลอด HP ผู้เล่นในแถบบน — แสดงผลจากโควตาแพ้เดิม ไม่ใช่ระบบใหม่ */
+  .hpTrack {
+    display: inline-block; width: 64px; height: 8px; border-radius: 4px; overflow: hidden;
+    background: #33261a; border: 1px solid rgba(0,0,0,0.4);
+  }
+  #playerHpFill { display: block; height: 100%; width: 100%; border-radius: 4px;
+    background: linear-gradient(90deg, #d9534f, #e88a6a); transition: width 0.2s ease; }
+  #buyExpBtn { padding: 2px 8px !important; font-size: 12px !important; border-radius: 10px !important; }
+  #topbar button, .hudCorner button, #shopToggleBtn, #bagToggleBtn {
+    pointer-events: auto; background: #232a3c; color: var(--text); border: 1px solid var(--panel-border);
     border-radius: 6px; padding: 6px 12px; cursor: pointer; font-size: 14px;
   }
-  #linkRow { display: flex; gap: 6px; flex-wrap: wrap; }
-  .linkPill {
-    background: rgba(70,120,60,0.85); border: 1px solid #7fbf5f; border-radius: 20px;
-    padding: 6px 12px; pointer-events: auto; font-size: 13px; cursor: help;
-  }
-  #topbar button.active { background: #a8843c; color: #241c10; }
+  #topbar button:disabled { opacity: 0.4; cursor: not-allowed; }
+  #topbar button.active { background: var(--accent-dim); color: #1a1408; }
   a#back { text-decoration: none; }
 
-  /* ----- แผงร้านค้า / ม้านั่งสำรอง (parchment style) -----
-     ผูกความสูงคงที่ + ยึดขอบล่างจอเสมอ ไม่ให้ซ้อนทับกระดาน 3D
-     (canvas เว้นพื้นที่ด้านล่างเท่ากับ UI_HEIGHT ไว้ให้แล้วผ่าน JS)
-     วางร้านค้า/ม้านั่ง/ปุ่มเริ่มรบเป็นแถวเดียวกัน (ไม่ซ้อนสูง) เพื่อประหยัดความสูงจอ */
-  #bottomUI {
-    position: fixed; left: 0; right: 0; bottom: 0; z-index: 10; height: 210px;
-    display: flex; flex-direction: row; align-items: stretch; gap: 8px;
-    padding: 8px 10px 10px; pointer-events: none;
-    background: linear-gradient(rgba(20,14,8,0), rgba(12,9,5,0.6) 25%);
+  /* ----- แผงลอย (Synergy ซ้าย / ทีมในสนาม ขวา / กระเป๋าไอเทม) — ชิดขอบจอซ้าย-ขวาที่สุด
+     เพื่อเปิดทางให้กระดาน 3D ตรงกลางขยายเต็มที่ ไม่กินพื้นที่เลย์เอาต์ (ลอยทับฉาก 3D) ----- */
+  .floatPanel {
+    position: fixed; z-index: 8; width: clamp(130px, 15vw, 165px); max-height: min(48vh, 380px);
+    margin: 0; border-radius: 10px; padding: 8px;
+    background: rgba(20,22,27,0.68); border: 1px solid var(--panel-border);
+    color: var(--text); overflow-y: auto; pointer-events: auto;
   }
+  .floatPanel h3 { margin: 0 0 8px; font-size: 12px; color: var(--text-dim); font-weight: normal;
+    text-transform: uppercase; letter-spacing: 0.5px; display: flex; justify-content: space-between; align-items: center; }
+  /* แผง Link สูงกว่าค่า default ของ .floatPanel เล็กน้อย — ช่อง Portrait 3 ช่อง + บัฟสูงสุด 3 แถว
+     ต้องเห็นครบพร้อมกันโดยไม่ต้องเลื่อน (เนื้อหาสั้นคงที่ ไม่ใช่ลิสต์ยาวแบบรายการอาชีพเดิม) */
+  #synergyPanel { left: max(4px, env(safe-area-inset-left)); top: 48px; max-height: min(62vh, 380px); }
+
+  /* ----- คอลัมน์ขวา: Monster Panel (ศัตรูเวฟนี้, บน) + ทีมในสนาม (ล่าง) ซ้อนแนวตั้งชิดขอบขวา ----- */
+  #rightCol {
+    position: fixed; right: max(4px, env(safe-area-inset-right)); top: 48px; z-index: 8;
+    display: flex; flex-direction: column; gap: 6px; width: clamp(130px, 15vw, 165px);
+    max-height: calc(100vh - 56px); pointer-events: none;
+  }
+  #rightCol .floatPanel { position: static; width: 100%; pointer-events: auto; }
+  #monsterPanel { max-height: 36vh; }
+  #hpPanel { max-height: 42vh; }
+
+  /* ----- Monster Panel: แถวละประเภทมอนสเตอร์ (portrait + ชื่อ + จำนวนรอด x/N + หลอด HP พร้อมเลข
+     ปัจจุบัน/สูงสุดทับบนหลอด + badge ประเภท/specialBehavior มุมล่างขวาของ portrait) — บอสแยกเป็น
+     ส่วนพิเศษด้านล่าง (#bossSection) กรอบทอง portrait ใหญ่กว่า + ชื่อสกิลพิเศษใต้หลอด HP — หลอด/
+     ตัวนับอัปเดตสดระหว่างต่อสู้ผ่าน updateMonsterPanelBars() โดยไม่ rebuild DOM ทั้งแผง ----- */
+  #monsterList, #bossList { display: flex; flex-direction: column; gap: 5px; }
+  .monRow {
+    display: flex; align-items: center; gap: 7px;
+    background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 8px; padding: 5px 7px;
+  }
+  .monRow.boss { border-color: var(--accent); background: rgba(216,173,77,0.14); }
+  .monRow.wiped { opacity: 0.4; }
+  .monPortraitWrap { position: relative; flex-shrink: 0; }
+  .monRow img, .monRow .monSwatch {
+    display: block; width: 30px; height: 30px; border-radius: 6px; object-fit: cover; object-position: top;
+    background: #2a2f3d; flex-shrink: 0;
+  }
+  .monRow.boss .monPortraitWrap img, .monRow.boss .monPortraitWrap .monSwatch { width: 40px; height: 40px; border-radius: 7px; }
+  .monTypeBadge {
+    position: absolute; bottom: -3px; right: -3px; width: 15px; height: 15px; border-radius: 50%;
+    background: #1c2231; border: 1px solid var(--card-border); font-size: 9px; line-height: 1;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .monRow.boss .monTypeBadge { background: #2a2010; border-color: var(--accent); width: 17px; height: 17px; font-size: 10px; }
+  .monInfo { flex: 1; min-width: 0; }
+  .monNameRow { display: flex; align-items: baseline; justify-content: space-between; gap: 4px; margin-bottom: 3px; }
+  .monName { font-size: 10px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .monRow.boss .monName { color: var(--accent); font-size: 11px; }
+  .monCount { flex-shrink: 0; font-size: 10px; color: var(--text-dim); font-weight: bold; }
+  .monBarTrack {
+    position: relative; height: 13px; border-radius: 4px; background: #2a1410;
+    border: 1px solid rgba(0,0,0,0.35); overflow: hidden;
+  }
+  .monBarFill { height: 100%; width: 100%; background: linear-gradient(90deg, #a8362f, #d9534f); transition: width 0.12s linear; }
+  .monRow.boss .monBarFill { background: linear-gradient(90deg, #8a2a24, #c25a44); }
+  .monHpText {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    font-size: 8px; font-weight: 600; color: #f4f1ea; text-shadow: 0 1px 1px rgba(0,0,0,0.85);
+    pointer-events: none; white-space: nowrap;
+  }
+  .monSkillName { margin-top: 3px; font-size: 9px; color: var(--accent-dim); font-style: italic; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .monSectionHeader {
+    margin: 8px 0 5px; padding-top: 7px; border-top: 1px solid var(--card-border);
+    font-size: 11px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.5px; font-weight: bold;
+  }
+  .monEmpty { color: var(--text-dim); font-size: 10px; line-height: 1.4; }
+
+  /* ----- Link panel (ซ้าย): ช่อง Portrait 3 ช่องของทีม Link + สรุปบัฟที่ทำงานจริง
+     (แทนรายการอาชีพ 7 แถวของ Auto Synergy เดิม) — 3 ช่องต้องเห็นพร้อมกันเสมอ ไม่มี scroll ----- */
+  #linkSlots { display: flex; gap: 5px; }
+  .linkSlot {
+    flex: 1 1 0; min-width: 0; aspect-ratio: 1; position: relative; overflow: hidden;
+    border: 2px dashed var(--panel-border); border-radius: 8px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(255,255,255,0.03); color: var(--text-dim); font-size: 18px;
+  }
+  .linkSlot.filled { border-style: solid; border-color: var(--accent); }
+  .linkSlot img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .linkSlot .linkClassIcon { position: absolute; top: 1px; left: 2px; font-size: 11px; text-shadow: 0 0 3px #000; }
+  .linkSlot .linkStar { position: absolute; top: 1px; right: 2px; font-size: 8px; text-shadow: 0 0 3px #000; }
+  .linkSlot .linkName {
+    position: absolute; bottom: 0; left: 0; right: 0; font-size: 8px; padding: 1px 2px;
+    background: rgba(0,0,0,0.6); color: var(--text); text-align: center;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  #linkBuffList { margin-top: 8px; display: flex; flex-direction: column; gap: 4px; }
+  .linkBuffRow {
+    background: var(--card-bg); border: 1px solid var(--accent-green); border-radius: 6px;
+    padding: 4px 6px; font-size: 10px; color: var(--text); line-height: 1.35;
+  }
+  .linkBuffEmpty { color: var(--text-dim); font-size: 10px; line-height: 1.4; }
+
+  /* ----- Team HP panel (ขวา): แทนที่ fieldCards เดิม ----- */
+  #teamHpList { display: flex; flex-direction: column; gap: 8px; }
+  .teamHpRow {
+    position: relative; display: flex; align-items: center; gap: 8px;
+    background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 8px; padding: 6px;
+  }
+  .teamHpRow.dead { opacity: 0.4; }
+  .teamHpRow img { width: 34px; height: 34px; border-radius: 6px; object-fit: cover; background: #333; flex-shrink: 0; }
+  .teamHpInfo { flex: 1; min-width: 0; }
+  .teamHpName { font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 3px; }
+  .teamHpBarTrack { height: 6px; border-radius: 3px; background: #33261a; overflow: hidden; }
+  .teamHpBarFill { height: 100%; background: linear-gradient(90deg, var(--accent-green), #7fd99a); transition: width 0.15s linear; }
+
+  /* ----- แถบ hint / ฮีโร่ที่เลือกไว้ (ม้านั่งสำรองรวมเข้ากับกระดาน 3D แล้ว ไม่มีแผงลอยแยกอีกต่อไป) ----- */
+  #hintBar, #selectedUnitBar {
+    position: fixed; left: 50%; bottom: 8px; transform: translateX(-50%); z-index: 9;
+    max-width: 92vw; align-items: center; gap: 10px; white-space: nowrap;
+  }
+  #hintBar { font-size: 12px; color: var(--text-dim); }
+  #selectedUnitBar { font-size: 13px; }
+  #selectedUnitBar button { flex-shrink: 0; }
+  #selectedUnitCancelBtn { background: #262a33 !important; color: var(--text) !important; border-color: var(--panel-border) !important; }
+  /* ----- ร้านค้า: แผงเลื่อนขึ้นจากขอบล่าง ทับม้านั่ง เมื่อกดปุ่ม Toggle Shop เท่านั้น ----- */
+  #shopDrawer {
+    position: fixed; left: 50%; bottom: 2px; z-index: 12; width: min(64vw, 620px); max-height: 220px;
+    transform: translate(-50%, calc(100% + 20px)); transition: transform 0.25s ease; opacity: 0;
+  }
+  #shopDrawer.open { transform: translate(-50%, 0); opacity: 1; }
   .panel {
-    background: linear-gradient(#f2e6c8, #e2d3a8); border: 2px solid #8a6c40; border-radius: 10px;
-    box-shadow: 0 4px 14px rgba(0,0,0,0.5); pointer-events: auto; color: #3a2b18;
+    background: var(--panel-bg); border: 1px solid var(--panel-border); border-radius: 10px;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.55); pointer-events: auto; color: var(--text);
     padding: 8px 10px; overflow-y: auto;
   }
-  #shopPanel, #benchPanel, #fieldPanel { flex: 1 1 0; min-width: 0; }
-  #shopPanel h3, #benchPanel h3, #fieldPanel h3 { margin: 0 0 6px; font-size: 13px; display: flex; justify-content: space-between; align-items: center; }
-  #shopPanel h3 button {
-    background: #6b8f42; color: #fbf6e6; border: 1px solid #4a6b2a; border-radius: 6px;
+  #shopDrawer h3 { margin: 0 0 6px; font-size: 13px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  #shopDrawer h3 button {
+    background: var(--accent-green); color: #0c1a10; border: 1px solid #3a8a56; border-radius: 6px;
     padding: 4px 10px; cursor: pointer; font-size: 12px;
   }
-  #shopPanel h3 button:disabled { background: #999; border-color: #777; cursor: not-allowed; }
-  #shopCards, #benchCards, #fieldCards { display: flex; gap: 6px; flex-wrap: wrap; }
-  .subcount { font-weight: normal; color: #6b5a3a; font-size: 11px; }
+  #shopDrawer h3 button:disabled { background: #444; border-color: #555; color: #999; cursor: not-allowed; }
+  #shopCloseBtn { background: #262a33 !important; color: var(--text) !important; border-color: var(--panel-border) !important; }
+  #shopCards { display: flex; gap: 6px; flex-wrap: wrap; }
+  .subcount { font-weight: normal; color: var(--text-dim); font-size: 11px; }
   .card {
-    width: 62px; background: #fbf6e6; border: 2px solid #b89858; border-radius: 6px; overflow: hidden;
-    text-align: center; cursor: pointer; font-size: 10px; user-select: none; flex-shrink: 0;
+    width: 62px; background: var(--card-bg); border: 2px solid var(--card-border); border-radius: 6px; overflow: hidden;
+    text-align: center; cursor: pointer; font-size: 10px; user-select: none; flex-shrink: 0; position: relative; color: var(--text);
   }
   .card img { width: 100%; height: 56px; object-fit: cover; display: block; background: #333; }
   .card .name { padding: 2px 2px 0; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 9px; }
-  .card .tags { padding: 0 2px; color: #6b8f42; font-size: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .card .cost { padding: 0 2px 3px; color: #a8843c; font-weight: bold; }
-  .card.disabled { opacity: 0.45; cursor: not-allowed; }
-  .card.selected { border-color: #c0392b; box-shadow: 0 0 0 2px #c0392b; }
-  .card.linked { border-color: #2f9e44; box-shadow: 0 0 0 2px #2f9e44; }
-  .card .linkBadge { display: none; padding: 0 2px 3px; color: #2f9e44; font-weight: bold; font-size: 9px; }
-  .card.linked .linkBadge { display: block; }
-  #hint, #linkHint { color: #6b5a3a; font-size: 11px; margin-top: 4px; }
-  #startCol { flex: 0 0 150px; display: flex; align-items: center; justify-content: center; }
-  #startBattleBtn {
-    pointer-events: auto; background: linear-gradient(#e0c060, #a8843c); color: #2a1e10;
-    border: 2px solid #6b4a24; border-radius: 10px; font-size: 15px; font-weight: bold;
-    padding: 14px 18px; cursor: pointer; letter-spacing: 0.5px; width: 100%; height: 100%;
+  .card .tags { padding: 0 2px; color: var(--accent-green); font-size: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .card .cost { padding: 0 2px 3px; color: var(--accent); font-weight: bold; }
+  .card.disabled { opacity: 0.4; cursor: not-allowed; }
+  .card.selected { border-color: var(--accent-red); box-shadow: 0 0 0 2px var(--accent-red); }
+  /* ----- Equipment Core: inventory bar / equip-open button / drag ghost / equip modal ----- */
+  .equipBtn {
+    position: absolute; top: 2px; right: 2px; background: rgba(10,11,14,0.85); color: var(--text);
+    border: 1px solid var(--card-border); border-radius: 4px; font-size: 10px; padding: 1px 3px; cursor: pointer;
+    line-height: 1.2; z-index: 2;
   }
-  #startBattleBtn:disabled { background: #999; border-color: #666; color: #ddd; cursor: not-allowed; }
+  .sellBtn {
+    position: absolute; top: 2px; left: 2px; background: rgba(10,11,14,0.85); color: var(--accent);
+    border: 1px solid var(--card-border); border-radius: 4px; font-size: 9px; padding: 1px 3px; cursor: pointer;
+    line-height: 1.2; z-index: 2;
+  }
+  .teamHpRow .equipBtn, .teamHpRow .sellBtn { top: 4px; }
+  /* ----- กระเป๋าไอเทม: แผงด้านขวา พับเก็บได้ด้วย #bagToggleBtn ----- */
+  /* กระเป๋าไอเทมย้ายมามุมล่างซ้าย (ที่ว่างจากการย้าย Lv./EXP ขึ้นแถบบน) — เลิกชนคอลัมน์ขวาใหม่ */
+  #bagToggleBtn { position: fixed; left: max(10px, env(safe-area-inset-left)); bottom: max(2px, env(safe-area-inset-bottom)); z-index: 9; }
+  #inventoryPanel {
+    position: fixed; left: max(10px, env(safe-area-inset-left)); bottom: 44px; z-index: 8; width: min(60vw, 360px);
+    pointer-events: none; transition: transform 0.2s ease, opacity 0.2s ease; transform-origin: bottom left;
+  }
+  #inventoryPanel.collapsed { transform: translateX(-120%); opacity: 0; }
+  #inventoryPanel .panel { pointer-events: auto; padding: 6px 8px; max-height: 96px; }
+  #inventoryPanel h3 { margin: 0 0 4px; font-size: 12px; }
+  #inventoryCards, #equipModalInventory { display: flex; gap: 5px; overflow-x: auto; max-width: 100%; }
+  .itemCard {
+    width: 46px; flex-shrink: 0; background: var(--card-bg); border: 2px solid var(--card-border); border-radius: 6px;
+    text-align: center; font-size: 9px; user-select: none; padding: 3px 2px; cursor: grab; color: var(--text);
+  }
+  .itemCard .itemIcon { font-size: 18px; line-height: 1.15; }
+  .itemCard .itemName { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .itemGhost {
+    position: fixed; z-index: 85; pointer-events: none; width: 46px; height: 46px;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--card-bg); border: 2px solid var(--card-border); border-radius: 8px; font-size: 18px;
+    box-shadow: 0 4px 10px #0008; transform: translate(-50%, -50%);
+  }
+  .itemGhost.returning { transition: left 0.25s ease, top 0.25s ease; }
+  #equipModal {
+    position: fixed; inset: 0; display: none; align-items: center; justify-content: center;
+    background: rgba(4,5,7,0.72); z-index: 25;
+  }
+  #equipBox {
+    background: linear-gradient(#1c1f26, #14161b); border: 1px solid var(--panel-border); border-radius: 12px;
+    padding: 20px 26px; text-align: center; color: var(--text); min-width: 240px;
+  }
+  #equipBox h3 { margin: 0 0 12px; }
+  #equipSlots { display: flex; gap: 12px; justify-content: center; margin-bottom: 14px; }
+  .equipSlot {
+    width: 64px; height: 64px; border: 2px dashed var(--panel-border); border-radius: 8px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    font-size: 10px; color: var(--text-dim); background: rgba(255,255,255,0.03);
+  }
+  .equipSlot.filled { border-style: solid; background: rgba(216,173,77,0.12); cursor: grab; }
+  .equipSlot .itemIcon { font-size: 22px; }
+  #equipModalInventoryWrap { margin-bottom: 14px; }
+  #equipModalInventoryWrap h4 { margin: 0 0 6px; font-size: 12px; color: var(--text-dim); text-align: left; }
+  #equipCloseBtn {
+    background: var(--accent); color: #1a1408; border: 1px solid var(--accent-dim);
+    border-radius: 8px; font-size: 14px; font-weight: bold; padding: 8px 22px; cursor: pointer;
+  }
+  /* ----- Evolution System: player-choice merge modal ----- */
+  #evolutionModal {
+    position: fixed; inset: 0; display: none; align-items: center; justify-content: center;
+    background: rgba(4,5,7,0.82); z-index: 26;
+  }
+  #evolutionBox {
+    background: linear-gradient(#1c1f26, #14161b); border: 1px solid var(--accent); border-radius: 12px;
+    padding: 24px 30px; text-align: center; color: var(--text); min-width: 300px;
+  }
+  #evolutionBox h3 { margin: 0 0 4px; }
+  #evolutionBox .evoSub { color: var(--text-dim); font-size: 12px; margin-bottom: 16px; }
+  #evolutionOptions { display: flex; gap: 16px; justify-content: center; }
+  .evoOption {
+    width: 110px; background: var(--card-bg); border: 2px solid var(--card-border); border-radius: 8px; overflow: hidden;
+    cursor: pointer; text-align: center; font-size: 11px; user-select: none; padding-bottom: 6px; color: var(--text);
+  }
+  .evoOption:hover { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent); }
+  .evoOption img { width: 100%; height: 90px; object-fit: cover; display: block; background: #333; }
+  .evoOption .name { font-weight: bold; padding: 6px 2px 0; }
+  .evoOption .tags { color: var(--accent-green); padding: 0 2px; font-size: 10px; }
+  /* drag-to-place ghost: floats above the pointer (offset applied in JS) so the
+     sprite doesn't cover the tile the player is about to drop on, and reads a touch
+     smaller than the bench card it came from */
+  .benchGhost { position: fixed; width: 50px; height: 50px; pointer-events: none; z-index: 80;
+    transform: translate(-50%, -50%) scale(0.86); border-radius: 10px; overflow: hidden;
+    background: #333; box-shadow: 0 4px 10px #0008, 0 0 0 2px var(--accent); }
+  .benchGhost img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  /* ----- มุมล่างขวา (Toggle Shop / เริ่มการต่อสู้) — Lv./EXP ย้ายขึ้นแถบบนแล้ว ----- */
+  .hudCorner { position: fixed; bottom: max(2px, env(safe-area-inset-bottom)); z-index: 9; display: flex; flex-direction: column; gap: 6px; pointer-events: none; }
+  .hudCorner > * { pointer-events: auto; }
+  #bottomRight { right: max(10px, env(safe-area-inset-right)); align-items: stretch; width: 150px; }
+  #startBattleBtn {
+    pointer-events: auto; background: var(--accent); color: #1a1408;
+    border: 1px solid var(--accent-dim); border-radius: 10px; font-size: 15px; font-weight: bold;
+    padding: 12px 14px; cursor: pointer; letter-spacing: 0.5px;
+  }
+  #startBattleBtn:disabled { background: #444; border-color: #555; color: #999; cursor: not-allowed; }
+  #shopToggleBtn.active { background: var(--accent-dim); color: #1a1408; }
 
   /* ----- โมดัลผลลัพธ์ ----- */
   #resultModal {
     position: fixed; inset: 0; display: none; align-items: center; justify-content: center;
-    background: rgba(10,7,4,0.72); z-index: 20;
+    background: rgba(4,5,7,0.75); z-index: 20;
   }
   #resultBox {
-    background: linear-gradient(#2a2014, #1a130c); border: 2px solid #a8843c; border-radius: 12px;
-    padding: 30px 50px; text-align: center; color: #f0e6c8;
+    background: linear-gradient(#1c1f26, #14161b); border: 1px solid var(--panel-border); border-radius: 12px;
+    padding: 30px 50px; text-align: center; color: var(--text);
   }
   #resultBox h2 { margin: 0 0 10px; font-size: 28px; }
-  #resultBox p { margin: 4px 0 18px; color: #d7c9a7; }
+  #resultBox p { margin: 4px 0 18px; color: var(--text-dim); }
   #resultBox button {
-    background: linear-gradient(#e0c060, #a8843c); color: #2a1e10; border: 2px solid #6b4a24;
+    background: var(--accent); color: #1a1408; border: 1px solid var(--accent-dim);
     border-radius: 8px; font-size: 16px; font-weight: bold; padding: 10px 28px; cursor: pointer;
+  }
+
+  /* ----- Responsive: มือถือแนวนอน (จอเตี้ย, ความสูง <= 430px) — ย่อแผง/ปุ่มลงเล็กน้อยกันล้นจอ ----- */
+  @media (max-height: 430px) {
+    .floatPanel { max-height: 40vh; padding: 6px; }
+    #synergyPanel { max-height: 62vh; } /* แผง Link: 3 Portrait + บัฟ 3 แถวต้องเห็นครบไม่มี scroll แม้จอเตี้ย */
+    .floatPanel h3 { font-size: 11px; margin-bottom: 6px; }
+    .pill { padding: 3px 8px; font-size: 12px; }
+    #phaseLabel { display: none !important; } /* จอเตี้ย: ตัดข้อความสถานะออก (ปุ่มเริ่มต่อสู้บอกเฟสอยู่แล้ว) — ข้อมูลสำคัญอื่นคงครบ */
+    #topbar button, .hudCorner button, #shopToggleBtn, #bagToggleBtn { padding: 5px 9px; font-size: 12px; }
+    #startBattleBtn { padding: 9px 10px; font-size: 13px; }
+    #shopDrawer { max-height: 100px; }
+    #monsterPanel { max-height: 32vh; }
+    #hpPanel { max-height: 38vh; }
+    /* จอเตี้ย: ตัดเฉพาะข้อความรอง (ชื่อสกิลบอส) เพื่อประหยัดพื้นที่ — ชื่อ/จำนวนรอด/HP ต้องเห็นครบเสมอ */
+    .monSkillName { display: none; }
+  }
+  /* ----- Responsive: แท็บเล็ต/ไอแพด (จอกว้าง >= 900px) — ขยายแผง/ตัวอักษรขึ้นเล็กน้อย ไม่ให้เล็กจิ๋วบนจอใหญ่ ----- */
+  @media (min-width: 900px) {
+    .floatPanel { width: clamp(165px, 15vw, 220px); padding: 12px; }
+    #rightCol { width: clamp(165px, 15vw, 220px); }
+    #rightCol .floatPanel { width: 100%; }
+    .floatPanel h3 { font-size: 14px; }
+    #shopDrawer { width: min(52vw, 640px); }
+    .pill, #startBattleBtn, #shopToggleBtn, #bagToggleBtn { font-size: 16px; }
+    .monName { font-size: 12px; }
+    .monRow img, .monRow .monSwatch { width: 34px; height: 34px; }
+    .monRow.boss .monPortraitWrap img, .monRow.boss .monPortraitWrap .monSwatch { width: 46px; height: 46px; }
+    .monBarTrack { height: 14px; }
+    .monHpText { font-size: 9px; }
+    .hpTrack { width: 84px; height: 10px; }
   }
 </style>
 </head>
 <body>
 <div id="loading">กำลังเตรียมสนามประลอง...</div>
 
+<div id="boardContainer"></div>
+
 <div id="topbar">
-  <a id="back" href="index.html"><button>&larr; เมนู</button></a>
-  <div class="pill">💰 <span id="goldLabel">0</span></div>
-  <div class="pill">🌊 ด่าน <span id="waveLabel">1</span>/<span id="waveTotal">3</span></div>
-  <div class="pill" id="livesPill">❤️ <span id="livesLabel">3</span>/<span id="livesTotal">3</span></div>
-  <div class="pill" id="phaseLabel">เตรียมทีม</div>
-  <div class="pill" id="stageLabel" style="display:none"></div>
-  <div id="linkRow"></div>
-  <div class="spacer"></div>
-  <button id="speedBtn">x1</button>
-  <button id="pauseBtn">⏸ หยุด</button>
+  <div id="topbarLeft"><a id="back" href="index.html"><button>&larr; เมนู</button></a></div>
+  <div id="topbarCenter">
+    <!-- HP ผู้เล่นแสดงเป็นหลอด 100/100 — แปลงมาจากโควตาแพ้เดิม (MAX_LOSSES-losses)/MAX_LOSSES
+         เป็นการแสดงผลล้วนๆ ไม่แตะลอจิกแพ้/ชนะเดิมเลย (ดู renderUI) -->
+    <div class="pill" id="livesPill">❤️
+      <span class="hpTrack"><span id="playerHpFill"></span></span>
+      <span id="playerHpLabel">100/100</span>
+    </div>
+    <div class="pill">🌊 <span id="waveLabel">1</span>/<span id="waveTotal">3</span></div>
+    <div class="pill">💰 <span id="goldLabel">0</span></div>
+    <div class="pill">⭐ Lv.<span id="levelLabel">1</span> <span id="expLabel">(0/4)</span> <button id="buyExpBtn">+EXP</button></div>
+    <div class="pill" id="phaseLabel">เตรียมทีม</div>
+    <div class="pill" id="stageLabel" style="display:none"></div>
+  </div>
+  <div id="topbarRight">
+    <button id="speedBtn">x1</button>
+    <button id="pauseBtn">⏸ หยุด</button>
+  </div>
 </div>
 
-<div id="bottomUI">
-  <div class="panel" id="shopPanel">
-    <h3>ร้านค้า <button id="rerollBtn">รีโรล (2💰)</button></h3>
-    <div id="shopCards"></div>
+<div id="synergyPanel" class="floatPanel">
+  <h3>ทีม Link <span id="linkCount" class="subcount"></span></h3>
+  <div id="linkSlots"></div>
+  <div id="linkBuffList"></div>
+</div>
+<div id="rightCol">
+  <div id="monsterPanel" class="floatPanel">
+    <h3>ศัตรูเวฟนี้ <span id="monsterCount" class="subcount"></span></h3>
+    <div id="monsterList"></div>
+    <div id="bossSection" style="display:none">
+      <div class="monSectionHeader">👑 บอสรอบนี้</div>
+      <div id="bossList"></div>
+    </div>
   </div>
-  <div class="panel" id="benchPanel">
-    <h3>ม้านั่งสำรอง <span id="benchCount" class="subcount"></span></h3>
-    <div id="benchCards"></div>
-    <div id="hint"></div>
-  </div>
-  <div class="panel" id="fieldPanel">
+  <div id="hpPanel" class="floatPanel">
     <h3>ทีมในสนาม <span id="fieldCount" class="subcount"></span></h3>
-    <div id="fieldCards"></div>
-    <div id="linkHint">คลิกฮีโร่เพื่อเลือกเข้า Link (สูงสุด 3 ตัว)</div>
+    <div id="teamHpList"></div>
   </div>
-  <div id="startCol"><button id="startBattleBtn">⚔ เริ่มการต่อสู้</button></div>
+</div>
+
+<button id="bagToggleBtn" title="กระเป๋าไอเทม">🎒 กระเป๋า</button>
+<div id="inventoryPanel" class="collapsed">
+  <div class="panel">
+    <h3>กระเป๋าไอเทม <span id="invCount" class="subcount"></span></h3>
+    <div id="inventoryCards"></div>
+  </div>
+</div>
+
+<!-- ม้านั่งสำรองรวมเป็นแถวล่างสุดของกระดาน 3D แล้ว (ดูสีเข้มแยกโซนในฉาก) — เหลือแค่แถบลอยเล็กๆ
+     บอกสถานะ (hint) หรือปุ่มไอเทม/ขาย เมื่อแตะเลือกฮีโร่ไว้ (สลับกันแสดงทีละอัน ดูใน renderUI) -->
+<div class="panel" id="hintBar" style="display:none;"><span id="hintText"></span></div>
+<div class="panel" id="selectedUnitBar" style="display:none;">
+  <span id="selectedUnitName"></span>
+  <button id="selectedUnitEquipBtn">⚙ ไอเทม</button>
+  <button id="selectedUnitSellBtn">💰 ขาย</button>
+  <button id="selectedUnitCancelBtn">✕</button>
+</div>
+
+<div class="panel" id="shopDrawer">
+  <h3>ร้านค้า <span><button id="rerollBtn">รีโรล (2💰)</button> <button id="shopCloseBtn">✕</button></span></h3>
+  <div id="shopCards"></div>
+</div>
+
+<div id="bottomRight" class="hudCorner">
+  <button id="shopToggleBtn">🛒 ร้านค้า</button>
+  <button id="startBattleBtn">⚔ เริ่มการต่อสู้</button>
 </div>
 
 <div id="resultModal">
@@ -142,788 +429,27 @@
   </div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script>
-// ============================================================
-// CONFIG
-// ============================================================
-const GRID = 8;
-const TILE = 1;
-const PLAYER_ROWS = [5, 6, 7];       // แถวที่วางฮีโร่ได้
-const MAX_FIELD = 5;                 // ลงสนามพร้อมกันได้สูงสุด 5 ตัว ที่เหลือรอในม้านั่งสำรอง
-const MAX_LINK = 3;                  // จากฮีโร่ในสนาม เลือกได้สูงสุด 3 ตัวให้นับเข้าระบบ Link
-const MAX_BENCH = 6;                 // ม้านั่งสำรองเก็บได้สูงสุด 6 ตัว (กันไว้เผื่อรอสเตอร์โตขึ้น/ระบบเปลี่ยนคลาส)
-const WAVE_TOTAL = 15;
-const MAX_LOSSES = 3;                // แพ้ได้สูงสุด 3 ครั้งต่อรัน ก่อนที่จะจบเกมจริง (นับต่อแมพตาม GDD)
-const CAMERA_ANGLE_DEG = 55, CAMERA_YAW_DEG = 15, CAMERA_ZOOM = 7.2;
-// เลื่อนจุดที่กล้องมองไปทาง "แถวผู้เล่น" เล็กน้อยให้อยู่กลางพื้นที่ 3D ที่เหลือพอดี
-const LOOK_TARGET = new THREE.Vector3(0, 0, 1.3);
-// กัน UI ด้านล่างจอทับกระดาน: canvas สูงแค่ (จอ - UI_HEIGHT) เท่านั้น ไม่ใช่เต็มจอ
-const UI_HEIGHT = 210;
-function canvasHeight() { return Math.max(240, window.innerHeight - UI_HEIGHT); }
+<div id="equipModal">
+  <div id="equipBox">
+    <h3 id="equipHeroName"></h3>
+    <div id="equipSlots"></div>
+    <div id="equipModalInventoryWrap">
+      <h4>กระเป๋าไอเทม — ลากมาใส่ช่องด้านบน</h4>
+      <div id="equipModalInventory"></div>
+    </div>
+    <button id="equipCloseBtn">ปิด</button>
+  </div>
+</div>
 
-// ============================================================
-// RENDERER / SCENE / CAMERA
-// ============================================================
-const renderer = new THREE.WebGLRenderer({ antialias: false });
-renderer.setPixelRatio(1);
-renderer.setSize(window.innerWidth, canvasHeight());
-document.body.appendChild(renderer.domElement);
+<div id="evolutionModal">
+  <div id="evolutionBox">
+    <h3>🌟 <span id="evolutionSourceName"></span> พร้อมเปลี่ยนคลาส!</h3>
+    <div class="evoSub">รวม 3 ตัวสำเร็จ — เลือกคลาส Tier-2 (ไอเทมที่เก็บมา <span id="evolutionItemCount">0</span> ชิ้น จะสวมให้อัตโนมัติสูงสุด 2 ชิ้น ที่เหลือกลับกระเป๋า)</div>
+    <div id="evolutionOptions"></div>
+  </div>
+</div>
 
-const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x1c1510);
-scene.fog = new THREE.Fog(0x1c1510, 18, 34);
-
-const aspect = window.innerWidth / canvasHeight();
-const camera = new THREE.OrthographicCamera(-CAMERA_ZOOM*aspect, CAMERA_ZOOM*aspect, CAMERA_ZOOM, -CAMERA_ZOOM, 0.1, 1000);
-const camDist = 20;
-const aR = THREE.MathUtils.degToRad(CAMERA_ANGLE_DEG), yR = THREE.MathUtils.degToRad(CAMERA_YAW_DEG);
-camera.position.set(camDist*Math.cos(aR)*Math.cos(yR), camDist*Math.sin(aR), camDist*Math.cos(aR)*Math.sin(yR));
-camera.position.add(LOOK_TARGET);
-camera.lookAt(LOOK_TARGET);
-
-scene.add(new THREE.AmbientLight(0x8a7a68, 0.9));
-const torch = new THREE.DirectionalLight(0xffb060, 0.7);
-torch.position.set(6, 10, 3);
-scene.add(torch);
-
-function gridToWorld(c, r) { return new THREE.Vector3((c - GRID/2)*TILE + TILE/2, 0, (r - GRID/2)*TILE + TILE/2); }
-
-// ============================================================
-// พื้น + เสาหัก (ธีมซากอารีน่าหิน) — ไทล์ผู้เล่นเรืองเขียวจางบอกโซนวาง
-// ============================================================
-function makeCanvas(w,h){const c=document.createElement('canvas');c.width=w;c.height=h;return c;}
-function toTexture(cv){const t=new THREE.CanvasTexture(cv);t.magFilter=THREE.NearestFilter;t.minFilter=THREE.NearestFilter;return t;}
-function stoneTileTexture(base, seed) {
-  const cv = makeCanvas(32,32), g = cv.getContext('2d');
-  g.fillStyle = base; g.fillRect(0,0,32,32);
-  let s = seed; const rnd = () => (s=(s*16807)%2147483647)/2147483647;
-  for (let i=0;i<90;i++){const v=rnd();g.fillStyle=v<0.5?'rgba(0,0,0,0.10)':'rgba(255,240,210,0.06)';g.fillRect((rnd()*32)|0,(rnd()*32)|0,1+(rnd()*2|0),1+(rnd()*2|0));}
-  g.strokeStyle='rgba(0,0,0,0.28)'; g.lineWidth=1; g.strokeRect(0.5,0.5,31,31);
-  return toTexture(cv);
-}
-const texA = stoneTileTexture('#6e6552', 41);
-const texB = stoneTileTexture('#5d5645', 977);
-const tileGeo = new THREE.PlaneGeometry(TILE*0.98, TILE*0.98);
-const tileMeshes = [];
-for (let r=0;r<GRID;r++) for (let c=0;c<GRID;c++) {
-  const isPlayerZone = PLAYER_ROWS.includes(r);
-  const mat = new THREE.MeshBasicMaterial({ map: (c+r)%2===0?texA:texB, color: isPlayerZone?0x9fc98a:0xffffff, side: THREE.DoubleSide });
-  const m = new THREE.Mesh(tileGeo, mat);
-  m.rotation.x = -Math.PI/2;
-  const p = gridToWorld(c,r);
-  m.position.set(p.x, 0, p.z);
-  m.userData = { isTile: true, c, r, playerZone: isPlayerZone };
-  scene.add(m);
-  tileMeshes.push(m);
-}
-const ground = new THREE.Mesh(new THREE.PlaneGeometry(60,60), new THREE.MeshBasicMaterial({ color: 0x241c14 }));
-ground.rotation.x = -Math.PI/2; ground.position.y = -0.02; scene.add(ground);
-
-function brokenPillar(x,z,h,tilt){
-  const m=new THREE.Mesh(new THREE.CylinderGeometry(0.28,0.34,h,6), new THREE.MeshLambertMaterial({color:0x7a7060}));
-  m.position.set(x,h/2-0.02,z); m.rotation.z=tilt; scene.add(m);
-  const base=new THREE.Mesh(new THREE.BoxGeometry(0.7,0.25,0.7), new THREE.MeshLambertMaterial({color:0x685e4e}));
-  base.position.set(x,0.1,z); scene.add(base);
-}
-function rubble(x,z,s){
-  const m=new THREE.Mesh(new THREE.DodecahedronGeometry(s,0), new THREE.MeshLambertMaterial({color:0x6a6152}));
-  m.position.set(x,s*0.5,z); m.rotation.set(Math.random()*3,Math.random()*3,0); scene.add(m);
-}
-brokenPillar(-5.2,-5.0,2.6,0.05); brokenPillar(5.0,-5.2,1.4,-0.12);
-brokenPillar(-5.4,5.1,0.9,0.18); brokenPillar(5.3,5.0,2.2,-0.04);
-rubble(-4.6,-3.2,0.22); rubble(4.8,-2.4,0.18); rubble(4.5,3.6,0.26); rubble(-4.9,2.8,0.16);
-
-// ============================================================
-// SPRITES
-// ============================================================
-const ASSET_META = {
-  BladeMaster:  { path: 'assets/heroes/blademaster_sheet.png',  frames: 8 },
-  BeastLord:    { path: 'assets/heroes/beastlord_sheet.png',    frames: 8 },
-  Trickster:    { path: 'assets/heroes/trickster_sheet.png',    frames: 8 },
-  Duelist:      { path: 'assets/heroes/duelist_sheet.png',      frames: 8 },
-  Archmage:     { path: 'assets/heroes/archmage_sheet.png',     frames: 8 },
-  FrostWeaver:  { path: 'assets/heroes/frostweaver_sheet.png',  frames: 8 },
-  Summoner:     { path: 'assets/heroes/summoner_sheet.png',     frames: 8 },
-  Sniper:       { path: 'assets/heroes/sniper_sheet.png',       frames: 8 },
-  Skeleton:       { path: 'assets/mon_skeleton.png',       frames: 1 },
-  StoneWolf:      { path: 'assets/mon_stonewolf.png',      frames: 1 },
-  SpiritArcher:   { path: 'assets/mon_spiritarcher.png',   frames: 1 },
-  ShadowAssassin: { path: 'assets/mon_shadowassassin.png', frames: 1 },
-  Warden:         { path: 'assets/miniboss_warden.png',    frames: 1 },
-  Golem:          { path: 'assets/mon_golem.png',          frames: 1 },
-  BoneDragon:     { path: 'assets/mon_bonedragon.png',     frames: 1 },
-  ChampionBig:    { path: 'assets/boss_champion_big.png',  frames: 1 },
-};
-const SPRITES = {};
-function loadAllSprites(onDone) {
-  const loader = new THREE.TextureLoader();
-  const names = Object.keys(ASSET_META);
-  let loaded = 0;
-  names.forEach((name) => {
-    loader.load(ASSET_META[name].path, (tex) => {
-      tex.magFilter = THREE.NearestFilter; tex.minFilter = THREE.NearestFilter;
-      if (ASSET_META[name].frames > 1) tex.repeat.set(1/ASSET_META[name].frames, 1);
-      SPRITES[name] = tex; loaded++;
-      if (loaded === names.length) onDone();
-    }, undefined, (err) => console.error('โหลดสไปรท์ไม่สำเร็จ:', ASSET_META[name].path, err));
-  });
-}
-
-// ============================================================
-// ข้อมูลฮีโร่ (ร้านค้า) + คลื่นศัตรู
-// ============================================================
-const HERO_DEFS = {
-  blademaster: { title:'Blade Master', sprite:'BladeMaster', cost:3, hp:170, pAtk:23, atkSpeed:1.3, range:1, moveSpeed:2.4, trait:'none' },
-  duelist:     { title:'Duelist',      sprite:'Duelist',     cost:3, hp:135, pAtk:20, atkSpeed:1.5, range:1, moveSpeed:2.6, trait:'crit' },
-  beastlord:   { title:'Beast Lord',   sprite:'BeastLord',   cost:4, hp:155, pAtk:15, atkSpeed:1.0, range:1, moveSpeed:2.1, trait:'none' },
-  trickster:   { title:'Trickster',    sprite:'Trickster',   cost:3, hp:100, pAtk:16, atkSpeed:1.3, range:3, moveSpeed:2.2, trait:'weaken' },
-  archmage:    { title:'Archmage',     sprite:'Archmage',    cost:5, hp:95,  pAtk:25, atkSpeed:0.8, range:4, moveSpeed:1.8, trait:'none' },
-  frostweaver: { title:'Frost Weaver', sprite:'FrostWeaver', cost:4, hp:110, pAtk:15, atkSpeed:1.0, range:4, moveSpeed:1.8, trait:'slow' },
-  summoner:    { title:'Summoner',     sprite:'Summoner',    cost:4, hp:105, pAtk:13, atkSpeed:1.0, range:3, moveSpeed:1.9, trait:'none' },
-  sniper:      { title:'Sniper',       sprite:'Sniper',      cost:5, hp:90,  pAtk:24, atkSpeed:0.9, range:5, moveSpeed:1.7, trait:'longshot' },
-};
-// แท็กสาย/Role ของฮีโร่แต่ละคน (อ้างอิงคอลัมน์ "สาย/Role" ใน GDD ข้อ 6) — ใช้คำนวณระบบ Link ด้านล่าง
-const HERO_TAGS = {
-  blademaster: ['physical'],
-  duelist:     ['physical'],
-  beastlord:   ['summoner', 'physical'],
-  trickster:   ['merchant'],
-  archmage:    ['mage'],
-  frostweaver: ['mage'],
-  summoner:    ['summoner'],
-  sniper:      ['archer', 'physical'],
-};
-
-const TAG_LABEL_TH = { mage:'นักเวท', merchant:'พ่อค้า', archer:'นักธนู', physical:'กายภาพ', summoner:'ผู้เรียก' };
-function tagLabel(heroKey) { return (HERO_TAGS[heroKey] || []).map(t => TAG_LABEL_TH[t] || t).join(' · '); }
-
-// ============================================================
-// ระบบ LINK (ซินเนอร์จีทีม) — มีฮีโร่ตามแท็กที่กำหนดครบบนกระดาน = ได้บัฟทั้งทีม
-// ============================================================
-const SYNERGIES = [
-  { id:'trade_route', name:'สายสัมพันธ์ นักเวท–พ่อค้า–นักธนู',
-    desc:'มีฮีโร่สาย Mage + Merchant + Archer อย่างละ 1 ตัวบนกระดาน',
-    requires:{ mage:1, merchant:1, archer:1 },
-    dmgPct:10, armorPenPct:10, goldPerWave:3 },
-  { id:'arcane_duo', name:'คู่นักเวทอาร์เคน',
-    desc:'มีฮีโร่สาย Mage อย่างน้อย 2 ตัวบนกระดาน',
-    requires:{ mage:2 },
-    dmgPct:15 },
-  { id:'warband', name:'หมู่นักรบกายภาพ',
-    desc:'มีฮีโร่สาย Physical อย่างน้อย 3 ตัวบนกระดาน',
-    requires:{ physical:3 },
-    atkSpeedPct:10 },
-];
-function getLinkedUnits() { return placedUnits.filter((u) => u.linked); }
-function getActiveSynergies() {
-  // นับเฉพาะฮีโร่ที่ถูก "เลือกเข้า Link" (สูงสุด 3 ตัวจากที่วางในสนาม) ไม่ใช่ทุกตัวในสนาม
-  const tagCount = {};
-  getLinkedUnits().forEach((u) => {
-    (HERO_TAGS[u.heroKey] || []).forEach((t) => { tagCount[t] = (tagCount[t] || 0) + 1; });
-  });
-  return SYNERGIES.filter((s) => Object.entries(s.requires).every(([tag, n]) => (tagCount[tag] || 0) >= n));
-}
-function toggleLink(u) {
-  if (phase !== 'shop') return;
-  if (u.linked) { u.linked = false; renderUI(); return; }
-  if (getLinkedUnits().length >= MAX_LINK) return; // เลือกได้สูงสุด 3 ตัว
-  u.linked = true;
-  renderUI();
-}
-function getTeamBuffs() {
-  const buffs = { dmgPct:0, armorPenPct:0, atkSpeedPct:0, goldPerWave:0 };
-  getActiveSynergies().forEach((s) => {
-    buffs.dmgPct += s.dmgPct || 0;
-    buffs.armorPenPct += s.armorPenPct || 0;
-    buffs.atkSpeedPct += s.atkSpeedPct || 0;
-    buffs.goldPerWave += s.goldPerWave || 0;
-  });
-  return buffs;
-}
-// สถิติพื้นฐานของศัตรูทั่วไป (ก่อนสเกลตามด่าน) — ธีมกองทัพซากอารีน่าหิน + ค่าเกราะ (ลดดาเมจ %)
-const ENEMY_BASE = {
-  Skeleton:       { hp:90, pAtk:12, atkSpeed:0.9, range:1, moveSpeed:1.8, armor:5 },
-  StoneWolf:      { hp:75, pAtk:11, atkSpeed:1.4, range:1, moveSpeed:2.6, armor:10 },
-  SpiritArcher:   { hp:80, pAtk:14, atkSpeed:1.0, range:3, moveSpeed:1.7, armor:0 },
-  ShadowAssassin: { hp:70, pAtk:18, atkSpeed:1.3, range:1, moveSpeed:3.0, armor:5 },
-};
-// ช่องวางศัตรูฝั่งบนกระดาน (แถว 0-1) — วนใช้ซ้ำถ้าจำนวนตัวเกินจำนวนช่อง
-const ENEMY_SLOTS = [ [3,0],[1,1],[6,1],[0,0],[7,0],[2,1],[5,1],[4,0] ];
-function scaledStat(type, stage) {
-  const b = ENEMY_BASE[type];
-  const mul = 1 + (stage - 1) * 0.12;   // ด่านหลังยากขึ้นทีละ ~12%
-  return { hp: Math.round(b.hp*mul), pAtk: Math.round(b.pAtk*mul), atkSpeed: b.atkSpeed, range: b.range, moveSpeed: b.moveSpeed, armor: b.armor };
-}
-function fillerWave(stage, comp) {
-  const units = []; let slot = 0;
-  comp.forEach(({ type, count }) => {
-    for (let i = 0; i < count; i++) {
-      const [c, r] = ENEMY_SLOTS[slot++ % ENEMY_SLOTS.length];
-      units.push({ name: `${type} ${i+1}`, sprite: type, c, r, ...scaledStat(type, stage) });
-    }
-  });
-  return units;
-}
-// เนื้อหาแมพ 1 ตาม GDD: บทสอนด่าน 1-3, มินิบอสด่าน 5/10, ด่านมังกร 13, บอสด่าน 15
-const STAGE_PLAN = {
-  1:  [{ type:'Skeleton', count:2 }],
-  2:  [{ type:'Skeleton', count:2 }, { type:'StoneWolf', count:1 }],
-  3:  [{ type:'Skeleton', count:2 }, { type:'StoneWolf', count:1 }, { type:'SpiritArcher', count:1 }],
-  4:  [{ type:'Skeleton', count:3 }, { type:'StoneWolf', count:2 }],
-  6:  [{ type:'Skeleton', count:3 }, { type:'SpiritArcher', count:2 }],
-  7:  [{ type:'StoneWolf', count:2 }, { type:'SpiritArcher', count:2 }, { type:'ShadowAssassin', count:1 }],
-  8:  [{ type:'Skeleton', count:4 }, { type:'StoneWolf', count:2 }],
-  9:  [{ type:'SpiritArcher', count:3 }, { type:'ShadowAssassin', count:2 }],
-  11: [{ type:'Skeleton', count:4 }, { type:'ShadowAssassin', count:3 }],
-  12: [{ type:'StoneWolf', count:3 }, { type:'SpiritArcher', count:3 }, { type:'ShadowAssassin', count:2 }],
-  14: [{ type:'Skeleton', count:3 }, { type:'StoneWolf', count:3 }, { type:'SpiritArcher', count:2 }, { type:'ShadowAssassin', count:2 }],
-};
-const STAGE_LABEL = {
-  5:  '⚠ มินิบอส: หัวหน้าผู้คุมสังเวียน',
-  10: '⚠ มินิบอส: โกเลมหินอารีน่า',
-  13: '🐉 ด่านมังกร',
-  15: '💀 บอสใหญ่: แชมเปี้ยนอมตะ',
-};
-function bossWave(stage) {
-  if (stage === 5) return [
-    { name:'หัวหน้าผู้คุมสังเวียน', sprite:'Warden', c:3, r:0, hp:340, pAtk:20, atkSpeed:0.8, range:1, moveSpeed:1.4, armor:15 },
-    { name:'Skeleton Guard A', sprite:'Skeleton', c:1, r:1, hp:100, pAtk:13, atkSpeed:0.9, range:1, moveSpeed:1.8, armor:5 },
-    { name:'Skeleton Guard B', sprite:'Skeleton', c:5, r:1, hp:100, pAtk:13, atkSpeed:0.9, range:1, moveSpeed:1.8, armor:5 },
-  ];
-  if (stage === 10) return [
-    { name:'โกเลมหินอารีน่า', sprite:'Golem', c:3, r:0, hp:680, pAtk:31, atkSpeed:0.6, range:1, moveSpeed:1.1, frameSize:{ w:1.4, h:1.7 }, armor:28 },
-    { name:'Stone Wolf A', sprite:'StoneWolf', c:1, r:1, hp:175, pAtk:20, atkSpeed:1.4, range:1, moveSpeed:2.6, armor:10 },
-    { name:'Stone Wolf B', sprite:'StoneWolf', c:6, r:1, hp:175, pAtk:20, atkSpeed:1.4, range:1, moveSpeed:2.6, armor:10 },
-    { name:'Spirit Archer', sprite:'SpiritArcher', c:3, r:1, hp:150, pAtk:23, atkSpeed:1.0, range:3, moveSpeed:1.7, armor:0 },
-  ];
-  if (stage === 13) return [
-    { name:'มังกรกระดูก', sprite:'BoneDragon', c:3, r:0, hp:840, pAtk:36, atkSpeed:0.85, range:2, moveSpeed:1.3, frameSize:{ w:2.0, h:1.6 }, armor:18 },
-    { name:'Spirit Archer A', sprite:'SpiritArcher', c:1, r:1, hp:165, pAtk:25, atkSpeed:1.0, range:3, moveSpeed:1.7, armor:0 },
-    { name:'Spirit Archer B', sprite:'SpiritArcher', c:6, r:1, hp:165, pAtk:25, atkSpeed:1.0, range:3, moveSpeed:1.7, armor:0 },
-  ];
-  if (stage === 15) return [
-    { name:'แชมเปี้ยนอมตะ', sprite:'ChampionBig', c:3, r:0, hp:1200, pAtk:42, atkSpeed:0.9, range:1, moveSpeed:1.3, frameSize:{ w:1.9, h:2.6 }, armor:24 },
-    { name:'Skeleton Honor Guard A', sprite:'Skeleton', c:1, r:1, hp:200, pAtk:27, atkSpeed:0.9, range:1, moveSpeed:1.8, armor:5 },
-    { name:'Skeleton Honor Guard B', sprite:'Skeleton', c:6, r:1, hp:200, pAtk:27, atkSpeed:0.9, range:1, moveSpeed:1.8, armor:5 },
-    { name:'Shadow Assassin', sprite:'ShadowAssassin', c:4, r:1, hp:175, pAtk:29, atkSpeed:1.3, range:1, moveSpeed:3.0, armor:5 },
-  ];
-  return null;
-}
-function buildWave(stage) {
-  return bossWave(stage) || fillerWave(stage, STAGE_PLAN[stage] || [{ type:'Skeleton', count:2 + Math.floor(stage/3) }]);
-}
-function waveReward(stage) {
-  if (stage === 5) return 30;
-  if (stage === 10) return 42;
-  if (stage === 13) return 48;
-  if (stage === 15) return 65;
-  return 10 + stage * 2;
-}
-
-// ============================================================
-// GAME STATE
-// ============================================================
-let gold = 10;
-let wave = 1;
-let losses = 0;               // จำนวนครั้งที่แพ้ไปแล้วในรันนี้ (0-MAX_LOSSES)
-let phase = 'shop';           // 'shop' | 'battle' | 'result' | 'gameover'
-let speedMul = 1;
-let paused = false;
-let ownedPool = Object.keys(HERO_DEFS);   // ฮีโร่ที่ยังไม่ได้ซื้อ
-let benchHeroes = [];                      // key[] ที่ซื้อแล้วแต่ยังไม่วาง
-let placedUnits = [];                      // unit[] ฝั่งผู้เล่นที่วางแล้ว (อ้างอิงตัวยูนิตตรงๆ ไม่ใช่ตำแหน่ง
-                                            // เพราะยูนิตขยับระหว่างต่อสู้ได้ ผูกกับพิกัดจะหลุดการติดตาม)
-let shopOffers = [];
-let selectedBenchIdx = -1;
-
-const units = [];
-const occupied = new Set();
-function key(c, r) { return c + ',' + r; }
-
-// ============================================================
-// UNIT FACTORY / ANIMATION / TRAITS (เหมือน heroes.html)
-// ============================================================
-function makeUnit(cfg) {
-  const group = new THREE.Group();
-  const meta = ASSET_META[cfg.sprite];
-  const frames = meta.frames;
-  let tex = SPRITES[cfg.sprite];
-  if (frames > 1) { tex = tex.clone(); tex.needsUpdate = true; tex.repeat.set(1/frames, 1); tex.offset.set(0, 0); }
-  const defaultW = frames > 1 ? 0.8 : 1.1, defaultH = frames > 1 ? 1.4 : 1.6;
-  const w = cfg.frameSize ? cfg.frameSize.w : defaultW;
-  const h = cfg.frameSize ? cfg.frameSize.h : defaultH;
-  const body = new THREE.Mesh(new THREE.PlaneGeometry(w, h),
-    new THREE.MeshBasicMaterial({ map: tex, side: THREE.DoubleSide, transparent: true, alphaTest: 0.5 }));
-  body.position.y = h/2;
-  body.userData = { isUnit: true };
-  group.add(body);
-  const shadow = new THREE.Mesh(new THREE.CircleGeometry(0.26 * (w/defaultW), 12), new THREE.MeshBasicMaterial({ color:0x000000, transparent:true, opacity:0.35 }));
-  shadow.rotation.x = -Math.PI/2; shadow.position.y = 0.01; group.add(shadow);
-  const barY = h + 0.14;
-  const hpBg = new THREE.Mesh(new THREE.PlaneGeometry(0.72,0.08), new THREE.MeshBasicMaterial({ color:0x2a1410, side:THREE.DoubleSide }));
-  hpBg.position.y = barY; group.add(hpBg);
-  const hpBar = new THREE.Mesh(new THREE.PlaneGeometry(0.72,0.08), new THREE.MeshBasicMaterial({ color: cfg.team==='player'?0x66c25a:0xc25a44, side:THREE.DoubleSide }));
-  hpBar.position.y = barY; hpBar.position.z = 0.001; group.add(hpBar);
-  const p = gridToWorld(cfg.c, cfg.r);
-  group.position.set(p.x, 0, p.z);
-  scene.add(group);
-  occupied.add(key(cfg.c, cfg.r));
-  const u = { ...cfg, group, body, hpBar, shadow, tex, frames, halfH: h/2,
-    maxHp: cfg.hp, alive: true, atkCooldown: 0,
-    moving: false, moveFrom: null, moveTo: null, moveT: 0,
-    animState: 'idle', animTimer: 0, animFrame: 0 };
-  body.userData.unit = u;
-  units.push(u);
-  return u;
-}
-function removeUnit(u) {
-  scene.remove(u.group);
-  occupied.delete(key(u.c, u.r));
-  const idx = units.indexOf(u);
-  if (idx >= 0) units.splice(idx, 1);
-}
-function resetForWave(u) {
-  // สแนปกลับไทล์ที่วางไว้ตอนแรกเสมอ — ระหว่างต่อสู้ยูนิตอาจไล่ล่าศัตรูจนขยับออกจากไทล์เดิม
-  occupied.delete(key(u.c, u.r));
-  u.c = u.origC; u.r = u.origR;
-  const p = gridToWorld(u.c, u.r);
-  u.group.position.set(p.x, 0, p.z);
-  u.moving = false; u.moveT = 0; u.body.position.x = 0;
-  u.alive = true; u.hp = u.maxHp; u.atkCooldown = 0;
-  u.body.rotation.z = 0; u.body.material.opacity = 1; u.body.material.color.set(0xffffff);
-  u.hpBar.visible = true; u.hpBar.scale.x = 1; u.hpBar.position.x = 0;
-  u.group.children[2].visible = true;
-  u.shadow.material.opacity = 0.35;
-  u.group.visible = true;
-  u.deathT = undefined;
-  u.animState = 'idle'; u.animFrame = 0;
-  occupied.add(key(u.c, u.r));
-}
-
-const WALK_SEQ = [1,2,3,4], ATTACK_SEQ = [5,6,7], ATTACK_FRAME_DUR = 0.12;
-function updateAnim(u, dt) {
-  if (u.frames <= 1) return;
-  if (u.animState === 'attack') {
-    u.animTimer += dt;
-    const idx = Math.min(ATTACK_SEQ.length-1, Math.floor(u.animTimer/ATTACK_FRAME_DUR));
-    u.animFrame = ATTACK_SEQ[idx];
-    if (u.animTimer >= ATTACK_FRAME_DUR*ATTACK_SEQ.length) { u.animState = u.moving?'walk':'idle'; u.animTimer = 0; }
-  } else if (u.moving) {
-    u.animState = 'walk'; u.animTimer += dt*6;
-    u.animFrame = WALK_SEQ[Math.floor(u.animTimer)%WALK_SEQ.length];
-  } else { u.animState = 'idle'; u.animFrame = 0; }
-  u.tex.offset.x = u.animFrame / u.frames;
-}
-function applyTrait(u, target, dmg) {
-  if (u.trait === 'crit' && Math.random() < 0.2) {
-    dmg *= 1.8; target.body.material.color.set(0xffe066);
-    setTimeout(() => target.alive && target.body.material.color.set(0xffffff), 100);
-  } else if (u.trait === 'longshot' && gridDist(u, target) >= 4) { dmg *= 1.3; }
-  else if (u.trait === 'slow') {
-    target._baseSpeed = target._baseSpeed || target.moveSpeed;
-    target.moveSpeed = target._baseSpeed * 0.6;
-    clearTimeout(target._slowTimer);
-    target._slowTimer = setTimeout(() => { target.moveSpeed = target._baseSpeed; }, 1500);
-  } else if (u.trait === 'weaken' && Math.random() < 0.3) {
-    target._baseAtk = target._baseAtk || target.pAtk;
-    target.pAtk = target._baseAtk * 0.8;
-    clearTimeout(target._weakenTimer);
-    target._weakenTimer = setTimeout(() => { target.pAtk = target._baseAtk; }, 2000);
-  }
-  return dmg;
-}
-
-// ============================================================
-// A* + targeting (เหมือนเดิม)
-// ============================================================
-function astar(sc, sr, tc, tr, ignoreKey) {
-  const open = [{ c:sc, r:sr, g:0, f:0, parent:null }];
-  const closed = new Set();
-  const h = (c,r) => Math.abs(c-tc)+Math.abs(r-tr);
-  open[0].f = h(sc,sr);
-  while (open.length) {
-    open.sort((a,b)=>a.f-b.f);
-    const cur = open.shift();
-    if (cur.c===tc && cur.r===tr) { const path=[]; let n=cur; while(n.parent){path.unshift({c:n.c,r:n.r});n=n.parent;} return path; }
-    closed.add(key(cur.c,cur.r));
-    for (const [dc,dr] of [[1,0],[-1,0],[0,1],[0,-1]]) {
-      const nc=cur.c+dc, nr=cur.r+dr;
-      if (nc<0||nr<0||nc>=GRID||nr>=GRID) continue;
-      const k = key(nc,nr);
-      if (closed.has(k)) continue;
-      if (occupied.has(k) && k!==ignoreKey && !(nc===tc&&nr===tr)) continue;
-      const g = cur.g+1;
-      const exist = open.find(o=>o.c===nc&&o.r===nr);
-      if (exist && exist.g<=g) continue;
-      if (exist) { exist.g=g; exist.f=g+h(nc,nr); exist.parent=cur; }
-      else open.push({ c:nc, r:nr, g, f:g+h(nc,nr), parent:cur });
-    }
-  }
-  return null;
-}
-function gridDist(a,b) { return Math.abs(a.c-b.c)+Math.abs(a.r-b.r); }
-function selectTarget(u) {
-  let best=null, bd=Infinity;
-  for (const o of units) { if (!o.alive||o.team===u.team) continue; const d=gridDist(u,o); if (d<bd){bd=d;best=o;} }
-  return best;
-}
-function stepToward(u, target) {
-  const path = astar(u.c, u.r, target.c, target.r, key(u.c,u.r));
-  if (path && path.length>0) {
-    const next = path[0], nk = key(next.c,next.r);
-    if (!occupied.has(nk)) {
-      occupied.delete(key(u.c,u.r)); occupied.add(nk);
-      u.moving=true; u.moveT=0; u.moveFrom={c:u.c,r:u.r}; u.moveTo=next;
-      u.body.scale.x = (next.c<u.c)?-1:(next.c>u.c?1:u.body.scale.x);
-    }
-  }
-}
-function updateUnit(u, dt) {
-  if (!u.alive) return;
-  if (u.moving) {
-    u.moveT += dt*u.moveSpeed;
-    if (u.moveT>=1) { u.moveT=1; u.moving=false; u.c=u.moveTo.c; u.r=u.moveTo.r; }
-    const a=gridToWorld(u.moveFrom.c,u.moveFrom.r), b=gridToWorld(u.moveTo.c,u.moveTo.r);
-    u.group.position.lerpVectors(a,b,u.moveT);
-    u.body.position.y = u.halfH + Math.abs(Math.sin(u.moveT*Math.PI*2))*0.06;
-    updateAnim(u,dt); return;
-  }
-  u.body.position.y = u.halfH;
-  const target = selectTarget(u);
-  if (!target) { updateAnim(u,dt); return; }
-  const d = gridDist(u,target);
-  if (d<=u.range) {
-    u.atkCooldown -= dt;
-    if (u.atkCooldown<=0) {
-      const buffs = u.team==='player' ? getTeamBuffs() : null;
-      u.atkCooldown = 1/(u.atkSpeed * (1 + (buffs ? buffs.atkSpeedPct/100 : 0)));
-      u.animState='attack'; u.animTimer=0;
-      let dmg = applyTrait(u, target, u.pAtk);
-      if (buffs) {
-        dmg *= (1 + buffs.dmgPct/100);
-        const effArmor = Math.max(0, (target.armor||0) - buffs.armorPenPct);
-        dmg *= (1 - effArmor/100);
-      } else if (target.armor) {
-        dmg *= (1 - target.armor/100);
-      }
-      target.hp -= dmg;
-      const dir = gridToWorld(target.c,target.r).sub(u.group.position).normalize().multiplyScalar(0.12);
-      u.body.position.x += dir.x;
-      setTimeout(()=>{ if (u.alive) u.body.position.x=0; }, 90);
-      target.body.material.color.set(0xff8866);
-      setTimeout(()=> target.alive && target.body.material.color.set(0xffffff), 80);
-      target.hpBar.scale.x = Math.max(0, target.hp/target.maxHp);
-      target.hpBar.position.x = -0.36*(1-target.hpBar.scale.x);
-      if (target.hp<=0) { target.alive=false; occupied.delete(key(target.c,target.r)); target.deathT=0; }
-    }
-    u.body.scale.x = (gridToWorld(target.c,target.r).x < u.group.position.x) ? -1 : 1;
-  } else stepToward(u, target);
-  updateAnim(u, dt);
-}
-
-// ============================================================
-// UI — ร้านค้า / ม้านั่ง / ท็อปบาร์
-// ============================================================
-const goldLabel = document.getElementById('goldLabel');
-const waveLabel = document.getElementById('waveLabel');
-const phaseLabel = document.getElementById('phaseLabel');
-const shopCardsEl = document.getElementById('shopCards');
-const benchCardsEl = document.getElementById('benchCards');
-const rerollBtn = document.getElementById('rerollBtn');
-const startBattleBtn = document.getElementById('startBattleBtn');
-const hintEl = document.getElementById('hint');
-document.getElementById('waveTotal').textContent = WAVE_TOTAL;
-document.getElementById('livesTotal').textContent = MAX_LOSSES;
-
-function pickShopOffers() {
-  const pool = [...ownedPool];
-  const offers = [];
-  while (offers.length < Math.min(4, pool.length)) {
-    const i = Math.floor(Math.random()*pool.length);
-    offers.push(pool.splice(i,1)[0]);
-  }
-  shopOffers = offers;
-}
-
-function renderUI() {
-  goldLabel.textContent = gold;
-  waveLabel.textContent = wave;
-  document.getElementById('livesLabel').textContent = MAX_LOSSES - losses;
-  phaseLabel.textContent = phase==='shop' ? 'เตรียมทีม' : phase==='battle' ? 'กำลังต่อสู้' : '';
-  const stageLabelEl = document.getElementById('stageLabel');
-  if (STAGE_LABEL[wave]) { stageLabelEl.textContent = STAGE_LABEL[wave]; stageLabelEl.style.display = ''; }
-  else { stageLabelEl.style.display = 'none'; }
-  const linkRowEl = document.getElementById('linkRow');
-  linkRowEl.innerHTML = '';
-  getActiveSynergies().forEach((s) => {
-    const parts = [];
-    if (s.dmgPct) parts.push(`ดาเมจ+${s.dmgPct}%`);
-    if (s.armorPenPct) parts.push(`เจาะเกราะ+${s.armorPenPct}`);
-    if (s.atkSpeedPct) parts.push(`ความเร็วโจมตี+${s.atkSpeedPct}%`);
-    if (s.goldPerWave) parts.push(`ทอง+${s.goldPerWave}/ด่าน`);
-    const pill = document.createElement('div');
-    pill.className = 'linkPill';
-    pill.textContent = `🔗 ${s.name}`;
-    pill.title = `${s.desc}\n${parts.join(', ')}`;
-    linkRowEl.appendChild(pill);
-  });
-  document.getElementById('bottomUI').style.display = phase==='shop' ? 'flex' : 'none';
-  startBattleBtn.disabled = placedUnits.length === 0;
-  const fieldFull = placedUnits.length >= MAX_FIELD;
-  const benchFull = benchHeroes.length >= MAX_BENCH;
-  if (fieldFull) selectedBenchIdx = -1;
-  document.getElementById('fieldCount').textContent = `(${placedUnits.length}/${MAX_FIELD})`;
-  document.getElementById('benchCount').textContent = `(${benchHeroes.length}/${MAX_BENCH})`;
-
-  shopCardsEl.innerHTML = '';
-  shopOffers.forEach((hkey) => {
-    const def = HERO_DEFS[hkey];
-    const div = document.createElement('div');
-    div.className = 'card' + (gold < def.cost || benchFull ? ' disabled' : '');
-    div.innerHTML = `<img src="assets/portraits/${hkey}.png"><div class="name">${def.title}</div><div class="tags">${tagLabel(hkey)}</div><div class="cost">💰${def.cost}</div>`;
-    div.onclick = () => buyHero(hkey);
-    shopCardsEl.appendChild(div);
-  });
-  rerollBtn.disabled = gold < 2 || ownedPool.length === 0;
-
-  benchCardsEl.innerHTML = '';
-  benchHeroes.forEach((hkey, i) => {
-    const def = HERO_DEFS[hkey];
-    const div = document.createElement('div');
-    div.className = 'card' + (i===selectedBenchIdx ? ' selected' : '') + (fieldFull ? ' disabled' : '');
-    div.innerHTML = `<img src="assets/portraits/${hkey}.png"><div class="name">${def.title}</div><div class="tags">${tagLabel(hkey)}</div>`;
-    div.onclick = () => { if (!fieldFull) { selectedBenchIdx = (selectedBenchIdx===i) ? -1 : i; renderUI(); } };
-    benchCardsEl.appendChild(div);
-  });
-  hintEl.textContent = fieldFull
-    ? `สนามเต็มแล้ว (${MAX_FIELD}/${MAX_FIELD}) — คลิกฮีโร่บนกระดานเพื่อถอนกลับม้านั่งก่อนวางตัวใหม่`
-    : selectedBenchIdx>=0
-    ? `เลือก ${HERO_DEFS[benchHeroes[selectedBenchIdx]].title} แล้ว — คลิกช่องหญ้าเขียวบนกระดาน`
-    : (placedUnits.length===0 ? 'ยังไม่ได้วางฮีโร่ลงกระดาน' : benchFull ? 'ม้านั่งสำรองเต็มแล้ว — ซื้อฮีโร่เพิ่มไม่ได้จนกว่าจะวางลงกระดาน' : '');
-
-  const linkedCount = getLinkedUnits().length;
-  const fieldCardsEl = document.getElementById('fieldCards');
-  fieldCardsEl.innerHTML = '';
-  placedUnits.forEach((u) => {
-    const def = HERO_DEFS[u.heroKey];
-    const div = document.createElement('div');
-    const linkFull = linkedCount >= MAX_LINK && !u.linked;
-    div.className = 'card' + (u.linked ? ' linked' : '') + (linkFull ? ' disabled' : '');
-    div.innerHTML = `<img src="assets/portraits/${u.heroKey}.png"><div class="name">${def.title}</div><div class="tags">${tagLabel(u.heroKey)}</div><div class="linkBadge">🔗 Link</div>`;
-    div.onclick = () => toggleLink(u);
-    fieldCardsEl.appendChild(div);
-  });
-  document.getElementById('linkHint').textContent = `เลือกฮีโร่ในสนามเข้า Link ได้สูงสุด ${MAX_LINK} ตัว (${linkedCount}/${MAX_LINK}) — คลิกซ้ำเพื่อยกเลิก`;
-}
-
-function buyHero(hkey) {
-  const def = HERO_DEFS[hkey];
-  if (gold < def.cost) return;
-  if (benchHeroes.length >= MAX_BENCH) return; // ม้านั่งสำรองเต็ม ต้องวางลงกระดานหรือรอก่อน
-  gold -= def.cost;
-  ownedPool = ownedPool.filter(k => k !== hkey);
-  shopOffers = shopOffers.filter(k => k !== hkey);
-  benchHeroes.push(hkey);
-  renderUI();
-}
-rerollBtn.onclick = () => {
-  if (gold < 2 || ownedPool.length===0) return;
-  gold -= 2;
-  ownedPool.push(...shopOffers); // คืนตัวเลือกเดิมกลับพูล แล้วสุ่มใหม่
-  shopOffers = [];
-  pickShopOffers();
-  renderUI();
-};
-
-function placeHeroAt(hkey, c, r) {
-  if (phase !== 'shop') return;               // วางลงกระดานได้เฉพาะช่วงเตรียมทีมก่อนสู้เท่านั้น
-  if (placedUnits.length >= MAX_FIELD) return; // สนามเต็ม (สูงสุด 5 ตัว) — ต้องถอนตัวอื่นก่อน
-  const idx = benchHeroes.indexOf(hkey);
-  if (idx < 0) return;
-  benchHeroes.splice(idx, 1);
-  const def = HERO_DEFS[hkey];
-  const u = makeUnit({ team:'player', name:def.title, sprite:def.sprite, c, r,
-    hp:def.hp, pAtk:def.pAtk, atkSpeed:def.atkSpeed, range:def.range, moveSpeed:def.moveSpeed, trait:def.trait, heroKey:hkey });
-  u.origC = c; u.origR = r;   // ไทล์ที่วางไว้ตอนแรก — ใช้สแนปกลับระหว่างด่าน (ดู resetForWave)
-  u.linked = false;           // ต้องเลือกเข้า Link เองทีหลัง (ดู toggleLink) ไม่ใช่นับอัตโนมัติ
-  placedUnits.push(u);
-  selectedBenchIdx = -1;
-  renderUI();
-}
-function unplaceUnit(u) {
-  if (phase !== 'shop') return;
-  const idx = placedUnits.indexOf(u);
-  if (idx < 0) return;
-  removeUnit(u);
-  placedUnits.splice(idx, 1);
-  benchHeroes.push(u.heroKey);
-  renderUI();
-}
-
-// ============================================================
-// RAYCAST — คลิกกระดานเพื่อวาง/ถอนฮีโร่ (เฉพาะช่วง shop)
-// ============================================================
-const raycaster = new THREE.Raycaster();
-const mouse = new THREE.Vector2();
-renderer.domElement.addEventListener('click', (ev) => {
-  if (phase !== 'shop') return;
-  mouse.x = (ev.clientX / window.innerWidth) * 2 - 1;
-  mouse.y = -(ev.clientY / canvasHeight()) * 2 + 1;
-  raycaster.setFromCamera(mouse, camera);
-  const hits = raycaster.intersectObjects([...tileMeshes, ...units.map(u=>u.body)], false);
-  if (hits.length === 0) return;
-  const obj = hits[0].object;
-  if (obj.userData.isUnit) {
-    const u = obj.userData.unit;
-    if (u.team === 'player') unplaceUnit(u);
-    return;
-  }
-  if (obj.userData.isTile) {
-    const { c, r, playerZone } = obj.userData;
-    if (!playerZone) return;
-    if (occupied.has(key(c,r))) return;
-    if (selectedBenchIdx < 0) return;
-    placeHeroAt(benchHeroes[selectedBenchIdx], c, r);
-  }
-});
-
-// ============================================================
-// คลื่นศัตรู / เริ่มการต่อสู้ / จบด่าน
-// ============================================================
-const resultModal = document.getElementById('resultModal');
-const resultTitle = document.getElementById('resultTitle');
-const resultBody = document.getElementById('resultBody');
-const resultBtn = document.getElementById('resultBtn');
-let waveTimer = 0;
-const WAVE_TIMEOUT = 150;
-
-function spawnWave(n) {
-  buildWave(n).forEach((cfg) => makeUnit({ team:'enemy', ...cfg }));
-}
-function clearEnemies() {
-  units.filter(u => u.team==='enemy').forEach(removeUnit);
-}
-function healPlayerTeam() {
-  placedUnits.forEach(resetForWave);
-}
-
-startBattleBtn.onclick = () => {
-  if (placedUnits.length === 0) return;
-  phase = 'battle';
-  waveTimer = 0;
-  spawnWave(wave);
-  renderUI();
-};
-
-function showResult(title, body, onContinue) {
-  phase = 'result';
-  resultTitle.textContent = title;
-  resultBody.textContent = body;
-  resultModal.style.display = 'flex';
-  resultBtn.onclick = () => { resultModal.style.display = 'none'; onContinue(); };
-}
-
-function onWaveCleared() {
-  const reward = waveReward(wave) + getTeamBuffs().goldPerWave;
-  gold += reward;
-  clearEnemies();
-  if (wave >= WAVE_TOTAL) {
-    showResult('🏆 พิชิตซากอารีน่าหินสำเร็จ!', `ทำครบ ${WAVE_TOTAL} ด่าน ได้ทองรวม +${reward} — ขอบคุณที่เล่น!`, () => {
-      phase = 'gameover';
-      phaseLabel.textContent = 'จบเกม';
-    });
-  } else {
-    const label = STAGE_LABEL[wave] ? ` (${STAGE_LABEL[wave]})` : '';
-    showResult(`🏆 ชนะด่าน ${wave}!${label}`, `ได้ทอง +${reward} — จัดทัพแล้วลุยด่านถัดไป`, () => {
-      wave += 1;
-      healPlayerTeam();
-      pickShopOffers();
-      phase = 'shop';
-      renderUI();
-    });
-  }
-}
-function onWaveFailed(reason) {
-  clearEnemies();
-  losses += 1;
-  if (losses >= MAX_LOSSES) {
-    showResult('💀 พ่ายแพ้', `${reason} — ใช้โควตาแพ้ครบ ${MAX_LOSSES} ครั้งแล้ว กดเริ่มใหม่เพื่อลองรันใหม่ทั้งหมด`, () => {
-      location.reload();
-    });
-  } else {
-    const left = MAX_LOSSES - losses;
-    showResult(`💀 แพ้ด่าน ${wave}`, `${reason} — เสียโควตาแพ้ไป 1 ครั้ง (เหลืออีก ${left} ครั้ง) จัดทัพใหม่แล้วลองด่านนี้อีกที`, () => {
-      healPlayerTeam();
-      pickShopOffers();
-      phase = 'shop';
-      renderUI();
-    });
-  }
-}
-
-// ============================================================
-// GAME LOOP
-// ============================================================
-document.getElementById('speedBtn').onclick = (ev) => {
-  speedMul = speedMul === 1 ? 2 : 1;
-  ev.target.textContent = 'x' + speedMul;
-  ev.target.classList.toggle('active', speedMul===2);
-};
-document.getElementById('pauseBtn').onclick = (ev) => {
-  paused = !paused;
-  ev.target.textContent = paused ? '▶ เล่นต่อ' : '⏸ หยุด';
-  ev.target.classList.toggle('active', paused);
-};
-
-let last = performance.now();
-function animate(now) {
-  requestAnimationFrame(animate);
-  let dt = Math.min((now - last)/1000, 0.05);
-  last = now;
-
-  if (phase === 'battle' && !paused) {
-    dt *= speedMul;
-    waveTimer += dt;
-    for (const u of units) updateUnit(u, dt);
-    const pAlive = units.filter(u=>u.alive && u.team==='player').length;
-    const eAlive = units.filter(u=>u.alive && u.team==='enemy').length;
-    if (eAlive === 0) onWaveCleared();
-    else if (pAlive === 0) onWaveFailed('ทีมฮีโร่ถูกกวาดล้าง');
-    else if (waveTimer > WAVE_TIMEOUT) onWaveFailed('หมดเวลาด่านนี้');
-  }
-
-  for (const u of units) {
-    if (!u.alive && u.deathT !== undefined && u.deathT < 1) {
-      u.deathT = Math.min(1, u.deathT + dt*2);
-      u.body.rotation.z = -u.deathT*Math.PI/2;
-      u.body.material.opacity = 1 - u.deathT;
-      u.hpBar.visible = false;
-      u.group.children[2].visible = false;
-      u.shadow.material.opacity = 0.35*(1-u.deathT);
-      if (u.deathT >= 1) u.group.visible = false;
-    }
-  }
-  for (const u of units) u.group.quaternion.copy(camera.quaternion);
-  renderer.render(scene, camera);
-}
-
-// ============================================================
-// START
-// ============================================================
-loadAllSprites(() => {
-  document.getElementById('loading').style.display = 'none';
-  pickShopOffers();
-  renderUI();
-  requestAnimationFrame(animate);
-});
-
-window.addEventListener('resize', () => {
-  const asp = window.innerWidth/canvasHeight();
-  camera.left = -CAMERA_ZOOM*asp; camera.right = CAMERA_ZOOM*asp;
-  camera.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth, canvasHeight());
-});
-</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" onerror="document.getElementById('loading').textContent='โหลดไลบรารีกราฟิก (Three.js) ไม่สำเร็จ — เช็คการเชื่อมต่ออินเทอร์เน็ต/Ad-blocker แล้วรีเฟรชหน้านี้ใหม่';"></script>
+<script src="src/game.js"></script>
 </body>
 </html>

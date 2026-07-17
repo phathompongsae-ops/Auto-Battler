@@ -1,0 +1,17 @@
+{
+  "HERO_CONFIG": { "MAX_SYNERGY": 3, "SHOP_TIER_1_ONLY": true },
+  "WEAPON_POOL": {
+    "weapon_lvl1": { "id": "weapon_lvl1", "name": "Basic Weapon", "level": 1, "pAtk": 8 },
+    "weapon_lvl2": { "id": "weapon_lvl2", "name": "Enhanced Weapon", "level": 2, "pAtk": 16 },
+    "weapon_lvl3": { "id": "weapon_lvl3", "name": "Elite Weapon", "level": 3, "pAtk": 28 }
+  },
+  "FUSION_CONFIG": { "inputClassTier": 1, "outputClassTier": 2, "requiredCopies": 2, "allowClass2Fusion": false },
+  "FUSION_RULES": [ { "input": ["app_ninja", "app_ninja"], "output": "ninja" } ],
+  "DROP_TABLE_BY_STAGE": {
+    "1": { "dropType": "weapon", "dropCount": 1, "items": [{ "id": "weapon_lvl1", "weight": 100 }] },
+    "2": { "dropType": "weapon", "dropCount": 1, "items": [{ "id": "weapon_lvl1", "weight": 75 }, { "id": "weapon_lvl2", "weight": 25 }] },
+    "3": { "dropType": "weapon", "dropCount": 1, "items": [{ "id": "weapon_lvl1", "weight": 55 }, { "id": "weapon_lvl2", "weight": 45 }] },
+    "4": { "dropType": "weapon", "dropCount": 1, "items": [{ "id": "weapon_lvl1", "weight": 40 }, { "id": "weapon_lvl2", "weight": 45 }, { "id": "weapon_lvl3", "weight": 15 }] },
+    "5": { "dropType": "weapon", "dropCount": 1, "items": [{ "id": "weapon_lvl1", "weight": 25 }, { "id": "weapon_lvl2", "weight": 45 }, { "id": "weapon_lvl3", "weight": 30 }] }
+  }
+}
