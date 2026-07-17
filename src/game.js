@@ -22,7 +22,9 @@ const TILE = 1;
 const PLAYER_ROWS = [3, 4, 5];       // แถวที่วางฮีโร่ลงสู้ได้
 const BENCH_ROW = 6;                 // แถวล่างสุด (ชิดจอผู้เล่นที่สุด) = ม้านั่งสำรอง ไม่ร่วมรบ
 const MAX_FIELD = 5;                 // ลงสนามพร้อมกันได้สูงสุด 5 ตัว ที่เหลือรอในม้านั่งสำรอง
-const MAX_BENCH = GRID_COLS;         // ม้านั่งสำรอง = 1 ช่องต่อ 1 คอลัมน์ในแถวม้านั่ง (8 ช่อง)
+const MAX_BENCH = 5;                 // ม้านั่งสำรอง = 5 ช่อง (ล็อกตามกฎ Demo 1) — แยกจาก GRID_COLS โดยตั้งใจ
+                                      // เพราะแถวม้านั่งยังกว้าง 8 คอลัมน์เท่าเดิม (ไม่แตะขนาดกระดาน)
+                                      // ใช้แค่ 5 คอลัมน์แรก (c=0..4) เป็นช่องม้านั่งที่วางได้จริง
 const WAVE_TOTAL = 15;
 const MAX_LOSSES = 3;                // แพ้ได้สูงสุด 3 ครั้งต่อรัน ก่อนที่จะจบเกมจริง (นับต่อแมพตาม GDD)
 
@@ -193,7 +195,8 @@ for (let r=0;r<GRID_ROWS;r++) for (let c=0;c<GRID_COLS;c++) {
   m.rotation.x = -Math.PI/2;
   const p = gridToWorld(c,r);
   m.position.set(p.x, 0, p.z);
-  m.userData = { isTile: true, c, r, playerZone: isPlayerZone || isBench, isBench, baseTint };
+  const isUsableBench = isBench && c < MAX_BENCH; // คอลัมน์ 5-7 ของแถวม้านั่งเกินโควตา 5 ช่อง — วางไม่ได้
+  m.userData = { isTile: true, c, r, playerZone: isPlayerZone || isUsableBench, isBench, baseTint };
   scene.add(m);
   tileMeshes.push(m);
 }
@@ -3580,9 +3583,9 @@ function createUnitFromInstance(instData, c, r) {
   updateEquipBadge(u);
   return u;
 }
-// หาคอลัมน์ว่างช่องแรกในแถวม้านั่งสำรอง (BENCH_ROW) — คืน -1 ถ้าเต็มทั้ง 8 ช่อง
+// หาคอลัมน์ว่างช่องแรกในแถวม้านั่งสำรอง (BENCH_ROW) — ใช้แค่ 5 คอลัมน์แรกตาม MAX_BENCH, คืน -1 ถ้าเต็ม
 function findFreeBenchCol() {
-  for (let c = 0; c < GRID_COLS; c++) if (!occupied.has(key(c, BENCH_ROW))) return c;
+  for (let c = 0; c < MAX_BENCH; c++) if (!occupied.has(key(c, BENCH_ROW))) return c;
   return -1;
 }
 // สร้างฮีโร่ใหม่ (จากร้านค้า/evolution/star-combine) ลงม้านั่งสำรองโดยตรงเป็นยูนิต 3D จริงบนกระดาน
@@ -3602,6 +3605,7 @@ function spawnToBench(instData) {
 // ม้านั่ง<->ม้านั่งสลับช่อง, สนาม<->สนามขยับตำแหน่ง) ไว้ในฟังก์ชันเดียว แทนที่ placeHeroAt/unplaceUnit เดิม
 function moveUnitTo(u, c, r) {
   if (phase !== 'shop') return null;
+  if (r === BENCH_ROW && c >= MAX_BENCH) return null; // เกินโควตาม้านั่ง 5 ช่อง — กันไว้อีกชั้นแม้ผู้เรียกกรองมาแล้ว
   if (occupied.has(key(c, r))) return null;
   const wasBattle = placedUnits.includes(u);
   const goingToBattle = r !== BENCH_ROW;
