@@ -1,0 +1,143 @@
+{
+  "schemaVersion": 1,
+  "status": "design_skeleton",
+  "runtimeReady": false,
+  "map": {
+    "id": "map2_lava_hell",
+    "index": 2,
+    "nameKey": "map.map2_lava_hell.name",
+    "stageCount": 15,
+    "secretClassUnlock": "black_dragon_knight",
+    "themeTags": ["lava", "infernal", "armor_break", "burn", "hazard"]
+  },
+  "designRules": {
+    "inheritsEconomyFrom": "economy-balance-v1",
+    "inheritsBossProgression": true,
+    "stage5And10AreUniqueMinibosses": true,
+    "stage15IsFixedBoss": true,
+    "eliteStartsAtStage": 4,
+    "eliteMaxPerStage": 1,
+    "eliteExcludedStages": [5, 10, 15],
+    "balanceAfterMap1RuntimeTelemetry": true
+  },
+  "monsterArchetypes": [
+    {
+      "id": "ember_slime",
+      "kind": "normal",
+      "role": "early_melee",
+      "targetingBehavior": "nearest",
+      "skillConcepts": ["minor_burn_on_hit"],
+      "powerBand": "low",
+      "notes": "Map 2 entry enemy; readable and low-complexity."
+    },
+    {
+      "id": "hell_hound",
+      "kind": "normal",
+      "role": "fast_hunter",
+      "targetingBehavior": "hunter",
+      "skillConcepts": ["short_pounce"],
+      "powerBand": "medium",
+      "notes": "Threatens isolated ranged heroes without guaranteed backline access."
+    },
+    {
+      "id": "magma_golem",
+      "kind": "normal",
+      "role": "frontline_tank",
+      "targetingBehavior": "nearest",
+      "skillConcepts": ["temporary_armor"],
+      "powerBand": "high_hp",
+      "notes": "Creates time pressure but should deal modest damage."
+    },
+    {
+      "id": "flame_cultist",
+      "kind": "normal",
+      "role": "ranged_magic",
+      "targetingBehavior": "cluster",
+      "skillConcepts": ["small_area_burn"],
+      "powerBand": "medium",
+      "notes": "Introduces spread-positioning pressure."
+    },
+    {
+      "id": "infernal_guard",
+      "kind": "normal",
+      "role": "armored_melee",
+      "targetingBehavior": "nearest",
+      "skillConcepts": ["physical_guard"],
+      "powerBand": "high_defense",
+      "notes": "Tests magical damage access without hard-gating physical teams."
+    },
+    {
+      "id": "ash_wraith",
+      "kind": "normal",
+      "role": "magic_assassin",
+      "targetingBehavior": "backline",
+      "skillConcepts": ["brief_phase_step"],
+      "powerBand": "medium_high",
+      "notes": "Fragile threat; must be visually telegraphed."
+    },
+    {
+      "id": "lava_shaman",
+      "kind": "normal",
+      "role": "support_controller",
+      "targetingBehavior": "lowest_hp_ally",
+      "skillConcepts": ["ally_haste_or_shield"],
+      "powerBand": "support",
+      "notes": "Adds target-priority decisions without direct burst."
+    },
+    {
+      "id": "forge_tyrant",
+      "kind": "miniboss",
+      "stage": 5,
+      "role": "armored_bruiser",
+      "targetingBehavior": "nearest",
+      "skillConcepts": ["telegraphed_slam", "temporary_damage_reduction"],
+      "powerBand": "miniboss_1"
+    },
+    {
+      "id": "pyre_serpent",
+      "kind": "miniboss",
+      "stage": 10,
+      "role": "ranged_area_boss",
+      "targetingBehavior": "cluster",
+      "skillConcepts": ["line_breath", "burning_ground_concept"],
+      "powerBand": "miniboss_2"
+    },
+    {
+      "id": "black_dragon_lord",
+      "kind": "boss",
+      "stage": 15,
+      "role": "map_boss",
+      "targetingBehavior": "cluster",
+      "skillConcepts": ["dragon_breath", "armor_break_roar", "phase_change_concept"],
+      "powerBand": "boss",
+      "unlockOnDefeat": "black_dragon_knight"
+    }
+  ],
+  "stageSkeleton": [
+    {"stage":1,"type":"normal","enemyCountBand":"low","allowedArchetypes":["ember_slime"]},
+    {"stage":2,"type":"normal","enemyCountBand":"low","allowedArchetypes":["ember_slime","hell_hound"]},
+    {"stage":3,"type":"normal","enemyCountBand":"low","allowedArchetypes":["ember_slime","hell_hound","magma_golem"]},
+    {"stage":4,"type":"normal","enemyCountBand":"medium","allowedArchetypes":["hell_hound","magma_golem","flame_cultist"],"eliteAllowed":true},
+    {"stage":5,"type":"miniboss","bossId":"forge_tyrant","augmentOffer":"augment.map2.after_5"},
+    {"stage":6,"type":"normal","enemyCountBand":"medium","allowedArchetypes":["hell_hound","flame_cultist","infernal_guard"],"eliteAllowed":true},
+    {"stage":7,"type":"normal","enemyCountBand":"medium","allowedArchetypes":["magma_golem","flame_cultist","infernal_guard"],"eliteAllowed":true},
+    {"stage":8,"type":"normal","enemyCountBand":"medium_high","allowedArchetypes":["flame_cultist","infernal_guard","ash_wraith"],"eliteAllowed":true},
+    {"stage":9,"type":"normal","enemyCountBand":"medium_high","allowedArchetypes":["magma_golem","ash_wraith","lava_shaman"],"eliteAllowed":true},
+    {"stage":10,"type":"miniboss","bossId":"pyre_serpent","augmentOffer":"augment.map2.after_10"},
+    {"stage":11,"type":"normal","enemyCountBand":"high","allowedArchetypes":["infernal_guard","ash_wraith","lava_shaman"],"eliteAllowed":true},
+    {"stage":12,"type":"normal","enemyCountBand":"high","allowedArchetypes":["magma_golem","flame_cultist","ash_wraith","lava_shaman"],"eliteAllowed":true},
+    {"stage":13,"type":"normal","enemyCountBand":"high","allowedArchetypes":["hell_hound","infernal_guard","ash_wraith","lava_shaman"],"eliteAllowed":true},
+    {"stage":14,"type":"normal","enemyCountBand":"high","allowedArchetypes":["magma_golem","infernal_guard","ash_wraith","lava_shaman"],"eliteAllowed":true},
+    {"stage":15,"type":"boss","bossId":"black_dragon_lord","unlock":"black_dragon_knight"}
+  ],
+  "deferredUntilTelemetry": [
+    "all numeric monster stats",
+    "stage stat multipliers",
+    "exact enemy counts",
+    "skill ratios and durations",
+    "burn stacking rules",
+    "hazard damage values",
+    "boss phase thresholds",
+    "weapon drop odds"
+  ]
+}
