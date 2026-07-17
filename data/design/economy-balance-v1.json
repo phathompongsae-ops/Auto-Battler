@@ -1,0 +1,45 @@
+{
+  "schemaVersion": 1,
+  "status": "balance_draft",
+  "startingGold": 6,
+  "startingRule": "The player can purchase exactly one Class 1 hero before receiving rewards.",
+  "shop": {
+    "class1HeroCost": 6,
+    "class2ReferenceValue": 14,
+    "class3ReferenceValue": 30,
+    "class1OrbCost": 5,
+    "experienceCost": 4,
+    "rerollCost": 2
+  },
+  "income": {
+    "baseFormula": "10 + stageNumber",
+    "interest": {"goldStep":10,"goldPerStep":1,"cap":5},
+    "noDeathBonus": 3
+  },
+  "sellback": {
+    "rate": 0.8,
+    "rounding": "floor",
+    "values": [
+      {"buyValue":6,"sellValue":4},
+      {"buyValue":14,"sellValue":11},
+      {"buyValue":30,"sellValue":24}
+    ]
+  },
+  "capacity": {
+    "benchSlots": 5,
+    "weaponInventorySlots": 8,
+    "weaponSlotsPerHero": 2
+  },
+  "overflowPolicy": {
+    "denyHeroPurchaseWhenBenchFull": true,
+    "allowedResolutions": ["deploy","merge","sell"],
+    "denyWeaponRewardWhenInventoryFull": true,
+    "weaponResolutionRequiredBeforeContinue": true
+  },
+  "validationTargets": [
+    "Starting gold never permits two Class 1 purchases.",
+    "Sellback uses floor(buyValue * 0.8).",
+    "Bench capacity is exactly five.",
+    "Economy does not create negative gold or inventory overflow."
+  ]
+}

@@ -1,0 +1,363 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://auto-battler.local/schema/game-data.schema.json",
+  "title": "Auto-Battler Game Data v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "heroes",
+    "monsters",
+    "skills",
+    "weapons",
+    "fusionRules",
+    "maps",
+    "stages",
+    "localization"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "heroes": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/hero" }
+    },
+    "monsters": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/monster" }
+    },
+    "skills": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/skill" }
+    },
+    "weapons": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/weapon" }
+    },
+    "fusionRules": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/fusionRule" }
+    },
+    "maps": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/map" }
+    },
+    "stages": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/stage" }
+    },
+    "localization": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": { "type": "string" }
+      }
+    }
+  },
+  "$defs": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*(?:\\.[a-z0-9_]+)*$"
+    },
+    "idArray": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/id" },
+      "uniqueItems": true
+    },
+    "nonNegativeFiniteNumber": {
+      "type": "number",
+      "minimum": 0
+    },
+    "positiveFiniteNumber": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "targetingBehavior": {
+      "enum": [
+        "nearest",
+        "nearest_in_range",
+        "cluster",
+        "lowest_hp_ally",
+        "lowest_hp_enemy",
+        "backline",
+        "hunter"
+      ]
+    },
+    "stats": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "hp",
+        "pAtk",
+        "mAtk",
+        "pDef",
+        "mDef",
+        "atkSpeed",
+        "moveSpeed",
+        "range",
+        "startingMana",
+        "maxMana"
+      ],
+      "properties": {
+        "hp": { "$ref": "#/$defs/nonNegativeFiniteNumber" },
+        "pAtk": { "$ref": "#/$defs/nonNegativeFiniteNumber" },
+        "mAtk": { "$ref": "#/$defs/nonNegativeFiniteNumber" },
+        "pDef": { "$ref": "#/$defs/nonNegativeFiniteNumber" },
+        "mDef": { "$ref": "#/$defs/nonNegativeFiniteNumber" },
+        "atkSpeed": { "$ref": "#/$defs/nonNegativeFiniteNumber" },
+        "moveSpeed": { "$ref": "#/$defs/nonNegativeFiniteNumber" },
+        "range": { "$ref": "#/$defs/nonNegativeFiniteNumber" },
+        "startingMana": { "$ref": "#/$defs/nonNegativeFiniteNumber" },
+        "maxMana": { "$ref": "#/$defs/nonNegativeFiniteNumber" }
+      }
+    },
+    "hero": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "nameKey",
+        "descriptionKey",
+        "gender",
+        "classTier",
+        "classLine",
+        "roles",
+        "targetingBehavior",
+        "stats",
+        "skillId",
+        "assetId",
+        "shop",
+        "tags"
+      ],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "nameKey": { "$ref": "#/$defs/id" },
+        "descriptionKey": { "$ref": "#/$defs/id" },
+        "gender": { "enum": ["male", "female"] },
+        "classTier": { "type": "integer", "minimum": 0, "maximum": 3 },
+        "classLine": { "$ref": "#/$defs/id" },
+        "roles": { "$ref": "#/$defs/idArray" },
+        "targetingBehavior": { "$ref": "#/$defs/targetingBehavior" },
+        "stats": { "$ref": "#/$defs/stats" },
+        "skillId": { "$ref": "#/$defs/id" },
+        "assetId": { "$ref": "#/$defs/id" },
+        "shop": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["enabled", "cost", "weight"],
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "cost": { "$ref": "#/$defs/nonNegativeFiniteNumber" },
+            "weight": { "$ref": "#/$defs/nonNegativeFiniteNumber" }
+          }
+        },
+        "tags": { "$ref": "#/$defs/idArray" }
+      }
+    },
+    "monster": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "nameKey",
+        "kind",
+        "roles",
+        "targetingBehavior",
+        "stats",
+        "skillIds",
+        "assetId",
+        "tags"
+      ],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "nameKey": { "$ref": "#/$defs/id" },
+        "kind": { "enum": ["normal", "elite", "miniboss", "boss"] },
+        "roles": { "$ref": "#/$defs/idArray" },
+        "targetingBehavior": { "$ref": "#/$defs/targetingBehavior" },
+        "stats": { "$ref": "#/$defs/stats" },
+        "skillIds": { "$ref": "#/$defs/idArray" },
+        "assetId": { "$ref": "#/$defs/id" },
+        "tags": { "$ref": "#/$defs/idArray" }
+      }
+    },
+    "skillEffect": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "enum": ["damage", "heal", "shield", "status", "summon"] },
+        "damageType": { "enum": ["physical", "magical", "true"] },
+        "scalingStat": { "enum": ["pAtk", "mAtk", "hp"] },
+        "ratio": { "$ref": "#/$defs/nonNegativeFiniteNumber" },
+        "flat": { "type": "number" },
+        "statusId": { "$ref": "#/$defs/id" },
+        "duration": { "$ref": "#/$defs/nonNegativeFiniteNumber" },
+        "summonId": { "$ref": "#/$defs/id" }
+      },
+      "additionalProperties": false
+    },
+    "skill": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "nameKey",
+        "descriptionKey",
+        "ownerIds",
+        "cast",
+        "effects",
+        "presentation",
+        "tags"
+      ],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "nameKey": { "$ref": "#/$defs/id" },
+        "descriptionKey": { "$ref": "#/$defs/id" },
+        "ownerIds": { "$ref": "#/$defs/idArray" },
+        "cast": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["manaCost", "targetingBehavior", "range", "castTime"],
+          "properties": {
+            "manaCost": { "$ref": "#/$defs/nonNegativeFiniteNumber" },
+            "targetingBehavior": { "$ref": "#/$defs/targetingBehavior" },
+            "range": { "$ref": "#/$defs/nonNegativeFiniteNumber" },
+            "castTime": { "$ref": "#/$defs/nonNegativeFiniteNumber" }
+          }
+        },
+        "effects": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/skillEffect" }
+        },
+        "presentation": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["animationState", "effectId", "projectileId"],
+          "properties": {
+            "animationState": { "$ref": "#/$defs/id" },
+            "effectId": { "anyOf": [{ "$ref": "#/$defs/id" }, { "type": "null" }] },
+            "projectileId": { "anyOf": [{ "$ref": "#/$defs/id" }, { "type": "null" }] }
+          }
+        },
+        "tags": { "$ref": "#/$defs/idArray" }
+      }
+    },
+    "weapon": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "nameKey",
+        "level",
+        "slotType",
+        "stats",
+        "passiveIds",
+        "fusionInputs",
+        "assetId",
+        "tags"
+      ],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "nameKey": { "$ref": "#/$defs/id" },
+        "level": { "type": "integer", "minimum": 1, "maximum": 3 },
+        "slotType": { "const": "weapon" },
+        "stats": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": { "type": "number" }
+        },
+        "passiveIds": { "$ref": "#/$defs/idArray" },
+        "fusionInputs": { "$ref": "#/$defs/idArray" },
+        "assetId": { "$ref": "#/$defs/id" },
+        "tags": { "$ref": "#/$defs/idArray" }
+      }
+    },
+    "fusionRule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind", "inputs", "output", "inputTier", "outputTier"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "kind": { "enum": ["hero_class_upgrade", "weapon_upgrade"] },
+        "inputs": {
+          "type": "array",
+          "minItems": 2,
+          "items": { "$ref": "#/$defs/id" }
+        },
+        "output": { "$ref": "#/$defs/id" },
+        "inputTier": { "type": "integer", "minimum": 1, "maximum": 3 },
+        "outputTier": { "type": "integer", "minimum": 1, "maximum": 3 },
+        "ordered": { "type": "boolean", "default": false }
+      }
+    },
+    "map": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "index", "nameKey", "stageIds", "secretClassUnlock", "themeAssetId"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "index": { "type": "integer", "minimum": 1, "maximum": 3 },
+        "nameKey": { "$ref": "#/$defs/id" },
+        "stageIds": { "$ref": "#/$defs/idArray" },
+        "secretClassUnlock": { "$ref": "#/$defs/id" },
+        "themeAssetId": { "$ref": "#/$defs/id" }
+      }
+    },
+    "stage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "mapId",
+        "stageNumber",
+        "encounterType",
+        "maxEnemies",
+        "allowedMonsterIds",
+        "bossPool",
+        "statMultiplier",
+        "weaponDropLevels",
+        "reward",
+        "augmentOffer"
+      ],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "mapId": { "$ref": "#/$defs/id" },
+        "stageNumber": { "type": "integer", "minimum": 1, "maximum": 15 },
+        "encounterType": { "enum": ["normal", "miniboss", "boss"] },
+        "maxEnemies": { "type": "integer", "minimum": 1 },
+        "allowedMonsterIds": { "$ref": "#/$defs/idArray" },
+        "bossPool": { "$ref": "#/$defs/idArray" },
+        "statMultiplier": { "$ref": "#/$defs/positiveFiniteNumber" },
+        "weaponDropLevels": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "integer", "minimum": 1, "maximum": 3 }
+        },
+        "reward": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["baseGold", "noDeathBonus"],
+          "properties": {
+            "baseGold": { "$ref": "#/$defs/nonNegativeFiniteNumber" },
+            "noDeathBonus": { "$ref": "#/$defs/nonNegativeFiniteNumber" }
+          }
+        },
+        "augmentOffer": {
+          "anyOf": [
+            { "type": "null" },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["offerId", "optionIds"],
+              "properties": {
+                "offerId": { "$ref": "#/$defs/id" },
+                "optionIds": { "$ref": "#/$defs/idArray" }
+              }
+            }
+          ]
+        }
+      }
+    }
+  }
+}
