@@ -20,6 +20,25 @@
     color: var(--text-dim); font-family: monospace; font-size: 18px; background: var(--bg); z-index: 30;
   }
 
+  /* ----- Landscape-only lock: this game is designed for landscape play only. Pure CSS via
+     @media (orientation: portrait) — no JS, so no listeners, no state touched, no renderer
+     recreation; the overlay only ever changes `display`, everything underneath keeps running
+     exactly as before. z-index above every other layer (highest existing is 30) so it covers
+     canvas/topbar/panels/Shop/modals; pointer-events:auto on a full-viewport fixed element
+     naturally blocks all touch/click/pointer interaction with what's behind it. ----- */
+  #orientationOverlay {
+    display: none; position: fixed; inset: 0; z-index: 999;
+    flex-direction: column; align-items: center; justify-content: center; gap: 16px;
+    padding: 24px max(24px, env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom)) max(24px, env(safe-area-inset-left));
+    padding-top: max(24px, env(safe-area-inset-top));
+    background: var(--bg); color: var(--text); text-align: center;
+    font-size: 18px; line-height: 1.5; pointer-events: auto;
+  }
+  #orientationOverlay .rotateIcon { font-size: 56px; display: inline-block; transform: rotate(90deg); }
+  @media (orientation: portrait) {
+    #orientationOverlay { display: flex; }
+  }
+
   /* ----- 3D Canvas: full-viewport background layer, everything else floats above it ----- */
   #boardContainer { position: fixed; inset: 0; z-index: 0; }
 
@@ -370,6 +389,14 @@
 </head>
 <body>
 <div id="loading">กำลังเตรียมสนามประลอง...</div>
+
+<!-- เกมนี้ออกแบบให้เล่นแนวนอนเท่านั้น — overlay ล้วนๆ ด้วย CSS (@media orientation:portrait ด้านบน)
+     ไม่มี JS เกี่ยวข้องเลย จึงไม่แตะ state/renderer/listener ใดๆ ทั้งสิ้น ระหว่างแนวตั้ง เกมยังทำงาน
+     อยู่เบื้องหลังตามปกติ (ไม่ pause/reset) พอหมุนกลับแนวนอน overlay หายทันทีโดยไม่ต้อง reload -->
+<div id="orientationOverlay">
+  <div class="rotateIcon">📱</div>
+  <div>กรุณาหมุนโทรศัพท์เป็นแนวนอนเพื่อเล่นเกม</div>
+</div>
 
 <div id="boardContainer"></div>
 
