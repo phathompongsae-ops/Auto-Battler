@@ -1964,8 +1964,47 @@ function spawnVFX(type, opts) {
 // ฮีโร่ตัวอื่นยังไม่มีเอฟเฟกต์ = spawnVFX คืน null เงียบๆ ไม่กระทบอะไร)
 const VFX_SKILL_CAST = { mage: 'arcane_cast', fighter: 'slam_cast' };
 const VFX_SKILL_IMPACT = { mage: 'arcane_burst', fighter: 'ground_slam' };
+// ============================================================
+// UNIT RESOURCE CLEANUP — อุดรอยรั่ว geometry/material/texture ของยูนิต (root cause ของ
+// renderer.info.memory.geometries ที่โตสะสมข้ามเวฟที่เจอตอนเทส VFX): เดิม removeUnit แค่
+// scene.remove() โดยไม่ dispose อะไรเลย ทั้งที่ makeUnit สร้างของใหม่ต่อยูนิตทุกครั้ง
+// (body/เงา/หลอด HP/หลอดมานา/linkRing = geometry+material ต่อชิ้น, sprite sheet ฮีโร่ =
+// texture.clone() ต่อยูนิต, star badge = CanvasTexture ต่อยูนิต)
+// ============================================================
+// Shared resources ที่ "ห้าม dispose ตอนลบยูนิตตัวเดียว": SPRITES[*] (มอนสเตอร์ 1 เฟรมใช้ texture
+// ต้นฉบับตรงๆ หลายยูนิตพร้อมกัน), EQUIP_BADGE_TEX/LINK_BADGE_TEX (badge ทุกยูนิตชี้ texture เดียว)
+// — ส่วน texture ที่ยูนิตเป็นเจ้าของจริง (sheet clone / star badge / floating text) dispose ได้
+function isSharedUnitTexture(t) {
+  if (!t) return true;
+  if (t === EQUIP_BADGE_TEX || t === LINK_BADGE_TEX) return true;
+  for (const k in SPRITES) if (SPRITES[k] === t) return true;
+  return false;
+}
+function disposeObjectTree(root) {
+  root.traverse((o) => {
+    // THREE.Sprite (r128) ใช้ BufferGeometry static ตัวเดียวร่วมกันทุก sprite ทั้งเอนจิน
+    // (badge/floating text/VFX pool) — dispose ของ sprite ตัวเดียว = พังของทุกตัว จึงข้ามเสมอ
+    if (o.geometry && !o.isSprite) o.geometry.dispose();
+    const mats = Array.isArray(o.material) ? o.material : (o.material ? [o.material] : []);
+    mats.forEach((m) => {
+      if (m.map && !isSharedUnitTexture(m.map)) m.map.dispose();
+      m.dispose(); // material.dispose() ไม่แตะ texture เอง — shared map จึงปลอดภัยเสมอ
+    });
+  });
+}
+function disposeUnitVisual(u) {
+  disposeObjectTree(u.group);
+  // floating text ที่ยังลอยค้างเหนือหัวยูนิตนี้: resource ถูก dispose ไปกับ traverse ด้านบนแล้ว
+  // เหลือแค่ถอด entry ออกจาก registry ไม่ให้ updateFloatingTexts ถือ reference ของยูนิตที่ลบแล้ว
+  for (let i = floatingTexts.length - 1; i >= 0; i--) {
+    let p = floatingTexts[i].sprite.parent, inTree = false;
+    while (p) { if (p === u.group) { inTree = true; break; } p = p.parent; }
+    if (inTree) floatingTexts.splice(i, 1);
+  }
+}
 function removeUnit(u) {
   scene.remove(u.group);
+  disposeUnitVisual(u); // ทุกเส้นทางลบยูนิต (ขาย/ย้าย/จบเวฟ/summon หมดอายุ/รวมร่าง) ผ่านจุดนี้จุดเดียว
   occupied.delete(key(u.c, u.r));
   const idx = units.indexOf(u);
   if (idx >= 0) units.splice(idx, 1);
