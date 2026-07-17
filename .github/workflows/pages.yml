@@ -3,7 +3,7 @@ name: Deploy GitHub Pages
 on:
   push:
     branches:
-      - claude/threejs-2-5d-clean-v5-e80mbk
+      - main
   workflow_dispatch:
 
 permissions:
