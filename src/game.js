@@ -200,11 +200,18 @@ for (let r=0;r<GRID_ROWS;r++) for (let c=0;c<GRID_COLS;c++) {
 // ไฮไลต์ช่องวางตัว: ทำงานเฉพาะตอนกำลังเลือก (selectedUnit) หรือกำลังลาก (unitDrag.moved) —
 // ช่องผู้เล่นที่ว่าง = เขียวอ่อน (แถวม้านั่ง = ฟ้าอ่อน), ช่องที่ใช้งานอยู่/วางไม่ได้ = แดงโปร่งใส,
 // เวลาปกติทุกช่องกลับเป็นสีพื้นจางๆ (baseTint) — แตะแค่ material color/opacity ไม่แตะพิกัด/กติกาวางตัว
+// ระหว่างลากจริง (dragging) ไฮไลต์เฉพาะ "ช่องเดียวใต้ pointer ตอนนี้" (unitDrag.hoverTile ซึ่งอัปเดต
+// แบบ real-time ใน pointermove) ไม่ใช่โชว์ทุกช่องที่วางได้พร้อมกัน — ต่างจากโหมด tap-select
+// (selectedUnit ไม่มีการลาก) ซึ่งยังคงพฤติกรรมเดิม (โชว์ปลายทางที่วางได้ทั้งหมดพร้อมกัน)
 function updateTileHighlights() {
-  const placing = !!selectedUnit || !!(unitDrag && unitDrag.moved);
+  const dragging = !!(unitDrag && unitDrag.moved);
+  const placing = !!selectedUnit || dragging;
   tileMeshes.forEach((m) => {
     const ud = m.userData;
-    if (!placing || !ud.playerZone) {
+    const show = dragging
+      ? (!!unitDrag.hoverTile && unitDrag.hoverTile.c === ud.c && unitDrag.hoverTile.r === ud.r)
+      : (placing && ud.playerZone);
+    if (!show) {
       m.material.color.set(ud.baseTint);
       m.material.opacity = 1;
       return;
@@ -3673,7 +3680,7 @@ renderer.domElement.addEventListener('pointerdown', (e) => {
   const u = pickPlayerUnitAtScreenPoint(e.clientX, e.clientY);
   if (!u) return; // ปล่อยให้ pointerup ด้านล่างจัดการ "แตะช่องว่างเพื่อย้าย" กรณีนี้แทน
   e.preventDefault();
-  unitDrag = { unit: u, startX: e.clientX, startY: e.clientY, moved: false, pointerId: e.pointerId, ghostEl: null };
+  unitDrag = { unit: u, startX: e.clientX, startY: e.clientY, moved: false, pointerId: e.pointerId, ghostEl: null, hoverTile: null };
 });
 document.addEventListener('pointermove', (e) => {
   if (!unitDrag || e.pointerId !== unitDrag.pointerId) return;
@@ -3681,18 +3688,30 @@ document.addEventListener('pointermove', (e) => {
   if (!unitDrag.moved && Math.hypot(dx, dy) > 6) {
     unitDrag.moved = true;
     startBenchGhost(unitDrag, e.clientX, e.clientY);
-    updateTileHighlights(); // เริ่มลากจริง -> โชว์ช่องที่วางได้ (เขียว/ฟ้า) และช่องที่วางไม่ได้ (แดงโปร่ง)
   }
-  if (unitDrag.moved) moveBenchGhost(unitDrag, e.clientX, e.clientY);
+  if (unitDrag.moved) {
+    moveBenchGhost(unitDrag, e.clientX, e.clientY);
+    // ตรวจช่องใต้ pointer ตอนนี้ด้วย raycast เดิม (pickTileAtScreenPoint) แบบ real-time — อัปเดต
+    // ไฮไลต์เฉพาะตอนช่องที่ชี้อยู่เปลี่ยนจริง (ไม่ใช่ทุก pixel) ประหยัด repaint โดยยังใช้
+    // material/mesh เดิมของ tileMeshes ซ้ำเสมอ ไม่สร้าง/ลบอะไรใหม่
+    const tile = pickTileAtScreenPoint(e.clientX, e.clientY);
+    const next = (tile && tile.isTile && tile.playerZone) ? { c: tile.c, r: tile.r } : null;
+    const prev = unitDrag.hoverTile;
+    if ((next?.c !== prev?.c) || (next?.r !== prev?.r)) {
+      unitDrag.hoverTile = next;
+      updateTileHighlights();
+    }
+  }
 });
 document.addEventListener('pointerup', (e) => {
   if (unitDrag && e.pointerId === unitDrag.pointerId) {
     const ud = unitDrag; unitDrag = null;
     if (ud.moved) {
       endBenchGhost(ud);
-      const tile = pickTileAtScreenPoint(e.clientX, e.clientY);
-      if (tile && tile.isTile && tile.playerZone && !occupied.has(key(tile.c, tile.r))) {
-        moveUnitTo(ud.unit, tile.c, tile.r);
+      // ปล่อยลงตรงช่องที่กำลัง highlight เสมอ (ud.hoverTile ตัวเดียวกับที่ pointermove ใช้วาดไฮไลต์
+      // ล่าสุด) แทนที่จะ raycast ใหม่ที่พิกัดปล่อย ให้ตำแหน่งวางตรงกับสิ่งที่ผู้เล่นเห็นจริงเสมอ
+      if (ud.hoverTile && !occupied.has(key(ud.hoverTile.c, ud.hoverTile.r))) {
+        moveUnitTo(ud.unit, ud.hoverTile.c, ud.hoverTile.r);
       }
       updateTileHighlights(); // จบการลาก (สำเร็จหรือไม่ก็ตาม) -> เคลียร์/รีเฟรชไฮไลต์เสมอ
     } else {

@@ -12,7 +12,10 @@
     --accent-green: #4caf6e; --accent-red: #d9534f; --card-bg: #1c2231; --card-border: #363f56;
   }
   html, body { margin: 0; padding: 0; overflow: hidden; background: var(--bg); font-family: 'Trebuchet MS', sans-serif; }
-  canvas { display: block; width: 100%; height: 100%; }
+  /* touch-action:none คือ root cause fix ของ drag hero ที่ Android touch ทำไม่ได้ — ถ้าไม่ตั้ง เบราว์เซอร์
+     จะตีความการลากค้างเป็น pan/scroll แล้วยิง pointercancel ตัดวงจร pointer events กลางลาก (ยืนยันซ้ำ
+     ด้วย CDP touch dispatch: down→move→CANCEL ทันทีก่อนใส่ค่านี้, down→move*N→up ถูกต้องหลังใส่) */
+  canvas { display: block; width: 100%; height: 100%; touch-action: none; }
   * { box-sizing: border-box; }
 
   #loading {
