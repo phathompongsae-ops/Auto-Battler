@@ -344,17 +344,27 @@ const ASSET_META = {
   ChampionBig:    { path: 'assets/boss_champion_big.png',  frames: 1 },
 };
 const SPRITES = {};
+// sprite key ที่โหลด texture ไม่สำเร็จ (ไฟล์หาย/พิมพ์ผิด/case ไม่ตรงบน GitHub Pages) — makeUnit()
+// เช็คชุดนี้เพื่อตกไปใช้ placeholder box แทน ไม่ใช่ปล่อยให้ map:undefined หลุดเข้า material
+const failedSpriteKeys = new Set();
 function loadAllSprites(onDone) {
   const loader = new THREE.TextureLoader();
   const names = Object.keys(ASSET_META);
-  let loaded = 0;
+  let settled = 0;
+  let done = false; // กัน onDone() ถูกเรียกซ้ำ (เผื่อ settle() มาถึงพร้อมกันหลายรายการในเฟรมเดียว)
+  function settle() {
+    settled++;
+    if (settled === names.length && !done) { done = true; onDone(); }
+  }
   names.forEach((name) => {
     loader.load(ASSET_META[name].path, (tex) => {
       tex.magFilter = THREE.NearestFilter; tex.minFilter = THREE.NearestFilter;
       if (ASSET_META[name].frames > 1) tex.repeat.set(1/ASSET_META[name].frames, 1);
-      SPRITES[name] = tex; loaded++;
-      if (loaded === names.length) onDone();
-    }, undefined, (err) => console.error('โหลดสไปรท์ไม่สำเร็จ:', ASSET_META[name].path, err));
+      SPRITES[name] = tex; settle();
+    }, undefined, (err) => {
+      console.error('โหลดสไปรท์ไม่สำเร็จ:', name, ASSET_META[name].path, err);
+      failedSpriteKeys.add(name); settle(); // นับว่า "จบแล้ว" (ล้มเหลว) เพื่อให้ loader ไปต่อได้ ไม่ค้าง
+    });
   });
 }
 
@@ -1381,7 +1391,7 @@ function makeUnit(cfg) {
   const group = new THREE.Group();
   const meta = ASSET_META[cfg.sprite];
   let frames = 1, tex = null, w, h, body, shadowRefW = 1.1;
-  if (meta) {
+  if (meta && !failedSpriteKeys.has(cfg.sprite)) {
     frames = meta.frames;
     tex = SPRITES[cfg.sprite];
     if (frames > 1) { tex = tex.clone(); tex.needsUpdate = true; tex.repeat.set(1/frames, 1); tex.offset.set(0, 0); }
