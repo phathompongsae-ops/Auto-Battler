@@ -10,10 +10,13 @@ Use the smallest test scope that matches the risk of the change. Do not run a fu
 - One agent implements; the other reviews. Do not edit the same runtime file in parallel.
 - Prefer one focused reproduction plus nearby edge cases over broad random play.
 - Full 15-wave testing is reserved for milestones, broad architecture changes, or release preparation.
+- Do not prepare or send an agent command unless the project owner explicitly asks for it or authorizes execution.
+- Every task report must name the modules, tools, files, and code areas used.
 
 ## Standard pre-check
 - Confirm branch, HEAD, and working-tree status.
 - Confirm the change scope and files touched.
+- Identify the modules and tools used for implementation and verification.
 - Check the browser console for new errors.
 - Run `git diff --check` before commit.
 
@@ -35,6 +38,15 @@ Required:
 - Confirm shop/deployment remains usable.
 - Test one combat wave at speed x4 only when the change can affect combat timing or unit visuals.
 - Verify no new console, loading, or disposal errors.
+
+For a shop-drawer compositing workaround:
+- Confirm the original artifact reproduces before the change at `800×360` and `844×390` using the same browser/WebGL backend.
+- Change one CSS candidate at a time; do not combine candidates until an individual result is known.
+- Open and close the drawer repeatedly with at least one shop portrait image present.
+- Verify drawer position, portrait display, buttons, reroll, purchasing, and interaction hit areas.
+- Check at least one portrait size and `1024×768` for nearby regressions.
+- Do not edit the render loop or `src/game.js` during a CSS-only phase.
+- Record that passing SwiftShader evidence does not confirm real Android hardware behavior.
 
 ### Level 3 — Combat, movement, targeting, economy, deployment, or board-interaction change
 Use when changing movement resolution, range checks, targeting, pathfinding inputs, occupied tiles, field capacity, EXP/level flow, drag/drop, or bench/grid hit areas.
@@ -114,6 +126,7 @@ Before a public build or release candidate:
 Report only evidence relevant to the change:
 - Base commit and branch.
 - Files changed.
+- Modules, tools, and code areas used.
 - Test level used and why.
 - Exact scenarios tested at x4 when combat is involved.
 - Pass/fail and any remaining risk.
