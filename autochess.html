@@ -330,6 +330,19 @@
     /* จอเตี้ย: ตัดเฉพาะข้อความรอง (ชื่อสกิลบอส) เพื่อประหยัดพื้นที่ — ชื่อ/จำนวนรอด/HP ต้องเห็นครบเสมอ */
     .monSkillName { display: none; }
   }
+  /* ----- Responsive: มือถือจอแคบแนวตั้ง (ความกว้าง <= 700px) — ลด padding/gap ของแถบบนก่อน แล้วค่อยตัด
+     #phaseLabel เป็นอันดับแรก (HP/Wave/Gold/Lv/EXP/+EXP ต้องเห็นครบเสมอ); topbarCenter wrap อยู่แล้วจึง
+     ได้ 2 แถวที่ตั้งใจแทนการล้นจอโดยไม่ตั้งใจ — #buyExpBtn เพิ่ม padding แนวตั้งให้กดง่ายขึ้นโดยไม่ขยาย
+     ความกว้าง pill ----- */
+  @media (max-width: 700px) {
+    #topbar { padding: 4px max(6px, env(safe-area-inset-right)) 3px max(6px, env(safe-area-inset-left)); gap: 4px; font-size: 12px; }
+    #topbarLeft, #topbarRight, #topbarCenter { gap: 4px; }
+    .pill { padding: 3px 7px; gap: 4px; font-size: 12px; }
+    #topbar button, .hudCorner button, #shopToggleBtn, #bagToggleBtn { padding: 5px 8px; font-size: 12px; }
+    #buyExpBtn { padding: 6px 9px !important; }
+    .hpTrack { width: 46px; }
+    #phaseLabel { display: none; }
+  }
   /* ----- Responsive: แท็บเล็ต/ไอแพด (จอกว้าง >= 900px) — ขยายแผง/ตัวอักษรขึ้นเล็กน้อย ไม่ให้เล็กจิ๋วบนจอใหญ่ ----- */
   @media (min-width: 900px) {
     .floatPanel { width: clamp(165px, 15vw, 220px); padding: 12px; }
