@@ -1521,6 +1521,449 @@ function updateFloatingTexts(dt) {
 function updateEquipBadge(u) {
   if (u.equipBadge) u.equipBadge.visible = !!(u.equipment && u.equipment.some((e) => e));
 }
+
+// ============================================================
+// VFX FRAMEWORK — เลเยอร์ภาพล้วน อ่านผลจาก Combat/Skill ที่เกิดขึ้นแล้วเท่านั้น (ไม่คำนวณดาเมจ/ฮีล/
+// สถานะเองเด็ดขาด) ปิดด้วย VFX_ENABLED=false แล้วเกมเล่นได้เหมือนเดิม 100% เพราะทุก hook เป็น
+// fire-and-forget ข้างเดียว — ทุกชิ้นส่วน 3D อยู่ใน vfxRoot (Group แยก) ไม่เคยเข้า tileMeshes/units
+// จึงไม่โดน raycast — particle/mesh ทุกชนิดใช้ object pool สร้าง geometry/material/texture ครั้งเดียว
+// ตอนโหลด ไม่สร้างใหม่ระหว่างเล่นเลย (acquire = โชว์+รีเซ็ต, release = ซ่อนคืน pool)
+// ============================================================
+let VFX_ENABLED = true;          // ปิดเพื่อเล่นแบบไม่มีเอฟเฟกต์ (ลอจิกเกมไม่เปลี่ยนแม้แต่นิดเดียว)
+let CAMERA_SHAKE_ENABLED = true; // ปิดเฉพาะการสั่นกล้อง (setting แยกตามสเปก)
+const VFX_MAX_SHAKE_PX = 10;     // เพดานแรงสั่นกล้ายภาพ (px) — กันสั่นแรงจนเวียนหัว
+
+const vfxRoot = new THREE.Group();
+scene.add(vfxRoot);
+const activeVFX = [];
+
+// ----- runtime canvas textures (สร้างครั้งเดียว ไม่มีไฟล์ภาพใหม่ตาม asset policy) -----
+function vfxRadialGlowTex(inner, outer) {
+  const cv = makeCanvas(64, 64), g = cv.getContext('2d');
+  const grd = g.createRadialGradient(32, 32, 2, 32, 32, 30);
+  grd.addColorStop(0, inner); grd.addColorStop(0.3, outer); grd.addColorStop(1, 'rgba(0,0,0,0)');
+  g.fillStyle = grd; g.fillRect(0, 0, 64, 64);
+  const t = new THREE.CanvasTexture(cv); return t;
+}
+const VFX_TEX = {
+  glow: vfxRadialGlowTex('rgba(255,255,255,0.95)', 'rgba(255,255,255,0.28)'),
+  spark: (() => { // จุดสว่างเล็กมีแฉก 4 ทิศ
+    const cv = makeCanvas(32, 32), g = cv.getContext('2d');
+    const grd = g.createRadialGradient(16, 16, 1, 16, 16, 14);
+    grd.addColorStop(0, 'rgba(255,255,255,1)'); grd.addColorStop(0.4, 'rgba(255,255,255,0.5)'); grd.addColorStop(1, 'rgba(255,255,255,0)');
+    g.fillStyle = grd; g.fillRect(0, 0, 32, 32);
+    g.strokeStyle = 'rgba(255,255,255,0.8)'; g.lineWidth = 1.5;
+    g.beginPath(); g.moveTo(16, 2); g.lineTo(16, 30); g.moveTo(2, 16); g.lineTo(30, 16); g.stroke();
+    return new THREE.CanvasTexture(cv);
+  })(),
+  smoke: (() => { // ก้อนควันฟุ้งขาว (tint ผ่าน material.color)
+    const cv = makeCanvas(64, 64), g = cv.getContext('2d');
+    let s = 4242; const rnd = () => (s = (s * 16807) % 2147483647) / 2147483647;
+    for (let i = 0; i < 22; i++) {
+      const x = 14 + rnd() * 36, y = 14 + rnd() * 36, r = 6 + rnd() * 12;
+      const grd = g.createRadialGradient(x, y, 1, x, y, r);
+      grd.addColorStop(0, 'rgba(255,255,255,0.16)'); grd.addColorStop(1, 'rgba(255,255,255,0)');
+      g.fillStyle = grd; g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.fill();
+    }
+    return new THREE.CanvasTexture(cv);
+  })(),
+  magicCircle: (() => { // วงเวท: วงแหวนซ้อน + ขีดเรเดียล + สโตรกรูนสุ่ม (ขาวล้วน tint สีทีหลัง)
+    const cv = makeCanvas(256, 256), g = cv.getContext('2d');
+    g.translate(128, 128); g.strokeStyle = 'rgba(255,255,255,0.9)';
+    g.lineWidth = 3; g.beginPath(); g.arc(0, 0, 118, 0, Math.PI * 2); g.stroke();
+    g.lineWidth = 1.5; g.beginPath(); g.arc(0, 0, 104, 0, Math.PI * 2); g.stroke();
+    g.beginPath(); g.arc(0, 0, 64, 0, Math.PI * 2); g.stroke();
+    let s = 777; const rnd = () => (s = (s * 16807) % 2147483647) / 2147483647;
+    for (let i = 0; i < 24; i++) { // ขีดเรเดียล
+      const a = (i / 24) * Math.PI * 2;
+      g.beginPath(); g.moveTo(Math.cos(a) * 104, Math.sin(a) * 104); g.lineTo(Math.cos(a) * 118, Math.sin(a) * 118); g.stroke();
+    }
+    for (let i = 0; i < 8; i++) { // "รูน" สุ่มแบบสโตรกหักมุมสั้นๆ ระหว่างวงกลาง
+      const a = (i / 8) * Math.PI * 2 + 0.3;
+      g.save(); g.rotate(a); g.translate(84, 0); g.rotate(rnd() * 6);
+      g.beginPath(); g.moveTo(-6, -6);
+      for (let k = 0; k < 4; k++) g.lineTo(-6 + rnd() * 12, -6 + rnd() * 12);
+      g.stroke(); g.restore();
+    }
+    g.lineWidth = 2; // สามเหลี่ยมกลับหัวกลางวง
+    g.beginPath(); g.moveTo(0, -52); g.lineTo(45, 26); g.lineTo(-45, 26); g.closePath(); g.stroke();
+    return new THREE.CanvasTexture(cv);
+  })(),
+  cracks: [41, 977, 5309].map((seed) => { // รอยแตกรัศมี 3 แบบ (สุ่มเลือกตอนใช้)
+    const cv = makeCanvas(128, 128), g = cv.getContext('2d');
+    let s = seed; const rnd = () => (s = (s * 16807) % 2147483647) / 2147483647;
+    g.translate(64, 64); g.strokeStyle = 'rgba(12,8,4,0.9)'; g.lineCap = 'round';
+    const arms = 6 + (seed % 3);
+    for (let i = 0; i < arms; i++) {
+      let a = (i / arms) * Math.PI * 2 + rnd() * 0.6, x = 0, y = 0, len = 22 + rnd() * 34;
+      g.lineWidth = 3.2;
+      g.beginPath(); g.moveTo(0, 0);
+      for (let seg = 0; seg < 4; seg++) {
+        x += Math.cos(a) * (len / 4); y += Math.sin(a) * (len / 4);
+        a += (rnd() - 0.5) * 0.9; g.lineTo(x, y); g.lineWidth *= 0.7;
+      }
+      g.stroke();
+      if (rnd() < 0.6) { // แขนงย่อย
+        g.lineWidth = 1.4; g.beginPath(); g.moveTo(x * 0.55, y * 0.55);
+        g.lineTo(x * 0.55 + (rnd() - 0.5) * 26, y * 0.55 + (rnd() - 0.5) * 26); g.stroke();
+      }
+    }
+    return new THREE.CanvasTexture(cv);
+  }),
+  curseMark: (() => { // สัญลักษณ์คำสาป: ดวงตาในสามเหลี่ยมกลับหัว (วาดเอง ไม่ได้ลอกจากภาพอ้างอิง)
+    const cv = makeCanvas(64, 64), g = cv.getContext('2d');
+    g.strokeStyle = 'rgba(235,170,255,0.95)'; g.lineWidth = 3.4; g.lineJoin = 'round';
+    g.beginPath(); g.moveTo(32, 56); g.lineTo(8, 14); g.lineTo(56, 14); g.closePath(); g.stroke();
+    g.lineWidth = 2.4;
+    g.beginPath(); g.ellipse(32, 27, 12, 7, 0, 0, Math.PI * 2); g.stroke();
+    g.fillStyle = 'rgba(235,170,255,0.95)';
+    g.beginPath(); g.arc(32, 27, 3.4, 0, Math.PI * 2); g.fill();
+    return new THREE.CanvasTexture(cv);
+  })(),
+};
+
+// ----- object pools -----
+function makeVFXPool(count, create) {
+  const items = [];
+  for (let i = 0; i < count; i++) { const o = create(); o.visible = false; vfxRoot.add(o); items.push(o); }
+  return {
+    items, // เผื่อเทสต์นับ object
+    acquire() { const o = items.find((it) => !it.visible); if (o) o.visible = true; return o || null; }, // pool หมด = ข้ามชิ้นนั้น (งดสร้างเพิ่ม)
+    release(o) { if (o) o.visible = false; },
+  };
+}
+const additiveSprite = (tex) => new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }));
+const VFX_POOLS = {
+  spark: makeVFXPool(48, () => additiveSprite(VFX_TEX.spark)),
+  glow: makeVFXPool(8, () => additiveSprite(VFX_TEX.glow)),
+  smoke: makeVFXPool(20, () => new THREE.Sprite(new THREE.SpriteMaterial({ map: VFX_TEX.smoke, transparent: true, depthWrite: false }))),
+  ring: makeVFXPool(10, () => { // วงแหวน (วงเวทซ้อน/คลื่นกระแทก) — นอนราบกับพื้นเป็นค่าเริ่มต้น
+    const m = new THREE.Mesh(new THREE.RingGeometry(0.42, 0.5, 40),
+      new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide }));
+    m.rotation.x = -Math.PI / 2; return m;
+  }),
+  circle: makeVFXPool(6, () => { // วงเวท/วงคำสาปแบบมีลาย (magicCircle texture)
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(1, 1),
+      new THREE.MeshBasicMaterial({ map: VFX_TEX.magicCircle, color: 0xffffff, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide }));
+    m.rotation.x = -Math.PI / 2; return m;
+  }),
+  crack: makeVFXPool(4, () => {
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(1, 1),
+      new THREE.MeshBasicMaterial({ map: VFX_TEX.cracks[0], transparent: true, depthWrite: false }));
+    m.rotation.x = -Math.PI / 2; return m;
+  }),
+  rock: makeVFXPool(16, () => new THREE.Mesh(new THREE.DodecahedronGeometry(0.055, 0), new THREE.MeshLambertMaterial({ color: 0x8a6f4d, transparent: true }))),
+  curseMark: makeVFXPool(6, () => new THREE.Sprite(new THREE.SpriteMaterial({ map: VFX_TEX.curseMark, transparent: true, depthTest: false }))),
+};
+
+// ----- screen flash (DOM overlay สร้างครั้งเดียว อัปเดตแค่ style.opacity ไม่ rebuild DOM) -----
+const vfxFlashEl = document.createElement('div');
+vfxFlashEl.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:9;opacity:0;';
+document.body.appendChild(vfxFlashEl);
+let flashState = null; // {t, duration, maxOpacity}
+function triggerScreenFlash(opts) {
+  if (!VFX_ENABLED) return;
+  const maxOpacity = Math.min(opts.maxOpacity || 0.2, 0.35); // เพดานกันจอขาวมองไม่เห็น
+  vfxFlashEl.style.background = opts.color || '#ffffff';
+  flashState = { t: 0, duration: opts.duration || 0.2, maxOpacity };
+}
+// ----- camera shake (จำกัดเพดาน + decay แบบ quadratic ให้จางลง smooth) -----
+let shakeState = null; // {t, duration, magnitude}
+function triggerCameraShake(opts) {
+  if (!VFX_ENABLED || !CAMERA_SHAKE_ENABLED) return;
+  const magnitude = Math.min(opts.magnitude || 5, VFX_MAX_SHAKE_PX);
+  // สั่นใหม่ระหว่างสั่นเดิม: เก็บค่าที่แรง/นานกว่า ไม่บวกซ้อนกันจนเกินเพดาน
+  if (shakeState) shakeState = { t: 0, duration: Math.max(opts.duration || 0.25, shakeState.duration - shakeState.t), magnitude: Math.max(magnitude, shakeState.magnitude) };
+  else shakeState = { t: 0, duration: opts.duration || 0.25, magnitude };
+}
+function updateShakeAndFlash(dt) {
+  if (flashState) {
+    flashState.t += dt;
+    const k = flashState.t / flashState.duration;
+    vfxFlashEl.style.opacity = k >= 1 ? 0 : (flashState.maxOpacity * (k < 0.25 ? k / 0.25 : 1 - (k - 0.25) / 0.75)).toFixed(3);
+    if (k >= 1) flashState = null;
+  }
+  if (shakeState) {
+    shakeState.t += dt;
+    const k = shakeState.t / shakeState.duration;
+    if (k >= 1) { shakeState = null; camera.clearViewOffset(); }
+    else {
+      const decay = (1 - k) * (1 - k);
+      const px = Math.sin(shakeState.t * 71) * shakeState.magnitude * decay;
+      const py = Math.cos(shakeState.t * 89) * shakeState.magnitude * decay;
+      const w = window.innerWidth || 1, h = window.innerHeight || 1;
+      camera.setViewOffset(w, h, px, py, w, h); // เลื่อนภาพระดับ px ล้วน ไม่แตะ position/frustum ที่ layoutBoard คุม
+    }
+  }
+}
+
+// ----- บรรยากาศสนามชั่วคราว (Arena Curse) — refcount เผื่อคำสาปซ้อนกัน คืนสีเดิมเมื่อตัวสุดท้ายจบ -----
+const VFX_BASE_BG = scene.background.clone(), VFX_BASE_FOG = scene.fog.color.clone();
+const VFX_CURSE_TINT = new THREE.Color(0x2a1038);
+let curseAtmosphereCount = 0, curseAtmosphereK = 0; // K = 0..1 ระดับการย้อมสีปัจจุบัน
+function updateCurseAtmosphere(dt) {
+  const target = curseAtmosphereCount > 0 ? 1 : 0;
+  if (curseAtmosphereK === target) return;
+  curseAtmosphereK += Math.sign(target - curseAtmosphereK) * Math.min(dt / 0.35, Math.abs(target - curseAtmosphereK));
+  scene.background.copy(VFX_BASE_BG).lerp(VFX_CURSE_TINT, curseAtmosphereK);
+  scene.fog.color.copy(VFX_BASE_FOG).lerp(VFX_CURSE_TINT, curseAtmosphereK);
+}
+
+// ----- effect core -----
+function disposeVFX(fx) {
+  fx.parts.forEach((p) => p.pool.release(p.obj));
+  if (fx.onDispose) fx.onDispose();
+  const i = activeVFX.indexOf(fx);
+  if (i >= 0) activeVFX.splice(i, 1);
+}
+function clearAllVFX() {
+  while (activeVFX.length) disposeVFX(activeVFX[0]);
+  flashState = null; vfxFlashEl.style.opacity = 0;
+  if (shakeState) { shakeState = null; camera.clearViewOffset(); }
+  curseAtmosphereCount = 0; // updateCurseAtmosphere จะไล่สีกลับเองแบบ smooth
+}
+function updateVFX(dt) {
+  updateShakeAndFlash(dt);
+  updateCurseAtmosphere(dt);
+  for (let i = activeVFX.length - 1; i >= 0; i--) {
+    const fx = activeVFX[i];
+    fx.t += dt;
+    if (fx.t >= fx.duration) disposeVFX(fx);
+    else fx.update(fx, fx.t / fx.duration, dt);
+  }
+}
+// helper: ยืมชิ้นส่วนจาก pool เข้า record ของเอฟเฟกต์ (คืนอัตโนมัติตอน dispose)
+function vfxAcquire(fx, poolName) {
+  const obj = VFX_POOLS[poolName].acquire();
+  if (obj) fx.parts.push({ obj, pool: VFX_POOLS[poolName] });
+  return obj;
+}
+function vfxTargetPos(target, fallbackUnit) {
+  const u = Array.isArray(target) ? target.find((t) => t && t.group) : target;
+  const src = (u && u.group) ? u : fallbackUnit;
+  return src && src.group ? src.group.position : new THREE.Vector3();
+}
+
+// ----- effect builders -----
+const VFX_BUILDERS = {
+  // Mage cast: วงเวทหมุนใต้เท้า + แสงรวมตัว + ประกายวิ่งเข้าหาตัว (duration = cast time จริงของสกิล)
+  arcane_cast(opts) {
+    const fx = { t: 0, duration: Math.max(opts.castTime || 0.6, 0.25), parts: [], update: null };
+    const pos = opts.caster.group.position;
+    const circle = vfxAcquire(fx, 'circle');
+    if (circle) { circle.material.color.setHex(0x7d8cff); circle.position.set(pos.x, 0.03, pos.z); circle.scale.set(0.1, 0.1, 1); circle.material.opacity = 0; }
+    const glow = vfxAcquire(fx, 'glow');
+    if (glow) { glow.material.color.setHex(0x9d7dff); glow.material.opacity = 0; glow.position.set(pos.x, 0.55, pos.z); glow.scale.set(0.2, 0.2, 1); }
+    const sparks = [];
+    for (let i = 0; i < 8; i++) {
+      const s = vfxAcquire(fx, 'spark');
+      if (!s) break;
+      const a = (i / 8) * Math.PI * 2;
+      s.userData.vfxA = a; s.material.color.setHex(i % 2 ? 0x66aaff : 0xbb77ff);
+      s.scale.set(0.16, 0.16, 1); sparks.push(s);
+    }
+    fx.update = (f, k) => {
+      const p = opts.caster.group.position; // ตามตัวแคสเตอร์เผื่อขยับ
+      if (circle) { circle.position.set(p.x, 0.03, p.z); const sc = 1.15 * Math.min(1, k * 2.4); circle.scale.set(sc, sc, 1); circle.rotation.z = k * 4; circle.material.opacity = Math.min(1, k * 3) * 0.85; }
+      if (glow) { glow.position.set(p.x, 0.55, p.z); const gs = 0.2 + k * 0.85; glow.scale.set(gs, gs, 1); glow.material.opacity = 0.25 + k * 0.6; }
+      sparks.forEach((s, i) => { // วนเข้าหาแกนกลางแบบ spiral
+        const r = 1.05 * (1 - k), a = s.userData.vfxA + k * 5;
+        s.position.set(p.x + Math.cos(a) * r, 0.25 + k * 0.5 + i * 0.02, p.z + Math.sin(a) * r);
+        s.material.opacity = 0.4 + k * 0.6;
+      });
+    };
+    return fx;
+  },
+  // Mage impact: วงเวทซ้อน 2-3 ชั้น + คลื่นขยาย + ประกายกระจาย + flash ม่วงอ่อนสั้นๆ
+  arcane_burst(opts) {
+    const fx = { t: 0, duration: 0.85, parts: [], update: null };
+    const pos = vfxTargetPos(opts.target, opts.caster).clone();
+    const rings = [];
+    for (let i = 0; i < 3; i++) {
+      const r = vfxAcquire(fx, 'ring');
+      if (!r) break;
+      r.material.color.setHex(i === 1 ? 0xbb77ff : 0x66aaff);
+      r.position.set(pos.x, 0.05 + i * 0.3, pos.z);
+      rings.push(r);
+    }
+    const wave = vfxAcquire(fx, 'ring');
+    if (wave) { wave.material.color.setHex(0x9db4ff); wave.position.set(pos.x, 0.03, pos.z); }
+    const circle = vfxAcquire(fx, 'circle');
+    if (circle) { circle.material.color.setHex(0xbb77ff); circle.position.set(pos.x, 0.04, pos.z); }
+    const glow = vfxAcquire(fx, 'glow');
+    if (glow) { glow.material.color.setHex(0xcaa8ff); glow.position.set(pos.x, 0.6, pos.z); }
+    const sparks = [];
+    for (let i = 0; i < 16; i++) {
+      const s = vfxAcquire(fx, 'spark');
+      if (!s) break;
+      const a = Math.random() * Math.PI * 2;
+      s.userData.vfxV = { x: Math.cos(a) * (1.2 + Math.random() * 1.6), y: 1.2 + Math.random() * 2.2, z: Math.sin(a) * (1.2 + Math.random() * 1.6) };
+      s.position.set(pos.x, 0.4, pos.z);
+      s.material.color.setHex(i % 2 ? 0x66aaff : 0xd0a8ff);
+      s.scale.set(0.2, 0.2, 1);
+      sparks.push(s);
+    }
+    triggerScreenFlash({ color: '#8f78ff', maxOpacity: 0.22, duration: 0.2 });
+    fx.update = (f, k, dt) => {
+      rings.forEach((r, i) => {
+        const sc = 0.7 + k * (1.5 + i * 0.35);
+        r.scale.set(sc, sc, 1); r.rotation.z += (i % 2 ? -1 : 1) * dt * 5;
+        r.material.opacity = (1 - k) * 0.95;
+      });
+      if (wave) { const ws = 0.4 + k * 4.6; wave.scale.set(ws, ws, 1); wave.material.opacity = (1 - k) * 0.7; }
+      if (circle) { const cs = 1.3 + k * 1.2; circle.scale.set(cs, cs, 1); circle.rotation.z -= dt * 2.2; circle.material.opacity = (1 - k) * 0.9; }
+      if (glow) { const gs = 1.15 * (k < 0.18 ? k / 0.18 : 1 - (k - 0.18) / 0.82); glow.scale.set(gs + 0.01, gs + 0.01, 1); glow.material.opacity = Math.max(0, 0.7 * (1 - k)); }
+      sparks.forEach((s) => {
+        const v = s.userData.vfxV;
+        s.position.x += v.x * dt; s.position.z += v.z * dt;
+        s.position.y += v.y * dt; v.y -= 6.5 * dt;
+        s.material.opacity = (1 - k);
+      });
+    };
+    return fx;
+  },
+  // Fighter cast: ประจุแสงส้มสั้นๆ ใต้เท้า (คู่กับ Ground Slam ตอน impact)
+  slam_cast(opts) {
+    const fx = { t: 0, duration: Math.max(opts.castTime || 0.5, 0.25), parts: [], update: null };
+    const glow = vfxAcquire(fx, 'glow');
+    if (glow) { glow.material.color.setHex(0xffb347); glow.material.opacity = 0; }
+    fx.update = (f, k) => {
+      if (!glow) return;
+      const p = opts.caster.group.position;
+      glow.position.set(p.x, 0.28, p.z);
+      const gs = 0.3 + k * 0.7; glow.scale.set(gs, gs, 1);
+      glow.material.opacity = 0.2 + k * 0.55;
+    };
+    return fx;
+  },
+  // Fighter impact: วงกระแทก + รอยแตก procedural + หินกระเด็น + ฝุ่น + สั่นกล้องเบาๆ —
+  // "hit stop เฉพาะภาพ": คลื่นกระแทกค้างที่สเกลแรกเริ่ม ~60ms ก่อนขยาย (ลอจิกเกมเดินต่อปกติ)
+  ground_slam(opts) {
+    const fx = { t: 0, duration: 0.8, parts: [], update: null };
+    const pos = vfxTargetPos(opts.target, opts.caster).clone();
+    const HOLD = 0.075; // สัดส่วนของ duration (~60ms) ที่คลื่น "ค้างภาพ" ตอนกระทบ
+    const wave = vfxAcquire(fx, 'ring');
+    if (wave) { wave.material.color.setHex(0xffc966); wave.position.set(pos.x, 0.04, pos.z); }
+    const crack = vfxAcquire(fx, 'crack');
+    if (crack) {
+      crack.material.map = VFX_TEX.cracks[(Math.random() * VFX_TEX.cracks.length) | 0];
+      crack.position.set(pos.x, 0.025, pos.z); crack.rotation.z = Math.random() * Math.PI * 2;
+      crack.scale.set(1.5, 1.5, 1);
+    }
+    const glow = vfxAcquire(fx, 'glow');
+    if (glow) { glow.material.color.setHex(0xff9d3c); glow.position.set(pos.x, 0.3, pos.z); }
+    const rocks = [];
+    for (let i = 0; i < 9; i++) {
+      const r = vfxAcquire(fx, 'rock');
+      if (!r) break;
+      const a = Math.random() * Math.PI * 2;
+      r.userData.vfxV = { x: Math.cos(a) * (0.7 + Math.random() * 1.3), y: 2.2 + Math.random() * 2.4, z: Math.sin(a) * (0.7 + Math.random() * 1.3) };
+      r.position.set(pos.x, 0.1, pos.z);
+      r.material.opacity = 1;
+      r.rotation.set(Math.random() * 3, Math.random() * 3, 0);
+      rocks.push(r);
+    }
+    const dusts = [];
+    for (let i = 0; i < 6; i++) {
+      const d = vfxAcquire(fx, 'smoke');
+      if (!d) break;
+      const a = (i / 6) * Math.PI * 2;
+      d.material.color.setHex(0xb9a184);
+      d.position.set(pos.x + Math.cos(a) * 0.5, 0.18, pos.z + Math.sin(a) * 0.5);
+      d.userData.vfxA = a;
+      dusts.push(d);
+    }
+    triggerCameraShake({ magnitude: 6, duration: 0.3 });
+    triggerScreenFlash({ color: '#ffb347', maxOpacity: 0.12, duration: 0.14 });
+    fx.update = (f, k, dt) => {
+      const kk = Math.max(0, (k - HOLD) / (1 - HOLD)); // ค้างภาพช่วง HOLD แรก
+      if (wave) { const ws = 0.5 + kk * 3.4; wave.scale.set(ws, ws, 1); wave.material.opacity = (1 - kk) * 0.95; }
+      if (crack) crack.material.opacity = k < 0.45 ? 0.9 : 0.9 * (1 - (k - 0.45) / 0.55);
+      if (glow) { const gs = 1.1 * (k < 0.15 ? k / 0.15 : 1 - (k - 0.15) / 0.85); glow.scale.set(gs + 0.01, gs + 0.01, 1); glow.material.opacity = Math.max(0, 1 - kk * 1.3); }
+      rocks.forEach((r) => {
+        const v = r.userData.vfxV;
+        r.position.x += v.x * dt; r.position.z += v.z * dt;
+        r.position.y += v.y * dt; v.y -= 10.5 * dt;
+        r.rotation.x += dt * 7; r.rotation.y += dt * 5;
+        if (r.position.y <= 0.03) r.visible = false; // ตกถึงพื้นแล้วหาย (release ตอน dispose อยู่ดี)
+        r.material.opacity = Math.min(1, (1 - k) * 2);
+      });
+      dusts.forEach((d) => {
+        d.position.y += dt * 0.55;
+        d.position.x += Math.cos(d.userData.vfxA) * dt * 0.4;
+        d.position.z += Math.sin(d.userData.vfxA) * dt * 0.4;
+        const ds = 0.5 + k * 1.3; d.scale.set(ds, ds, 1);
+        d.material.opacity = (1 - k) * 0.55;
+      });
+    };
+    return fx;
+  },
+  // Boss Arena Curse: ย้อมบรรยากาศทั้งสนามม่วงเข้ม + วงคำสาปใหญ่ใต้เป้าหมาย + ควันดำลอย +
+  // สัญลักษณ์คำสาปเหนือหัวยูนิตที่โดน — duration ตาม status จริง และตัดจอทันทีที่สถานะหลุด/ตาย
+  arena_curse(opts) {
+    const fx = { t: 0, duration: opts.duration || 5, parts: [], update: null };
+    curseAtmosphereCount += 1;
+    fx.onDispose = () => { curseAtmosphereCount = Math.max(0, curseAtmosphereCount - 1); };
+    const entries = (opts.targets || []).map((u) => {
+      const circle = vfxAcquire(fx, 'circle');
+      if (circle) { circle.material.color.setHex(0xa050e0); circle.scale.set(0.1, 0.1, 1); }
+      const mark = vfxAcquire(fx, 'curseMark');
+      if (mark) mark.scale.set(0.42, 0.42, 1);
+      const smokes = [];
+      for (let i = 0; i < 4; i++) {
+        const s = vfxAcquire(fx, 'smoke');
+        if (!s) break;
+        s.material.color.setHex(0x51246e);
+        s.userData.vfxSeed = Math.random() * 10;
+        smokes.push(s);
+      }
+      return { u, circle, mark, smokes };
+    });
+    triggerScreenFlash({ color: '#5e2a8a', maxOpacity: 0.18, duration: 0.3 });
+    triggerCameraShake({ magnitude: 4, duration: 0.25 });
+    const stillCursed = (u) => u.alive && (u.statuses || []).some((s) => s.status_id === 'arena_curse');
+    fx.update = (f, k, dt) => {
+      entries.forEach((e) => {
+        const active = stillCursed(e.u); // สถานะหลุดก่อนเวลา (เช่นตาย) → ซ่อนทันที ไม่รอ duration
+        const p = e.u.group.position;
+        if (e.circle) {
+          e.circle.visible = active;
+          e.circle.position.set(p.x, 0.035, p.z);
+          const cs = Math.min(1, f.t / 0.4) * 2.6;
+          e.circle.scale.set(cs, cs, 1);
+          e.circle.rotation.z += dt * 0.9;
+          e.circle.material.opacity = (0.55 + Math.sin(f.t * 5) * 0.2) * (k > 0.9 ? (1 - k) * 10 : 1);
+        }
+        if (e.mark) {
+          e.mark.visible = active;
+          e.mark.position.set(p.x, (e.u.halfH || 0.8) * 2 + 0.62 + Math.sin(f.t * 3) * 0.05, p.z);
+          e.mark.material.opacity = k > 0.9 ? (1 - k) * 10 : 0.95;
+        }
+        e.smokes.forEach((s, i) => {
+          s.visible = active;
+          const cyc = (f.t * 0.5 + s.userData.vfxSeed + i * 0.7) % 1; // วนลอยขึ้นซ้ำ
+          const a = s.userData.vfxSeed + i * 2.1;
+          s.position.set(p.x + Math.cos(a) * 0.45, 0.15 + cyc * 1.5, p.z + Math.sin(a) * 0.45);
+          const ss = 0.45 + cyc * 0.8; s.scale.set(ss, ss, 1);
+          s.material.opacity = (1 - cyc) * 0.5 * (k > 0.9 ? (1 - k) * 10 : 1);
+        });
+      });
+    };
+    return fx;
+  },
+};
+function spawnVFX(type, opts) {
+  if (!VFX_ENABLED) return null;
+  const builder = VFX_BUILDERS[type];
+  if (!builder) return null;
+  const fx = builder(opts || {});
+  if (fx) { fx.type = type; activeVFX.push(fx); }
+  return fx;
+}
+// ตารางจับคู่ heroKey -> เอฟเฟกต์ (รอบนี้ทดลอง 3 เอฟเฟกต์ตัวแทน: mage/fighter/บอส arena_curse —
+// ฮีโร่ตัวอื่นยังไม่มีเอฟเฟกต์ = spawnVFX คืน null เงียบๆ ไม่กระทบอะไร)
+const VFX_SKILL_CAST = { mage: 'arcane_cast', fighter: 'slam_cast' };
+const VFX_SKILL_IMPACT = { mage: 'arcane_burst', fighter: 'ground_slam' };
 function removeUnit(u) {
   scene.remove(u.group);
   occupied.delete(key(u.c, u.r));
@@ -1535,7 +1978,7 @@ function resetForWave(u) {
   u.group.position.set(p.x, 0, p.z);
   u.moving = false; u.moveT = 0; u.body.position.x = 0;
   u.alive = true; u.hp = u.maxHp; u.atkCooldown = 0;
-  u.body.rotation.z = 0; u.body.material.opacity = 1; u.body.material.color.set(0xffffff);
+  u.body.rotation.z = 0; u.body.material.opacity = 1; u.body.material.color.set(u.placeholderColor || 0xffffff);
   u.hpBar.visible = true; u.hpBar.scale.x = 1; u.hpBar.position.x = 0;
   u.group.children[2].visible = true;
   u.shadow.material.opacity = 0.35;
@@ -1590,7 +2033,7 @@ function mitigateDamage(rawDmg, attacker, target, armorPenPct) {
 function applyTrait(u, target, dmg) {
   if (u.trait === 'crit' && Math.random() < 0.2) {
     dmg *= 1.8; target.body.material.color.set(0xffe066);
-    setTimeout(() => target.alive && target.body.material.color.set(0xffffff), 100);
+    setTimeout(() => target.alive && target.body.material.color.set(target.placeholderColor || 0xffffff), 100);
   } else if (u.trait === 'longshot' && gridDist(u, target) >= 4) { dmg *= 1.3; }
   else if (u.trait === 'slow') {
     target._baseSpeed = target._baseSpeed || target.moveSpeed;
@@ -2278,6 +2721,8 @@ function executeBossSkill(boss, skillId, skill, livingHeroes) {
       applyStatusEffectToUnit(h, { status_id:'arena_curse', kind:'debuff', duration: skill.duration, modifiers:{ p_def_pct: skill.defensePct, m_def_pct: skill.defensePct } }, boss);
       spawnFloatingText(h, 'Cursed!', '#b060ff');
     });
+    // VFX hook: อ่านรายชื่อเป้าหมาย+duration ของสถานะที่ apply ไปแล้ว — ภาพล้วน ไม่แตะ debuff จริง
+    spawnVFX('arena_curse', { boss, targets, duration: skill.duration });
   }
 }
 // Dispatches a skill's status_effects to the right unit(s) per `target_scope` — tier-1 skills
@@ -2392,6 +2837,8 @@ function updateUnit(u, dt) {
       if (u.castTimer <= 0) {
         if (skillDef) {
           executeSkill(u, getScaledSkillDef(u, skillDef), u.castTarget); // Hero Star System: 2★ hits harder/heals more/lasts longer
+          // VFX hook (impact): อ่านผลหลัง executeSkill เสร็จแล้วเท่านั้น — ภาพล้วน ไม่แตะผลสกิล
+          if (VFX_SKILL_IMPACT[u.heroKey]) spawnVFX(VFX_SKILL_IMPACT[u.heroKey], { caster: u, target: u.castTarget });
           u.current_mana = Math.max(0, u.current_mana - (skillDef.mana_cost || u.max_mana));
         } else {
           u.current_mana = Math.max(0, u.current_mana - u.max_mana); // no skill data yet — spend, no effect
@@ -2406,8 +2853,10 @@ function updateUnit(u, dt) {
       u.action_state = 'casting';
       u.castTimer = skillDef ? skillDef.cast_time : SKILL_CAST_DURATION;
       u.castTarget = skillDef ? resolveSkillTarget(u, skillDef) : null;
-      u.animState = 'attack'; u.animTimer = 0; // stub visual until real skill VFX exists
+      u.animState = 'attack'; u.animTimer = 0;
       if (skillDef) spawnFloatingText(u, skillDef.skill_name + '!', '#ffe066');
+      // VFX hook (cast start): เอฟเฟกต์รวมพลังระหว่างร่าย ยาวเท่า cast time จริง — ภาพล้วน
+      if (VFX_SKILL_CAST[u.heroKey]) spawnVFX(VFX_SKILL_CAST[u.heroKey], { caster: u, castTime: u.castTimer });
       updateAnim(u, dt);
       return;
     }
@@ -2451,8 +2900,10 @@ function updateUnit(u, dt) {
       const dir = gridToWorld(target.c,target.r).sub(u.group.position).normalize().multiplyScalar(0.12);
       u.body.position.x += dir.x;
       setTimeout(()=>{ if (u.alive) u.body.position.x=0; }, 90);
+      // restore ไปที่สีฐานของยูนิต (มอนไม่มีภาพใช้ placeholderColor) — เดิม hardcode 0xffffff ทำให้
+      // Slime/OrcBrute กลายเป็นกล่องขาวถาวรหลังโดนตีครั้งแรก และศพตอนล้มก็ค้างเป็นสีขาวด้วย
       target.body.material.color.set(0xff8866);
-      setTimeout(()=> target.alive && target.body.material.color.set(0xffffff), 80);
+      setTimeout(()=> target.alive && target.body.material.color.set(target.placeholderColor || 0xffffff), 80);
       target.hpBar.scale.x = Math.max(0, target.hp/target.maxHp);
       target.hpBar.position.x = -0.36*(1-target.hpBar.scale.x);
       applyReflectDamage(target, dmg, u, u.attackType);
@@ -3404,6 +3855,7 @@ function onWaveCleared() {
   const reward = income.total + merchantBonus;
   clearEnemies();
   despawnSummons(); // summon_payload.despawn_on_wave_end
+  clearAllVFX(); // จบเวฟ: ล้างเอฟเฟกต์ค้างทั้งหมด (รวม flash/shake/บรรยากาศคำสาป) คืน pool ครบ
   if (wave >= WAVE_TOTAL) {
     showResult('🏆 พิชิตซากอารีน่าหินสำเร็จ!', `ทำครบ ${WAVE_TOTAL} ด่าน ได้ทอง +${reward} — ขอบคุณที่เล่น!`, () => {
       phase = 'gameover';
@@ -3424,6 +3876,7 @@ function onWaveCleared() {
 function onWaveFailed(reason) {
   clearEnemies();
   despawnSummons(); // summon_payload.despawn_on_wave_end
+  clearAllVFX(); // เช่นเดียวกับตอนชนะ: ไม่ให้เอฟเฟกต์/บรรยากาศคำสาปค้างข้ามไปหน้า shop
   losses += 1;
   const income = grantWaveIncome(false); // แพ้ก็ยังได้ base + interest + streak (แค่ไม่มี win_bonus) ตามสูตรรายได้
   if (losses >= MAX_LOSSES) {
@@ -3484,6 +3937,10 @@ function animate(now) {
       updateMonsterPanelBars(); // same for the monster panel — bar widths/counts only, no DOM rebuild
     }
   }
+
+  // VFX เดินด้วย dt เดียวกับ combat (คูณ speedMul แล้วตอน battle) ให้จังหวะภาพตรงกับเกมทุกความเร็ว —
+  // ตอน pause ระหว่าง battle หยุดตาม ไม่ให้เอฟเฟกต์เล่นต่อทั้งที่เกมหยุด
+  if (!(phase === 'battle' && paused)) updateVFX(dt);
 
   for (const u of units) {
     if (!u.alive && u.deathT !== undefined && u.deathT < 1) {
