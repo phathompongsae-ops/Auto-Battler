@@ -1,0 +1,44 @@
+{
+  "version": 1,
+  "status": "proposed-lock",
+  "rules": {
+    "singlePathPerLogicalId": true,
+    "allowSilentPipelineFallback": false,
+    "prohibitedLogicalIds": ["novice"]
+  },
+  "heroes": [
+    {"id":"fighter","displayName":"Fighter","path":"assets/fighter.png","required":true,"canonical":true},
+    {"id":"swordman","displayName":"Swordman","path":"assets/swordman.png","required":true,"canonical":true},
+    {"id":"archer","displayName":"Archer","path":"assets/archer.png","required":true,"canonical":true},
+    {"id":"mage","displayName":"Mage","path":"assets/mage.png","required":true,"canonical":true},
+    {"id":"summoner","displayName":"Summoner","path":"assets/summoner.png","required":true,"canonical":true},
+    {"id":"acolyte","displayName":"Acolyte","path":"assets/acolyte.png","required":true,"canonical":true},
+    {"id":"merchant","displayName":"Merchant","path":"assets/merchant.png","required":true,"canonical":true}
+  ],
+  "enemies": [
+    {"id":"stonewolf","displayName":"Stone Wolf","path":"assets/mon_stonewolf.png","role":"normal","required":true,"canonical":true},
+    {"id":"skeleton","displayName":"Skeleton","path":"assets/mon_skeleton.png","role":"normal","required":true,"canonical":true},
+    {"id":"spiritarcher","displayName":"Spirit Archer","path":"assets/mon_spiritarcher.png","role":"normal","required":true,"canonical":true},
+    {"id":"shadowassassin","displayName":"Shadow Assassin","path":"assets/mon_shadowassassin.png","role":"normal-special","required":true,"canonical":true},
+    {"id":"warden","displayName":"Warden","path":"assets/miniboss_warden.png","role":"stage-5-miniboss","required":true,"canonical":true},
+    {"id":"golem","displayName":"Golem","path":"assets/mon_golem.png","role":"stage-10-miniboss","required":true,"canonical":true},
+    {"id":"bonedragon","displayName":"Bone Dragon","path":"assets/mon_bonedragon.png","role":"stage-13-featured","required":true,"canonical":true},
+    {"id":"champion","displayName":"Immortal Champion","path":"assets/boss_champion.png","role":"stage-15-boss","required":true,"canonical":true},
+    {"id":"slime","displayName":"Slime","path":null,"role":"normal","required":true,"canonical":false,"status":"pending-original-project-asset"},
+    {"id":"orc","displayName":"Orc","path":null,"role":"normal","required":true,"canonical":false,"status":"pending-original-project-asset"}
+  ],
+  "developmentOnly": [
+    "assets/contact_sheet*.png",
+    "assets/heroes_contact_sheet.png"
+  ],
+  "nonCanonicalPipelines": [
+    "assets/v5/body_*.png",
+    "assets/v5/face_*.png",
+    "assets/v5/mon_*.png",
+    "assets/heroes/*_sheet.png",
+    "assets/portraits/*.png"
+  ],
+  "deprecatedAssets": [
+    "assets/novice.png"
+  ]
+}
