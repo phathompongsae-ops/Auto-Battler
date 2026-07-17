@@ -1993,6 +1993,8 @@ function disposeObjectTree(root) {
   });
 }
 function disposeUnitVisual(u) {
+  // ยกเลิก hit-flash timer ค้าง — ไม่ให้ callback restore สีไปแตะ material ที่กำลังจะถูก dispose
+  if (u.hitFlashTimer) { clearTimeout(u.hitFlashTimer); u.hitFlashTimer = null; }
   disposeObjectTree(u.group);
   // floating text ที่ยังลอยค้างเหนือหัวยูนิตนี้: resource ถูก dispose ไปกับ traverse ด้านบนแล้ว
   // เหลือแค่ถอด entry ออกจาก registry ไม่ให้ updateFloatingTexts ถือ reference ของยูนิตที่ลบแล้ว
@@ -2069,10 +2071,23 @@ function mitigateDamage(rawDmg, attacker, target, armorPenPct) {
   const def = ts ? (isMagic ? (ts.m_def || 0) : (ts.p_def || 0)) : (isMagic ? (target.mDef || 0) : (target.pDef || 0));
   return Math.max(0, rawDmg - def);
 }
+// ----- hit-flash กลาง: เก็บ timer handle ไว้บนยูนิต เพื่อคืนสี/ยกเลิกได้จากทุกจุดใน lifecycle -----
+// แก้บั๊กศพค้างสี flash: เดิม callback restore เช็ค `target.alive` → ยูนิตที่ตายกลาง flash ไม่ถูกคืนสี
+// ศพเลย fade ทั้งที่ยังติดสีส้มแดง — ตอนนี้ (1) ตายเมื่อไหร่ handleUnitDeath คืนสีทันทีก่อนเริ่ม fade
+// (2) removeUnit ยกเลิก timer ค้าง ไม่ให้ callback เก่าไปแตะ material ที่ dispose แล้ว
+function restoreBodyColor(u) {
+  if (u.hitFlashTimer) { clearTimeout(u.hitFlashTimer); u.hitFlashTimer = null; }
+  if (u.body) u.body.material.color.set(u.placeholderColor || 0xffffff);
+}
+function applyHitFlash(u, colorHex, durationMs) {
+  if (!u.body) return;
+  if (u.hitFlashTimer) clearTimeout(u.hitFlashTimer); // flash ซ้อน: ตัวใหม่ทับตัวเก่า ไม่มี timer หลุดมือ
+  u.body.material.color.set(colorHex);
+  u.hitFlashTimer = setTimeout(() => { u.hitFlashTimer = null; restoreBodyColor(u); }, durationMs);
+}
 function applyTrait(u, target, dmg) {
   if (u.trait === 'crit' && Math.random() < 0.2) {
-    dmg *= 1.8; target.body.material.color.set(0xffe066);
-    setTimeout(() => target.alive && target.body.material.color.set(target.placeholderColor || 0xffffff), 100);
+    dmg *= 1.8; applyHitFlash(target, 0xffe066, 100);
   } else if (u.trait === 'longshot' && gridDist(u, target) >= 4) { dmg *= 1.3; }
   else if (u.trait === 'slow') {
     target._baseSpeed = target._baseSpeed || target.moveSpeed;
@@ -2234,6 +2249,7 @@ function handleUnitDeath(target, killer) {
   if (!target.alive) return;
   target.alive = false;
   occupied.delete(key(target.c, target.r));
+  restoreBodyColor(target); // ตายกลาง hit-flash: คืนสีฐานก่อนเริ่ม death fade ไม่ให้ศพค้างสีส้มแดง
   target.deathT = 0;
   if (target.team === 'player' && target.baseStats) deadAlliesThisWave.push(target); // real heroes only, not summons
   if (killer) grantMana(killer, MANA_PER_KILL);
@@ -2939,10 +2955,7 @@ function updateUnit(u, dt) {
       const dir = gridToWorld(target.c,target.r).sub(u.group.position).normalize().multiplyScalar(0.12);
       u.body.position.x += dir.x;
       setTimeout(()=>{ if (u.alive) u.body.position.x=0; }, 90);
-      // restore ไปที่สีฐานของยูนิต (มอนไม่มีภาพใช้ placeholderColor) — เดิม hardcode 0xffffff ทำให้
-      // Slime/OrcBrute กลายเป็นกล่องขาวถาวรหลังโดนตีครั้งแรก และศพตอนล้มก็ค้างเป็นสีขาวด้วย
-      target.body.material.color.set(0xff8866);
-      setTimeout(()=> target.alive && target.body.material.color.set(target.placeholderColor || 0xffffff), 80);
+      applyHitFlash(target, 0xff8866, 80); // คืนสีฐาน (placeholderColor) อัตโนมัติ — รวมกรณีตายกลาง flash
       target.hpBar.scale.x = Math.max(0, target.hp/target.maxHp);
       target.hpBar.position.x = -0.36*(1-target.hpBar.scale.x);
       applyReflectDamage(target, dmg, u, u.attackType);
