@@ -2,15 +2,42 @@
 
 ## Active work owned by CC
 
-### Asset loader failure handling
-CC has already been assigned the loader-failure task. Do not duplicate or overwrite that work.
+### Shop-drawer white rectangle on WebGL canvas
+Phase 0 investigation is complete.
 
-Expected outcome:
+Confirmed in the available test environment:
+- Headless Chromium 141 at `800×360` and `844×390`.
+- WebGL renderer reported through `WEBGL_debug_renderer_info` as ANGLE using SwiftShader software rasterization.
+- The trigger is opening the fixed `#shopDrawer` while it contains at least one visible `<img>`.
+- Canvas size, camera frustum, resize events, render loop, and `shopOpen` game state were ruled out.
+- Emptying the shop cards removes the artifact; one image is enough to reproduce it.
+- No repository files were changed during Phase 0.
+
+Current assessment:
+- High confidence that the observed artifact is a Chromium software-compositor/SwiftShader interaction rather than a game-scene or camera bug.
+- Real Android hardware applicability remains unconfirmed because no real-device or cloud-device test connector was available.
+
+Status:
+- Phase 1 CSS-only workaround verification was authorized but did not start because the CC session limit was reached immediately after the command was submitted.
+- CC retains ownership of the follow-up.
+- Codex must not edit `#shopDrawer`, `#shopCards`, shop portrait visibility/compositing, `setShopOpen()`, or the isolated reproduction path until CC reports completion or the project owner releases the lock.
+
+Phase 1 boundary when CC resumes:
+- Start only in the `#shopDrawer` CSS block in `autochess.html`.
+- Test one CSS candidate at a time, beginning with the smallest layer-promotion hint.
+- Do not edit `src/game.js` unless CSS-only candidates fail and a separate JS phase is approved.
+- Verify the original two landscape viewports and nearby portrait/desktop regressions.
+- Combat is unrelated; if any combat or stage test becomes necessary, run it at speed x4 and report the exact module and method used.
+
+## Previously assigned loader work
+
+### Asset loader failure handling
+The loader-failure task was previously owned by CC. Before assigning additional work in this area, verify the latest merged code and handoff because the active CC lock is now the shop-drawer investigation.
+
+Expected loader behavior remains:
 - A failed sprite load must not leave the loading screen stuck.
 - Failed sprite keys should route to the existing placeholder unit visual.
 - Success behavior and disposal lifecycle must remain unchanged.
-
-Until CC reports back, treat this work as in progress and do not assign the same code path to another agent.
 
 ## Confirmed gameplay issue
 
@@ -50,5 +77,7 @@ Do not expand full character production before these layout foundations are stab
 ## Agent ownership rule
 - CC and Codex must not edit the same code area concurrently.
 - Parallel work is allowed only when file/code ownership is clearly separate.
-- Documentation-only PRs may proceed while CC has a code diff, but CC should finish and commit its current task before syncing updated `main`.
-- Before starting a new task, every agent must report branch, HEAD, and working-tree status, then read the latest handoff documents.
+- Documentation-only PRs may proceed while CC owns a runtime task.
+- Before starting a new task, every agent must report branch, HEAD, working-tree status, base commit, and the modules/files it will use.
+- Use the smallest effective change and risk-appropriate tests to conserve credits.
+- Any combat or stage testing during development must run at speed x4.
