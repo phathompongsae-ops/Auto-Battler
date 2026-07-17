@@ -342,6 +342,14 @@
     #buyExpBtn { padding: 6px 9px !important; }
     .hpTrack { width: 46px; }
     #phaseLabel { display: none; }
+    /* แผงข้าง (Link ซ้าย / Monster+Team ขวา) ยังใช้ top:48px เดิมจาก .floatPanel/#rightCol ซึ่งพอดีกับ
+       topbar แถวเดียว — แต่ที่ความกว้างนี้ topbar wrap เป็นหลายแถวตามความยาวเนื้อหา (เงิน/เลเวล/ป้ายด่าน
+       บอส) วัดจริงสูงสุด ~126px (เงิน 4-6 หลัก + Lv.5 MAX + ป้ายด่านบอสยาวสุด) จึงเผื่อ margin ให้ top พ้น
+       ทุกกรณี แทนที่จะอิงความสูง topbar แถวเดียว/สองแถวซึ่งไม่พอเมื่อเนื้อหายาวขึ้นกลางเกม */
+    #synergyPanel, #rightCol { top: 132px; }
+    #rightCol { max-height: calc(100vh - 132px - 60px); }
+    .floatPanel { width: clamp(100px, 30vw, 130px); padding: 6px; }
+    .floatPanel h3 { font-size: 10px; margin-bottom: 6px; }
   }
   /* ----- Responsive: แท็บเล็ต/ไอแพด (จอกว้าง >= 900px) — ขยายแผง/ตัวอักษรขึ้นเล็กน้อย ไม่ให้เล็กจิ๋วบนจอใหญ่ ----- */
   @media (min-width: 900px) {
