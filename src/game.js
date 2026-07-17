@@ -2172,8 +2172,56 @@ function selectTarget(u) {
   for (const o of enemies) { const d=gridDist(u,o); if (d<bd){bd=d;best=o;} }
   return best;
 }
+// The target's pending destination (not its live tile) when it's already mid-step — two mutually-
+// chasing melee units both reading each other's live position would each arrive to find the other
+// has just relocated, forever "just missing" in a stable back-and-forth loop. Aiming at the
+// committed destination instead converges, since that value only changes once per completed step.
+function meleeApproachRef(target) {
+  return (target.moving && target.moveTo) ? target.moveTo : { c: target.c, r: target.r };
+}
+// Melee approach-tile picker: enumerates the tiles orthogonally adjacent to the target's approach
+// reference (the only tiles where gridDist(.,target)<=1 — matches the Manhattan-distance range
+// check in updateUnit exactly, so this never grants diagonal melee range that d<=atkRange didn't
+// already allow), keeps ones that are in-bounds/not-bench-row/currently free, then returns
+// whichever is reachable via the SAME astar() used for movement with the shortest path (first
+// found wins on a tie).
+function findMeleeApproachTile(u, target) {
+  const ref = meleeApproachRef(target);
+  let best = null, bestLen = Infinity;
+  for (const [dc,dr] of [[1,0],[-1,0],[0,1],[0,-1]]) {
+    const c = ref.c+dc, r = ref.r+dr;
+    if (c<0||r<0||c>=GRID_COLS||r>=GRID_ROWS||r===BENCH_ROW) continue;
+    if (occupied.has(key(c,r))) continue;
+    const path = astar(u.c, u.r, c, r, key(u.c,u.r));
+    if (path && path.length < bestLen) { bestLen = path.length; best = { c, r }; }
+  }
+  return best;
+}
 function stepToward(u, target) {
-  const path = astar(u.c, u.r, target.c, target.r, key(u.c,u.r));
+  // A unit already mid-step must finish that step before picking a new destination.
+  if (u.moving) return;
+  // Melee units (atkRange<=1) must never path straight at the target's own occupied tile — that's
+  // what let two opposing melee units cross/swap/oscillate near each other. Aim for a free
+  // adjacent attack-position tile instead. Ranged units are unaffected (they already stop
+  // advancing the moment d<=atkRange, so they never need to reach the target's tile).
+  const atkRange = u.combatStats ? u.combatStats.attack_range : u.range;
+  let goalC = target.c, goalR = target.r;
+  if (atkRange <= 1) {
+    // Commit to the chosen approach tile and keep pursuing it instead of recomputing every step —
+    // recomputing against the target's live position each frame let two melee units closing on
+    // each other repeatedly retarget away from and back toward the same tiles (a moving target's
+    // own in-flight destination briefly looks "occupied" to findMeleeApproachTile, so the picker
+    // would flip to a farther tile, then flip back once the target settled). Only re-pick when the
+    // target changed or the cached tile is no longer within melee range of the target.
+    let goal = u.approachGoal;
+    if (!goal || u.approachGoalFor !== target || gridDist(goal, meleeApproachRef(target)) > 1) goal = findMeleeApproachTile(u, target);
+    if (!goal) { u.approachGoal = null; u.approachGoalFor = null; return; } // no reachable free tile borders the target right now — hold position
+    u.approachGoal = goal; u.approachGoalFor = target;
+    goalC = goal.c; goalR = goal.r;
+  } else {
+    u.approachGoal = null; u.approachGoalFor = null;
+  }
+  const path = astar(u.c, u.r, goalC, goalR, key(u.c,u.r));
   if (path && path.length>0) {
     const next = path[0], nk = key(next.c,next.r);
     if (!occupied.has(nk)) {
