@@ -87,6 +87,7 @@ const boardContainerEl = document.getElementById('boardContainer');
 // จึงตัดออก ใช้ FILL_RATIO เดี่ยวเหมือนเดิมแต่ปรับค่าขึ้น ง่ายกว่าและตรงกับ baseline ที่ทดสอบจริง
 const BOARD_FILL_RATIO = 0.97;
 const BOARD_DOWN_BIAS = 0.97;  // 0 = ชิดขอบบน, 0.5 = กึ่งกลางจอ, 1 = ชิดขอบล่างสุด
+const TOPBAR_CLEAR_PAD = 6;    // px เว้นระหว่างขอบบนกระดานกับขอบล่าง topbar จริง
 const boardHalfW = GRID_COLS / 2 * TILE + 0.25;
 const boardHalfD = GRID_ROWS / 2 * TILE + 0.25;
 const boardCorners = [
@@ -117,7 +118,18 @@ function layoutBoard() {
   // BOARD_DOWN_BIAS แปลงเป็นตำแหน่งกึ่งกลาง frustum จริง: slack ทั้งหมด (halfH-contentHalfH)
   // ถูกแบ่งเป็นขอบบน/ขอบล่างตามสัดส่วน BIAS (BIAS=1 → slack ทั้งหมดอยู่ขอบบน, กระดานชิดขอบล่างสนิท)
   const slack = halfH - contentHalfH;
-  const cY = slack * (2 * BOARD_DOWN_BIAS - 1);
+  let cY = slack * (2 * BOARD_DOWN_BIAS - 1);
+  // กันแถวบนสุดของกระดานมุดใต้ topbar (ผู้ใช้รายงานจากมือถือจริงหลังขยาย FILL_RATIO เป็น 0.97):
+  // วัดความสูง topbar จริงจาก DOM (ไม่ hardcode — topbar สูงไม่เท่ากันในแต่ละ breakpoint) แล้วเลื่อน
+  // frustum ลงเท่าที่ขาดพอดี — กิน margin ล่างซึ่งเหลือเยอะทุกขนาดจอ (~97-200px ที่วัดจริง เพราะ
+  // กระดานเอียง 45° ทำให้ขอบหน้า project ไม่ถึงขอบล่างจอ) — เลื่อนเฉพาะเมื่อขาดจริง (deficit > 0)
+  // จอที่โล่งอยู่แล้วไม่ขยับเลย
+  const topbarEl = document.getElementById('topbar');
+  if (topbarEl) {
+    const topGapPx = ((cY + halfH - contentHalfH) / (2 * halfH)) * h;
+    const deficit = (topbarEl.getBoundingClientRect().bottom + TOPBAR_CLEAR_PAD) - topGapPx;
+    if (deficit > 0) cY += deficit * (2 * halfH) / h;
+  }
   camera.left = -halfW; camera.right = halfW;
   camera.top = cY + halfH; camera.bottom = cY - halfH;
   camera.updateProjectionMatrix();
