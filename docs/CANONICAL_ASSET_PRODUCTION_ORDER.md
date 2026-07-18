@@ -24,7 +24,7 @@ Prevent the project from skipping ahead into final shop cards or full character 
 
 ## Pilot asset selection
 
-Recommended pilot trio:
+Locked pilot trio:
 
 - Hero: Archer
   - female
@@ -33,11 +33,12 @@ Recommended pilot trio:
 - Normal monster: Slime
   - simple silhouette
   - tests scale and readability at small size
-- Stage-5 boss: Warden
-  - large silhouette
-  - tests boss scale, frame budget, and visual hierarchy
+- Stage-5 boss: Golem
+  - current Stage 5 miniboss identity
+  - existing candidate path: `assets/mon_golem.png`
+  - large silhouette tests boss scale, frame budget, and visual hierarchy
 
-The exact boss can be changed only if current game data identifies a different locked stage-5 boss.
+Warden is a legacy/unused asset and is not part of the current locked production boss plan. It must not be generated, mapped, spawned, or substituted for Golem by this asset intake work.
 
 ## Gates
 
