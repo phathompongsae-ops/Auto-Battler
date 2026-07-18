@@ -30,6 +30,15 @@ globalThis.MotionTestHarness = (function () {
   ];
   const MARKER_VOCABULARY = ['projectileRelease', 'impactCue', 'skillFlashCue', 'footstepCue', 'deathDissolveCue'];
 
+  // Additional motion tests beyond the three PR #28 contract tests (which stay untouched above so
+  // the contract-consistency Node test keeps passing). Archer idle: 8 frames @ 8 FPS, seamless
+  // loop, NO event marker (marker: null -> the playback never fires any event).
+  const EXTRA_MOTION_TESTS = [
+    { unit: 'hero.archer', state: 'idle', loop: true, fps: 8, frameTarget: 8, frameMin: 8, frameMax: 8, anchor: [0.5, 0.92], marker: null },
+  ];
+  const ALL_TESTS = MOTION_TESTS.concat(EXTRA_MOTION_TESTS);
+  function keyOf(t) { return t.unit + '/' + t.state; }
+
   function pad3(n) { return String(n).padStart(3, '0'); }
   // Contract naming: assets/units/{unitId}/{state}/{unitId}_{state}_{frameIndex}.png (+ sidecar)
   function framePath(unit, state, i) { return 'assets/units/' + unit + '/' + state + '/' + unit + '_' + state + '_' + pad3(i) + '.png'; }
@@ -85,7 +94,7 @@ globalThis.MotionTestHarness = (function () {
   // ---------------------------------------------------------------------------
   const hasBrowser = typeof document !== 'undefined' && typeof globalThis.THREE !== 'undefined';
   const state = {
-    active: false, units: {}, tests: {}, selected: 'hero.archer',
+    active: false, units: {}, tests: {}, selected: 'hero.archer/attack', activeByUnit: {},
     speed: 4,                     // checkpoint default is x4
     playing: true, overlayVisible: true, isolation: false,
     raf: null, lastNow: 0, ui: null,
@@ -101,8 +110,9 @@ globalThis.MotionTestHarness = (function () {
       frameIndex: 0, elapsed: 0, completed: false, cycles: 0,
       lastMarker: null, markerFiredThisPass: false, prevProgress: 0,
       // effective marker: the sidecar's declared marker wins when valid (real files are the
-      // source of truth for a motion test); contract-table marker is the fallback
-      effectiveMarker: { name: test.marker.name, normalizedTime: test.marker.normalizedTime },
+      // source of truth for a motion test); contract-table marker is the fallback. Tests with
+      // no marker (e.g. idle) keep null and never fire any event.
+      effectiveMarker: test.marker ? { name: test.marker.name, normalizedTime: test.marker.normalizedTime } : null,
     };
   }
 
@@ -194,6 +204,7 @@ globalThis.MotionTestHarness = (function () {
     if (!state.playing) return;
     for (const run of Object.values(state.tests)) {
       if (run.status !== 'loaded' && run.status !== 'diagnostics_failed') continue; // nothing playable
+      if (state.activeByUnit[run.test.unit] !== keyOf(run.test)) continue; // one display state per unit
       if (!run.textures.length || run.completed) continue;
       const n = run.textures.length;
       const frameDur = 1 / (run.test.fps * state.speed);
@@ -205,10 +216,12 @@ globalThis.MotionTestHarness = (function () {
         else if (run.test.loop) { run.frameIndex = 0; run.cycles++; run.markerFiredThisPass = false; }
         else { run.completed = true; }
         const progress = n > 1 ? run.frameIndex / (n - 1) : 1;
-        const em = run.effectiveMarker || run.test.marker;
-        const mt = em.normalizedTime;
-        if (!run.markerFiredThisPass && ((prevProgress < mt && progress >= mt) || (run.completed && mt <= 1))) {
-          if (progress >= mt || run.completed) { fireMarker(run, em.name, progress); run.markerFiredThisPass = true; }
+        const em = run.effectiveMarker;
+        if (em) {
+          const mt = em.normalizedTime;
+          if (!run.markerFiredThisPass && ((prevProgress < mt && progress >= mt) || (run.completed && mt <= 1))) {
+            if (progress >= mt || run.completed) { fireMarker(run, em.name, progress); run.markerFiredThisPass = true; }
+          }
         }
         if (run.completed) break;
       }
@@ -221,8 +234,9 @@ globalThis.MotionTestHarness = (function () {
 
   function setIsolation(on) {
     state.isolation = on;
+    const selectedUnit = state.selected.split('/')[0];
     for (const [id, u] of Object.entries(state.units)) {
-      if (u && u.group) u.group.visible = !on || id === state.selected;
+      if (u && u.group) u.group.visible = !on || id === selectedUnit;
     }
   }
 
@@ -254,18 +268,26 @@ globalThis.MotionTestHarness = (function () {
     document.head.appendChild(style);
 
     const tabs = el.querySelector('#mtxTabs');
-    for (const t of MOTION_TESTS) {
+    for (const t of ALL_TESTS) {
+      const key = keyOf(t);
+      const multi = ALL_TESTS.filter((x) => x.unit === t.unit).length > 1;
       const b = document.createElement('button');
-      b.className = 'mtxBtn' + (t.unit === state.selected ? ' on' : '');
-      b.textContent = t.unit.split('.')[1];
-      b.onclick = () => { state.selected = t.unit; tabs.querySelectorAll('button').forEach((x) => x.classList.toggle('on', x === b)); if (state.isolation) setIsolation(true); refreshOverlay(); };
+      b.className = 'mtxBtn' + (key === state.selected ? ' on' : '');
+      b.textContent = t.unit.split('.')[1] + (multi ? '.' + t.state : '');
+      b.onclick = () => {
+        state.selected = key;
+        if (state.activeByUnit[t.unit] !== key) { state.activeByUnit[t.unit] = key; const run = state.tests[key]; if (run) restartRun(run); }
+        tabs.querySelectorAll('button').forEach((x) => x.classList.toggle('on', x === b));
+        if (state.isolation) setIsolation(true);
+        refreshOverlay(true);
+      };
       tabs.appendChild(b);
     }
     el.querySelector('#mtxClose').onclick = () => toggleOverlay(false);
     el.querySelector('#mtxPlay').onclick = function () { state.playing = !state.playing; this.textContent = state.playing ? '⏸ pause' : '▶ play'; };
     el.querySelector('#mtxRestart').onclick = () => { const run = state.tests[state.selected]; if (run) restartRun(run); };
     el.querySelector('#mtxSpeed').onclick = function () { state.speed = state.speed === 4 ? 1 : 4; this.textContent = 'x' + state.speed; };
-    el.querySelector('#mtxFlip').onclick = () => { const u = state.units[state.selected]; if (u && u.body) u.body.scale.x *= -1; };
+    el.querySelector('#mtxFlip').onclick = () => { const u = state.units[state.selected.split('/')[0]]; if (u && u.body) u.body.scale.x *= -1; };
     el.querySelector('#mtxIso').onclick = function () { setIsolation(!state.isolation); this.classList.toggle('on', state.isolation); };
     state.ui = el;
     // small always-available toggle so the overlay can be reopened on touch devices
@@ -301,7 +323,7 @@ globalThis.MotionTestHarness = (function () {
       'frame  ' + (run.textures.length ? (run.frameIndex + 1) + '/' + run.textures.length : '-/' + t.frameTarget + ' (target)'),
       'fps    ' + t.fps + '   speed x' + state.speed + (state.playing ? '' : '  [paused]'),
       'anchor ' + JSON.stringify(t.anchor),
-      'marker ' + (run.effectiveMarker || t.marker).name + ' @ ' + (run.effectiveMarker || t.marker).normalizedTime + '  last: ' + (run.lastMarker ? run.lastMarker.name + ' @' + run.lastMarker.at + ' (f' + run.lastMarker.frame + ')' : '—'),
+      'marker ' + (run.effectiveMarker ? run.effectiveMarker.name + ' @ ' + run.effectiveMarker.normalizedTime : '(none — idle fires no events)') + '  last: ' + (run.lastMarker ? run.lastMarker.name + ' @' + run.lastMarker.at + ' (f' + run.lastMarker.frame + ')' : '—'),
       'cycles ' + run.cycles + (run.completed ? '  [completed]' : ''),
       'status ' + run.status,
     ];
@@ -326,7 +348,11 @@ globalThis.MotionTestHarness = (function () {
       log('pilot spawn failed (' + (e && e.message) + ') — harness continues with diagnostics only');
     }
     buildOverlay();
-    for (const t of MOTION_TESTS) { state.tests[t.unit] = makeRun(t); }
+    state.activeByUnit = {};
+    for (const t of ALL_TESTS) {
+      state.tests[keyOf(t)] = makeRun(t);
+      if (!(t.unit in state.activeByUnit)) state.activeByUnit[t.unit] = keyOf(t); // contract test stays the default display state
+    }
     state.loadsComplete = false;
     await Promise.all(Object.values(state.tests).map((run) => loadTest(run)));
     state.loadsComplete = true;
@@ -363,7 +389,15 @@ globalThis.MotionTestHarness = (function () {
     },
     setSpeed(s) { state.speed = s === 1 ? 1 : 4; },
     setPlaying(p) { state.playing = !!p; },
-    restart(unitId) { const run = state.tests[unitId || state.selected]; if (run) restartRun(run); },
+    restart(key) { const run = state.tests[key || state.selected]; if (run) restartRun(run); },
+    setActiveTest(key) {
+      const run = state.tests[key];
+      if (!run) return false;
+      state.selected = key;
+      const unit = run.test.unit;
+      if (state.activeByUnit[unit] !== key) { state.activeByUnit[unit] = key; restartRun(run); }
+      return true;
+    },
     _state: state,
   });
 
