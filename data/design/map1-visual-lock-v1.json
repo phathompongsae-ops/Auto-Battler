@@ -1,0 +1,91 @@
+{
+  "schemaVersion": 1,
+  "id": "map1.arena_ruins.visual_lock.v1",
+  "status": "contract-draft",
+  "theme": {
+    "mapId": "map1",
+    "name": "Arena Ruins",
+    "visualIdentity": "ancient ruined arena with weathered stone, restrained moss, warm neutral highlights, cool shadow separation, readable tactical board",
+    "reusePolicy": "board-camera-bench-ui-layout-locked; theme layers swappable"
+  },
+  "lockedRuntime": {
+    "boardDimensions": "unchanged",
+    "camera": "unchanged",
+    "bench": "unchanged",
+    "hudLayout": "unchanged",
+    "combatLogic": "unchanged",
+    "assetAnimationRuntimeSource": {
+      "pr": 23,
+      "head": "5a3a8eec7991a98aad6f3acf0ce38687764dcb1a"
+    }
+  },
+  "layers": [
+    "boardSurface",
+    "arenaBorder",
+    "background",
+    "props",
+    "ambientVfx",
+    "lightingProfile"
+  ],
+  "boardSurface": {
+    "material": "weathered stone slabs",
+    "contrastRule": "grid remains readable under Archer, Slime and Golem at reduced mobile size",
+    "forbidden": ["high-frequency noise inside cells", "bright emissive patterns under units", "props inside logical cells"]
+  },
+  "arenaBorder": {
+    "style": "broken ancient masonry with low-profile ruins",
+    "heightRule": "must not obscure front or side board cells",
+    "safeZone": "outside playable grid and pointer interaction area"
+  },
+  "background": {
+    "style": "ruined amphitheatre depth with distant arches and collapsed walls",
+    "priority": "support silhouettes, never compete with units or HUD"
+  },
+  "props": {
+    "allowed": ["broken columns", "small banners", "rubble clusters", "cracked braziers", "restrained vegetation"],
+    "forbiddenZones": ["playable grid", "bench", "shop panels", "gold-wave-start controls", "fullscreen and screenshot controls", "augment choice area"]
+  },
+  "ambientVfx": {
+    "allowed": ["slow dust motes", "subtle drifting ash", "rare light shafts"],
+    "rules": ["no pointer blocking", "no full-board obstruction", "drop before combat VFX under load"],
+    "sharedTransientVfxCap": 24
+  },
+  "lightingProfile": {
+    "key": "warm-neutral",
+    "fill": "cool-muted",
+    "rim": "soft golden edge",
+    "shadow": "soft and readable",
+    "rules": ["Archer silhouette must separate from background", "Slime must not disappear into floor hue", "Golem must remain readable without flattening stone material"]
+  },
+  "pilotCompatibility": {
+    "hero.archer": {"anchor": [0.5, 0.92], "readability": "olive-green silhouette must contrast with arena stone"},
+    "monster.slime": {"anchor": [0.5, 0.9], "readability": "body color must remain distinct from moss and ground VFX"},
+    "monster.golem": {"anchor": [0.5, 0.94], "readability": "largest pilot; must not blend into arena border or background masonry"}
+  },
+  "mobileBudget": {
+    "target": "Android Chrome first",
+    "texturePolicy": "reuse and atlas where practical; no per-frame loading",
+    "ambientPolicy": "secondary ambient particles are first to degrade",
+    "qualityOrder": ["preserve units", "preserve grid", "preserve attack impacts", "reduce ambient particles", "remove decorative motion"]
+  },
+  "orientationAcceptance": [
+    "portrait responsive layout keeps all playable cells visible",
+    "landscape layout preserves board proportions",
+    "fullscreen preserves camera framing and does not stretch units",
+    "HUD and controls remain unobstructed",
+    "props remain outside tactical and touch zones"
+  ],
+  "futureThemeProfile": {
+    "reuse": ["board geometry", "camera", "bench", "HUD", "animation runtime", "VFX runtime"],
+    "replacePerMap": ["surface textures", "border skin", "background", "props", "ambient VFX", "lighting profile", "map-specific monsters and bosses"],
+    "mapsDeferred": ["map2.lava_hell", "map3.heaven_temple"]
+  },
+  "deferred": [
+    "final map artwork",
+    "runtime integration",
+    "Map 2 and Map 3 implementation",
+    "final monster roster art",
+    "final sound and music",
+    "camera or board rewrite"
+  ]
+}
