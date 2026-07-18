@@ -43,22 +43,22 @@
       "notes": "Recommended pilot normal monster."
     },
     {
-      "logicalId": "boss_stage5_warden",
+      "logicalId": "boss_stage5_golem",
       "category": "boss",
-      "bossId": "warden",
+      "bossId": "golem",
       "stage": 5,
       "tier": null,
       "classLine": null,
       "gender": null,
       "role": "pilot",
       "canonicalStatus": "missing",
-      "sourcePath": null,
+      "sourcePath": "assets/mon_golem.png",
       "cardAssetPath": null,
       "runtimeAssetPath": null,
       "dimensions": null,
       "hasAlpha": null,
       "approvedByUser": false,
-      "notes": "Confirm current stage-5 boss data before production."
+      "notes": "Current Stage 5 miniboss pilot. Legacy Warden asset is not part of the locked production boss plan and must not be substituted."
     }
   ]
 }
