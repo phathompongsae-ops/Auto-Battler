@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "status": "template",
+  "assets": [
+    {
+      "id": "ui_panel_frame_primary",
+      "type": "ui_frame",
+      "source": "generated_by_chatgpt",
+      "path": "assets/ui/generated/frames/ui_panel_frame_primary.png",
+      "format": "png",
+      "width": 1024,
+      "height": 1024,
+      "transparent": true,
+      "approved": false,
+      "runtimeIntegrated": false,
+      "notes": "Replace dimensions with actual exported values before approval."
+    }
+  ]
+}
