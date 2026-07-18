@@ -88,9 +88,18 @@ function validate(data) {
     if (fusion.usesStandardClassFusionRules !== false) fail(`${hero.id}: fusion.usesStandardClassFusionRules must be false`);
     if (fusion.starCombine !== 'standard_three_identical_copies') fail(`${hero.id}: fusion.starCombine must be "standard_three_identical_copies"`);
 
-    // Combat data may be absent, but if present it must either be a real value
-    // or be explicitly flagged design_pending with null fields — never a
-    // fabricated placeholder number passed off as canonical.
+    // Ninja is a locked female design decision.
+    if (hero.id === 'ninja' && hero.gender !== 'female') fail(`${hero.id}: gender must be "female"`);
+    if (hero.gender !== undefined && !['female', 'male'].includes(hero.gender)) {
+      fail(`${hero.id}: gender must be "female" or "male" when present`);
+    }
+
+    // Combat data may be absent, but if present it must either be a real, complete
+    // record (status "ready") or be explicitly flagged design_pending with null
+    // fields — never a fabricated placeholder passed off as canonical, and never a
+    // "ready" record with missing/invalid fields (the runtime safety gate relies
+    // on this so it can fail closed). Ranges below are deliberately loose sanity
+    // bounds, not exact values, so combat can be rebalanced without editing this.
     const combat = hero.combatData ?? {};
     if (combat.status === 'design_pending') {
       for (const field of COMBAT_FIELDS) {
@@ -98,8 +107,28 @@ function validate(data) {
           fail(`${hero.id}: combatData.${field} must be null while status is design_pending (do not fabricate)`);
         }
       }
+    } else if (combat.status === 'ready') {
+      const s = combat.stats;
+      if (!s || typeof s !== 'object' || Array.isArray(s)) {
+        fail(`${hero.id}: combatData.stats must be an object when status is "ready"`);
+      } else {
+        const REQUIRED_STATS = ['hp', 'pAtk', 'mAtk', 'pDef', 'mDef', 'atkSpeed', 'moveSpeed', 'range', 'startingMana', 'maxMana'];
+        for (const key of REQUIRED_STATS) {
+          const v = s[key];
+          if (typeof v !== 'number' || !Number.isFinite(v)) fail(`${hero.id}: combatData.stats.${key} must be a finite number`);
+          else if (v < 0) fail(`${hero.id}: combatData.stats.${key} must be non-negative`);
+        }
+        if (!(s.atkSpeed > 0 && s.atkSpeed <= 3)) fail(`${hero.id}: combatData.stats.atkSpeed must be > 0 and <= 3`);
+        if (!(s.pAtk > 0 && s.pAtk <= 200)) fail(`${hero.id}: combatData.stats.pAtk must be > 0 and <= 200 (physical DPS)`);
+        if (!(s.hp > 0 && s.hp <= 5000)) fail(`${hero.id}: combatData.stats.hp must be > 0 and <= 5000`);
+      }
+      if (typeof combat.skillId !== 'string' || !combat.skillId) fail(`${hero.id}: combatData.skillId is required when status is "ready"`);
+      if (typeof combat.targetingBehavior !== 'string' || !combat.targetingBehavior) fail(`${hero.id}: combatData.targetingBehavior is required when status is "ready"`);
+      if (typeof combat.castTime !== 'number' || !Number.isFinite(combat.castTime) || combat.castTime < 0) {
+        fail(`${hero.id}: combatData.castTime must be a finite non-negative number when status is "ready"`);
+      }
     } else if (combat.status !== undefined) {
-      fail(`${hero.id}: combatData.status must be "design_pending" until canonical combat data exists`);
+      fail(`${hero.id}: combatData.status must be "design_pending" or "ready"`);
     }
   }
 
