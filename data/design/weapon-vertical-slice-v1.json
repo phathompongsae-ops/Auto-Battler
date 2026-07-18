@@ -1,17 +1,31 @@
 {
-  "version": "1.1.0",
+  "version": "1.2.0",
   "status": "draft_vertical_slice",
   "scope": {
     "heroWeaponSlots": 2,
     "runtimeTarget": "demo1_vertical_slice",
-    "includes": ["four_level_1_equipment_items", "one_level_2_fusion_recipe"],
-    "excludes": ["full_21_recipe_matrix", "level_3_runtime", "equipment_shop_runtime", "inventory_ui_runtime"]
+    "includes": ["four_level_1_equipment_items", "one_level_2_fusion_recipe", "minimal_equipment_shop"],
+    "excludes": ["full_21_recipe_matrix", "level_3_runtime", "full_stage_odds", "polished_inventory_ui"]
   },
   "economy": {
     "currency": "gold",
     "prices": { "level1": 6, "level2": 14, "level3": 30 },
     "sellbackPolicy": "not_in_vertical_slice",
-    "notes": "Prices are economy targets for runtime integration. This file does not implement purchases."
+    "notes": "Only Level 1 items are directly purchasable in the Demo 1 slice. Level 2 is fusion-only; Level 3 is deferred."
+  },
+  "shopRules": {
+    "shopType": "equipment",
+    "offerSlots": 2,
+    "refreshCost": 2,
+    "freeRefreshPerStage": 0,
+    "refreshesSharedWithHeroShop": false,
+    "availableLevels": [1],
+    "offerPool": ["weapon.iron_sword", "weapon.apprentice_staff", "weapon.swift_gloves", "weapon.iron_armor"],
+    "offerWeights": "equal",
+    "duplicateOffersAllowed": false,
+    "level2DirectPurchase": false,
+    "level3DirectPurchase": false,
+    "automaticStageRewards": false
   },
   "weapons": [
     {"id":"weapon.iron_sword","nameKey":"weapon.iron_sword.name","descriptionKey":"weapon.iron_sword.description","level":1,"price":6,"equipLimitPerHero":1,"allowedOwners":"all_player_heroes","stats":{"p_atk":8}},
@@ -25,7 +39,7 @@
   ],
   "inventoryRules": {
     "storageModel":"shared_player_inventory",
-    "inventoryCapacity":"runtime_to_define_for_vertical_slice",
+    "inventoryCapacity":8,
     "equipSlotsPerHero":2,
     "sameWeaponDuplicateOnOneHero":false,
     "equipDuringCombat":false,
@@ -47,6 +61,6 @@
   "legacyCompatibility": {
     "gameConfigWeaponPool":"legacy_placeholder_only",
     "canonicalForVerticalSlice":true,
-    "notes":"weapon_lvl1/2/3 in game_config.json are generic historical placeholders and are not the named vertical-slice catalog."
+    "notes":"weapon_lvl1/2/3 in game_config.json are historical placeholders and are not the named vertical-slice catalog."
   }
 }
