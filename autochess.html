@@ -433,6 +433,7 @@
          Augment (center modal), or Asset debug (bottom-right). data-no-capture keeps them out
          of screenshots; they are event-driven only. -->
     <button id="fullscreenBtn" class="utilBtn" title="เต็มจอ" aria-label="เข้าสู่โหมดเต็มจอ" data-no-capture>⛶</button>
+    <button id="screenshotBtn" class="utilBtn" title="บันทึกภาพหน้าจอ" aria-label="บันทึกภาพหน้าจอ" data-no-capture>📷</button>
     <button id="speedBtn">x1</button>
     <button id="pauseBtn">⏸ หยุด</button>
   </div>
@@ -563,6 +564,12 @@
   #aafDebug .aafBtn:active, #aafDebug #aafStates button:active { transform:translateY(1px); }
 </style>
 
+<!-- Presentation-tools: nonblocking screenshot confirmation toast (Thai). data-no-capture keeps
+     it out of screenshots; never uses alert(); auto-hides. -->
+<div id="presentToast" data-no-capture aria-live="polite" style="display:none; position:fixed;
+  left:50%; top:12px; transform:translateX(-50%); z-index:95; padding:8px 14px; border-radius:8px;
+  background:rgba(10,14,10,0.90); border:1px solid #4a5a3a; color:#e6f0dc; font:13px/1.3 monospace;
+  pointer-events:none; box-shadow:0 3px 12px rgba(0,0,0,0.5);">บันทึกภาพแล้ว</div>
 <style>
   /* Presentation utility buttons — touch-friendly (≥44×44), readable on bright & dark boards,
      safe-area aware, no hover-only behavior, pointer-events limited to the buttons themselves. */
