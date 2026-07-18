@@ -3856,6 +3856,25 @@ function spawnToBench(instData) {
 // ย้ายฮีโร่ (ไม่ว่าจะอยู่ม้านั่งหรือสนามรบตอนนี้) ไปช่อง (c,r) ใดก็ได้บนกระดานเนื้อเดียวกัน — ปลายทางเป็น
 // BENCH_ROW แปลว่าพัก (alive:false), ปลายทางแถวอื่นแปลว่าลงรบ (alive:true) รวมทุกทิศทาง (ม้านั่ง<->สนาม,
 // ม้านั่ง<->ม้านั่งสลับช่อง, สนาม<->สนามขยับตำแหน่ง) ไว้ในฟังก์ชันเดียว แทนที่ placeHeroAt/unplaceUnit เดิม
+// ============================================================
+// SECRET CLASS BOARD LIMIT — at most ONE Secret Class unit may occupy the active
+// player board at a time, across ALL secret classes (a global category limit, not a
+// Ninja-only duplicate rule). Detection is metadata-driven (HERO_DEFS.secret_class),
+// so any future Secret Class works by carrying the same flag — never keyed to a name.
+// Fail-closed: a unit without a known hero def / secret flag is treated as normal.
+// ============================================================
+function isSecretClassUnit(u) {
+  if (!u || typeof u.heroKey !== 'string') return false;
+  const def = HERO_DEFS[u.heroKey];
+  return !!(def && def.secret_class === true);
+}
+// Secret Class units currently on the active PLAYER board (placedUnits = player board;
+// bench and enemies/bosses are never in this array). `exclude` skips the unit being
+// repositioned so a board-to-board move never counts itself as a second secret unit.
+function playerBoardSecretUnits(exclude) {
+  return placedUnits.filter((u) => u !== exclude && isSecretClassUnit(u));
+}
+
 function moveUnitTo(u, c, r) {
   if (phase !== 'shop') return null;
   if (r === BENCH_ROW && c >= MAX_BENCH) return null; // เกินโควตาม้านั่ง 5 ช่อง — กันไว้อีกชั้นแม้ผู้เรียกกรองมาแล้ว
@@ -3863,6 +3882,12 @@ function moveUnitTo(u, c, r) {
   const wasBattle = placedUnits.includes(u);
   const goingToBattle = r !== BENCH_ROW;
   if (goingToBattle && !wasBattle && placedUnits.length >= fieldCapacity()) return null; // สนามเต็มตามความจุปัจจุบัน
+  // Secret Class board limit: reject a second secret unit onto the board BEFORE any
+  // mutation (self-excluded, so repositioning the active secret unit stays allowed).
+  if (goingToBattle && isSecretClassUnit(u) && playerBoardSecretUnits(u).length >= 1) {
+    spawnFloatingText(u, 'ลงสนามได้เพียง 1 Secret Class ต่อทีม', '#ff8855');
+    return null;
+  }
   if (wasBattle) placedUnits.splice(placedUnits.indexOf(u), 1);
   else benchHeroes.splice(benchHeroes.indexOf(u), 1);
   removeUnit(u);
@@ -4230,6 +4255,13 @@ function healPlayerTeam() {
 
 startBattleBtn.onclick = () => {
   if (placedUnits.length === 0 || pendingEvolution || augmentModalOpen) return; // block_combat_start_while_pending
+  // Secret Class board-limit fail-safe: never start combat with >1 secret unit on the
+  // board (e.g. from corrupted/debug state). Blocks with the same warning; mutates nothing.
+  if (playerBoardSecretUnits(null).length > 1) {
+    const s = placedUnits.find(isSecretClassUnit);
+    if (s) spawnFloatingText(s, 'ลงสนามได้เพียง 1 Secret Class ต่อทีม', '#ff8855');
+    return;
+  }
   phase = 'battle';
   waveTimer = 0;
   deadAlliesThisWave = []; // most_recent_dead_ally (Priest's revive) only ever looks at this wave
