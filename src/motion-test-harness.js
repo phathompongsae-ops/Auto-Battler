@@ -32,9 +32,12 @@ globalThis.MotionTestHarness = (function () {
 
   // Additional motion tests beyond the three PR #28 contract tests (which stay untouched above so
   // the contract-consistency Node test keeps passing). Archer idle: 8 frames @ 8 FPS, seamless
-  // loop, NO event marker (marker: null -> the playback never fires any event).
+  // loop, NO event marker (marker: null -> the playback never fires any event). Archer move:
+  // 8 frames @ 12 FPS loop with TWO per-cycle cues; the left/right names are declared here as a
+  // test-scoped whitelist — the global MARKER_VOCABULARY stays the verbatim PR #23/#28 list.
   const EXTRA_MOTION_TESTS = [
     { unit: 'hero.archer', state: 'idle', loop: true, fps: 8, frameTarget: 8, frameMin: 8, frameMax: 8, anchor: [0.5, 0.92], marker: null },
+    { unit: 'hero.archer', state: 'move', loop: true, fps: 12, frameTarget: 8, frameMin: 8, frameMax: 8, anchor: [0.5, 0.92], marker: null, markers: [{ name: 'leftFootstepCue', normalizedTime: 0.25 }, { name: 'rightFootstepCue', normalizedTime: 0.75 }] },
   ];
   const ALL_TESTS = MOTION_TESTS.concat(EXTRA_MOTION_TESTS);
   function keyOf(t) { return t.unit + '/' + t.state; }
@@ -75,7 +78,7 @@ globalThis.MotionTestHarness = (function () {
       if (m.fps !== undefined && (m.fps < FPS_ACCEPTED[0] || m.fps > FPS_ACCEPTED[1])) problems.push('metadata fps ' + m.fps + ' outside accepted range [8,15]');
       if (m.loop !== undefined && m.loop !== test.loop) problems.push('metadata loop ' + m.loop + ' does not match contract ' + test.loop);
       for (const mk of (m.eventMarkers || [])) {
-        if (!MARKER_VOCABULARY.includes(mk.name)) problems.push('unsupported event marker: ' + mk.name);
+        if (!MARKER_VOCABULARY.includes(mk.name) && !(test.markers || []).some((x) => x.name === mk.name)) problems.push('unsupported event marker: ' + mk.name);
       }
     }
     if (load.cornerAlphas && load.cornerAlphas.every((a) => a > 0)) {
@@ -108,11 +111,11 @@ globalThis.MotionTestHarness = (function () {
       test, status: 'awaiting_production_frames', problems: [], warnings: [],
       frames: [], textures: [], metadata: null,
       frameIndex: 0, elapsed: 0, completed: false, cycles: 0,
-      lastMarker: null, markerFiredThisPass: false, prevProgress: 0,
-      // effective marker: the sidecar's declared marker wins when valid (real files are the
-      // source of truth for a motion test); contract-table marker is the fallback. Tests with
-      // no marker (e.g. idle) keep null and never fire any event.
-      effectiveMarker: test.marker ? { name: test.marker.name, normalizedTime: test.marker.normalizedTime } : null,
+      lastMarker: null, firedThisPass: {}, markerLog: [],
+      // effective markers: the sidecar's declared markers win when valid (real files are the
+      // source of truth for a motion test); the test's declared marker(s) are the fallback.
+      // Tests with none (e.g. idle) keep [] and never fire any event.
+      effectiveMarkers: (test.markers || (test.marker ? [test.marker] : [])).map((m) => ({ name: m.name, normalizedTime: m.normalizedTime })),
     };
   }
 
@@ -154,11 +157,11 @@ globalThis.MotionTestHarness = (function () {
       metadata: run.metadata || null, metadataError: run.metadataError || null, cornerAlphas,
     });
     run.status = verdict.status; run.problems = verdict.problems; run.warnings = verdict.warnings; run.reason = verdict.reason;
-    // sidecar marker override (validated against the framework vocabulary; contract is fallback)
-    const mMeta = run.metadata && Array.isArray(run.metadata.eventMarkers) ? run.metadata.eventMarkers[0] : null;
-    if (mMeta && MARKER_VOCABULARY.includes(mMeta.name) && typeof mMeta.normalizedTime === 'number' && mMeta.normalizedTime > 0 && mMeta.normalizedTime < 1) {
-      run.effectiveMarker = { name: mMeta.name, normalizedTime: mMeta.normalizedTime };
-    }
+    // sidecar marker override (validated against the framework vocabulary or the test's own
+    // declared marker names; the test declaration is the fallback)
+    const mMetas = run.metadata && Array.isArray(run.metadata.eventMarkers) ? run.metadata.eventMarkers : [];
+    const mValid = mMetas.filter((mk) => (MARKER_VOCABULARY.includes(mk.name) || (t.markers || []).some((x) => x.name === mk.name)) && typeof mk.normalizedTime === 'number' && mk.normalizedTime > 0 && mk.normalizedTime < 1);
+    if (mValid.length) run.effectiveMarkers = mValid.map((mk) => ({ name: mk.name, normalizedTime: mk.normalizedTime }));
     if (verdict.status !== 'awaiting_production_frames') {
       run.frames = images;
       const THREE = globalThis.THREE;
@@ -193,7 +196,9 @@ globalThis.MotionTestHarness = (function () {
   }
 
   function fireMarker(run, name, atProgress) {
-    run.lastMarker = { name, at: atProgress.toFixed(3), frame: run.frameIndex, time: Date.now() };
+    run.lastMarker = { name, at: atProgress.toFixed(3), frame: run.frameIndex, cycle: run.cycles, time: Date.now() };
+    run.markerLog.push(run.lastMarker);
+    if (run.markerLog.length > 200) run.markerLog.shift();
   }
 
   function tick(now) {
@@ -213,14 +218,13 @@ globalThis.MotionTestHarness = (function () {
         run.elapsed -= frameDur;
         const prevProgress = n > 1 ? run.frameIndex / (n - 1) : 0;
         if (run.frameIndex < n - 1) run.frameIndex++;
-        else if (run.test.loop) { run.frameIndex = 0; run.cycles++; run.markerFiredThisPass = false; }
+        else if (run.test.loop) { run.frameIndex = 0; run.cycles++; run.firedThisPass = {}; }
         else { run.completed = true; }
         const progress = n > 1 ? run.frameIndex / (n - 1) : 1;
-        const em = run.effectiveMarker;
-        if (em) {
+        for (const em of run.effectiveMarkers) {
           const mt = em.normalizedTime;
-          if (!run.markerFiredThisPass && ((prevProgress < mt && progress >= mt) || (run.completed && mt <= 1))) {
-            if (progress >= mt || run.completed) { fireMarker(run, em.name, progress); run.markerFiredThisPass = true; }
+          if (!run.firedThisPass[em.name] && ((prevProgress < mt && progress >= mt) || (run.completed && mt <= 1))) {
+            if (progress >= mt || run.completed) { fireMarker(run, em.name, progress); run.firedThisPass[em.name] = true; }
           }
         }
         if (run.completed) break;
@@ -230,7 +234,7 @@ globalThis.MotionTestHarness = (function () {
     refreshOverlay();
   }
 
-  function restartRun(run) { run.frameIndex = 0; run.elapsed = 0; run.completed = false; run.cycles = 0; run.markerFiredThisPass = false; run.lastMarker = null; applyFrame(run); }
+  function restartRun(run) { run.frameIndex = 0; run.elapsed = 0; run.completed = false; run.cycles = 0; run.firedThisPass = {}; run.lastMarker = null; run.markerLog = []; applyFrame(run); }
 
   function setIsolation(on) {
     state.isolation = on;
@@ -323,7 +327,7 @@ globalThis.MotionTestHarness = (function () {
       'frame  ' + (run.textures.length ? (run.frameIndex + 1) + '/' + run.textures.length : '-/' + t.frameTarget + ' (target)'),
       'fps    ' + t.fps + '   speed x' + state.speed + (state.playing ? '' : '  [paused]'),
       'anchor ' + JSON.stringify(t.anchor),
-      'marker ' + (run.effectiveMarker ? run.effectiveMarker.name + ' @ ' + run.effectiveMarker.normalizedTime : '(none — idle fires no events)') + '  last: ' + (run.lastMarker ? run.lastMarker.name + ' @' + run.lastMarker.at + ' (f' + run.lastMarker.frame + ')' : '—'),
+      'marker ' + (run.effectiveMarkers.length ? run.effectiveMarkers.map((m) => m.name + ' @ ' + m.normalizedTime).join(', ') : '(none — idle fires no events)') + '  last: ' + (run.lastMarker ? run.lastMarker.name + ' @' + run.lastMarker.at + ' (f' + run.lastMarker.frame + ')' : '—'),
       'cycles ' + run.cycles + (run.completed ? '  [completed]' : ''),
       'status ' + run.status,
     ];
@@ -383,7 +387,7 @@ globalThis.MotionTestHarness = (function () {
     getState() {
       const out = { active: state.active, loadsComplete: !!state.loadsComplete, speed: state.speed, playing: state.playing, selected: state.selected, tests: {} };
       for (const [id, run] of Object.entries(state.tests)) {
-        out.tests[id] = { status: run.status, frames: run.textures.length, frameIndex: run.frameIndex, cycles: run.cycles, completed: run.completed, lastMarker: run.lastMarker, problems: run.problems.slice(), warnings: run.warnings.slice() };
+        out.tests[id] = { status: run.status, frames: run.textures.length, frameIndex: run.frameIndex, cycles: run.cycles, completed: run.completed, lastMarker: run.lastMarker, markerLog: run.markerLog.slice(-60), problems: run.problems.slice(), warnings: run.warnings.slice() };
       }
       return out;
     },
