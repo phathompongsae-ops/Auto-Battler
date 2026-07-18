@@ -11,6 +11,23 @@
   ],
   "assets": [
     {
+      "logicalId": "hero_fighter",
+      "category": "hero",
+      "classId": "fighter",
+      "tier": 1,
+      "classLine": "fighter",
+      "gender": "male",
+      "role": "class1",
+      "canonicalStatus": "concept-approved",
+      "sourcePath": null,
+      "cardAssetPath": null,
+      "runtimeAssetPath": null,
+      "dimensions": null,
+      "hasAlpha": null,
+      "approvedByUser": true,
+      "notes": "Exact approved visual direction: broad athletic male Fighter using oversized reinforced metal gauntlets in a forward boxing/martial stance, warm red-brown palette, no sword and no shield. The approved chat image has not yet been imported into the repository or technically verified, so this remains concept-approved rather than canonical-approved."
+    },
+    {
       "logicalId": "hero_archer",
       "category": "hero",
       "classId": "archer",
@@ -18,14 +35,14 @@
       "classLine": "archer",
       "gender": "female",
       "role": "pilot",
-      "canonicalStatus": "candidate-present",
+      "canonicalStatus": "concept-approved",
       "sourcePath": "assets/archer.png",
       "cardAssetPath": null,
       "runtimeAssetPath": null,
       "dimensions": [144, 192],
       "hasAlpha": true,
-      "approvedByUser": false,
-      "notes": "Existing root procedural candidate. Technically valid RGBA PNG, but visually a minimal blocky placeholder and not suitable as final canonical art for the approved stylized 3D female Archer. Do not use shop-card mockup art as canonical source."
+      "approvedByUser": true,
+      "notes": "Female woodland Archer visual direction is approved: olive-green hood/cape, bow and quiver, serious combat-ready 3/4 full-body pose. The existing assets/archer.png remains only a technically valid procedural placeholder and is not the approved final artwork; import and verify the approved replacement before canonical approval."
     },
     {
       "logicalId": "monster_slime",
@@ -35,14 +52,14 @@
       "classLine": null,
       "gender": null,
       "role": "pilot",
-      "canonicalStatus": "missing",
+      "canonicalStatus": "candidate-present",
       "sourcePath": null,
       "cardAssetPath": null,
       "runtimeAssetPath": null,
       "dimensions": null,
       "hasAlpha": null,
       "approvedByUser": false,
-      "notes": "Only older V5 candidate references are documented. Exact file identity and commercial-use provenance are not locked, so treat the canonical Slime as missing until an original-project replacement is approved."
+      "notes": "A new green chibi Slime visual candidate was generated in the approved project style, but no exact file has been imported or technically verified in the repository. Older V5 references also have uncertain identity/provenance. Keep as candidate-present until a specific original-project PNG is imported, alpha-checked, and approved."
     },
     {
       "logicalId": "boss_stage5_golem",
@@ -60,7 +77,7 @@
       "dimensions": [144, 192],
       "hasAlpha": true,
       "approvedByUser": false,
-      "notes": "Existing root procedural candidate. Technically valid RGBA PNG, but visually a minimal blocky placeholder and not sufficient as final Stage 5 boss art. It may remain as a temporary runtime placeholder until a dedicated canonical Golem is approved."
+      "notes": "A stronger rock-and-blue-crystal Golem visual candidate was generated, while assets/mon_golem.png remains a minimal procedural placeholder. No replacement file has yet been imported or verified, so retain candidate-present status and do not treat the root placeholder as final Stage 5 boss art."
     },
     {
       "logicalId": "reserved_warden",
