@@ -1,0 +1,20 @@
+{
+  "unitId": "monster.golem",
+  "state": "idle",
+  "fps": 8,
+  "frameCount": 8,
+  "loop": true,
+  "anchor": [0.5, 0.94],
+  "canvas": [640, 640],
+  "eventMarkers": [],
+  "rootMotion": "in-place",
+  "runtimeFlipX": true,
+  "canonicalApproved": false,
+  "status": "motion_test_source_pending_cc_integration_and_x4_review",
+  "notes": [
+    "Identity is derived directly from Golem Attack visual-fix-v2 frame 000; no earlier Golem version is used.",
+    "The eight-frame idle uses restrained source-derived torso/shoulder deformation while the feet and y=601 opaque-pixel baseline remain fixed.",
+    "No attack, impactCue, slam, dust, VFX, shadow, scene, text, or baked locomotion is present.",
+    "CC must integrate this source set separately and test it at x4; no browser/x4 approval is claimed here."
+  ]
+}
