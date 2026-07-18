@@ -1,0 +1,159 @@
+{
+  "schemaVersion": 1,
+  "packageId": "hero.archer.complete-animation-package.v1",
+  "unitId": "hero.archer",
+  "displayName": "Archer",
+  "gender": "female",
+  "status": "production_plan",
+  "canonicalApproved": false,
+  "shared": {
+    "canvas": [320, 480],
+    "anchor": [0.5, 0.92],
+    "pixelFormat": "8-bit RGBA PNG",
+    "rootMotion": "in-place",
+    "runtimeFlipX": true,
+    "visualIdentity": {
+      "archetype": "female forest archer",
+      "mainPalette": "green leather and cloth",
+      "hair": "dark brown",
+      "weapon": "long wooden bow",
+      "backEquipment": "quiver",
+      "view": "3/4 front combat view"
+    },
+    "forbiddenBakedContent": [
+      "horizontal world movement",
+      "projectiles",
+      "post-release arrows",
+      "hit sparks",
+      "dust",
+      "speed lines",
+      "spell effects",
+      "map floor",
+      "drop shadow",
+      "text",
+      "frame labels",
+      "infographic elements",
+      "checkerboard background"
+    ]
+  },
+  "states": {
+    "idle": {
+      "frameCount": 8,
+      "acceptedFrameRange": [8, 8],
+      "fps": 8,
+      "loop": true,
+      "eventMarkers": [],
+      "motionConcept": "alert breathing stance with restrained hood, hair, bow and quiver secondary motion",
+      "framePoses": [
+        "neutral_alert",
+        "inhale_begin",
+        "inhale_peak",
+        "inhale_settle",
+        "neutral_gaze_adjust",
+        "exhale_begin",
+        "exhale_settle_secondary_lag",
+        "return_to_neutral"
+      ],
+      "productionPath": "assets/units/hero.archer/idle/hero.archer_idle_{000..007}.png",
+      "sidecarPath": "assets/units/hero.archer/hero.archer_idle_motiontest.json",
+      "visualLimits": {
+        "feetPlanted": true,
+        "noHop": true,
+        "noBowDraw": true,
+        "noArrowInHand": true
+      }
+    },
+    "move": {
+      "frameCount": 8,
+      "acceptedFrameRange": [8, 10],
+      "fps": 12,
+      "loop": true,
+      "eventMarkers": [
+        {
+          "name": "leftFootstepCue",
+          "normalizedTime": 0.25
+        },
+        {
+          "name": "rightFootstepCue",
+          "normalizedTime": 0.75
+        }
+      ],
+      "motionConcept": "light controlled combat jog with stable ranged-ready torso and delayed quiver motion",
+      "framePoses": [
+        "right_leg_passing",
+        "left_leg_forward_down",
+        "left_foot_contact",
+        "left_leg_support_rise",
+        "left_leg_passing",
+        "right_leg_forward_down",
+        "right_foot_contact",
+        "right_leg_support_return"
+      ],
+      "productionPath": "assets/units/hero.archer/move/hero.archer_move_{000..007}.png",
+      "sidecarPath": "assets/units/hero.archer/hero.archer_move_motiontest.json",
+      "visualLimits": {
+        "horizontalTravel": false,
+        "lowBounce": true,
+        "bowClearOfFace": true,
+        "quiverAttachmentStable": true
+      }
+    },
+    "attack": {
+      "frameCount": 10,
+      "acceptedFrameRange": [8, 12],
+      "fps": 12,
+      "loop": false,
+      "eventMarkers": [
+        {
+          "name": "projectileRelease",
+          "normalizedTime": 0.556
+        }
+      ],
+      "productionPath": "assets/units/hero.archer/attack/hero.archer_attack_{000..009}.png",
+      "sidecarPath": "assets/units/hero.archer/hero.archer_attack_motiontest.json",
+      "verifiedAtX4": true,
+      "verificationSource": {
+        "pullRequest": 31,
+        "commit": "6ab6a1f485d9e17badc56a671b5f105d049d8fe2"
+      },
+      "knownNonBlockingNotes": [
+        "frames 006 and 007 are byte-identical held poses",
+        "frames 008 and 009 are byte-identical held poses"
+      ]
+    }
+  },
+  "packageReview": {
+    "requiredCheckpoints": [
+      "Asset Load",
+      "Playback",
+      "Marker + Visual Review"
+    ],
+    "testSpeed": "x4",
+    "crossStateComparisons": [
+      "head and face scale",
+      "hood opening and hair placement",
+      "bow length and curvature",
+      "quiver angle and attachment",
+      "foot baseline",
+      "character height",
+      "green palette and leather values"
+    ],
+    "approvalRule": "Idle and Move must each pass the three real browser checkpoints, followed by a package-level state-switch review, before canonicalApproved may be reconsidered."
+  },
+  "scopeExclusions": [
+    "Combat",
+    "targeting",
+    "pathfinding",
+    "economy",
+    "stage logic",
+    "map layout",
+    "game loop",
+    "new skills",
+    "new VFX",
+    "Class 2",
+    "Secret Class",
+    "Map 2-3",
+    "Survival Mode",
+    "three-star heroes"
+  ]
+}
