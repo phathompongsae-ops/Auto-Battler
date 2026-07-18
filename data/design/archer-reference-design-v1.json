@@ -1,0 +1,171 @@
+{
+  "schemaVersion": 1,
+  "id": "archer.reference.design.v1",
+  "status": "reference_design_pending_user_approval",
+  "assetId": "hero.archer",
+  "gender": "female",
+  "canonicalApproved": false,
+  "runtimeReference": {
+    "assetAnimationPr": 23,
+    "assetAnimationHead": "5a3a8eec7991a98aad6f3acf0ce38687764dcb1a",
+    "productionPackBranch": "coco/pilot-asset-production-pack-v2",
+    "productionPackHead": "a779e242de37a59124259361c04af20106d4a932",
+    "mapVisualLockBranch": "coco/map1-visual-lock-contract-v1",
+    "mapVisualLockHead": "60e8742ad4db84c944414964c8f66cfda87baf6c",
+    "anchor": [0.5, 0.92],
+    "fpsDefault": 12,
+    "fpsAcceptedRange": [8, 15],
+    "firstMotionTest": "attack"
+  },
+  "artDirection": {
+    "style": "stylized 3D fantasy",
+    "texture": "hand-painted",
+    "proportion": "chibi — large head, small body",
+    "presentation": "full body",
+    "cameraAngle": "3/4 front view",
+    "pose": "combat-ready",
+    "silhouette": "clean and instantly readable",
+    "finish": "polished mobile game asset",
+    "background": "transparent",
+    "excludedFromCanvas": ["frame or border", "text", "numbers", "icons", "background scenery"]
+  },
+  "visualIdentity": {
+    "summary": "Agile female woodland Archer — practical, combat-ready ranger rather than a decorative or ceremonial figure. Reads instantly as a ranged attacker through bow, quiver and a compact, mobile silhouette.",
+    "personality": "focused, alert, quietly confident",
+    "roleReadability": "ranged physical damage dealer — bow and quiver must be legible at reduced Board/Shop scale before any other detail"
+  },
+  "silhouette": {
+    "outline": "narrow shoulders, compact torso, visible bow arc breaking the outline on one side, short cape/hood breaking the outline behind the shoulders, quiver breaking the outline at the upper back",
+    "readabilityRule": "silhouette must remain identifiable as 'Archer' from outline alone, with no interior color information, at the reduced mobile Board/Shop/Bench scale",
+    "negativeSpace": "keep space between the bow arm and the body open so the bow curve stays separable from the torso at small size"
+  },
+  "bodyProportion": {
+    "system": "chibi",
+    "headToBodyRatio": "approximately 1:2 (large head, small body), matching the existing Class 1 chibi cast",
+    "build": "slim, agile build — not muscular, not heavyset",
+    "heightClass": "sizeClass medium (matches pilot-asset-production-pack-v2 hero.archer sizeClass)",
+    "stanceWidth": "narrow stance, feet close together, no wide combat straddle"
+  },
+  "costume": {
+    "layers": [
+      {
+        "layer": "base",
+        "piece": "fitted leather-and-cloth tunic and trousers",
+        "notes": "short hem above the knee — legs stay visible and readable, no long robe/skirt that hides the legs"
+      },
+      {
+        "layer": "outer",
+        "piece": "short olive-green hood/cape (shoulder-to-mid-back length only)",
+        "notes": "must stay compact — no oversized or floor-length cape; cape may move slightly in idle/move states but must not obscure the bow arm or quiver"
+      },
+      {
+        "layer": "armor accent",
+        "piece": "warm brown leather chest wrap, forearm guards (bracers), and a simple belt",
+        "notes": "practical ranger gear, not heavy plate — must not read as Knight/Fighter armor weight"
+      },
+      {
+        "layer": "accessory",
+        "piece": "quiver strap crossing the chest/back, small pouch on the belt",
+        "notes": "strap and quiver silhouette must remain visible even when the cape is layered over the back"
+      }
+    ],
+    "footwear": "simple laced leather boots, ankle-to-shin height"
+  },
+  "colorPalette": {
+    "primary": { "name": "Olive-green hood and cape", "hex": "#5F9C3E", "usage": "hood, cape, largest single color area" },
+    "secondary": { "name": "Warm brown leather armor", "hex": "#8A5A34", "usage": "chest wrap, bracers, belt, boots" },
+    "accent": { "name": "Muted warm gold trim", "hex": "#D9A63E", "usage": "quiver strap buckle, cape clasp, bowstring wrap, small stitching details — used sparingly" },
+    "skin": { "name": "Warm light tan skin", "hex": "#E8B98A", "usage": "face, hands" },
+    "hair": { "name": "Rich auburn-brown hair", "hex": "#6B3E23", "usage": "hair" }
+  },
+  "colorPaletteRationale": "Primary olive-green is brighter and more saturated than the Arena Ruins theme's muted moss (#55663F) so the silhouette separates from the floor instead of blending into it; both primary and secondary read clearly against the cool-gray arena masonry (#5D6270). No neon values are used — all hues stay in the hand-painted fantasy range.",
+  "hair": {
+    "style": "practical mid-length braid or tied-back ponytail, kept clear of the face and clear of the bow-draw sightline",
+    "colorHex": "#6B3E23",
+    "notes": "hair remains visible beneath/around the hood — the hood does not fully enclose the head"
+  },
+  "faceReadability": {
+    "shape": "feminine face shape, without becoming overly delicate or losing definition at small size",
+    "expression": "focused, alert gaze toward the front-facing direction",
+    "mobileConstraint": "eyes and eyebrow line must remain the clearest facial feature at reduced Board/Shop icon scale; avoid fine linework that disappears below ~64px render height",
+    "hoodInteraction": "hood sits back off the forehead/crown rather than shadowing the eyes, so the face stays readable"
+  },
+  "weapon": {
+    "bowDesign": "recurve-style fantasy longbow, compact enough to be held beside the body without exceeding the character's own height",
+    "weaponSilhouette": "the bow's curve must break the body outline clearly on one side and remain recognizable as a bow — not a staff, not a crossbow — even when the sprite is reduced to Shop-card size",
+    "bowString": "visible taut string, no arrow nocked in the idle/reference pose",
+    "quiverPlacement": "worn diagonally across the back (strap crossing the torso), quiver mouth visible above the shoulder, arrow fletchings partially visible at rest"
+  },
+  "pose": {
+    "referencePose": "standing at rest, both feet clearly planted shoulder-width apart, bow held loosely in the lowered/off-hand beside the body, free hand relaxed near the quiver strap",
+    "cameraFraming": "full body visible head-to-foot with small margin, 3/4 front view matching the Runtime camera convention",
+    "footAnchorNote": "feet position in this reference pose establishes the visual foot line used for the Runtime anchor (0.5, 0.92); no animation or motion is derived from this task"
+  },
+  "cameraAndFraming": {
+    "angle": "3/4 front view",
+    "framing": "full body, centered, matching the neutral reference convention already used for Class 1 pilots",
+    "consistency": "camera angle and framing must match the approved chibi Class 1 reference convention so the Archer sits naturally beside other pilots on the Board"
+  },
+  "lighting": {
+    "direction": "soft key light from front-upper-left, gentle fill from the front-right",
+    "notes": "even, readable lighting suitable for a small mobile sprite — no harsh rim light, no dramatic shadow that could obscure the bow or quiver silhouette; consistent with a neutral hand-painted reference sheet rather than an in-scene lit render"
+  },
+  "materialGuidance": {
+    "technique": "hand-painted material rendering — soft painterly shading and color blocking, not photorealistic PBR, not flat cel-shaded vector art",
+    "cloth": "soft-edged painted shading on cloth and leather, visible but restrained brushwork texture",
+    "metal": "small metal accents (buckles, bracer rivets) get a slightly brighter, warmer highlight than cloth, kept minimal",
+    "consistency": "material rendering must match the existing approved hand-painted Class 1 chibi style so the Archer does not look like a different rendering pipeline from other heroes"
+  },
+  "mobileReadabilityConstraints": {
+    "silhouetteAtSmallSize": "outline and bow/quiver readability must survive a reduced-size check equivalent to Board/Bench/Shop-card scale",
+    "colorContrast": "primary/secondary colors must remain distinguishable from each other and from the Arena Ruins masonry/moss palette at small size",
+    "detailDensity": "avoid fine linework, thin straps, or small pattern detail that disappears or turns to noise below small render sizes",
+    "silhouetteFirst": "silhouette and pose must communicate 'Archer' before color or facial detail is legible"
+  },
+  "transparentBackgroundExportConstraints": {
+    "background": "fully transparent (alpha channel), no baked color fill, no checkerboard placeholder baked into the export",
+    "canvasContent": "character only — no frame, border, vignette, ground shadow plane, text, numbers, watermark, UI icon, or environment/background scenery baked into the image",
+    "edges": "clean alpha edges with no premultiplied-alpha halo",
+    "cropping": "full body must remain inside the canvas with a small safety margin — no cropped hands, bow tips, or cape edge"
+  },
+  "forbiddenVisualTraits": [
+    "priest/acolyte silhouette or ceremonial holy-figure presentation",
+    "staff or any long ceremonial focus item as the primary weapon",
+    "shield of any kind",
+    "oversized/large sword or heavy blade weapon",
+    "long floor-length robe or cloak matching the Mage or Acolyte costume shape",
+    "crossbow (must be a hand-drawn bow, not a crossbow)",
+    "modern-day clothing or equipment",
+    "neon or oversaturated non-fantasy colors",
+    "generic elf-stereotype styling",
+    "visual similarity to Ninja, Ranger, or Sniper class silhouettes",
+    "oversized cape that hides the legs or obscures the bow/quiver"
+  ],
+  "differentiationFromAcolyte": {
+    "acolyteReference": "Acolyte (Class 1 visual lock) is female, staff or holy focus, light/sacred visual language, combat-ready but ceremonial-adjacent",
+    "archerMustDiffer": [
+      "no staff or holy focus item — Archer's primary silhouette element is the bow",
+      "no sacred/ceremonial light-magic visual language — Archer reads as a grounded woodland ranger",
+      "no long holy robe silhouette — Archer's costume is short-hemmed and leg-visible",
+      "costume material language is leather-and-cloth ranger gear, not cloth-and-holy-trim vestments"
+    ],
+    "rule": "silhouette and costume shape must differ clearly from Archer per the Class 1 visual lock contract; this specification enforces the Archer side of that separation"
+  },
+  "excludedFromThisTask": [
+    "animation frames of any kind (idle/move/attack/skill/hit/death)",
+    "sprite sheets",
+    "motion test execution or motion test frames",
+    "final artwork or any binary/image asset",
+    "runtime integration",
+    "canonical approval or canonical file assignment"
+  ],
+  "deferred": [
+    "reference image generation and review",
+    "user approval of the exact reference image",
+    "full six-state animation production",
+    "motion test execution (Archer — Attack)",
+    "sprite sheet packing and Runtime import",
+    "canonical asset registry entry",
+    "final canonical approval"
+  ]
+}
