@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "id": "map1.arena_ruins.board-safe-zones.v1",
+  "mapId": "map1.arena_ruins",
+  "canonicalApproved": false,
+  "coordinateSpaces": {
+    "boardUv": {"range": [0, 1], "origin": "far-left enemy-side outer corner", "u": "left-to-right / -x to +x", "v": "enemy/back to player/front / -z to +z"},
+    "tileUv": {"range": [0, 1], "origin": "far-left corner of one tile", "u": "tile left-to-right", "v": "tile far-to-near"},
+    "tileBillboardUv": {"range": [0, 1], "origin": "bottom-left of projected unit envelope", "u": "unit left-to-right", "v": "unit foot-to-HP-bar top"},
+    "screenUv": {"range": [0, 1], "origin": "top-left viewport", "u": "screen left-to-right", "v": "screen top-to-bottom"}
+  },
+  "runtimeBoard": {
+    "columns": 8,
+    "rows": 7,
+    "tileCount": 56,
+    "combatRows": [0, 1, 2, 3, 4, 5],
+    "deployRows": [3, 4, 5],
+    "enemySpawnRowsObserved": [0, 1],
+    "benchRow": 6,
+    "worldBounds": {"x": [-4, 4], "z": [-3.5, 3.5]},
+    "brief8x8Mismatch": true
+  },
+  "zones": [
+    {"zoneId": "combat-board", "purpose": "all pathing/combat tiles; no decoration or baked focal detail", "coordinateSpace": "boardUv", "shape": "rect", "min": [0, 0], "max": [1, 0.8571428571], "decorationPolicy": "no-go"},
+    {"zoneId": "full-board-and-bench", "purpose": "all 56 tiles including integrated bench; no props, walls, flags or rubble", "coordinateSpace": "boardUv", "shape": "rect", "min": [0, 0], "max": [1, 1], "decorationPolicy": "no-go"},
+    {"zoneId": "deploy-highlight-rows", "purpose": "player placement rows 3-5 must accept overlays without baked interference", "coordinateSpace": "boardUv", "shape": "rect", "min": [0, 0.4285714286], "max": [1, 0.8571428571], "decorationPolicy": "no-go"},
+    {"zoneId": "enemy-highlight-rows-observed", "purpose": "observed initial enemy spawn rows 0-1; preserve enemy-zone and target readability", "coordinateSpace": "boardUv", "shape": "rect", "min": [0, 0], "max": [1, 0.2857142857], "decorationPolicy": "no-go"},
+    {"zoneId": "unit-foot-quiet-area-per-tile", "purpose": "keep cracks, runes and strong value transitions away from anchors/contact shadows", "coordinateSpace": "tileUv", "shape": "rect", "min": [0.18, 0.18], "max": [0.82, 0.82], "decorationPolicy": "low-frequency-only"},
+    {"zoneId": "edge-unit-clearance-per-tile", "purpose": "protect silhouette at cell edges and avoid apparent crop/collision", "coordinateSpace": "tileUv", "shape": "rect", "min": [0.08, 0.08], "max": [0.92, 0.92], "decorationPolicy": "no-raised-detail"},
+    {"zoneId": "health-bar-readability-envelope", "purpose": "protect unit body, mana/HP bars and equipment/link badges from background silhouette", "coordinateSpace": "tileBillboardUv", "shape": "rect", "min": [0.02, 0.5], "max": [0.98, 1], "decorationPolicy": "no-background-tangent-or-high-contrast-detail"},
+    {"zoneId": "projectile-and-target-path", "purpose": "preserve projectiles, target indicators and AoE previews across the combat board", "coordinateSpace": "boardUv", "shape": "rect", "min": [0, 0], "max": [1, 0.8571428571], "decorationPolicy": "no-bright-line-or-combat-like-mark"},
+    {"zoneId": "screen-top-ui-risk", "purpose": "topbar and screenshot HUD strip vary by viewport/content", "coordinateSpace": "screenUv", "shape": "rect", "min": [0, 0], "max": [1, 0.18], "decorationPolicy": "no-critical-decoration"},
+    {"zoneId": "screen-left-ui-risk", "purpose": "synergy and inventory panels", "coordinateSpace": "screenUv", "shape": "rect", "min": [0, 0.12], "max": [0.32, 1], "decorationPolicy": "no-critical-decoration"},
+    {"zoneId": "screen-right-ui-risk", "purpose": "enemy/team panels and battle controls", "coordinateSpace": "screenUv", "shape": "rect", "min": [0.68, 0.12], "max": [1, 1], "decorationPolicy": "no-critical-decoration"},
+    {"zoneId": "screen-bottom-ui-risk", "purpose": "shop drawer, inventory and start controls", "coordinateSpace": "screenUv", "shape": "rect", "min": [0, 0.78], "max": [1, 1], "decorationPolicy": "no-critical-decoration"}
+  ],
+  "decorativeNoGoRules": [
+    "No pillar, wall, flag, rubble, brazier or opaque background module may overlap any logical tile in boardUv.",
+    "Front/camera-side border art must remain visually flat; side art must remain low enough not to cross edge-unit or HP-bar envelopes.",
+    "No baked character shadow, projectile, target ring, deploy marker, enemy marker or UI element.",
+    "Static runes are limited to grout/perimeter and must not resemble active target/AoE states.",
+    "Screen-space risk bands are conservative review zones, not new runtime layout values."
+  ],
+  "futureMeasurementRequired": [
+    "portrait viewport projected board bounds",
+    "landscape viewport projected board bounds",
+    "fullscreen projected board bounds",
+    "largest Golem/boss HP-bar envelope at every edge tile",
+    "projectile and AoE visibility over all pilot combinations"
+  ]
+}
