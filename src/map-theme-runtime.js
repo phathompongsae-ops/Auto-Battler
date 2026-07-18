@@ -90,6 +90,8 @@ globalThis.MapThemeRuntime = (function () {
     forceMissing: false,   // debug: texture resolution returns null -> flat-color fallback path
     layerVisible: {},      // per-layer visibility override, survives rebuilds
     fallbackState: 'none', // none | partial | neutral | inactive
+    // Arena Ruins production board art (PR #49) load/apply bookkeeping
+    boardArt: { requested: 0, loaded: 0, failed: 0, decals: 0, groundRestore: null },
   };
   LAYER_NAMES.forEach((n) => { state.layerVisible[n] = true; });
 
@@ -138,6 +140,34 @@ globalThis.MapThemeRuntime = (function () {
     } catch (e) {
       warnOnce('missing-' + key, 'theme resource "' + key + '" failed to build -> flat-color fallback');
       return null;
+    }
+  }
+
+  // External-file texture loader (PR #49 production art) — the Map 1-only file seam. Loads are
+  // async and attach on success only while the same theme activation is still live (anchor =
+  // any object still parented up to the scene). Every failure path — missing file, decode
+  // error, forceMissing debug — leaves the procedural baseline exactly as built, so a broken
+  // asset can never cost the game its board. Textures are tracked and freed like all others.
+  function isLive(obj) { let n = obj; while (n && n.parent) n = n.parent; return !!(n && n.isScene); }
+  function fileTexture(path, anchor, onReady) {
+    if (state.forceMissing) { warnOnce('file-' + path, 'production art "' + path + '" suppressed (forceMissing) -> procedural baseline'); return; }
+    const THREE = globalThis.THREE;
+    if (!THREE || !THREE.TextureLoader) return;
+    state.boardArt.requested++;
+    try {
+      new THREE.TextureLoader().load(path, function (tex) {
+        state.boardArt.loaded++;
+        trackTex(tex);
+        if (!isLive(anchor)) return; // theme was rebuilt/disposed while loading
+        tex.magFilter = THREE.LinearFilter; tex.minFilter = THREE.LinearFilter; tex.generateMipmaps = false; // non-POT safe
+        try { onReady(tex); } catch (e) { warnOnce('apply-' + path, 'production art "' + path + '" failed to apply (' + (e && e.message) + ')'); }
+      }, undefined, function () {
+        state.boardArt.failed++;
+        warnOnce('file-' + path, 'production art "' + path + '" missing/unreadable -> procedural baseline stays');
+      });
+    } catch (e) {
+      state.boardArt.failed++;
+      warnOnce('file-' + path, 'production art loader failed (' + (e && e.message) + ') -> procedural baseline stays');
     }
   }
 
@@ -214,7 +244,101 @@ globalThis.MapThemeRuntime = (function () {
         m.raycast = noRaycast;
         g.add(m);
       });
+      // PR #49 production board art (async attach; the procedural baseline above stays as the
+      // permanent fallback until each file actually loads)
+      attachProductionBoardArt(g, ctx, api);
       return g;
+    }
+
+    // -------------------------------------------------------------------------
+    // Arena Ruins Static Board Production Pack v1 (PR #49) — minimal runtime binding.
+    // Only the three sources with a provable placement contract are bound
+    // (data/design/arena-ruins-board-layer-placement-v1.json): the 8x7 board-surface master,
+    // the 8x1 bench treatment overlay, and the seamless perimeter ground. The border /
+    // background-modules / props / tile-state atlases stay DEFERRED until an atlas cell/UV
+    // contract exists ("atlas-uv-unresolved" in the asset registry) — guessing UVs is forbidden.
+    //
+    // The board surface becomes 56 per-tile decals (one exact 128px-per-tile UV window each) so
+    // the EXISTING gameplay tile-highlight system stays fully usable: each decal hides itself
+    // while its gameplay tile shows a selection/placement highlight (observed READ-ONLY from
+    // the tile material vs its stored baseTint) and returns when the tile is normal again.
+    // Gameplay raycasts only tileMeshes + unit bodies, and every decal also disables raycast,
+    // so input, coordinates, occupancy and pathfinding are untouched.
+    // -------------------------------------------------------------------------
+    const ARENA_RUINS_BOARD_ART = {
+      boardSurface: { path: 'assets/maps/arena-ruins/board/arena-ruins-board-surface-v1.png', y: 0.002 },
+      benchTreatment: { path: 'assets/maps/arena-ruins/board/arena-ruins-bench-treatment-v1.png', y: 0.003 },
+      perimeterGround: { path: 'assets/maps/arena-ruins/board/arena-ruins-perimeter-ground-v1.png', repeat: [10, 10] },
+    };
+    function tileIsQuiet(t) { return t.material.opacity === 1 && t.material.color.getHex() === t.userData.baseTint; }
+
+    function attachProductionBoardArt(g, ctx, api) {
+      const THREE = globalThis.THREE;
+      const b = ctx.board;
+      // gameplay tiles, observed read-only (never modified by the theme)
+      const tiles = ctx.scene.children.filter(function (o) { return o.userData && o.userData.isTile; });
+      if (tiles.length !== b.cols * b.rows) { warnOnce('art-tiles', 'production board art skipped: expected ' + (b.cols * b.rows) + ' gameplay tiles, found ' + tiles.length); return; }
+
+      function addTileWindows(subName, texPath, y, rowFilter, matOpts, vWindow) {
+        fileTexture(texPath, g, function (tex) {
+          const sub = new THREE.Group(); sub.name = subName;
+          const mat = trackMat(new THREE.MeshBasicMaterial(Object.assign({ map: tex }, matOpts)));
+          const links = [];
+          tiles.forEach(function (t) {
+            const c = t.userData.c, r = t.userData.r;
+            if (rowFilter !== null && r !== rowFilter) return;
+            const geo = trackGeo(new THREE.PlaneGeometry(b.tile, b.tile));
+            const u0 = c / b.cols, u1 = (c + 1) / b.cols;
+            const v1 = vWindow ? vWindow[1] : 1 - r / b.rows;
+            const v0 = vWindow ? vWindow[0] : 1 - (r + 1) / b.rows;
+            geo.setAttribute('uv', new THREE.Float32BufferAttribute([u0, v1, u1, v1, u0, v0, u1, v0], 2));
+            const m = new THREE.Mesh(geo, mat);
+            m.rotation.x = -Math.PI / 2;
+            m.position.set(t.position.x, y, t.position.z);
+            m.raycast = noRaycast;
+            sub.add(m); links.push([m, t]);
+          });
+          g.add(sub);
+          if (rowFilter === null) state.boardArt.decals = links.length;
+          // per-frame: reveal the gameplay tile whenever it is highlighting (read-only check)
+          api.tickFns.push(function () {
+            for (let i = 0; i < links.length; i++) links[i][0].visible = tileIsQuiet(links[i][1]);
+          });
+        });
+      }
+
+      // 1) board-surface master — exact 8x7, 128 px per tile, PNG row 0 = enemy/back edge
+      addTileWindows('productionBoardSurface', ARENA_RUINS_BOARD_ART.boardSurface.path, ARENA_RUINS_BOARD_ART.boardSurface.y, null, {}, null);
+      // 2) bench treatment — transparent overlay over gameplay bench row only (contract row 6)
+      addTileWindows('productionBenchTreatment', ARENA_RUINS_BOARD_ART.benchTreatment.path, ARENA_RUINS_BOARD_ART.benchTreatment.y, b.benchRow, { transparent: true, depthWrite: false }, [0, 1]);
+
+      // 3) perimeter ground — ownership decision per the handoff review: the existing 60x60
+      // plane STAYS owned by src/game.js (no duplicate plane is created); the theme only swaps
+      // its material map/tint to the seamless production stone and restores the original values
+      // on dispose, exactly like every other theme-owned resource lifecycle.
+      fileTexture(ARENA_RUINS_BOARD_ART.perimeterGround.path, g, function (tex) {
+        let groundMesh = null;
+        ctx.scene.children.forEach(function (o) {
+          const p = o.isMesh && o.geometry && o.geometry.parameters;
+          if (p && p.width === 60 && p.height === 60 && !groundMesh) groundMesh = o;
+        });
+        if (!groundMesh) { warnOnce('art-ground', 'perimeter ground mesh not found -> existing floor kept'); return; }
+        tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+        tex.repeat.set(ARENA_RUINS_BOARD_ART.perimeterGround.repeat[0], ARENA_RUINS_BOARD_ART.perimeterGround.repeat[1]);
+        tex.generateMipmaps = true; tex.minFilter = THREE.LinearMipmapLinearFilter; // 512x512 POT source
+        tex.needsUpdate = true;
+        const prevMap = groundMesh.material.map, prevColor = groundMesh.material.color.getHex();
+        groundMesh.material.map = tex;
+        groundMesh.material.color.set(0xffffff);
+        groundMesh.material.needsUpdate = true;
+        state.boardArt.groundRestore = function () {
+          try {
+            groundMesh.material.map = prevMap;
+            groundMesh.material.color.set(prevColor);
+            groundMesh.material.needsUpdate = true;
+          } catch (e) {}
+        };
+      });
     }
 
     // arenaBorder — low-profile broken masonry ringing the board OUTSIDE the existing stage rim.
@@ -472,6 +596,7 @@ globalThis.MapThemeRuntime = (function () {
     const context = resolveContext(ctx);
     if (!context) { warnOnce('no-ctx', 'no scene context available -> keeping existing board presentation'); state.fallbackState = 'inactive'; return false; }
     if (state.active) disposeTheme();
+    state.boardArt = { requested: 0, loaded: 0, failed: 0, decals: 0, groundRestore: null };
 
     const THREE = globalThis.THREE;
     const q = def.quality && def.quality[state.quality] ? def.quality[state.quality] : { particles: 0, lightShafts: 0, bgWalls: 0, bgArches: 0, propScale: 0, decals: 0, motion: false };
@@ -510,6 +635,7 @@ globalThis.MapThemeRuntime = (function () {
     const a = state.active;
     if (!a) return false;
     if (a.root && a.root.parent) a.root.parent.remove(a.root);
+    if (state.boardArt.groundRestore) { try { state.boardArt.groundRestore(); } catch (e) {} state.boardArt.groundRestore = null; }
     for (const g of owned.geos) { try { g.dispose(); } catch (e) {} }
     for (const m of owned.mats) { try { m.dispose(); } catch (e) {} }
     for (const t of owned.texs) { try { t.dispose(); } catch (e) {} }
@@ -583,6 +709,7 @@ globalThis.MapThemeRuntime = (function () {
       materials: owned.mats.length,
       textures: owned.texs.length,
       ambientParticles: particles,
+      boardArt: { requested: state.boardArt.requested, loaded: state.boardArt.loaded, failed: state.boardArt.failed, decals: state.boardArt.decals, groundSwapped: !!state.boardArt.groundRestore },
       fallbackState: state.fallbackState,
       forceMissing: state.forceMissing,
       refreshCount: state.refreshCount,
