@@ -129,6 +129,7 @@ Acceptance:
 Precondition:
 
 - Work packages 1–5 approved or their measurements locked.
+- `docs/BOARD_CAMERA_UI_VISUAL_ACCEPTANCE_SPEC.md` is the measurable acceptance source for this pass.
 
 Scope:
 
@@ -140,10 +141,15 @@ Scope:
 
 Acceptance:
 
-- Combat/placement tests at x4.
-- Test modules/files are explicitly listed.
+- Both primary viewports, 800×360 and 844×390, satisfy the Board–Camera–UI acceptance spec.
+- All board columns and the complete bench row remain visible.
+- Touch and mouse raycasts stay aligned with visible tiles.
+- Shop/Bag and portrait-overlay round trips preserve board framing.
+- Combat/placement tests run at x4.
+- Test modules/files and camera constants are explicitly listed.
+- Before/after screenshots are attached for both primary viewports.
 - Bench and placement rules remain unchanged.
-- No duplicate event listeners or render-loop paths.
+- No duplicate event listeners, renderer recreation, or render-loop paths.
 
 ---
 
