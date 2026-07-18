@@ -1,0 +1,38 @@
+{
+  "version": "1.0.0",
+  "policy": {
+    "downloadBeforeGenerate": true,
+    "generationOwner": "chatgpt",
+    "cocoMayGenerateImages": false,
+    "acceptedLicenseClasses": ["CC0", "CC-BY", "commercial-use-permitted", "user-owned"],
+    "forbiddenSources": ["unknown-license", "editorial-only", "non-commercial-only", "watermarked-preview", "ripped-game-assets"],
+    "requiredEvidence": ["sourceUrl", "authorOrPublisher", "licenseName", "licenseUrlOrText", "downloadDate", "originalFilename", "sha256"]
+  },
+  "assets": [
+    {
+      "id": "hero.archer",
+      "preferredSource": "user-approved-existing-or-chatgpt-generated",
+      "downloadAllowed": true,
+      "downloadConstraint": "must match approved female woodland archer silhouette and license policy",
+      "status": "source_review_required"
+    },
+    {
+      "id": "monster.slime",
+      "preferredSource": "licensed-download-or-user-owned-existing",
+      "downloadAllowed": true,
+      "downloadConstraint": "must be stylized, readable at board scale, and license policy compliant",
+      "status": "source_review_required"
+    },
+    {
+      "id": "monster.golem",
+      "preferredSource": "licensed-download-or-user-owned-existing",
+      "downloadAllowed": true,
+      "downloadConstraint": "must be stylized, large readable silhouette, and license policy compliant",
+      "status": "source_review_required"
+    }
+  ],
+  "promotionGate": {
+    "downloadedAsset": ["license_verified", "provenance_recorded", "alpha_verified", "dimensions_verified", "reduced_size_readability_passed", "user_exact_file_approved"],
+    "generatedAsset": ["generated_by_chatgpt", "prompt_recorded", "alpha_verified", "dimensions_verified", "reduced_size_readability_passed", "user_exact_file_approved"]
+  }
+}
