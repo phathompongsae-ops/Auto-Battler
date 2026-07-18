@@ -1,0 +1,68 @@
+{
+  "version": "1.0.0",
+  "status": "draft_pilot_contract",
+  "pilotAssets": [
+    {
+      "id": "hero.archer",
+      "role": "player_hero",
+      "canonicalPath": "assets/canonical/heroes/archer.png",
+      "sourcePriority": ["approved_existing_file", "licensed_download", "chatgpt_generation"],
+      "view": "three_quarter_front",
+      "facing": "runtime_flip_x",
+      "anchor": {"x": 0.5, "y": 0.92},
+      "states": ["idle", "move", "attack", "skill", "hit", "death"]
+    },
+    {
+      "id": "monster.slime",
+      "role": "normal_enemy",
+      "canonicalPath": "assets/canonical/monsters/slime.png",
+      "sourcePriority": ["approved_existing_file", "licensed_download", "chatgpt_generation"],
+      "view": "three_quarter_front",
+      "facing": "runtime_flip_x",
+      "anchor": {"x": 0.5, "y": 0.9},
+      "states": ["idle", "move", "attack", "skill", "hit", "death"]
+    },
+    {
+      "id": "monster.golem",
+      "role": "miniboss_pilot",
+      "canonicalPath": "assets/canonical/monsters/golem.png",
+      "sourcePriority": ["approved_existing_file", "licensed_download", "chatgpt_generation"],
+      "view": "three_quarter_front",
+      "facing": "runtime_flip_x",
+      "anchor": {"x": 0.5, "y": 0.94},
+      "states": ["idle", "move", "attack", "skill", "hit", "death"]
+    }
+  ],
+  "animationProfile": {
+    "format": "png_sequence_or_sprite_sheet",
+    "minimumFps": 8,
+    "targetFps": 12,
+    "maxFps": 15,
+    "requiredStates": ["idle", "move", "attack", "skill", "hit", "death"],
+    "fallbackOrder": {
+      "move": ["idle"],
+      "skill": ["attack", "idle"],
+      "hit": ["idle"],
+      "death": ["hit", "idle"]
+    },
+    "missingAssetBehavior": "use_existing_runtime_placeholder_and_log_once"
+  },
+  "technicalRules": {
+    "transparentBackground": true,
+    "pngRequired": true,
+    "premultipliedAlphaForbidden": true,
+    "trimTransparentBounds": true,
+    "consistentFeetBaseline": true,
+    "runtimeScaleOwnedByManifest": true,
+    "shopCardAssetSeparateFromBattleAsset": true,
+    "iconAssetSeparateFromBattleAsset": true
+  },
+  "mobileBudget": {
+    "maxPilotTextureDimension": 1024,
+    "preferredBattleFrameDimension": 512,
+    "maxSinglePilotAssetBytes": 1500000,
+    "maxPilotSetBytes": 12000000,
+    "maxSimultaneousAnimatedUnitsTarget": 20,
+    "noPerFrameTextureAllocation": true
+  }
+}
