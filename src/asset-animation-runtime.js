@@ -430,6 +430,7 @@ globalThis.AssetAnimationRuntime = (function () {
     onUnitReset(u) { if (adapter) adapter.onUnitReset(u); },
     tickAnim(u, dt) { if (adapter) return adapter.tickAnim(u, dt); return false; },
     tickWorld(dt) { if (adapter) adapter.tickWorld(dt); },
+    _markHit(u) { if (adapter && adapter.markHit) adapter.markHit(u); },
     // ---- debug/introspection (used by the debug UI + tests) ----
     _installAdapter(a) { adapter = a; },
     getController(u) { return u && u._aafCtrl ? u._aafCtrl : null; },
@@ -642,14 +643,20 @@ globalThis.AssetAnimationRuntime = (function () {
     return true;
   }
 
+  // The Three.js scene is a lexical global inside game.js (not on globalThis); every unit group
+  // is added to it, so a unit's group.parent is the scene — we read it from there, no new hook.
+  function sceneOf(u) { return u && u.group && u.group.parent ? u.group.parent : null; }
+
   function onStateOnset(u, ctrl, state) {
     const rec = ctrl.record;
     if (state === 'attack' || state === 'skill') {
+      const scene = sceneOf(u);
+      if (!scene) return;
       const target = u.current_target || (Array.isArray(u.castTarget) ? u.castTarget[0] : u.castTarget);
       if (rec.vfx && rec.vfx.ranged && target && target.group) {
-        spawnProjectileLayer(u, target, rec);
+        spawnProjectileLayer(scene, u, target, rec);
       } else if (target && target.group) {
-        spawnImpactLayer(target, rec);
+        spawnImpactLayer(scene, target, rec);
       }
     }
   }
@@ -679,9 +686,8 @@ globalThis.AssetAnimationRuntime = (function () {
     if (idx >= 0) transients.splice(idx, 1);
   }
 
-  function spawnProjectileLayer(u, target, rec) {
-    if (!globalThis.scene) return;
-    if (!budget.canSpawn('projectile')) return;
+  function spawnProjectileLayer(scene, u, target, rec) {
+    if (!scene || !budget.canSpawn('projectile')) return;
     const from = u.group.position.clone(); from.y = (u._aafPlaneH || 1) * 0.6;
     const to = target.group.position.clone(); to.y = (target._aafPlaneH || 1) * 0.5;
     const geo = new THREE.PlaneGeometry(0.28, 0.06);
@@ -690,39 +696,39 @@ globalThis.AssetAnimationRuntime = (function () {
     arrow.position.copy(from);
     const ang = Math.atan2(to.x - from.x, to.z - from.z);
     arrow.rotation.y = ang;
-    globalThis.scene.add(arrow);
+    scene.add(arrow);
     const dist = from.distanceTo(to);
     const dur = Math.min(0.35, 0.06 + dist * 0.03);
     const trailAllowed = budget.canSpawn('trail');
     makeTransient('projectile', 'projectile', arrow, dur, (r, k) => {
       arrow.position.lerpVectors(from, to, k);
-      if (trailAllowed && k < 0.95 && (r._trailT = (r._trailT || 0) + 1) % 2 === 0) spawnTrailDot(arrow.position, rec);
-      if (k >= 1) spawnImpactLayer(target, rec);
+      if (trailAllowed && k < 0.95 && (r._trailT = (r._trailT || 0) + 1) % 2 === 0) spawnTrailDot(scene, arrow.position, rec);
+      if (k >= 1) spawnImpactLayer(scene, target, rec);
     }, u);
   }
-  function spawnTrailDot(pos, rec) {
-    if (!globalThis.scene || !budget.canSpawn('trail')) return;
+  function spawnTrailDot(scene, pos, rec) {
+    if (!scene || !budget.canSpawn('trail')) return;
     const geo = new THREE.PlaneGeometry(0.1, 0.1);
     const mat = new THREE.MeshBasicMaterial({ color: 0xfff2c0, transparent: true, opacity: 0.7, side: THREE.DoubleSide });
     const dot = new THREE.Mesh(geo, mat); dot.position.copy(pos);
-    globalThis.scene.add(dot);
+    scene.add(dot);
     makeTransient('trail', 'trail', dot, 0.18, (r, k) => { mat.opacity = 0.7 * (1 - k); });
   }
-  function spawnImpactLayer(target, rec) {
-    if (!globalThis.scene || !target || !target.group || !budget.canSpawn('impact')) return;
+  function spawnImpactLayer(scene, target, rec) {
+    if (!scene || !target || !target.group || !budget.canSpawn('impact')) return;
     const pos = target.group.position.clone(); pos.y = (target._aafPlaneH || 1) * 0.4;
     const color = rec.vfx && rec.vfx.impact === 'slime_splat' ? 0x9be8ff : (rec.vfx && rec.vfx.impact === 'golem_impact' ? 0xd8c090 : 0xffe9a0);
     const geo = new THREE.RingGeometry(0.05, 0.16, 14);
     const mat = new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.9, side: THREE.DoubleSide });
     const ring = new THREE.Mesh(geo, mat); ring.position.copy(pos); ring.rotation.x = -Math.PI / 2 + 0.4;
-    globalThis.scene.add(ring);
+    scene.add(ring);
     makeTransient('impact', 'impact', ring, 0.28, (r, k) => { const s = 0.6 + k * 1.6; ring.scale.set(s, s, 1); mat.opacity = 0.9 * (1 - k); });
     // optional ground puff for heavy units (droppable under budget)
     if (rec.vfx && rec.vfx.ground && budget.canSpawn('ground')) {
       const gGeo = new THREE.CircleGeometry(0.24, 14);
       const gMat = new THREE.MeshBasicMaterial({ color: 0x8a7a63, transparent: true, opacity: 0.5, side: THREE.DoubleSide });
       const puff = new THREE.Mesh(gGeo, gMat); puff.position.set(pos.x, 0.02, pos.z); puff.rotation.x = -Math.PI / 2;
-      globalThis.scene.add(puff);
+      scene.add(puff);
       makeTransient('ground', 'ground', puff, 0.4, (r, k) => { const s = 1 + k; puff.scale.set(s, s, 1); gMat.opacity = 0.5 * (1 - k); });
     }
   }
