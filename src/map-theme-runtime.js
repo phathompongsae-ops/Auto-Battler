@@ -155,6 +155,315 @@ globalThis.MapThemeRuntime = (function () {
     return g;
   }
 
+  // ---------------------------------------------------------------------------
+  // Map 1 "Arena Ruins" layer builders — polished procedural/material baseline (NOT final art).
+  // Everything sits OUTSIDE the playable grid (or as subtle sub-decals that disable raycast and
+  // never sit under units brighter than the tiles). Deterministic seeded placement.
+  // ---------------------------------------------------------------------------
+  (function installArenaRuinsBuilders() {
+    const noRaycast = function () {};
+    function makeRng(seed) { let s = seed; return function () { s = (s * 16807) % 2147483647; return s / 2147483647; }; }
+
+    function stoneMat(color, opts) {
+      const THREE = globalThis.THREE;
+      return trackMat(new THREE.MeshStandardMaterial(Object.assign({ color, roughness: 1, metalness: 0 }, opts || {})));
+    }
+
+    // boardSurface — visual decal treatment only: faint crack decals at CELL INTERSECTIONS (the
+    // grout lines between four cells, never centered under a unit) + restrained moss just outside
+    // the grid edge. Raycast disabled on every decal; tiles/grid/occupancy untouched. No bright
+    // emissive patterns; opacity kept low so unit silhouettes and tile highlights stay dominant.
+    function buildBoardSurface(def, ctx, q, api) {
+      const THREE = globalThis.THREE;
+      const g = new THREE.Group();
+      const b = ctx.board, rng = makeRng(4241);
+      const crackTex = api.themeTexture('board-crack', function (cv) {
+        cv.width = 32; cv.height = 32;
+        const c2 = cv.getContext('2d');
+        c2.clearRect(0, 0, 32, 32);
+        c2.strokeStyle = 'rgba(20,18,14,0.85)'; c2.lineWidth = 1.4;
+        let s = 97; const r2 = function () { s = (s * 16807) % 2147483647; return s / 2147483647; };
+        for (let k = 0; k < 3; k++) {
+          c2.beginPath(); let x = 4 + r2() * 8, y = 4 + r2() * 24; c2.moveTo(x, y);
+          for (let i = 0; i < 4; i++) { x += 4 + r2() * 4; y += (r2() - 0.5) * 10; c2.lineTo(x, y); }
+          c2.stroke();
+        }
+      });
+      const crackGeo = trackGeo(new THREE.PlaneGeometry(0.36, 0.36));
+      const crackMat = crackTex
+        ? trackMat(new THREE.MeshBasicMaterial({ map: crackTex, transparent: true, opacity: 0.45, depthWrite: false }))
+        : trackMat(new THREE.MeshBasicMaterial({ color: def.palette.masonryDark, transparent: true, opacity: 0.12, depthWrite: false }));
+      const spots = [];
+      for (let c = 1; c < b.cols; c++) for (let r = 1; r < b.rows; r++) spots.push([c, r]);
+      for (let i = spots.length - 1; i > 0; i--) { const j = (rng() * (i + 1)) | 0; const t = spots[i]; spots[i] = spots[j]; spots[j] = t; }
+      for (let i = 0; i < Math.min(q.decals, spots.length); i++) {
+        const m = new THREE.Mesh(crackGeo, crackMat);
+        m.rotation.x = -Math.PI / 2; m.rotation.z = rng() * Math.PI * 2;
+        m.position.set((spots[i][0] - b.cols / 2) * b.tile, 0.004, (spots[i][1] - b.rows / 2) * b.tile);
+        m.raycast = noRaycast;
+        g.add(m);
+      }
+      // restrained moss: JUST OUTSIDE the playable edge (on the rim line), never inside a cell
+      const mossGeo = trackGeo(new THREE.CircleGeometry(0.16, 10));
+      const mossMat = trackMat(new THREE.MeshBasicMaterial({ color: def.palette.moss, transparent: true, opacity: 0.55, depthWrite: false }));
+      [[-(b.halfW + 0.34), -1.6], [b.halfW + 0.34, 0.8], [-(b.halfW + 0.34), 2.2], [b.halfW + 0.34, -2.6]].forEach(function (p) {
+        const m = new THREE.Mesh(mossGeo, mossMat);
+        m.rotation.x = -Math.PI / 2;
+        m.position.set(p[0], 0.006, p[1]);
+        m.scale.set(1 + rng() * 0.6, 1 + rng() * 0.4, 1);
+        m.raycast = noRaycast;
+        g.add(m);
+      });
+      return g;
+    }
+
+    // arenaBorder — low-profile broken masonry ringing the board OUTSIDE the existing stage rim.
+    // Back row may be taller (far from camera); sides stay low; the front (camera/bench side)
+    // gets only flat slabs so no cell is ever obscured from the locked camera.
+    function buildArenaBorder(def, ctx, q, api) {
+      const THREE = globalThis.THREE;
+      const g = new THREE.Group();
+      const b = ctx.board, rng = makeRng(1733);
+      const matA = stoneMat(def.palette.masonry), matB = stoneMat(def.palette.masonryDark);
+      const mossTop = trackMat(new THREE.MeshStandardMaterial({ color: def.palette.moss, roughness: 1 }));
+      function block(x, z, w, h, d, mat, ry) {
+        const m = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(w, h, d)), mat);
+        m.position.set(x, h / 2 - 0.01, z); m.rotation.y = ry || 0;
+        g.add(m);
+        return m;
+      }
+      // back edge (enemy side, far from camera): broken parapet, tallest pieces
+      for (let i = 0; i < 7; i++) {
+        if (rng() < 0.18) continue; // gaps = "broken"
+        const x = -b.halfW + 0.6 + i * ((b.halfW * 2 - 1.2) / 6);
+        const h = 0.28 + rng() * 0.34;
+        const m = block(x, -(b.halfD + 0.78), 0.8 + rng() * 0.2, h, 0.5, rng() < 0.5 ? matA : matB, (rng() - 0.5) * 0.2);
+        if (rng() < 0.45) { const t = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(0.5, 0.035, 0.3)), mossTop); t.position.set(m.position.x, h - 0.005, m.position.z); g.add(t); }
+      }
+      // side edges: low ruins
+      [-1, 1].forEach(function (sx) {
+        for (let i = 0; i < 5; i++) {
+          if (rng() < 0.25) continue;
+          const z = -b.halfD + 0.7 + i * ((b.halfD * 2 - 1.4) / 4);
+          block(sx * (b.halfW + 0.8), z, 0.5, 0.16 + rng() * 0.18, 0.7 + rng() * 0.2, rng() < 0.5 ? matA : matB, (rng() - 0.5) * 0.25);
+        }
+      });
+      // front edge (bench/camera side): flat cracked slabs only — never obscures cells
+      for (let i = 0; i < 4; i++) {
+        const x = -b.halfW + 1 + i * ((b.halfW * 2 - 2) / 3);
+        block(x + (rng() - 0.5) * 0.4, b.halfD + 0.9, 0.7, 0.07 + rng() * 0.06, 0.55, matB, (rng() - 0.5) * 0.3);
+      }
+      return g;
+    }
+
+    // background — distant ruined amphitheatre: broken wall segments + arches at radius ~9-13,
+    // back/sides only (never crossing the board view), low-cost boxes/cylinders faded by the
+    // existing scene fog. Supports the board; never competes with it.
+    function buildBackground(def, ctx, q, api) {
+      const THREE = globalThis.THREE;
+      const g = new THREE.Group();
+      const rng = makeRng(8087);
+      const matA = stoneMat(def.palette.masonryDark), matB = stoneMat(def.palette.masonry);
+      // candidate slots (x, z, w, h) — all behind or beside the board (z <= 1), none in front
+      const slots = [
+        [-9, -8, 3.2, 2.4], [-4, -10, 3.6, 2.0], [1, -11, 3.0, 2.6], [6, -9.5, 3.4, 1.8],
+        [10, -7, 2.8, 2.2], [-11, -3, 2.6, 1.6], [11, -2, 2.6, 1.9], [-12, 1, 2.4, 1.3],
+        [12, 0.5, 2.4, 1.4], [-10.5, -5.5, 2.2, 2.8], [9.5, -4.5, 2.0, 2.5], [3.5, -12, 2.8, 1.7],
+      ];
+      for (let i = 0; i < Math.min(q.bgWalls, slots.length); i++) {
+        const s = slots[i];
+        const m = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(s[2], s[3], 0.6)), rng() < 0.5 ? matA : matB);
+        m.position.set(s[0], s[3] / 2 - 0.02, s[1]);
+        m.rotation.y = Math.atan2(-s[0], -s[1]) + (rng() - 0.5) * 0.3; // face roughly inward
+        g.add(m);
+      }
+      // ruined arches at the back
+      const archX = [-6.5, 0.5, 7];
+      for (let i = 0; i < Math.min(q.bgArches, archX.length); i++) {
+        const x = archX[i], z = -9.6 - rng() * 1.2;
+        const colGeo = trackGeo(new THREE.CylinderGeometry(0.24, 0.28, 2.5, 6));
+        const c1 = new THREE.Mesh(colGeo, matB); c1.position.set(x - 0.8, 1.23, z); g.add(c1);
+        if (i === 1) { // one collapsed arch: single column + fallen lintel
+          const fallen = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(1.9, 0.32, 0.5)), matA);
+          fallen.position.set(x + 0.7, 0.16, z + 0.8); fallen.rotation.y = 0.7; fallen.rotation.z = 0.12;
+          g.add(fallen);
+        } else {
+          const c2 = new THREE.Mesh(colGeo, matB); c2.position.set(x + 0.8, 1.23, z); g.add(c2);
+          const lintel = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(2.1, 0.34, 0.5)), matA);
+          lintel.position.set(x, 2.55, z); lintel.rotation.z = (rng() - 0.5) * 0.06;
+          g.add(lintel);
+        }
+      }
+      return g;
+    }
+
+    // props — broken columns, rubble clusters, weathered banners, cracked braziers, moss tufts.
+    // Fixed candidate list, ALL outside the playable grid / bench / HUD / touch paths; propScale
+    // takes a prefix, so low quality keeps only the closest anchor pieces.
+    function buildProps(def, ctx, q, api) {
+      const THREE = globalThis.THREE;
+      const g = new THREE.Group();
+      const b = ctx.board, rng = makeRng(5519);
+      const stoneA = stoneMat(def.palette.masonry), stoneB = stoneMat(def.palette.masonryDark);
+      const mossMat = trackMat(new THREE.MeshStandardMaterial({ color: def.palette.moss, roughness: 1 }));
+      const rubbleGeo = trackGeo(new THREE.DodecahedronGeometry(0.2, 0));
+      const tuftGeo = trackGeo(new THREE.SphereGeometry(0.16, 6, 4));
+
+      const builders = [
+        function brokenColumnL() {
+          const m = new THREE.Mesh(trackGeo(new THREE.CylinderGeometry(0.26, 0.32, 1.9, 6)), stoneA);
+          m.position.set(-(b.halfW + 1.7), 0.93, -(b.halfD + 1.4)); m.rotation.z = 0.07; g.add(m);
+          const base = new THREE.Mesh(trackGeo(new THREE.BoxGeometry(0.7, 0.24, 0.7)), stoneB);
+          base.position.set(-(b.halfW + 1.7), 0.1, -(b.halfD + 1.4)); g.add(base);
+        },
+        function brokenColumnR() {
+          const m = new THREE.Mesh(trackGeo(new THREE.CylinderGeometry(0.26, 0.32, 1.25, 6)), stoneA);
+          m.position.set(b.halfW + 1.8, 0.6, -(b.halfD + 1.3)); m.rotation.z = -0.12; g.add(m);
+        },
+        function brazierL() { brazier(-(b.halfW - 0.4), -(b.halfD + 1.9)); },
+        function brazierR() { brazier(b.halfW - 0.4, -(b.halfD + 1.9)); },
+        function rubbleBL() { rubbleCluster(-(b.halfW + 1.6), 1.6, 3); },
+        function rubbleBR() { rubbleCluster(b.halfW + 1.7, 2.4, 2); },
+        function bannerL() { banner(-(b.halfW + 1.9), 0.2, 1); },
+        function bannerR() { banner(b.halfW + 1.9, -0.6, -1); },
+        function rubbleFar1() { rubbleCluster(-(b.halfW + 2.6), -2.8, 3); },
+        function rubbleFar2() { rubbleCluster(b.halfW + 2.5, -3.4, 2); },
+      ];
+      function rubbleCluster(x, z, n) {
+        for (let i = 0; i < n; i++) {
+          const m = new THREE.Mesh(rubbleGeo, rng() < 0.5 ? stoneA : stoneB);
+          const s = 0.55 + rng() * 0.8;
+          m.scale.set(s, s * (0.7 + rng() * 0.4), s);
+          m.position.set(x + (rng() - 0.5) * 0.8, 0.09 * s, z + (rng() - 0.5) * 0.8);
+          m.rotation.set(rng() * 3, rng() * 3, 0);
+          g.add(m);
+          if (rng() < 0.5) { const t = new THREE.Mesh(tuftGeo, mossMat); t.scale.set(1.1, 0.35, 1.1); t.position.set(m.position.x + 0.2, 0.03, m.position.z + 0.15); g.add(t); }
+        }
+      }
+      function banner(x, z, side) {
+        const pole = new THREE.Mesh(trackGeo(new THREE.CylinderGeometry(0.045, 0.055, 1.5, 6)), stoneB);
+        pole.position.set(x, 0.74, z); g.add(pole);
+        const tex = api.themeTexture('banner-cloth', function (cv) {
+          cv.width = 16; cv.height = 32;
+          const c2 = cv.getContext('2d');
+          c2.fillStyle = '#6d3a3a'; c2.fillRect(0, 0, 16, 32);
+          c2.fillStyle = '#b99a55'; c2.fillRect(0, 0, 16, 4);
+          c2.fillStyle = 'rgba(0,0,0,0.25)'; c2.fillRect(0, 24, 16, 8);
+          c2.clearRect(2, 29, 4, 3); c2.clearRect(10, 27, 4, 5); // torn bottom
+        });
+        const mat = tex
+          ? trackMat(new THREE.MeshStandardMaterial({ map: tex, side: THREE.DoubleSide, transparent: true, roughness: 1 }))
+          : trackMat(new THREE.MeshStandardMaterial({ color: def.palette.bannerCloth, side: THREE.DoubleSide, roughness: 1 }));
+        const cloth = new THREE.Mesh(trackGeo(new THREE.PlaneGeometry(0.42, 0.8)), mat);
+        cloth.position.set(x - side * 0.24, 1.02, z);
+        cloth.rotation.y = side * 0.5;
+        g.add(cloth);
+      }
+      function brazier(x, z) {
+        const bowl = new THREE.Mesh(trackGeo(new THREE.CylinderGeometry(0.24, 0.16, 0.2, 8)), stoneB);
+        bowl.position.set(x, 0.34, z); g.add(bowl);
+        const leg = new THREE.Mesh(trackGeo(new THREE.CylinderGeometry(0.06, 0.09, 0.26, 6)), stoneA);
+        leg.position.set(x, 0.12, z); g.add(leg);
+        const emberTex = api.themeTexture('brazier-ember', function (cv) {
+          cv.width = 32; cv.height = 32;
+          const c2 = cv.getContext('2d');
+          const grd = c2.createRadialGradient(16, 16, 0, 16, 16, 16);
+          grd.addColorStop(0, 'rgba(255,190,110,0.9)'); grd.addColorStop(0.6, 'rgba(255,140,60,0.35)'); grd.addColorStop(1, 'rgba(255,140,60,0)');
+          c2.fillStyle = grd; c2.fillRect(0, 0, 32, 32);
+        });
+        if (emberTex) {
+          const glow = new THREE.Sprite(trackMat(new THREE.SpriteMaterial({ map: emberTex, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending })));
+          glow.scale.set(0.5, 0.5, 1); glow.position.set(x, 0.52, z);
+          g.add(glow);
+          if (q.motion) {
+            let t = rng() * 6;
+            api.tickFns.push(function (dt) { t += dt; const s = 0.46 + Math.sin(t * 5.1) * 0.05; glow.scale.set(s, s, 1); });
+          }
+        } // ember texture missing -> brazier stays unlit (safe fallback, no crash)
+      }
+      const count = Math.max(0, Math.round(builders.length * q.propScale));
+      for (let i = 0; i < count; i++) { try { builders[i](); } catch (e) { warnOnce('prop-' + i, 'prop builder ' + i + ' failed -> skipped'); } }
+      return g;
+    }
+
+    // ambientVfx — slow dust motes (one Points cloud, zero per-frame allocation) + rare soft
+    // light shafts (high quality only). First layer reduced under load; never resembles combat
+    // VFX, never blocks pointers (Points/planes are not raycast by the game at all).
+    function buildAmbientVfx(def, ctx, q, api) {
+      const THREE = globalThis.THREE;
+      const g = new THREE.Group();
+      const rng = makeRng(2657);
+      if (q.particles > 0) {
+        const n = q.particles;
+        const pos = new Float32Array(n * 3);
+        const vel = new Float32Array(n * 2); // (vy, vxDrift) per particle
+        for (let i = 0; i < n; i++) {
+          pos[i * 3] = (rng() - 0.5) * 13;
+          pos[i * 3 + 1] = 0.2 + rng() * 3.0;
+          pos[i * 3 + 2] = -6.5 + rng() * 11.5;
+          vel[i * 2] = 0.06 + rng() * 0.12;
+          vel[i * 2 + 1] = (rng() - 0.5) * 0.05;
+        }
+        const geo = trackGeo(new THREE.BufferGeometry());
+        geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+        const mat = trackMat(new THREE.PointsMaterial({ color: 0xd8c9a8, size: 0.055, transparent: true, opacity: 0.5, depthWrite: false }));
+        const points = new THREE.Points(geo, mat);
+        points.raycast = noRaycast;
+        g.add(points);
+        if (q.motion) {
+          api.tickFns.push(function (dt) {
+            const p = geo.getAttribute('position');
+            for (let i = 0; i < n; i++) {
+              let y = p.getY(i) + vel[i * 2] * dt;
+              if (y > 3.4) y = 0.2;
+              p.setY(i, y);
+              p.setX(i, p.getX(i) + vel[i * 2 + 1] * dt);
+            }
+            p.needsUpdate = true;
+          });
+        }
+      }
+      // rare soft light shafts (inexpensive additive planes, back corners only — no board cover)
+      for (let i = 0; i < q.lightShafts; i++) {
+        const shaft = new THREE.Mesh(
+          trackGeo(new THREE.PlaneGeometry(1.3, 5)),
+          trackMat(new THREE.MeshBasicMaterial({ color: 0xffe0b0, transparent: true, opacity: 0.05, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide }))
+        );
+        const sx = i === 0 ? -1 : 1;
+        shaft.position.set(sx * 5.6, 2.4, -5.2);
+        shaft.rotation.set(0.15, sx * 0.4, sx * -0.45);
+        shaft.raycast = noRaycast;
+        g.add(shaft);
+      }
+      return g;
+    }
+
+    // lightingProfile — ADDS a cool muted fill + a soft golden rim to the existing warm key
+    // light. Never replaces the camera, the game's AmbientLight/key light, and never touches
+    // scene.background/fog (owned by the existing Arena Curse atmosphere VFX). Intensities are
+    // low so pilot placeholder colors keep their readability contrast.
+    function buildLightingProfile(def, ctx, q, api) {
+      const THREE = globalThis.THREE;
+      const g = new THREE.Group();
+      const fill = new THREE.DirectionalLight(def.palette.fillLight, def.lighting.fillIntensity);
+      fill.position.set(-6, 8, 6);
+      g.add(fill);
+      const rim = new THREE.DirectionalLight(def.palette.rimLight, def.lighting.rimIntensity);
+      rim.position.set(0, 6, -9);
+      g.add(rim);
+      return g;
+    }
+
+    BUILDERS['map1.arena_ruins'] = {
+      boardSurface: buildBoardSurface,
+      arenaBorder: buildArenaBorder,
+      background: buildBackground,
+      props: buildProps,
+      ambientVfx: buildAmbientVfx,
+      lightingProfile: buildLightingProfile,
+    };
+  })();
+
   function activateTheme(themeId, ctx) {
     if (!hasBrowser()) { state.fallbackState = 'inactive'; return false; }
     const def = getTheme(themeId);
