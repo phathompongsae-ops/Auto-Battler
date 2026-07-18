@@ -4588,3 +4588,24 @@ loadAllSprites(() => {
 });
 
 window.addEventListener('resize', layoutBoard);
+
+// ============================================================
+// PRESENTATION HOOK — read-only bridge for the separate fullscreen/screenshot utility module
+// (src/game-presentation-tools.js). It exposes render/layout/state access only; it never advances
+// combat/animation timing. renderNow() draws one extra frame so a one-shot screenshot can read the
+// WebGL buffer (the renderer intentionally has no preserveDrawingBuffer — cheaper for gameplay).
+// relayout() reuses the single existing layout owner (layoutBoard) — no second resize path.
+// ============================================================
+globalThis.GamePresentationHooks = {
+  renderNow() {
+    try {
+      // match animate()'s per-frame billboarding so the captured frame looks identical
+      for (const u of units) if (u.group) u.group.quaternion.copy(camera.quaternion);
+      renderer.render(scene, camera);
+    } catch (e) { /* capture is best-effort; never break the game */ }
+  },
+  getCanvas() { try { return renderer.domElement; } catch (e) { return null; } },
+  relayout() { try { layoutBoard(); } catch (e) {} },
+  getWave() { return typeof wave === 'number' ? wave : null; },
+  getPixelRatio() { try { return renderer.getPixelRatio(); } catch (e) { return 1; } },
+};
