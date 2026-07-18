@@ -1,0 +1,72 @@
+{
+  "schemaVersion": 1,
+  "id": "map1.arena_ruins.pilot-contrast-matrix.v1",
+  "mapId": "map1.arena_ruins",
+  "canonicalApproved": false,
+  "method": "design review matrix using PR #25 pilot placeholder/base colors and a proposed quiet combat-floor midtone; ratios are WCAG-style relative-luminance ratios used only as comparative signals, not a gameplay-text compliance claim",
+  "boardTargets": {
+    "quietCombatFloor": {"color": "#625d55", "relativeLuminance": 0.1108},
+    "coolDarkSeparation": {"color": "#4a4f5c", "relativeLuminance": 0.0782},
+    "restrictedMoss": {"color": "#55663f", "relativeLuminance": 0.1179},
+    "rules": ["warm sand/copper may appear at seams and perimeter", "tile-center values favor quiet neutral/cool separation", "avoid pilot-color patches beneath unit centers"]
+  },
+  "pilots": [
+    {
+      "pilotId": "hero.archer",
+      "displayName": "Archer",
+      "referenceColor": "#5f8f4e",
+      "anchor": [0.5, 0.92],
+      "relativeLuminance": 0.2263,
+      "contrastRatioAgainstQuietFloor": 1.72,
+      "checks": {
+        "hueContrast": {"rating": "medium-risk", "risk": "green costume can merge with moss", "artMitigation": "keep moss outside playable cells; use cool-neutral tile centers and warm/copper seams"},
+        "luminanceContrast": {"rating": "medium-risk", "risk": "ratio is modest on midtone stone", "artMitigation": "avoid floor highlights directly behind torso/hood and preserve a darker quiet center"},
+        "silhouetteReadability": {"rating": "pass-target", "risk": "hood and bow can tangent with banners/arches", "artMitigation": "keep vertical props outside HP/silhouette envelope and no dark lines under bow"},
+        "cyanEffectReadability": {"rating": "low-risk", "risk": "cool fill can mute cyan markers near green", "artMitigation": "do not paint cyan accents into the floor; keep target state gold and AoE violet"},
+        "greenCostumeReadability": {"rating": "high-priority", "risk": "identity color overlaps vegetation family", "artMitigation": "moss is sparse, desaturated and perimeter-only"},
+        "stoneBodyReadability": {"rating": "not-applicable", "risk": "none", "artMitigation": "none"},
+        "shadowReadability": {"rating": "medium-risk", "risk": "dark cracks may merge with contact shadow", "artMitigation": "keep unit-foot quiet area free of heavy cracks"}
+      }
+    },
+    {
+      "pilotId": "monster.slime",
+      "displayName": "Slime",
+      "referenceColor": "#4ea3b0",
+      "anchor": [0.5, 0.9],
+      "relativeLuminance": 0.3095,
+      "contrastRatioAgainstQuietFloor": 2.24,
+      "checks": {
+        "hueContrast": {"rating": "good-target", "risk": "teal may approach cool fill in shadow", "artMitigation": "retain warm-neutral floor and reserve blue-gray for low-saturation shadows"},
+        "luminanceContrast": {"rating": "best-of-three", "risk": "bright stone highlights can reduce separation", "artMitigation": "keep highlights at seams, not tile centers"},
+        "silhouetteReadability": {"rating": "medium-risk", "risk": "small rounded body is easily lost in noisy cracks", "artMitigation": "largest quiet zone around tile center and no circular rune beneath Slime"},
+        "cyanEffectReadability": {"rating": "high-priority", "risk": "cyan projectile/marker can merge with Slime body", "artMitigation": "no cyan board accents; pair effects with value/edge distinction and use violet AoE contract"},
+        "greenCostumeReadability": {"rating": "not-applicable", "risk": "none", "artMitigation": "none"},
+        "stoneBodyReadability": {"rating": "not-applicable", "risk": "none", "artMitigation": "none"},
+        "shadowReadability": {"rating": "medium-risk", "risk": "small contact shadow can disappear on dark grout", "artMitigation": "grout must not cross the central foot footprint"}
+      }
+    },
+    {
+      "pilotId": "monster.golem",
+      "displayName": "Golem",
+      "referenceColor": "#8a7a63",
+      "anchor": [0.5, 0.94],
+      "relativeLuminance": 0.2022,
+      "contrastRatioAgainstQuietFloor": 1.57,
+      "checks": {
+        "hueContrast": {"rating": "high-risk", "risk": "tan stone body can blend with the requested warm sand/light-brown floor", "artMitigation": "put warm sand/copper at perimeter/seams; keep central floor cooler and darker than Golem"},
+        "luminanceContrast": {"rating": "high-risk", "risk": "lowest ratio of the three pilots", "artMitigation": "avoid #8a7a63-like midtones under units and maintain cool dark separation around tile centers"},
+        "silhouetteReadability": {"rating": "medium-risk", "risk": "largest body can merge with border masonry at edge tiles", "artMitigation": "side/front border remains low and darker/cooler; no same-value wall tangent"},
+        "cyanEffectReadability": {"rating": "good-target", "risk": "cyan effects can be dulled by cool fill", "artMitigation": "keep cyan absent from board paint and maintain clean dark receiving area"},
+        "greenCostumeReadability": {"rating": "not-applicable", "risk": "none", "artMitigation": "none"},
+        "stoneBodyReadability": {"rating": "high-priority", "risk": "shared material family with Arena Ruins", "artMitigation": "differentiate with temperature, value grouping and larger low-frequency floor shapes; never recolor Golem identity"},
+        "shadowReadability": {"rating": "medium-risk", "risk": "large dark contact shadow can merge with border/large cracks", "artMitigation": "reserve uniform mid-dark receiving zone under each tile center"}
+      }
+    }
+  ],
+  "globalAcceptance": [
+    "Do not recolor any pilot identity to solve contrast.",
+    "Each pilot silhouette, HP bar and contact shadow must read on center and every edge tile.",
+    "Cyan effects must remain distinct from Slime and cool fill; green Archer must remain distinct from moss; Golem must remain distinct from all stone layers.",
+    "Risks remain open until future Checkpoint 3 with actual produced board art; this matrix does not claim a pass."
+  ]
+}

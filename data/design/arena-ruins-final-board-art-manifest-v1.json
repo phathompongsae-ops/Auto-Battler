@@ -1,0 +1,281 @@
+{
+  "schemaVersion": 1,
+  "id": "map1.arena_ruins.final-board-art-plan.v1",
+  "status": "production-plan-only",
+  "mapId": "map1.arena_ruins",
+  "canonicalApproved": false,
+  "scope": {
+    "basePr": 41,
+    "baseSha": "a76993d0f509981f2dcd70918efe9bc8f9cb00b9",
+    "referencePr": 25,
+    "visualLockBranch": "coco/map1-visual-lock-contract-v1",
+    "visualLockSha": "60e8742ad4db84c944414964c8f66cfda87baf6c",
+    "documentationAndMetadataOnly": true,
+    "artworkProduced": false,
+    "runtimeChanges": false
+  },
+  "runtimeConstraints": {
+    "sources": [
+      "src/game.js",
+      "src/map-theme-runtime.js",
+      "src/game-presentation-tools.js",
+      "data/design/map1-arena-ruins-theme-v1.json",
+      "data/design/map-theme-schema-v1.json",
+      "docs/MAP_THEME_RUNTIME_V1.md",
+      "coco/map1-visual-lock-contract-v1:data/design/map1-visual-lock-v1.json"
+    ],
+    "board": {
+      "briefRequestedDimensions": [8, 8],
+      "runtimeDimensions": [8, 7],
+      "productionTargetDimensions": [8, 7],
+      "dimensionMismatchStatus": "unresolved-brief-says-8x8-runtime-lock-is-8x7",
+      "tileCount": 56,
+      "tileWorldSize": 1,
+      "boardCenterWorld": [0, 0, 0],
+      "halfExtentsWorld": [4, 3.5],
+      "combatRows": [0, 1, 2, 3, 4, 5],
+      "deployRows": [3, 4, 5],
+      "enemySpawnRowsObserved": [0, 1],
+      "benchRow": 6,
+      "usableBenchColumns": [0, 1, 2, 3, 4],
+      "coordinateOrientation": {
+        "originTile": [0, 0],
+        "originMeaning": "far-left enemy-side tile",
+        "columnIncrease": "+world-x; screen-right under locked camera",
+        "rowIncrease": "+world-z; toward camera/player/bench",
+        "tileCenterFormula": "x=(c-8/2)+0.5, z=(r-7/2)+0.5"
+      },
+      "unitAnchorRelationship": "unit group origin is placed at the tile center; sprite body starts at y=0 and its visual foot/anchor is expected to meet that origin; pilot source anchors remain metadata at Archer 0.92, Slime 0.90, Golem 0.94"
+    },
+    "camera": {
+      "type": "THREE.OrthographicCamera",
+      "pitchDegrees": 45,
+      "yawDegrees": 90,
+      "distance": 20,
+      "lookTargetWorld": [0, 0, 1.3],
+      "framing": "contain-fit from projected board corners",
+      "boardFillRatio": 0.97,
+      "boardDownBias": 0.97,
+      "topbarClearPadPixels": 6,
+      "resizeOwner": "src/game.js:layoutBoard",
+      "locked": true
+    },
+    "renderer": {
+      "pixelRatio": 1,
+      "antialias": false,
+      "preserveDrawingBuffer": false,
+      "fullscreenCompatibility": "document root fullscreen; relayout through GamePresentationHooks.relayout",
+      "screenshotCompatibility": "fresh WebGL render copied without stretch/crop, then player HUD strip composited"
+    },
+    "themeRuntime": {
+      "rootName": "mapThemeRoot",
+      "layersInInsertionOrder": [
+        "boardSurface",
+        "arenaBorder",
+        "background",
+        "props",
+        "ambientVfx",
+        "lightingProfile"
+      ],
+      "explicitRenderOrder": false,
+      "visibilityControl": "MapThemeRuntime.setLayerVisible(name, boolean)",
+      "qualityControl": "MapThemeRuntime.setThemeQuality(high|medium|low)",
+      "qualityLevels": ["high", "medium", "low"],
+      "currentTextureSeam": "src/map-theme-runtime.js:themeTexture(key, draw) returns THREE.CanvasTexture",
+      "externalFileLoader": "unresolved-none-in-map-theme-runtime",
+      "powerOfTwoRequirement": "unresolved-no-final-file-loader-contract; current CanvasTexture helper does not assert dimensions",
+      "filteringToday": "NearestFilter for procedural CanvasTexture",
+      "pointerRule": "theme decoration never joins tileMeshes or unit raycast targets"
+    },
+    "currentThemePalette": {
+      "masonry": "#5d6270",
+      "masonryDark": "#4a4f5c",
+      "masonryLight": "#707689",
+      "moss": "#55663f",
+      "bannerCloth": "#6d3a3a",
+      "bannerTrim": "#b99a55",
+      "ember": "#ffb060",
+      "rimLight": "#d8ad4d",
+      "fillLight": "#5a6a8a",
+      "existingSceneBackground": "#1c1510",
+      "existingKeyLight": "#ffb060"
+    }
+  },
+  "visualDirection": {
+    "name": "Map 1 — Arena Ruins",
+    "style": "stylized 3D fantasy with hand-painted materials; polished mobile-game finish; never photorealistic",
+    "mood": "ancient ruined fantasy arena, warm sand and light-brown stone with muted copper, battle wear and restrained cracks",
+    "combatPriority": "units, HP bars, projectiles, target markers and tile states remain more salient than scenery",
+    "frequencyRule": "low-frequency value grouping inside tile centers; seams, cracks and wear concentrate near grout and perimeter",
+    "lightingDirection": "preserve existing warm key from world +x/+y/+z, cool fill from -x/+y/+z, and soft golden rim from far -z",
+    "forbidden": [
+      "photorealism",
+      "hard debug-grid lines",
+      "numbers or labels baked into art",
+      "high-frequency detail in unit-foot zones",
+      "baked character shadows",
+      "baked UI or combat VFX",
+      "bright saturated floor colors that outrank units"
+    ]
+  },
+  "assetDeliverables": [
+    {
+      "assetId": "map1.arena_ruins.board_surface_master.v1",
+      "filename": "arena-ruins-board-surface-master-v1.png",
+      "repositoryPath": "assets/maps/map1.arena_ruins/arena-ruins-board-surface-master-v1.png",
+      "role": "single full-board hand-painted stone surface covering the locked 8x7 runtime footprint, including visual treatment for the bench row without changing its logic",
+      "layer": "boardSurface",
+      "canvasDimensions": [1024, 896],
+      "format": "PNG-24 RGB8",
+      "alphaRequirement": "opaque-required",
+      "colorSpace": "sRGB",
+      "safeMargin": {"pixels": 32, "rule": "keep the outer 32 px free of focal cracks/runes so border skin can overlap cleanly"},
+      "tileAlignment": {"columns": 8, "rows": 7, "pixelsPerTile": [128, 128], "row0AtCanvasTop": true},
+      "runtimeReplacementTarget": {
+        "primary": "src/map-theme-runtime.js:buildBoardSurface",
+        "sceneOwnedDependency": "src/game.js stoneTileTexture/tileMeshes",
+        "integrationStatus": "planned-not-implemented; file loading is unresolved"
+      },
+      "productionPriority": 1,
+      "reviewCriteria": ["all 56 tile footprints align", "combat rows read before cracks", "bench row is distinct but not a new layout", "no character shadow or state overlay baked in"],
+      "canonicalApproved": false
+    },
+    {
+      "assetId": "map1.arena_ruins.border_corners_atlas.v1",
+      "filename": "arena-ruins-border-corners-atlas-v1.png",
+      "repositoryPath": "assets/maps/map1.arena_ruins/arena-ruins-border-corners-atlas-v1.png",
+      "role": "low-profile broken masonry edge and corner modules for the locked stage rim",
+      "layer": "arenaBorder",
+      "canvasDimensions": [1024, 1024],
+      "format": "PNG-32 RGBA8",
+      "alphaRequirement": "transparent-alpha-required",
+      "colorSpace": "sRGB",
+      "safeMargin": {"pixels": 24, "rule": "24 px transparent atlas perimeter and 16 px bleed between packed modules"},
+      "tileAlignment": {"boardFootprint": [8, 7], "frontEdgeProfile": "flat-only", "sideEdgeProfile": "low", "backEdgeProfile": "broken-medium"},
+      "runtimeReplacementTarget": {"primary": "src/map-theme-runtime.js:buildArenaBorder", "integrationStatus": "planned-not-implemented; atlas UV layout required after art approval"},
+      "productionPriority": 2,
+      "reviewCriteria": ["front/side edge units remain unobscured", "corners match locked 8x7 footprint", "silhouette reads as arena masonry", "transparent gutters have no fringe"],
+      "canonicalApproved": false
+    },
+    {
+      "assetId": "map1.arena_ruins.perimeter_ground_tile.v1",
+      "filename": "arena-ruins-perimeter-ground-tile-v1.png",
+      "repositoryPath": "assets/maps/map1.arena_ruins/arena-ruins-perimeter-ground-tile-v1.png",
+      "role": "seamless low-contrast stone floor surrounding the arena; supplies depth without competing with the board",
+      "layer": "background",
+      "canvasDimensions": [512, 512],
+      "format": "PNG-24 RGB8",
+      "alphaRequirement": "opaque-required",
+      "colorSpace": "sRGB",
+      "safeMargin": {"pixels": 32, "rule": "opposite edges must tile seamlessly; no unique landmark inside the edge bands"},
+      "tileAlignment": {"mode": "seamless-repeat", "currentWorldPlane": [60, 60], "currentRepeat": [10, 10]},
+      "runtimeReplacementTarget": {"primary": "src/game.js arenaFloorTexture/arenaFloorTex", "intendedThemeLayer": "background", "integrationStatus": "unresolved-current-ground-is-not-owned-by-mapThemeRoot"},
+      "productionPriority": 3,
+      "reviewCriteria": ["no visible repeat at mobile scale", "board edge remains distinct", "no baked vignette that breaks resize/fullscreen", "no bright shapes behind projectiles"],
+      "canonicalApproved": false
+    },
+    {
+      "assetId": "map1.arena_ruins.background_modules_atlas.v1",
+      "filename": "arena-ruins-background-modules-atlas-v1.png",
+      "repositoryPath": "assets/maps/map1.arena_ruins/arena-ruins-background-modules-atlas-v1.png",
+      "role": "distant ruined amphitheatre walls, arches and collapsed wall modules for back and side placement only",
+      "layer": "background",
+      "canvasDimensions": [1024, 1024],
+      "format": "PNG-32 RGBA8",
+      "alphaRequirement": "transparent-alpha-required",
+      "colorSpace": "sRGB",
+      "safeMargin": {"pixels": 24, "rule": "transparent atlas perimeter with 16 px extrusion/bleed around modules"},
+      "tileAlignment": {"worldPlacementRadius": [9, 13], "allowedSides": ["back", "left", "right"], "frontAllowed": false},
+      "runtimeReplacementTarget": {"primary": "src/map-theme-runtime.js:buildBackground", "integrationStatus": "planned-not-implemented; atlas UV layout required after art approval"},
+      "productionPriority": 3,
+      "reviewCriteria": ["no opaque module crosses board view", "fog-compatible values", "fantasy arena rather than generic city ruins", "back silhouette stays below HP-bar risk envelope"],
+      "canonicalApproved": false
+    },
+    {
+      "assetId": "map1.arena_ruins.tile_state_atlas.v1",
+      "filename": "arena-ruins-tile-state-atlas-v1.png",
+      "repositoryPath": "assets/maps/map1.arena_ruins/arena-ruins-tile-state-atlas-v1.png",
+      "role": "nine transparent visual-state tiles; a visual contract only and not gameplay logic",
+      "layer": "boardSurface",
+      "canvasDimensions": [1024, 768],
+      "format": "PNG-32 RGBA8",
+      "alphaRequirement": "transparent-alpha-required",
+      "colorSpace": "sRGB",
+      "safeMargin": {"pixels": 16, "rule": "16 px transparent gutter inside every 256x256 atlas cell"},
+      "tileAlignment": {"cellDimensions": [256, 256], "grid": [4, 3], "usedCells": 9, "unusedCellsMustBeTransparent": 3},
+      "runtimeReplacementTarget": {"primary": "src/game.js:updateTileHighlights", "intendedThemeLayer": "boardSurface", "integrationStatus": "planned-not-implemented; runtime currently exposes only normal/placement-valid/placement-invalid material states"},
+      "productionPriority": 4,
+      "reviewCriteria": ["all nine states remain distinct on a 128 px tile and at mobile downscale", "alpha edges are clean", "no state relies on text", "selected/target/AoE do not resemble combat projectiles"],
+      "canonicalApproved": false
+    },
+    {
+      "assetId": "map1.arena_ruins.props_atlas.v1",
+      "filename": "arena-ruins-props-atlas-v1.png",
+      "repositoryPath": "assets/maps/map1.arena_ruins/arena-ruins-props-atlas-v1.png",
+      "role": "broken columns, rubble, torn banners, brazier shells and restrained static ambient accents; dust/glow remain runtime VFX",
+      "layer": "props",
+      "canvasDimensions": [1024, 1024],
+      "format": "PNG-32 RGBA8",
+      "alphaRequirement": "transparent-alpha-required",
+      "colorSpace": "sRGB",
+      "safeMargin": {"pixels": 24, "rule": "transparent atlas perimeter with 16 px extrusion/bleed around each module"},
+      "tileAlignment": {"placement": "outside full board, bench, HUD and touch zones", "frontTallPropsAllowed": false},
+      "runtimeReplacementTarget": {"primary": "src/map-theme-runtime.js:buildProps", "integrationStatus": "planned-not-implemented; atlas UV layout required after art approval"},
+      "productionPriority": 5,
+      "reviewCriteria": ["no prop is required inside a logical tile", "banners never cover HP bars", "brazier shell has no baked animated glow", "silhouette supports Arena Ruins identity"],
+      "canonicalApproved": false
+    }
+  ],
+  "nonBitmapRuntimeLayers": {
+    "ambientVfx": "keep current slow dust/light-shaft runtime profile; static scuffs/runes belong in boardSurface and props; no VFX asset is produced by this plan",
+    "lightingProfile": "keep current additive cool fill and golden rim contract; no LUT or baked-light texture is required"
+  },
+  "memoryBudget": {
+    "assetCount": 6,
+    "maximumPracticalTextureDimension": 1024,
+    "largestCanvas": [1024, 1024],
+    "estimatedDecodedGpuBytesRgbaWorstCase": 20447232,
+    "estimatedDecodedGpuMiBRgbaWorstCase": 19.5,
+    "note": "PNG download size is content-dependent and must be measured after production; GPU budgeting assumes every texture expands to RGBA8. Mipmaps would add about 33% and are not budgeted because the final loader/filter contract is unresolved."
+  },
+  "tileStatePalette": [
+    {"state": "normal", "visualRole": "quiet tile separation", "hueFamily": "warm stone", "designColor": "#b89a72", "opacityRange": [0.1, 0.18], "edgeTreatment": "soft inset seam, never a hard debug grid", "pulseAllowed": false, "mobileReadability": "visible as a board rhythm, subordinate to units"},
+    {"state": "hover", "visualRole": "single pointer focus", "hueFamily": "soft gold", "designColor": "#e6c274", "opacityRange": [0.28, 0.38], "edgeTreatment": "one-pixel-equivalent inner bevel at final mobile scale", "pulseAllowed": false, "mobileReadability": "must differ from normal without relying on cursor shape"},
+    {"state": "selected", "visualRole": "persistent selected tile", "hueFamily": "amber", "designColor": "#f2b84b", "opacityRange": [0.42, 0.55], "edgeTreatment": "double inset edge with quiet center", "pulseAllowed": true, "mobileReadability": "subtle 5-8 percent luminance pulse allowed; edge remains readable when motion is disabled"},
+    {"state": "deploy-valid", "visualRole": "legal player placement", "hueFamily": "mint-teal", "designColor": "#69c7aa", "opacityRange": [0.32, 0.46], "edgeTreatment": "solid soft inner edge", "pulseAllowed": false, "mobileReadability": "distinct from Archer olive through higher value and lower yellow content"},
+    {"state": "deploy-invalid", "visualRole": "illegal or occupied placement", "hueFamily": "muted coral", "designColor": "#c9685f", "opacityRange": [0.4, 0.54], "edgeTreatment": "broken inner edge plus diagonal corner cuts; no text or X glyph", "pulseAllowed": false, "mobileReadability": "shape treatment remains distinguishable under red-green color deficiency"},
+    {"state": "enemy-zone", "visualRole": "enemy-side territory", "hueFamily": "rust red", "designColor": "#a95d4e", "opacityRange": [0.2, 0.32], "edgeTreatment": "low-opacity perimeter band", "pulseAllowed": false, "mobileReadability": "zone reads across rows without tinting units solid red"},
+    {"state": "target", "visualRole": "primary target tile", "hueFamily": "gold-orange", "designColor": "#ffb347", "opacityRange": [0.46, 0.6], "edgeTreatment": "radial corner brackets with clear center", "pulseAllowed": true, "mobileReadability": "must remain distinct from cyan projectiles and HP bars"},
+    {"state": "AoE", "visualRole": "multi-tile area preview", "hueFamily": "muted violet", "designColor": "#b48ad6", "opacityRange": [0.28, 0.42], "edgeTreatment": "shared soft perimeter with reduced internal seams", "pulseAllowed": true, "mobileReadability": "adjacent tiles must visually merge into one area without hiding tile boundaries"},
+    {"state": "disabled", "visualRole": "temporarily unavailable tile", "hueFamily": "slate neutral", "designColor": "#6b6f78", "opacityRange": [0.16, 0.24], "edgeTreatment": "desaturated matte veil and quiet dashed edge", "pulseAllowed": false, "mobileReadability": "reads as inactive without becoming an opaque obstacle"}
+  ],
+  "layerProductionPlan": [
+    {"layer": "boardSurface", "staticArt": "board surface master + tile-state atlas", "runtimeOnly": "placement/selection logic", "rules": ["tile centers stay low-frequency", "cracks favor seams/intersections", "no numbers or hard debug grid"]},
+    {"layer": "arenaBorder", "staticArt": "border/corners atlas", "runtimeOnly": "visibility/quality selection", "rules": ["front flat", "sides low", "back may be broken-medium", "never block edge units"]},
+    {"layer": "background", "staticArt": "seamless perimeter ground + background modules atlas", "runtimeOnly": "fog/camera/fullscreen", "rules": ["depth outside combat zone", "no baked screen vignette", "no opaque object across board"]},
+    {"layer": "props", "staticArt": "props atlas", "runtimeOnly": "placement/quality count", "rules": ["outside tactical/touch zones", "brazier glow not baked", "flags remain behind HP envelope"]},
+    {"layer": "ambientVfx", "staticArt": "none; restrained static scuffs can be assigned to boardSurface/props", "runtimeOnly": "dust, rare shafts, motion and degradation", "rules": ["no combat-like VFX", "degrades first"]},
+    {"layer": "lightingProfile", "staticArt": "none; paint materials to accept the locked light direction", "runtimeOnly": "cool fill + golden rim", "rules": ["no baked character shadows", "do not replace key light/background/fog"]}
+  ],
+  "productionOrder": [
+    {"pass": 1, "name": "board surface master", "assets": ["map1.arena_ruins.board_surface_master.v1"], "approvalGate": "surface value grouping, 8x7 alignment and pilot-foot quiet zones approved before Pass 2"},
+    {"pass": 2, "name": "border and corners", "assets": ["map1.arena_ruins.border_corners_atlas.v1"], "approvalGate": "front/side occlusion and corner fit approved before Pass 3"},
+    {"pass": 3, "name": "perimeter/background", "assets": ["map1.arena_ruins.perimeter_ground_tile.v1", "map1.arena_ruins.background_modules_atlas.v1"], "approvalGate": "board-background separation and fullscreen repeat behavior approved before Pass 4"},
+    {"pass": 4, "name": "tile readability overlays", "assets": ["map1.arena_ruins.tile_state_atlas.v1"], "approvalGate": "all nine states approved at 1x mobile scale before Pass 5"},
+    {"pass": 5, "name": "ambient props", "assets": ["map1.arena_ruins.props_atlas.v1"], "approvalGate": "prop no-go-zone compliance approved before Pass 6"},
+    {"pass": 6, "name": "mobile readability and pilot-unit contrast review", "assets": [], "approvalGate": "all three future checkpoints completed; this plan makes no pass claim"}
+  ],
+  "reviewCheckpoints": [
+    {"id": "checkpoint-1-asset-structure", "name": "Asset Structure", "futureOnly": true, "passed": false, "criteria": ["dimensions", "format", "alpha", "file paths", "layer completeness", "no unintended baked UI/VFX"]},
+    {"id": "checkpoint-2-board-readability", "name": "Board Readability", "futureOnly": true, "passed": false, "criteria": ["locked 8x7 runtime grid visible", "deploy/enemy zones readable", "edge tiles unobscured", "combat area free of noisy detail", "mobile scale readable"]},
+    {"id": "checkpoint-3-pilot-contrast", "name": "Pilot Contrast", "futureOnly": true, "passed": false, "criteria": ["Archer readable", "Slime readable", "Golem readable", "HP bars/projectiles/markers readable", "no camera/layout regression"]}
+  ],
+  "unresolved": [
+    "The brief says 8x8, but exact base runtime defines GRID_COLS=8 and GRID_ROWS=7 with 56 tiles; row 6 is the integrated bench. Because layout is locked, production targets 8x7 until an owner changes the brief or runtime in a separate scope.",
+    "MapThemeRuntime has a CanvasTexture draw helper but no external final-file loader, URL/path registry, atlas UV contract, or colorSpace assignment; final integration details remain unresolved and are not implemented here.",
+    "The perimeter ground is currently owned by src/game.js, not mapThemeRoot/background. Its future ownership/replacement seam requires an explicit integration decision; this plan does not move it.",
+    "Runtime currently implements normal, deploy-valid and deploy-invalid tile material behavior only. Hover, selected, enemy-zone, target, AoE and disabled are visual-contract entries for future integration and do not imply gameplay support.",
+    "No explicit renderOrder is assigned to the six theme groups; the documented layer list is insertion/build order, not a guaranteed GPU draw order for transparent meshes.",
+    "Exact screen-space UI rectangles vary with DOM content, breakpoints, safe-area insets and fullscreen. Safe zones use conservative normalized risk bands and require future browser measurement at the three review checkpoints."
+  ]
+}
