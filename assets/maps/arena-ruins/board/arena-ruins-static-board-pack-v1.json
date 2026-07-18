@@ -1,0 +1,187 @@
+{
+  "schemaVersion": 1,
+  "id": "map1.arena_ruins.static-board-production-pack.v1",
+  "mapId": "map1.arena_ruins",
+  "status": "asset-source-ready-for-separate-cc-integration",
+  "canonicalApproved": false,
+  "runtimeIntegrated": false,
+  "base": {
+    "pr": 48,
+    "branch": "coco/arena-ruins-board-implementation-contract-v1",
+    "sha": "ca5d91972f9a26fea641f2f26b41312de5d2157b"
+  },
+  "contract": "data/design/arena-ruins-board-asset-registry-v1.json",
+  "visualSources": [
+    {
+      "role": "reference visual master",
+      "filename": "1000042598.png",
+      "sha256": "194d941b5b10a2888f209336d6d1bf2e975df28359b86529dc711875d7111547",
+      "usage": "floor tone, stone material family, border weight, perimeter darkness, warm lighting, enclosure and composition principles; no UI/text/logo/icon/character copied"
+    },
+    {
+      "role": "Auto-Battler geometry and composition master",
+      "path": "docs/assets/review/arena-ruins/reference-match-v2/arena-ruins-reference-match-board-only-v2.png",
+      "sha256": "e29c97236285eab324bcd18e9cb9092ca8b412d612b411aedcd8d22243952285",
+      "usage": "locked 8x7 footprint, darker bench row, camera framing, palette and perimeter identity"
+    }
+  ],
+  "productionMethod": {
+    "imageGeneration": "built-in image generation supplied original border, background-module, props and perimeter material sources from both visual masters",
+    "deterministicProcessing": "board crop/8x7 normalization, true-alpha extraction, exact dimensions, bench/tile-state overlays, edge-seam construction, review compositing and transport optimization",
+    "copyrightSafety": "all module patterns, cracks, banners and props are new Auto-Battler details; reference UI, logos, icons, characters, text and proprietary symbols are excluded",
+    "sourceOutputHashes": [
+      {"role": "border atlas pre-cleanup source", "sha256": "ab4cb2f8b2c17585d87ff0c33e824307622e54261d36843a95404e535d11e879"},
+      {"role": "background modules pre-cleanup source", "sha256": "ed155a403b6d9f17befea95409477a520770f78807226aefed44cad860262bd9"},
+      {"role": "props pre-cleanup source", "sha256": "bd9b7b51519638701b49f32da3964bd63f83cc65a2e7b54ef625218c4cb525c5"},
+      {"role": "perimeter material source", "sha256": "6c7be821f817f84b612d4136bbab65dc182ca131e0f04f58d63035b00c7e56d4"}
+    ],
+    "preservedIntermediateNotes": [
+      "Original generator outputs remain outside the repository and were not deleted.",
+      "One invalid 16-bit tile-state render was preserved locally before deterministic rebuild; SHA-256 5effb18ca15f5267055b085215825a9314483095767db09d8c6b77ba5bc4867d.",
+      "The initial dithered perimeter tile was preserved locally before exact-edge rebuild; SHA-256 1993c787915c2f6db90eb6d7b3366918d46e99f98ad8c210f74961ef158ca6a6.",
+      "The initial 16-bit bench overlay was preserved locally before 8-bit normalization; SHA-256 86ca8e2e592dfa13805ad9193598359eb6c9baba5fb81d42993caf737faa370e.",
+      "The initial 16-bit contact sheet was preserved locally before 8-bit normalization; SHA-256 9862c81f6d9295fa1bdc24e4e716e86a2ea146f39152e763715e17abe510bcb7.",
+      "The initial 16-bit mobile preview was preserved locally before 8-bit normalization; SHA-256 9bdf35f7fd7fc97dcc9b002cf6cf5226511477ada214f82f9e75d88a905a1cb5."
+    ]
+  },
+  "runtimeLayout": {
+    "columns": 8,
+    "rows": 7,
+    "combatRows": [0, 1, 2, 3, 4, 5],
+    "deployRows": [3, 4, 5],
+    "benchRow": 6,
+    "usableBenchColumns": [0, 1, 2, 3, 4],
+    "cameraChanged": false,
+    "boardGeometryChanged": false
+  },
+  "assets": [
+    {
+      "assetId": "arenaRuins.boardSurface.v1",
+      "path": "assets/maps/arena-ruins/board/arena-ruins-board-surface-v1.png",
+      "dimensions": [1024, 896],
+      "pngColorType": 2,
+      "format": "RGB8",
+      "alphaRequirement": "opaque-required",
+      "bytes": 735784,
+      "sha256": "107b10f1d08407d8d08aa453e7b7ea0a67f45228e38d9516a7ae1ab0e888bb56",
+      "pilotEmbedded": false,
+      "uiEmbedded": false,
+      "gameplayStateEmbedded": false,
+      "canonicalApproved": false
+    },
+    {
+      "assetId": "arenaRuins.borderCorners.v1",
+      "path": "assets/maps/arena-ruins/board/arena-ruins-border-corners-v1.png",
+      "dimensions": [1024, 1024],
+      "pngColorType": 6,
+      "format": "RGBA8",
+      "alphaRequirement": "true-transparent-alpha-required",
+      "bytes": 535094,
+      "sha256": "7c847c455bb77d9f9f7f036f59e63e920324eafec6a3512b5194677aa067ce8f",
+      "alphaNonZeroFraction": 0.331762,
+      "pilotEmbedded": false,
+      "uiEmbedded": false,
+      "gameplayStateEmbedded": false,
+      "canonicalApproved": false
+    },
+    {
+      "assetId": "arenaRuins.perimeterGround.v1",
+      "path": "assets/maps/arena-ruins/board/arena-ruins-perimeter-ground-v1.png",
+      "dimensions": [512, 512],
+      "pngColorType": 2,
+      "format": "RGB8",
+      "alphaRequirement": "opaque-required",
+      "bytes": 404604,
+      "sha256": "062d19d2b1371193a775b449c88438a56db6392e6178efa2752494a2ee5717bf",
+      "oppositeEdgePixelMismatch": {"leftRight": 0, "topBottom": 0},
+      "pilotEmbedded": false,
+      "uiEmbedded": false,
+      "gameplayStateEmbedded": false,
+      "canonicalApproved": false
+    },
+    {
+      "assetId": "arenaRuins.backgroundModules.v1",
+      "path": "assets/maps/arena-ruins/board/arena-ruins-background-modules-v1.png",
+      "dimensions": [1024, 1024],
+      "pngColorType": 6,
+      "format": "RGBA8",
+      "alphaRequirement": "true-transparent-alpha-required",
+      "bytes": 735286,
+      "sha256": "55cde4ac422c9f54888b4addaa5cdfa343e417d0b554ebdb40efac6fb41412b4",
+      "alphaNonZeroFraction": 0.378282,
+      "pilotEmbedded": false,
+      "uiEmbedded": false,
+      "gameplayStateEmbedded": false,
+      "canonicalApproved": false
+    },
+    {
+      "assetId": "arenaRuins.benchTreatment.v1",
+      "path": "assets/maps/arena-ruins/board/arena-ruins-bench-treatment-v1.png",
+      "dimensions": [1024, 128],
+      "pngColorType": 6,
+      "format": "RGBA8",
+      "alphaRequirement": "true-transparent-alpha-required",
+      "bytes": 1106,
+      "sha256": "08c9ca3d4aabac5a3510445d5c58ba2b07b185ccc8aaa0266a7f429ad825a57f",
+      "alphaNonZeroFraction": 0.861328,
+      "pilotEmbedded": false,
+      "uiEmbedded": false,
+      "gameplayStateEmbedded": false,
+      "canonicalApproved": false
+    },
+    {
+      "assetId": "arenaRuins.tileStates.v1",
+      "path": "assets/maps/arena-ruins/board/arena-ruins-tile-states-v1.png",
+      "dimensions": [1024, 768],
+      "pngColorType": 6,
+      "format": "RGBA8",
+      "alphaRequirement": "true-transparent-alpha-required",
+      "bytes": 29953,
+      "sha256": "5cb733ad8906358562b409ebc4679dffe5d527839d91b97baccd8aad3cdd8c3d",
+      "alphaNonZeroFraction": 0.527039,
+      "unusedAtlasCells": [9, 10, 11],
+      "pilotEmbedded": false,
+      "uiEmbedded": false,
+      "gameplayStateEmbedded": false,
+      "note": "visual-state source only; no gameplay selection is baked into board/base assets",
+      "canonicalApproved": false
+    },
+    {
+      "assetId": "arenaRuins.props.v1",
+      "path": "assets/maps/arena-ruins/board/arena-ruins-props-v1.png",
+      "dimensions": [1024, 1024],
+      "pngColorType": 6,
+      "format": "RGBA8",
+      "alphaRequirement": "true-transparent-alpha-required",
+      "bytes": 638432,
+      "sha256": "79ca34009f5e55cf9d996fd95620ddee832f097023fc0b37e6a4c3cef0b2fcc9",
+      "alphaNonZeroFraction": 0.332923,
+      "pilotEmbedded": false,
+      "uiEmbedded": false,
+      "gameplayStateEmbedded": false,
+      "canonicalApproved": false
+    }
+  ],
+  "reviewArtifacts": [
+    {"path": "docs/assets/review/arena-ruins/production-pack-v1/production-pack-contact-sheet.png", "dimensions": [992, 1712], "sha256": "8c3c6d6df69fa450742b120625a2d5709b41491970550ec1080e0cf17c00e576"},
+    {"path": "docs/assets/review/arena-ruins/production-pack-v1/production-pack-composited-preview.png", "dimensions": [1536, 1024], "sha256": "25fccf76855b8e0a6007bcf20af870d528d889090d0dc3759c8e28260655c82b"},
+    {"path": "docs/assets/review/arena-ruins/production-pack-v1/production-pack-with-pilots.png", "dimensions": [1536, 1024], "sha256": "c6cccf521e07c891a3b266373c3215f5c41488007fa249bfaead951b08fc158e"},
+    {"path": "docs/assets/review/arena-ruins/production-pack-v1/production-pack-mobile-preview.png", "dimensions": [844, 390], "sha256": "c150c10018b3852e4b19e5c2d7504a657d26f1e03af07098d6d4c3889b2fdfe2"}
+  ],
+  "pilotReviewSources": [
+    {"unit": "Archer", "path": "assets/units/hero.archer/idle/hero.archer_idle_000.png", "sha256": "4a1a24f9e691d48aeef55c235a47af07931032e6345b159122f0128d7aa7e888", "tile": [1, 4]},
+    {"unit": "Slime", "path": "assets/units/monster.slime/move/monster.slime_move_000.png", "sha256": "12ca260a001dbda6177f29565e9df2c369c09216c889974aeee8b12fb5ae04f9", "tile": [4, 1]},
+    {"unit": "Golem", "path": "assets/mon_golem.png", "sha256": "50a51034e08f7ca479a036bb17488c58192480204487bcded48d91838b0db42e", "tile": [6, 2]}
+  ],
+  "memory": {
+    "decodedRgba8Bytes": 20971520,
+    "decodedRgba8MiB": 20,
+    "fullMipChainEstimateMiB": 26.67,
+    "actualPngBytes": 3080259
+  },
+  "handoff": {
+    "readyFor": "separate path-limited CC integration after visual approval",
+    "notReadyFor": ["claiming runtime integration", "canonical approval", "browser/x4 pass claim"],
+    "canonicalApproved": false
+  }
+}
