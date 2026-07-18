@@ -2,10 +2,12 @@
   "schemaVersion": 1,
   "statusValues": [
     "missing",
+    "candidate-present",
     "concept-approved",
     "canonical-approved",
     "card-ready",
-    "runtime-linked"
+    "runtime-linked",
+    "reserved-future-use"
   ],
   "assets": [
     {
@@ -16,14 +18,14 @@
       "classLine": "archer",
       "gender": "female",
       "role": "pilot",
-      "canonicalStatus": "missing",
-      "sourcePath": null,
+      "canonicalStatus": "candidate-present",
+      "sourcePath": "assets/archer.png",
       "cardAssetPath": null,
       "runtimeAssetPath": null,
       "dimensions": null,
       "hasAlpha": null,
       "approvedByUser": false,
-      "notes": "Recommended pilot hero; do not use shop-card mockup art as canonical source."
+      "notes": "Existing repository candidate. Must be visually reviewed against the locked female Archer design before canonical approval. Shop-card mockup art is not a canonical source."
     },
     {
       "logicalId": "monster_slime",
@@ -33,14 +35,14 @@
       "classLine": null,
       "gender": null,
       "role": "pilot",
-      "canonicalStatus": "missing",
-      "sourcePath": null,
+      "canonicalStatus": "candidate-present",
+      "sourcePath": "assets/v5/mon_*.png",
       "cardAssetPath": null,
       "runtimeAssetPath": null,
       "dimensions": null,
       "hasAlpha": null,
       "approvedByUser": false,
-      "notes": "Recommended pilot normal monster."
+      "notes": "A Slime candidate exists only in the older V5 pipeline. Its exact filename and commercial-use provenance must be verified, or an original-project replacement must be produced, before canonical approval."
     },
     {
       "logicalId": "boss_stage5_golem",
@@ -51,14 +53,32 @@
       "classLine": null,
       "gender": null,
       "role": "pilot",
-      "canonicalStatus": "missing",
+      "canonicalStatus": "candidate-present",
       "sourcePath": "assets/mon_golem.png",
       "cardAssetPath": null,
       "runtimeAssetPath": null,
       "dimensions": null,
       "hasAlpha": null,
       "approvedByUser": false,
-      "notes": "Current Stage 5 miniboss pilot. Legacy Warden asset is not part of the locked production boss plan and must not be substituted."
+      "notes": "Existing repository candidate for the current Stage 5 miniboss pilot. Visual quality, dimensions, alpha, and intended boss scale still require review."
+    },
+    {
+      "logicalId": "reserved_warden",
+      "category": "boss",
+      "bossId": "warden",
+      "stage": null,
+      "tier": null,
+      "classLine": null,
+      "gender": null,
+      "role": "reserve",
+      "canonicalStatus": "reserved-future-use",
+      "sourcePath": "assets/miniboss_warden.png",
+      "cardAssetPath": null,
+      "runtimeAssetPath": null,
+      "dimensions": null,
+      "hasAlpha": null,
+      "approvedByUser": false,
+      "notes": "Keep the existing Warden asset. It is not assigned to Map 1 or Stage 5, but may be considered for a later map or mode. Do not delete, spawn, remap, or regenerate it without a future design decision."
     }
   ]
 }
