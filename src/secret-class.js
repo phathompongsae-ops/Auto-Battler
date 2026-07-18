@@ -31,9 +31,17 @@ globalThis.SecretClassRuntime = (function () {
       allowClass1ToClass2Evolution: false,
       usesStandardClassFusionRules: false,
     },
-    // Combat data is design_pending in the canonical source (null stats/skill),
-    // so the runtime cannot spawn a real Ninja unit yet.
-    combatDataStatus: 'design_pending',
+    // Combat design v1 — runtime projection of secret-heroes-v1.json combatData.
+    combat: {
+      status: 'ready',
+      skillId: 'skill.ninja_shadow_flurry',
+      targetingBehavior: 'lowest_hp_enemy',
+      castTime: 0.35,
+      stats: {
+        hp: 360, pAtk: 40, mAtk: 0, pDef: 14, mDef: 16,
+        atkSpeed: 1.7, moveSpeed: 2.9, range: 1, startingMana: 0, maxMana: 100,
+      },
+    },
   };
 
   const SECRET_IDS = new Set([NINJA.id, 'black_dragon_knight', 'sword_saint']);
@@ -75,11 +83,20 @@ globalThis.SecretClassRuntime = (function () {
   // it eligible until the next run.
   function computeRunStartEligibility(unlockedBeforeRun) { return !!unlockedBeforeRun; }
 
-  // Combat-data safety gate: Ninja can only be offered/spawned when canonical
-  // combat data exists (status !== design_pending) AND the runtime actually has a
-  // hero definition for it. hasRuntimeHeroDef is passed in to stay engine-free.
+  // Combat-data safety gate — fails CLOSED. Ninja can only be offered/spawned when
+  // the canonical combat record is complete (status "ready" with a skill, targeting,
+  // a finite cast time, and positive hp/pAtk/atkSpeed) AND the runtime actually has a
+  // hero definition for it. Any missing/invalid field keeps the gate shut, so an
+  // incomplete design_pending or half-filled record can never reach production.
   function isNinjaCombatReady(hasRuntimeHeroDef) {
-    return NINJA.combatDataStatus !== 'design_pending' && !!hasRuntimeHeroDef;
+    const c = NINJA.combat;
+    if (!c || c.status !== 'ready') return false;
+    if (typeof c.skillId !== 'string' || !c.skillId) return false;
+    if (typeof c.targetingBehavior !== 'string' || !c.targetingBehavior) return false;
+    if (typeof c.castTime !== 'number' || !Number.isFinite(c.castTime) || c.castTime < 0) return false;
+    const s = c.stats || {};
+    if (!(s.hp > 0 && s.pAtk > 0 && s.atkSpeed > 0)) return false;
+    return !!hasRuntimeHeroDef;
   }
 
   // Data/ID-level fusion eligibility — testable without spawning a unit.

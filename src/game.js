@@ -459,6 +459,15 @@ const HERO_DEFS = {
   trickster:    { name:'Trickster',    class_tier:2, evolves_from:'merchant', cost:3, sprite:'Trickster', synergy:['Merchant','Trickster','Disruptor'], attack_type:'magic', // per legacy_roster_migration.trickster
     stats:{ hp:570, p_atk:0, m_atk:60, p_def:25, m_def:38, move_speed:2.8, attack_speed:1.35, attack_range:4 },
     active_skill:{ name:'Loaded Dice', description:'โยนลูกเต๋าเวทใส่พื้นที่เป้าหมาย สร้างความเสียหายเวท 140% ของ M.Atk และทำให้ศัตรูติด Stun 1.5 วินาที พร้อมขโมยบัฟเชิงบวก 1 อย่างจากศัตรูที่แข็งแกร่งที่สุดในพื้นที่' } },
+  // Ninja — Class Tier 3 secret class (Map 1). Stats mirror data/design/secret-heroes-v1.json
+  // combatData v1 (hp/p_atk/... use the runtime stat names). NOT in ownedPool (tier != 1) and
+  // NOT in the tier-2 star scan by tier; it enters the shop only via maybeInjectNinjaOffer() and
+  // star-combines through the secret-class path in scanForStarCombine(). sprite:'Duelist' is a
+  // role-matched placeholder (agile melee physical striker) exactly like the other 13 heroes
+  // without dedicated art — a real Ninja portrait remains a visual to-do, not a blocker.
+  ninja:        { name:'Ninja',        class_tier:3, cost:3, sprite:'Duelist', gender:'female', secret_class:true, synergy:['Assassin'], attack_type:'physical',
+    stats:{ hp:360, p_atk:40, m_atk:0, p_def:14, m_def:16, move_speed:2.9, attack_speed:1.7, attack_range:1 },
+    active_skill:{ name:'Shadow Flurry', description:'พุ่งเข้าโจมตีศัตรูที่พลังชีวิตต่ำที่สุด สร้างความเสียหายกายภาพ 130% ของ P.Atk' } },
 };
 // ============================================================
 // EVOLUTION_TREE — derived from HERO_DEFS.evolves_from (never hand-duplicated, so it can't
@@ -614,6 +623,15 @@ const SKILL_DEFS = {
     status_effects:[
       { status_id:'slow', duration:3, chance:1, modifiers:{ move_speed_pct:-20 }, stack_rule:'strongest' },
     ],
+  },
+  // Ninja (Class Tier 3 secret class) — reuses the existing single-target physical payload and
+  // the 'lowest_hp_enemy' targeting (same mechanics as merchant/fighter). A modest 1.3x finisher,
+  // not a burst nuke: Ninja's damage comes from its high basic-attack speed, not this skill.
+  ninja: {
+    skill_id:'ninja_shadow_flurry', skill_name:'Shadow Flurry', mana_cost:100, max_mana:100, cast_time:0.35,
+    target_type:'lowest_hp_enemy',
+    damage_payload:{ damage_type:'physical', p_atk_multiplier:1.3, m_atk_multiplier:0, base_damage:0, max_targets:1 },
+    status_effects:[],
   },
   // ---- Tier-2 (14 heroes) — dynamic max_mana per hero, richer targeting/payloads/conditions ----
   knight: {
@@ -1478,6 +1496,19 @@ globalThis.__NinjaSecretDebug = {
   setWave: (w) => { wave = w; },
   setEligibleThisRun: (v) => { ninjaEligibleThisRun = !!v; },
   injectWith: (rngVal) => { maybeInjectNinjaOffer(() => rngVal); return [...shopOffers]; },
+  // Read-only roster/stat probes for tests (no engine mutation).
+  roster: () => ({
+    bench: benchHeroes.map((h) => ({ key: h.heroKey, star: normalizeStarLevel(h.starLevel || 1) })),
+    placed: placedUnits.map((u) => u.heroKey),
+    ownedPoolHasNinja: ownedPool.includes('ninja'),
+    pendingEvolution: !!pendingEvolution,
+    heroDefsHasNinja: !!HERO_DEFS['ninja'],
+    gold,
+  }),
+  heroStatsFinite: (k) => { const s = getScaledHeroStats(k, 1); return !!s && Object.values(s).every((v) => typeof v !== 'number' || Number.isFinite(v)); },
+  grantGold: (n) => { gold += n; renderUI(); }, // test-only economy helper; production never calls it
+  placeBench: (heroKey, c, r) => { const u = benchHeroes.find((h) => h.heroKey === heroKey); return u ? !!moveUnitTo(u, c, r) : false; }, // test-only: real placement path
+  placedFinite: () => placedUnits.every((u) => Object.values(u).every((v) => typeof v !== 'number' || Number.isFinite(v))),
 };
 // ม้านั่งสำรองรวมเป็นเนื้อเดียวกับกระดานแล้ว (แถว BENCH_ROW) — benchHeroes เก็บ "ยูนิต 3D จริง"
 // (alive:false, ไม่ร่วมรบ) ไม่ใช่ข้อมูลเบาๆ แบบเดิมอีกต่อไป ดู createUnitFromInstance/spawnToBench
@@ -3595,7 +3626,14 @@ function scanForStarCombine() {
   const buckets = {};
   [...benchHeroes, ...placedUnits].forEach((inst) => {
     const def = HERO_DEFS[inst.heroKey];
-    if (!def || def.class_tier !== 2) return;
+    // Tier-2 heroes star-combine as before. Secret classes (e.g. Ninja, tier 3) also
+    // star-combine — but only when their canonical fusion policy allows the standard
+    // 3-identical merge AND they have a runtime def; secret classes without data (no
+    // HERO_DEFS entry) are naturally excluded, so this does not auto-enable future ones.
+    const secretStarEligible = def && SECRET
+      && SECRET.secretClassFusionEligibility(inst.heroKey)
+      && SECRET.secretClassFusionEligibility(inst.heroKey).usesStandardThreeIdenticalStarCombine;
+    if (!def || (def.class_tier !== 2 && !secretStarEligible)) return;
     const star = normalizeStarLevel(inst.starLevel || 1);
     if (star >= HERO_STAR_MAX) return;
     const bucketKey = inst.heroKey + '@' + star;
