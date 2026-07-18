@@ -1,0 +1,110 @@
+{
+  "contractVersion": 1,
+  "id": "character-art-reference-manifest-v1",
+  "styleDirectionApproved": true,
+  "canonicalApproved": false,
+  "runtimeEligible": false,
+  "archiveRoot": "docs/assets/reference/character-art-style-lock-v1/",
+  "referencePolicy": {
+    "usage": "User-approved visual direction and comparison evidence only.",
+    "runtimeRestriction": "No archived reference is a runtime texture, production character asset, card asset, portrait, sprite, animation frame, or canonical asset.",
+    "approvalBoundary": "Approval applies to the visual direction. Every future production binary requires separate exact-file approval.",
+    "binaryHandling": "Original attachment bytes are preserved. Repository filenames use .jpg because the supplied bytes are JPEG despite the upload names ending in .png.",
+    "rightsNote": "The user supplied the references for project direction. Copyright ownership and production-use licensing were not independently verified; retain them as internal reference-only material."
+  },
+  "references": [
+    {
+      "logicalReferenceId": "gameplay_character_style_context_reference",
+      "archiveStatus": "archived_original_bytes",
+      "archivePath": "docs/assets/reference/character-art-style-lock-v1/gameplay-character-style-context-reference.jpg",
+      "originalUploadFilename": "1000042823.png",
+      "attachmentCitationId": "file_00000000c2ac81fa8c279821cd787974",
+      "sha256": "f65408331cf5fbf2b28fcf8f2522d9698f6108a21e84714592fb012620089aec",
+      "bytes": 366879,
+      "dimensions": [1536, 864],
+      "fileType": "JPEG JFIF 1.01, baseline 8-bit, RGB",
+      "provenance": "User-supplied and explicitly approved in the Character Art Style Lock & Migration Contract v1 task on 2026-07-19.",
+      "approvalRole": [
+        "primary character style context",
+        "chibi level and head-to-body proportion",
+        "small in-battle readability",
+        "shop-card presentation",
+        "enemy-list portrait readability",
+        "overall polished mobile auto-battler rendering language"
+      ],
+      "runtimeEligible": false,
+      "canonicalProductionAsset": false,
+      "canonicalApproved": false
+    },
+    {
+      "logicalReferenceId": "style_anchor_archer",
+      "archiveStatus": "archived_shared_primary_binary",
+      "archivePath": "docs/assets/reference/character-art-style-lock-v1/gameplay-character-style-context-reference.jpg",
+      "sharedBinaryWith": "gameplay_character_style_context_reference",
+      "originalUploadFilename": "1000042823.png",
+      "attachmentCitationId": "file_00000000c2ac81fa8c279821cd787974",
+      "sha256": "f65408331cf5fbf2b28fcf8f2522d9698f6108a21e84714592fb012620089aec",
+      "bytes": 366879,
+      "dimensions": [1536, 864],
+      "fileType": "JPEG JFIF 1.01, baseline 8-bit, RGB",
+      "regionDescription": "The green female Archer/Ranger shown in the lower shop card and the matching small green archer on the board. No crop or derivative was created.",
+      "provenance": "User-supplied and explicitly approved as the Archer/Ranger style anchor in the task on 2026-07-19.",
+      "approvalRole": [
+        "human hero anchor",
+        "female green-hood ranger identity",
+        "large expressive eyes",
+        "ornate green/gold bow and outfit",
+        "very chibi silhouette at board and card scale"
+      ],
+      "runtimeEligible": false,
+      "canonicalProductionAsset": false,
+      "canonicalApproved": false
+    },
+    {
+      "logicalReferenceId": "style_anchor_slime",
+      "archiveStatus": "archived_original_bytes",
+      "archivePath": "docs/assets/reference/character-art-style-lock-v1/style-anchor-slime.jpg",
+      "originalUploadFilename": "1000042820.png",
+      "attachmentCitationId": "file_00000000688c81faad5b8a2dbf69ef1f",
+      "sha256": "3965fafb200d6b3727bb67b3ec4255f146e8750e42a60805deb8b731a61ed1ed",
+      "bytes": 164281,
+      "dimensions": [1229, 1536],
+      "fileType": "JPEG JFIF 1.01, baseline 8-bit, RGB",
+      "provenance": "User-supplied and explicitly approved as the Slime style anchor in the task on 2026-07-19.",
+      "approvalRole": [
+        "cute simple-monster anchor",
+        "bright blue glossy jelly material",
+        "rounded teardrop silhouette",
+        "large shiny eyes and cute smile",
+        "small horn-like protrusions",
+        "strong reduced-size readability"
+      ],
+      "runtimeEligible": false,
+      "canonicalProductionAsset": false,
+      "canonicalApproved": false
+    },
+    {
+      "logicalReferenceId": "style_anchor_golem",
+      "archiveStatus": "archived_original_bytes",
+      "archivePath": "docs/assets/reference/character-art-style-lock-v1/style-anchor-golem.jpg",
+      "originalUploadFilename": "1000042822.png",
+      "attachmentCitationId": "file_00000000895c8207b430b583da58daf3",
+      "sha256": "ea01ef39c21ae354872adc06af0687cb0f7581d36b4b216ca78cfc30c397fa92",
+      "bytes": 249331,
+      "dimensions": [1229, 1536],
+      "fileType": "JPEG JFIF 1.01, baseline 8-bit, RGB",
+      "provenance": "User-supplied and explicitly approved as the Golem style anchor in the task on 2026-07-19.",
+      "approvalRole": [
+        "heavy monster anchor",
+        "compact chunky stone mass",
+        "oversized fists",
+        "bright glowing blue crystals and eyes",
+        "powerful but cute chibi silhouette",
+        "rock-mass readability when reduced"
+      ],
+      "runtimeEligible": false,
+      "canonicalProductionAsset": false,
+      "canonicalApproved": false
+    }
+  ]
+}
