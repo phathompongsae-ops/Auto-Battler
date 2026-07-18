@@ -1,0 +1,66 @@
+{
+  "version": "1.2.0",
+  "status": "draft_vertical_slice",
+  "scope": {
+    "heroWeaponSlots": 2,
+    "runtimeTarget": "demo1_vertical_slice",
+    "includes": ["four_level_1_equipment_items", "one_level_2_fusion_recipe", "minimal_equipment_shop"],
+    "excludes": ["full_21_recipe_matrix", "level_3_runtime", "full_stage_odds", "polished_inventory_ui"]
+  },
+  "economy": {
+    "currency": "gold",
+    "prices": { "level1": 6, "level2": 14, "level3": 30 },
+    "sellbackPolicy": "not_in_vertical_slice",
+    "notes": "Only Level 1 items are directly purchasable in the Demo 1 slice. Level 2 is fusion-only; Level 3 is deferred."
+  },
+  "shopRules": {
+    "shopType": "equipment",
+    "offerSlots": 2,
+    "refreshCost": 2,
+    "freeRefreshPerStage": 0,
+    "refreshesSharedWithHeroShop": false,
+    "availableLevels": [1],
+    "offerPool": ["weapon.iron_sword", "weapon.apprentice_staff", "weapon.swift_gloves", "weapon.iron_armor"],
+    "offerWeights": "equal",
+    "duplicateOffersAllowed": false,
+    "level2DirectPurchase": false,
+    "level3DirectPurchase": false,
+    "automaticStageRewards": false
+  },
+  "weapons": [
+    {"id":"weapon.iron_sword","nameKey":"weapon.iron_sword.name","descriptionKey":"weapon.iron_sword.description","level":1,"price":6,"equipLimitPerHero":1,"allowedOwners":"all_player_heroes","stats":{"p_atk":8}},
+    {"id":"weapon.apprentice_staff","nameKey":"weapon.apprentice_staff.name","descriptionKey":"weapon.apprentice_staff.description","level":1,"price":6,"equipLimitPerHero":1,"allowedOwners":"all_player_heroes","stats":{"m_atk":8}},
+    {"id":"weapon.swift_gloves","nameKey":"weapon.swift_gloves.name","descriptionKey":"weapon.swift_gloves.description","level":1,"price":6,"equipLimitPerHero":1,"allowedOwners":"all_player_heroes","stats":{"attack_speed_pct":8}},
+    {"id":"weapon.iron_armor","nameKey":"weapon.iron_armor.name","descriptionKey":"weapon.iron_armor.description","level":1,"price":6,"equipLimitPerHero":1,"allowedOwners":"all_player_heroes","stats":{"max_hp":120}},
+    {"id":"weapon.duelist_blade","nameKey":"weapon.duelist_blade.name","descriptionKey":"weapon.duelist_blade.description","level":2,"price":14,"equipLimitPerHero":1,"allowedOwners":"all_player_heroes","stats":{"p_atk":14,"attack_speed_pct":10}}
+  ],
+  "fusionRecipes": [
+    {"id":"fusion.iron_sword.swift_gloves.duelist_blade","inputs":["weapon.iron_sword","weapon.swift_gloves"],"output":"weapon.duelist_blade","goldCost":0,"consumesInputs":true,"automatic":false}
+  ],
+  "inventoryRules": {
+    "storageModel":"shared_player_inventory",
+    "inventoryCapacity":8,
+    "equipSlotsPerHero":2,
+    "sameWeaponDuplicateOnOneHero":false,
+    "equipDuringCombat":false,
+    "unequipDuringCombat":false,
+    "fusionDuringCombat":false,
+    "fullInventoryPurchaseBehavior":"reject_without_charging_gold",
+    "fullEquipSlotsBehavior":"reject_without_mutation",
+    "fusionOutputWhenInventoryFull":"reject_before_consuming_inputs"
+  },
+  "statApplicationRules": {
+    "source":"immutable_weapon_records",
+    "application":"rebuild_once_from_base_stats_plus_equipped_weapons",
+    "noBaseMutation":true,
+    "noDoubleApplication":true,
+    "attackSpeedClamp":"reuse_runtime_combat_clamp",
+    "maxHpApplication":"add_once_to_star_scaled_base_max_hp_before_percent_buffs",
+    "zeroStatsRemainFinite":true
+  },
+  "legacyCompatibility": {
+    "gameConfigWeaponPool":"legacy_placeholder_only",
+    "canonicalForVerticalSlice":true,
+    "notes":"weapon_lvl1/2/3 in game_config.json are historical placeholders and are not the named vertical-slice catalog."
+  }
+}
