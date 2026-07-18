@@ -1030,6 +1030,16 @@ function buildCombatStats(hero, itemDefs) {
     if (synergyBuffs.mAtkPct) stats.m_atk *= (1 + synergyBuffs.mAtkPct / 100);
     if (synergyBuffs.attackSpeedPct) stats.attack_speed *= (1 + synergyBuffs.attackSpeedPct / 100);
   }
+  // Demo 1 run augments (Stage 5 class ATK, Stage 10 team ATK speed). Rebuilt from
+  // baseStats every call, so these apply exactly once and never compound with star scaling
+  // (star scaling already lives in baseStats). Class ATK targets both physical and magical
+  // so zero base stats stay a valid zero. Attack-speed clamp below still bounds cooldowns.
+  if (hero.heroKey) {
+    const augAtk = augClassAtkPct(hero.heroKey);
+    if (augAtk) { stats.p_atk *= (1 + augAtk / 100); stats.m_atk *= (1 + augAtk / 100); }
+    const augAtkSpeed = augTeamAtkSpeedPct();
+    if (augAtkSpeed) stats.attack_speed *= (1 + augAtkSpeed / 100);
+  }
   // status_effects (buffs/debuffs) layer on top of the equipment-adjusted stats, before the
   // clamp. Each status's `modifiers` uses a `<stat>_flat` / `<stat>_pct` key convention (e.g.
   // p_def_pct, m_def_flat) — flat modifiers across all active statuses apply first, then percent.
@@ -1196,7 +1206,10 @@ let synergyBuffs = null;
 function applyPreCombatSynergyBuffs() {
   synergyBuffs = computeSynergyBuffs();
   placedUnits.forEach((u) => {
-    u.maxHp = Math.round(u.baseMaxHp * (1 + synergyBuffs.maxHpPct / 100));
+    // Demo 1 Team +8% HP augment folds in here, recomputed from the immutable baseMaxHp
+    // every battle start (never compounds). hp is set to the new maxHp, so a fresh battle
+    // starts at full — no NaN/negative possible from a positive multiplier.
+    u.maxHp = Math.round(u.baseMaxHp * (1 + synergyBuffs.maxHpPct / 100) * (1 + augTeamMaxHpPct() / 100));
     u.hp = u.maxHp;
     if (synergyBuffs.startBattleShieldPctMaxHp) {
       u.shield = (u.shield || 0) + u.maxHp * (synergyBuffs.startBattleShieldPctMaxHp / 100);
@@ -1510,6 +1523,76 @@ globalThis.__NinjaSecretDebug = {
   placeBench: (heroKey, c, r) => { const u = benchHeroes.find((h) => h.heroKey === heroKey); return u ? !!moveUnitTo(u, c, r) : false; }, // test-only: real placement path
   placedFinite: () => placedUnits.every((u) => Object.values(u).every((v) => typeof v !== 'number' || Number.isFinite(v))),
 };
+
+// ============================================================
+// DEMO 1 AUGMENTS (Stage 5/10) — run-scoped, applied through the existing central
+// stat pipelines (buildCombatStats / applyPreCombatSynergyBuffs / battle-start mana).
+// Definitions + pure aggregation live in src/augment-runtime.js; base stats are never
+// mutated (every pipeline rebuilds from the immutable baseStats/baseMaxHp each battle,
+// so augments apply exactly once and never compound). runAugments is in-memory only and
+// is never written to the save — a full run reset (page reload) clears it naturally.
+// ============================================================
+const AUG = globalThis.AugmentRuntime || null;
+// Offer ids mirror data/design/map1-encounters-v1.json stages 5/10 `augmentOffer`.
+const STAGE_AUGMENT_OFFER = { 5: 'augment.map1.after_5', 10: 'augment.map1.after_10' };
+let runAugments = [];               // active run-scoped augment effect entries
+let augmentsOfferedStages = new Set(); // stages whose augment has already been offered this run
+let augmentModalOpen = false;
+
+function augTeamMaxHpPct() { return AUG ? AUG.teamMaxHpPct(runAugments) : 0; }
+function augTeamAtkSpeedPct() { return AUG ? AUG.teamAtkSpeedPct(runAugments) : 0; }
+function augClassAtkPct(heroKey) { return AUG ? AUG.classAtkPct(runAugments, getRootClass(heroKey)) : 0; }
+function augClassStartManaPct(heroKey) { return AUG ? AUG.classStartManaPct(runAugments, getRootClass(heroKey)) : 0; }
+
+function ownedClassCounts() {
+  const counts = {};
+  [...benchHeroes, ...placedUnits].forEach((u) => { const c = getRootClass(u.heroKey); if (c) counts[c] = (counts[c] || 0) + 1; });
+  return counts;
+}
+// Offered once per stage per run (guarded), after the victory result is dismissed and the
+// shop phase is entered. Fail-closed: missing/malformed offer data logs and skips.
+function maybeOfferAugment(stage) {
+  if (!AUG) return;
+  const offerId = STAGE_AUGMENT_OFFER[stage];
+  if (!offerId || augmentsOfferedStages.has(stage)) return;
+  const opts = AUG.getOfferOptions(offerId);
+  if (!opts) {
+    console.warn(`[Augment] no valid offer for stage ${stage} (${offerId}) — skipping, run continues`);
+    augmentsOfferedStages.add(stage);
+    return;
+  }
+  const box = document.getElementById('augmentOptions');
+  box.innerHTML = '';
+  opts.forEach((opt) => {
+    const div = document.createElement('div');
+    div.className = 'augmentOption';
+    div.innerHTML = `<div class="augName">${opt.labelTh}</div><div class="augDesc">${opt.descTh}</div>`;
+    div.onclick = () => selectAugment(stage, opt);
+    box.appendChild(div);
+  });
+  augmentModalOpen = true;
+  document.getElementById('augmentModal').style.display = 'flex';
+}
+function selectAugment(stage, opt) {
+  if (augmentsOfferedStages.has(stage)) return; // guard against double-select / duplicate effect
+  const entry = { id: opt.id, kind: opt.kind, value: opt.value };
+  if (opt.kind === 'class_atk_pct' || opt.kind === 'class_start_mana_pct') {
+    entry.classLine = AUG.pickClassLine(ownedClassCounts()); // deterministic: most-represented owned class line
+  }
+  runAugments.push(entry);
+  augmentsOfferedStages.add(stage);
+  augmentModalOpen = false;
+  document.getElementById('augmentModal').style.display = 'none';
+  renderUI();
+}
+
+// Namespaced debug surface for augment tests (read-mostly).
+globalThis.__AugmentDebug = {
+  state: () => ({ runAugments: runAugments.map((a) => ({ ...a })), offered: [...augmentsOfferedStages], modalOpen: augmentModalOpen }),
+  reset: () => { runAugments = []; augmentsOfferedStages = new Set(); augmentModalOpen = false; },
+  classCounts: () => ownedClassCounts(),
+};
+
 // ม้านั่งสำรองรวมเป็นเนื้อเดียวกับกระดานแล้ว (แถว BENCH_ROW) — benchHeroes เก็บ "ยูนิต 3D จริง"
 // (alive:false, ไม่ร่วมรบ) ไม่ใช่ข้อมูลเบาๆ แบบเดิมอีกต่อไป ดู createUnitFromInstance/spawnToBench
 let benchHeroes = [];
@@ -3850,7 +3933,7 @@ function endBenchGhost(ds) {
 }
 
 renderer.domElement.addEventListener('pointerdown', (e) => {
-  if (phase !== 'shop') return;
+  if (phase !== 'shop' || augmentModalOpen) return; // augment modal must be resolved before board interaction
   const u = pickPlayerUnitAtScreenPoint(e.clientX, e.clientY);
   if (!u) return; // ปล่อยให้ pointerup ด้านล่างจัดการ "แตะช่องว่างเพื่อย้าย" กรณีนี้แทน
   e.preventDefault();
@@ -4146,12 +4229,18 @@ function healPlayerTeam() {
 }
 
 startBattleBtn.onclick = () => {
-  if (placedUnits.length === 0 || pendingEvolution) return; // block_combat_start_while_pending
+  if (placedUnits.length === 0 || pendingEvolution || augmentModalOpen) return; // block_combat_start_while_pending
   phase = 'battle';
   waveTimer = 0;
   deadAlliesThisWave = []; // most_recent_dead_ally (Priest's revive) only ever looks at this wave
   applyPreCombatSynergyBuffs(); // recompute+freeze synergyBuffs BEFORE buildCombatStats reads it
   placedUnits.forEach((u) => buildCombatStats(u, ITEM_DEFS_BY_ID)); // Board Initialization — equipment pipeline
+  // Demo 1 "class starting mana 50%" augment: applied ONCE here at battle start (not per
+  // frame), clamped to max_mana, eligible class only. current_mana was 0 from resetForWave.
+  placedUnits.forEach((u) => {
+    const mp = augClassStartManaPct(u.heroKey);
+    if (mp > 0 && u.max_mana) { u.current_mana = Math.min(u.max_mana, Math.round(u.max_mana * mp / 100)); updateManaBar(u); }
+  });
   spawnWave(wave);
   renderUI();
 };
@@ -4182,6 +4271,7 @@ function onWaveCleared() {
       phaseLabel.textContent = 'จบเกม';
     });
   } else {
+    const clearedStage = wave; // capture before increment for the augment checkpoint
     const label = STAGE_LABEL[wave] ? ` (${STAGE_LABEL[wave]})` : '';
     showResult(`🏆 ชนะด่าน ${wave}!${label}`, `ได้ทอง +${reward} — จัดทัพแล้วลุยด่านถัดไป`, () => {
       wave += 1;
@@ -4190,6 +4280,7 @@ function onWaveCleared() {
       pickShopOffers();
       phase = 'shop';
       renderUI();
+      maybeOfferAugment(clearedStage); // Stage 5/10: offer once, before preparation continues
     });
   }
 }

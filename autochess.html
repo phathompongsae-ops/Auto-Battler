@@ -323,6 +323,25 @@
     border-radius: 8px; font-size: 16px; font-weight: bold; padding: 10px 28px; cursor: pointer;
   }
 
+  /* ----- โมดัลออคเมนต์ (Stage 5/10) — ใช้สไตล์เดียวกับโมดัลผลลัพธ์ ----- */
+  #augmentModal {
+    position: fixed; inset: 0; display: none; align-items: center; justify-content: center;
+    background: rgba(4,5,7,0.78); z-index: 21;
+  }
+  #augmentBox {
+    background: linear-gradient(#1c1f26, #14161b); border: 1px solid var(--panel-border); border-radius: 12px;
+    padding: 24px 30px; text-align: center; color: var(--text); max-width: 92vw;
+  }
+  #augmentBox h2 { margin: 0 0 16px; font-size: 22px; }
+  #augmentOptions { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+  .augmentOption {
+    background: #22262e; border: 1px solid var(--panel-border); border-radius: 10px;
+    padding: 16px 18px; width: 220px; cursor: pointer; text-align: left;
+  }
+  .augmentOption:hover { border-color: var(--accent); background: #2a2f39; }
+  .augmentOption .augName { font-size: 16px; font-weight: bold; color: var(--accent); margin-bottom: 8px; }
+  .augmentOption .augDesc { font-size: 13px; color: var(--text-dim); line-height: 1.4; }
+
   /* ----- Responsive: มือถือแนวนอน (จอเตี้ย, ความสูง <= 430px) — ย่อแผง/ปุ่มลงเล็กน้อยกันล้นจอ ----- */
   @media (max-height: 430px) {
     .floatPanel { max-height: 40vh; padding: 6px; }
@@ -458,6 +477,13 @@
   </div>
 </div>
 
+<div id="augmentModal">
+  <div id="augmentBox">
+    <h2 id="augmentTitle">เลือกออคเมนต์</h2>
+    <div id="augmentOptions"></div>
+  </div>
+</div>
+
 <div id="equipModal">
   <div id="equipBox">
     <h3 id="equipHeroName"></h3>
@@ -481,6 +507,7 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" onerror="document.getElementById('loading').textContent='โหลดไลบรารีกราฟิก (Three.js) ไม่สำเร็จ — เช็คการเชื่อมต่ออินเทอร์เน็ต/Ad-blocker แล้วรีเฟรชหน้านี้ใหม่';"></script>
 <script src="src/secret-class.js"></script>
+<script src="src/augment-runtime.js"></script>
 <script src="src/game.js"></script>
 </body>
 </html>
