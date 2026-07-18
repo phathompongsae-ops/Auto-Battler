@@ -1,0 +1,212 @@
+{
+  "schemaVersion": 1,
+  "id": "pilot.motion.test.contract.v1",
+  "status": "motion_test_contract_pending_production",
+  "canonicalApproved": false,
+  "purpose": "Production contract for the first three motion tests (Archer attack, Slime move, Golem attack) so animation frames can be produced without guessing timing, frame counts, anchors, or file formats. No artwork, animation, or runtime integration is produced by this contract itself.",
+  "referenceDesignApproval": {
+    "hero.archer": "user_approved_reference_design",
+    "monster.slime": "user_approved_reference_design",
+    "monster.golem": "user_approved_reference_design",
+    "note": "User approval covers the reference DESIGNS only. No generated frame, sheet, or animation becomes canonical until explicit exact-file approval; canonicalApproved stays false."
+  },
+  "runtimeReference": {
+    "assetAnimationPr": 23,
+    "assetAnimationHead": "5a3a8eec7991a98aad6f3acf0ce38687764dcb1a",
+    "productionPackBranch": "coco/pilot-asset-production-pack-v2",
+    "productionPackHead": "a779e242de37a59124259361c04af20106d4a932",
+    "archerReferenceDesignBranch": "cc/archer-reference-design-v1",
+    "archerReferenceDesignHead": "336fcf931ed2ebb6a81294216e51a574db690ba3",
+    "mapVisualLockBranch": "coco/map1-visual-lock-contract-v1",
+    "mapVisualLockHead": "60e8742ad4db84c944414964c8f66cfda87baf6c",
+    "eventMarkerVocabulary": ["projectileRelease", "impactCue", "skillFlashCue", "footstepCue", "deathDissolveCue"],
+    "eventMarkerSemantics": "Normalized 0..1 time within the state's play duration, consumed by the Asset & Animation Framework (PR #23) as VISUAL cue markers only. Markers never delay, advance, or replace Combat timing or damage."
+  },
+  "common": {
+    "fpsDefault": 12,
+    "fpsAcceptedRange": [8, 15],
+    "transparentBackground": true,
+    "consistentCanvasPerAsset": "every frame of one asset's motion test uses the identical canvas size, aspect, character scale, and camera framing",
+    "noCropping": "no frame may crop the silhouette, weapon, bow, quiver, horn, crystal, limbs, or cape — full body plus held equipment stays inside the canvas with a safety margin in every frame",
+    "cameraLock": "no camera movement, no zoom, no framing or perspective change between frames; the 3/4 front view of the approved reference design is fixed for all frames",
+    "motionBlurPolicy": "no motion blur that breaks silhouette readability; small painted smear accents are allowed only if the body silhouette stays fully readable at reduced mobile size",
+    "referenceDesignLock": "costume, colors, weapon, face, hair, and body proportion must match the user-approved reference design exactly in every frame — no redesign, recolor, or proportion drift mid-animation",
+    "anchorLock": "the configured foot anchor stays fixed at the same normalized canvas position in every frame; feet/ground contact must not drift horizontally or vertically except as an explicit key-pose lift that returns to the anchor",
+    "facing": "single-direction art matching the reference design; runtime handles flipX (per Production Pack v2) — never produce mirrored duplicate frames",
+    "naming": "assets/units/{unitId}/{state}/{unitId}_{state}_{frameIndex}.png",
+    "sheetNaming": "assets/units/{unitId}/{unitId}_{state}_sheet.png",
+    "frameNumbering": "zero-padded three-digit frameIndex starting at 000 (e.g. archer_attack_000.png)",
+    "metadataFormat": {
+      "sidecarFile": "assets/units/{unitId}/{unitId}_{state}_motiontest.json",
+      "requiredFields": ["unitId", "state", "fps", "frameCount", "loop", "anchor", "canvas", "eventMarkers", "rootMotion"],
+      "eventMarkersField": "array of { name, normalizedTime } using only the eventMarkerVocabulary names",
+      "rootMotionField": "\"in-place\" or an explicit per-frame offset list; see monster.slime/move rules",
+      "note": "one JSON sidecar per motion test; no new schema beyond the fields the PR #23 manifest already understands (fps, frame count, loop, anchor, timing markers)"
+    }
+  },
+  "canvas": {
+    "resolutionIndependentSource": true,
+    "aspectLockedPerAsset": {
+      "hero.archer": "2:3 (matches the PR #23 runtime frame aspect 64x96)",
+      "monster.slime": "1:1 (matches 64x64)",
+      "monster.golem": "6:7 (matches 96x112)"
+    },
+    "recommendedWorkingCanvas": {
+      "hero.archer": [640, 960],
+      "monster.slime": [800, 800],
+      "monster.golem": [864, 1008]
+    },
+    "maxSourceDimensionPx": 1024,
+    "battleExportMaxDimensionPx": 512,
+    "runtimeDisplaySizeSeparate": "runtime display scale is owned by the PR #23 manifest (world.scale), never by the art file dimensions; working canvas and battle export are separate outputs",
+    "note": "The framework does not lock pixel dimensions; sources must be resolution-independent (or produced at the recommended working canvas), then exported to battle frames at <=512 px longest side per the existing pilot integration contract. No binary artwork is created by this contract."
+  },
+  "anchors": {
+    "hero.archer": [0.5, 0.92],
+    "monster.slime": [0.5, 0.9],
+    "monster.golem": [0.5, 0.94]
+  },
+  "motionTests": [
+    {
+      "unit": "hero.archer",
+      "state": "attack",
+      "loop": false,
+      "fps": 12,
+      "frameTarget": 10,
+      "frameMin": 8,
+      "frameMax": 12,
+      "approxDurationSeconds": 0.83,
+      "anchor": [0.5, 0.92],
+      "summary": "One single bow shot: combat idle -> raise bow and nock arrow -> full visible draw -> release -> small recoil/follow-through -> return to the starting pose.",
+      "keyPoses": [
+        "combat_idle_start (matches the approved reference design stance)",
+        "raise_bow_and_nock_arrow",
+        "draw_full_tension (bow arc and string clearly silhouetted)",
+        "release",
+        "recoil_follow_through (small, controlled)",
+        "return_to_combat_idle"
+      ],
+      "anticipation": "raise + nock + draw phases; the full-tension pose must hold at least one full frame so the draw reads at 12 FPS",
+      "actionPhase": "the release frame — string returns, bow hand stable, arrow visibly gone from the string",
+      "recovery": "small recoil then settle back into the exact starting combat idle pose (clean final frame, no pop against the idle state)",
+      "eventMarkers": [
+        { "name": "projectileRelease", "normalizedTime": 0.55, "meaning": "runtime spawns the arrow projectile VFX at this cue; the arrow, trail, and impact are runtime layers and are NEVER baked into the body frames" }
+      ],
+      "anchorLockNotes": "both feet planted for the entire shot; no step, no hop, no horizontal travel",
+      "readabilityChecks": [
+        "bow arc plus drawn string reads at reduced mobile size",
+        "release frame is unmistakable in isolation",
+        "silhouette identifies 'archer shooting' with no interior color"
+      ],
+      "forbiddenDeviations": [
+        "no projectile, trail, or impact baked into body frames",
+        "no runtime projectile/damage logic added in this round",
+        "no costume/color/weapon/face/proportion change from the approved reference design",
+        "no crossbow-style or thrown-weapon motion",
+        "no foot travel away from the anchor"
+      ]
+    },
+    {
+      "unit": "monster.slime",
+      "state": "move",
+      "loop": true,
+      "fps": 12,
+      "frameTarget": 8,
+      "frameMin": 8,
+      "frameMax": 10,
+      "approxDurationSeconds": 0.67,
+      "anchor": [0.5, 0.9],
+      "summary": "One seamless bouncing hop cycle: squash to prepare -> stretch and lift -> travel apex -> landing contact -> absorb squash -> recover to the rest shape, looping without a pop.",
+      "keyPoses": [
+        "rest_shape (matches the approved reference design)",
+        "squash_prepare",
+        "stretch_lift",
+        "travel_apex",
+        "landing_contact",
+        "squash_absorb",
+        "recover_to_rest_shape (frame 0 and the loop seam must match)"
+      ],
+      "anticipation": "squash_prepare — clear volume-preserving squash before lift-off",
+      "actionPhase": "stretch_lift through travel_apex to landing_contact (the airborne travel phase)",
+      "recovery": "squash_absorb then recover_to_rest_shape so the cycle loops seamlessly",
+      "eventMarkers": [
+        { "name": "footstepCue", "normalizedTime": 0.7, "meaning": "landing/ground-contact cue for optional runtime dust or audio hooks; visual-only, no gameplay effect" }
+      ],
+      "anchorLockNotes": "produced IN-PLACE: no net horizontal displacement is baked across the cycle — the body may rise above the anchor during the hop but ground contact returns to the exact anchor position every cycle; if any root motion is authored, it must be declared as explicit per-frame offsets in the sidecar rootMotion field. World-space movement is owned by the runtime (PR #23 framework + game movement), never by the frames.",
+      "readabilityChecks": [
+        "squash-stretch reads clearly at reduced mobile size",
+        "volume stays consistent (no melting or growth between frames)",
+        "loop seam shows no visible pop when the cycle repeats",
+        "body hue stays distinct from moss/floor per the Map 1 visual lock"
+      ],
+      "forbiddenDeviations": [
+        "no baked horizontal board travel across the cycle",
+        "no anchor drift between cycle start and end",
+        "no shape, color, or face change from the approved reference design",
+        "no attack, splash, or damage visual mixed into the move cycle"
+      ]
+    },
+    {
+      "unit": "monster.golem",
+      "state": "attack",
+      "loop": false,
+      "fps": 12,
+      "frameTarget": 12,
+      "frameMin": 8,
+      "frameMax": 12,
+      "approxDurationSeconds": 1.0,
+      "anchor": [0.5, 0.94],
+      "summary": "One heavy melee strike: combat-ready stance -> weighted wind-up shifting arm and torso mass -> arm raise to peak -> clear impact/contact -> heavy follow-through -> recovery back to the ready stance.",
+      "keyPoses": [
+        "combat_ready_stance (matches the approved reference design)",
+        "weight_shift_windup (torso and oversized forearm visibly load)",
+        "arm_raise_peak (held at least one full frame for weight)",
+        "impact_contact",
+        "follow_through_weight (mass settles, shoulders carry through)",
+        "recovery_to_ready_stance"
+      ],
+      "anticipation": "weight_shift_windup + arm_raise_peak — slow, heavy loading that reads as mass at 12 FPS",
+      "actionPhase": "impact_contact — a single unmistakable contact frame",
+      "recovery": "follow_through_weight then a controlled return to the exact ready stance (clean final frame)",
+      "eventMarkers": [
+        { "name": "impactCue", "normalizedTime": 0.58, "meaning": "runtime triggers ground-impact VFX (dust/debris/shockwave layers) at this cue; all impact VFX are separate runtime layers and are NEVER baked into the body frames" }
+      ],
+      "anchorLockNotes": "feet stay planted at the anchor; torso lean and arm motion carry the weight — no step and no lunge that moves the ground contact",
+      "readabilityChecks": [
+        "wind-up and impact read as HEAVY at reduced mobile size",
+        "impact frame is unmistakable in isolation",
+        "stone-plate separation lines stay visible through the swing",
+        "silhouette stays distinct from arena masonry per the Map 1 visual lock"
+      ],
+      "forbiddenDeviations": [
+        "no VFX (dust, debris, shockwave, glow) baked into body frames",
+        "no hitbox, damage, stun, or gameplay logic added in this round",
+        "no costume/color/proportion change from the approved reference design",
+        "no foot travel or lunge away from the anchor",
+        "no fast ninja-like swing that contradicts the heavy weight identity"
+      ]
+    }
+  ],
+  "acceptance": [
+    "exactly these three motion tests and no others are produced in this round",
+    "every frame preserves the transparent background",
+    "every frame of one test shares the identical canvas and framing",
+    "anchors match this contract exactly and do not drift",
+    "frame counts fall inside [frameMin, frameMax] with frameTarget as the goal",
+    "event markers appear once per test at the declared normalized time",
+    "loop tests repeat seamlessly; non-loop tests end on a clean recovery frame",
+    "silhouette, costume, colors, and proportions match the approved reference designs",
+    "sidecar metadata JSON accompanies each test with the required fields",
+    "canonicalApproved remains false until exact files pass visual review in-game"
+  ],
+  "deferred": [
+    "full six-state production for all pilots",
+    "Arena Ruins in-game runtime test of the produced frames",
+    "runtime integration of motion-test frames",
+    "projectile/hitbox/damage/VFX runtime changes",
+    "Slime and Golem reference design specification documents",
+    "shop cards",
+    "Map 2 and Map 3 assets",
+    "final canonical approval"
+  ]
+}
