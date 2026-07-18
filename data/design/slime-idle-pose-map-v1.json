@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 1,
+  "unitId": "monster.slime",
+  "state": "idle",
+  "frameCount": 8,
+  "fps": 8,
+  "loop": true,
+  "canvas": [512, 512],
+  "anchor": [0.5, 0.9],
+  "runtimeFlipX": true,
+  "rootMotion": "in-place",
+  "eventMarkers": [],
+  "identityMaster": "assets/units/monster.slime/move/monster.slime_move_000.png",
+  "poses": [
+    {
+      "frame": 0,
+      "role": "neutral_settle",
+      "body": "neutral identity-locked jelly silhouette; grounded at the shared anchor",
+      "secondary": "internal highlights settled"
+    },
+    {
+      "frame": 1,
+      "role": "gentle_inhale_squash",
+      "body": "very small volume-preserving squash; no horizontal travel",
+      "secondary": "lower jelly begins to spread subtly"
+    },
+    {
+      "frame": 2,
+      "role": "peak_expansion",
+      "body": "subtle upward expansion without leaving the foot baseline",
+      "secondary": "highlight and top lobes lag by a restrained amount"
+    },
+    {
+      "frame": 3,
+      "role": "inhale_settle",
+      "body": "returns toward neutral volume and height",
+      "secondary": "jelly mass follows with one-frame lag"
+    },
+    {
+      "frame": 4,
+      "role": "tiny_gaze_body_adjustment",
+      "body": "near-neutral pose with only a minimal alert body or eye adjustment",
+      "secondary": "face, eyes, horns, chest spiral, color, and material remain identity-locked"
+    },
+    {
+      "frame": 5,
+      "role": "soft_exhale",
+      "body": "very small settle downward while the root stays fixed",
+      "secondary": "internal jelly follows the body weight"
+    },
+    {
+      "frame": 6,
+      "role": "secondary_jelly_settle",
+      "body": "body is almost still",
+      "secondary": "top lobes and highlight complete their delayed return"
+    },
+    {
+      "frame": 7,
+      "role": "return_to_neutral",
+      "body": "approaches frame 000 with no visible scale or anchor pop",
+      "secondary": "settles for a soft 007-to-000 seam"
+    }
+  ],
+  "canonicalApproved": false
+}
