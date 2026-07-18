@@ -1,0 +1,93 @@
+{
+  "schemaVersion": 1,
+  "assetId": "hero.archer.move.motion-test.v1",
+  "unitId": "hero.archer",
+  "state": "move",
+  "runtimeFlipX": true,
+  "canonicalApproved": false,
+  "masterReferences": [
+    {
+      "role": "Attack identity, equipment, palette, scale, camera, and foot-line master",
+      "repository": "phathompongsae-ops/Auto-Battler",
+      "pullRequest": 31,
+      "branch": "cc/archer-motion-test-visual-fix-v2",
+      "commit": "6ab6a1f485d9e17badc56a671b5f105d049d8fe2",
+      "path": "assets/units/hero.archer/attack/hero.archer_attack_000.png",
+      "sha256": "4a1a24f9e691d48aeef55c235a47af07931032e6345b159122f0128d7aa7e888"
+    },
+    {
+      "role": "Idle identity and cross-state anchor master",
+      "repository": "phathompongsae-ops/Auto-Battler",
+      "pullRequest": 39,
+      "branch": "coco/archer-idle-motion-test-v1",
+      "commit": "7193af0940efd77189157fdf4d2dbcd8237231a0",
+      "path": "assets/units/hero.archer/idle/hero.archer_idle_000.png",
+      "sha256": "4a1a24f9e691d48aeef55c235a47af07931032e6345b159122f0128d7aa7e888"
+    }
+  ],
+  "productionMethod": {
+    "type": "identity-preserving articulated lower-body motion",
+    "description": "The exact shared Attack/Idle master supplies the face, hood, hair, torso, costume, longbow, bowstring, quiver, lighting, palette, camera, and scale in every frame. Only the two lower-body silhouettes are articulated around fixed hip seams for the eight-step in-place cycle. Subpixel upper-body displacement stays below one pixel, with restrained quiver/cape lag. Each frame is compared with the preceding frame while both masters remain the pixel source, preventing cumulative identity drift.",
+    "alpha": "transparent alpha inherited from the verified shared master; detached resampling islands below the production threshold are removed",
+    "canvasNormalization": "320x480, anchor [0.5,0.92], one grounded support/contact foot at the shared baseline in every frame",
+    "rootMotion": "in-place; no baked horizontal world movement"
+  },
+  "frames": [
+    {
+      "frame": 0,
+      "file": "move/hero.archer_move_000.png",
+      "role": "right_leg_passing",
+      "visualReference": "Idle PR #39 frame 000 and Attack PR #31 frame 000"
+    },
+    {
+      "frame": 1,
+      "file": "move/hero.archer_move_001.png",
+      "role": "left_leg_forward_down",
+      "visualReference": "hero.archer_move_000.png plus both master references"
+    },
+    {
+      "frame": 2,
+      "file": "move/hero.archer_move_002.png",
+      "role": "left_foot_contact",
+      "marker": "leftFootstepCue @ 0.25",
+      "visualReference": "hero.archer_move_001.png plus both master references"
+    },
+    {
+      "frame": 3,
+      "file": "move/hero.archer_move_003.png",
+      "role": "left_leg_support_rise",
+      "visualReference": "hero.archer_move_002.png plus both master references"
+    },
+    {
+      "frame": 4,
+      "file": "move/hero.archer_move_004.png",
+      "role": "left_leg_passing",
+      "visualReference": "hero.archer_move_003.png plus both master references"
+    },
+    {
+      "frame": 5,
+      "file": "move/hero.archer_move_005.png",
+      "role": "right_leg_forward_down",
+      "visualReference": "hero.archer_move_004.png plus both master references"
+    },
+    {
+      "frame": 6,
+      "file": "move/hero.archer_move_006.png",
+      "role": "right_foot_contact",
+      "marker": "rightFootstepCue @ 0.75",
+      "visualReference": "hero.archer_move_005.png plus both master references"
+    },
+    {
+      "frame": 7,
+      "file": "move/hero.archer_move_007.png",
+      "role": "right_leg_support_return",
+      "visualReference": "hero.archer_move_006.png, both master references, and loop target hero.archer_move_000.png"
+    }
+  ],
+  "reviewArtifacts": {
+    "previewGif": "docs/assets/review/archer-move-motion-test-v1.gif",
+    "contactSheet": "docs/assets/review/archer-move-motion-test-v1-contact-sheet.png",
+    "usage": "review only; never substitutes for the eight separate PNG frames"
+  },
+  "note": "Motion-test candidate only. No held pose is intentionally byte-identical. This provenance does not claim canonical artwork or approval."
+}
