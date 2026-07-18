@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "schema": "map-theme-schema-v1",
+  "id": "map1.arena_ruins",
+  "name": "Arena Ruins",
+  "enabled": true,
+  "contract": "map1.arena_ruins.visual_lock.v1",
+  "visualIdentity": "ancient ruined arena; weathered cool-gray masonry; restrained desaturated moss; warm-neutral highlights; cool muted shadows; soft golden rim; readable tactical board first; stylized mobile-fantasy, no photorealism",
+  "palette": {
+    "masonry": "0x5d6270",
+    "masonryDark": "0x4a4f5c",
+    "masonryLight": "0x707689",
+    "moss": "0x55663f",
+    "bannerCloth": "0x6d3a3a",
+    "bannerTrim": "0xb99a55",
+    "ember": "0xffb060",
+    "rimLight": "0xd8ad4d",
+    "fillLight": "0x5a6a8a"
+  },
+  "paletteRationale": {
+    "masonry": "cool muted stone so the warm-tan Golem placeholder (#8a7a63) separates from border/background",
+    "moss": "restrained desaturated green so the teal Slime (#4ea3b0) and olive Archer (#5f8f4e) never blend"
+  },
+  "layers": ["boardSurface", "arenaBorder", "background", "props", "ambientVfx", "lightingProfile"],
+  "quality": {
+    "high":   { "particles": 64, "lightShafts": 2, "bgWalls": 10, "bgArches": 3, "propScale": 1.0, "decals": 8, "motion": true },
+    "medium": { "particles": 28, "lightShafts": 0, "bgWalls": 6,  "bgArches": 2, "propScale": 0.6, "decals": 5, "motion": true },
+    "low":    { "particles": 0,  "lightShafts": 0, "bgWalls": 3,  "bgArches": 0, "propScale": 0.3, "decals": 3, "motion": false }
+  },
+  "lighting": { "fillIntensity": 0.25, "rimIntensity": 0.3 },
+  "constraints": {
+    "boardSurface": "decal treatment only; raycast disabled; decals at cell intersections, never centered under units; no bright emissive patterns; moss only outside the playable edge",
+    "arenaBorder": "outside the playable grid and existing stage rim; front/camera side flat slabs only; never obscures cells; never intercepts pointer (game raycasts only tileMeshes + unit bodies)",
+    "background": "radius ~9-13, back/sides only; faded by existing scene fog; no large opaque object crosses the board view",
+    "props": "fixed candidate list entirely outside playable grid / bench / HUD / touch paths; no props inside playable cells",
+    "ambientVfx": "slow dust motes + rare soft shafts; first to degrade; never resembles combat VFX; respects the shared transient VFX philosophy (cap 24 untouched)",
+    "lightingProfile": "adds cool fill + golden rim only; never replaces camera/key light; never touches scene.background/fog (owned by Arena Curse VFX)"
+  },
+  "pilotReadability": {
+    "hero.archer":   { "anchor": [0.5, 0.92], "baseColor": "#5f8f4e" },
+    "monster.slime": { "anchor": [0.5, 0.90], "baseColor": "#4ea3b0" },
+    "monster.golem": { "anchor": [0.5, 0.94], "baseColor": "#8a7a63" }
+  }
+}

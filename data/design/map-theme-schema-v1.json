@@ -1,0 +1,69 @@
+{
+  "schemaVersion": 1,
+  "id": "map-theme-schema-v1",
+  "description": "Schema for reusable per-map theme definitions consumed by src/map-theme-runtime.js. One shared scene/theme system; each map replaces only theme data. Aligned to the Map 1 visual lock contract (map1.arena_ruins.visual_lock.v1).",
+  "shared": [
+    "board geometry",
+    "camera",
+    "bench",
+    "HUD",
+    "combat",
+    "animation runtime (Asset & Animation Framework PR #23)",
+    "VFX runtime",
+    "fullscreen/screenshot utility (PR #24)"
+  ],
+  "replacePerMap": [
+    "surface material/texture references",
+    "arena border skin",
+    "background",
+    "props",
+    "ambient VFX profile",
+    "lighting profile",
+    "map-specific monsters and bosses"
+  ],
+  "layers": [
+    "boardSurface",
+    "arenaBorder",
+    "background",
+    "props",
+    "ambientVfx",
+    "lightingProfile"
+  ],
+  "themeDefinition": {
+    "id": "string — e.g. map1.arena_ruins",
+    "name": "string — display name",
+    "enabled": "boolean — disabled themes are metadata only; activateTheme rejects them safely",
+    "contract": "string — visual lock contract id this theme implements (optional)",
+    "palette": "object — named color values (hex numbers) used by the layer builders",
+    "layers": "string[] — must list the six layer names above",
+    "quality": {
+      "high": "per-quality budget object",
+      "medium": "per-quality budget object",
+      "low": "per-quality budget object",
+      "budgetFields": {
+        "particles": "int — ambient particle count (first to degrade)",
+        "lightShafts": "int — decorative light shafts (0 below high)",
+        "bgWalls": "int — distant background wall segments",
+        "bgArches": "int — distant background arches",
+        "propScale": "number 0..1 — fraction of props kept",
+        "decals": "int — board-surface decal count",
+        "motion": "boolean — decorative motion enabled (removed at low)"
+      }
+    },
+    "lighting": "object — fill/rim intensities; theme lighting only ADDS lights, never replaces the game key light, camera, background or fog"
+  },
+  "degradationOrder": [
+    "preserve units",
+    "preserve board/grid",
+    "preserve combat impacts",
+    "reduce ambient particles",
+    "remove decorative motion",
+    "reduce distant/background decoration",
+    "never remove gameplay-critical visuals"
+  ],
+  "themes": [
+    { "id": "map1.arena_ruins", "enabled": true, "definitionFile": "data/design/map1-arena-ruins-theme-v1.json" },
+    { "id": "map2.lava_hell", "enabled": false, "deferred": true, "note": "metadata only — no scene, no artwork until Map 2 production" },
+    { "id": "map3.heaven_temple", "enabled": false, "deferred": true, "note": "metadata only — no scene, no artwork until Map 3 production" }
+  ]
+}
