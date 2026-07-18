@@ -4560,6 +4560,8 @@ function animate(now) {
   // Asset & Animation Framework transient layers (pilot projectiles/trails/impacts) advance with
   // the same dt as VFX/combat, so their timing tracks the game at every speed incl. x4.
   if (globalThis.AssetAnimationRuntime && !(phase === 'battle' && paused)) AssetAnimationRuntime.tickWorld(dt);
+  // Map Theme decorative motion (ambient dust etc.) — pauses with the game like the VFX above.
+  if (globalThis.MapThemeRuntime && !(phase === 'battle' && paused)) MapThemeRuntime.tick(dt);
 
   for (const u of units) {
     if (!u.alive && u.deathT !== undefined && u.deathT < 1) {
@@ -4596,6 +4598,20 @@ window.addEventListener('resize', layoutBoard);
 // WebGL buffer (the renderer intentionally has no preserveDrawingBuffer — cheaper for gameplay).
 // relayout() reuses the single existing layout owner (layoutBoard) — no second resize path.
 // ============================================================
+// Map Theme Runtime bridge (src/map-theme-runtime.js) — read-only scene/board context. The theme
+// module owns only decorative layers under its own mapThemeRoot Group; it never touches combat,
+// coordinates, camera rules, or UI. With the module absent the game renders exactly as before.
+globalThis.MapThemeHooks = {
+  getScene() { try { return scene; } catch (e) { return null; } },
+  getBoardMetrics() {
+    return {
+      cols: GRID_COLS, rows: GRID_ROWS, tile: TILE, benchRow: BENCH_ROW,
+      playerRows: PLAYER_ROWS.slice(),
+      halfW: GRID_COLS / 2 * TILE, halfD: GRID_ROWS / 2 * TILE,
+    };
+  },
+};
+
 globalThis.GamePresentationHooks = {
   renderNow() {
     try {
