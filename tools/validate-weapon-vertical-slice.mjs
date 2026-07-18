@@ -22,7 +22,7 @@ const recipes = Array.isArray(data.fusionRecipes) ? data.fusionRecipes : [];
 const byId = new Map();
 
 if (data.scope?.heroWeaponSlots !== 2) fail('heroWeaponSlots must equal 2');
-if (weapons.length !== 4) fail('vertical slice must define exactly 4 weapons');
+if (weapons.length !== 5) fail('vertical slice must define exactly 5 equipment records');
 
 for (const weapon of weapons) {
   if (!weapon.id || byId.has(weapon.id)) fail(`duplicate or missing weapon id: ${weapon.id}`);
@@ -35,7 +35,7 @@ for (const weapon of weapons) {
   const statEntries = Object.entries(weapon.stats ?? {});
   if (statEntries.length === 0) fail(`${weapon.id}: must define at least one stat`);
   for (const [key, value] of statEntries) {
-    if (!['p_atk', 'm_atk', 'attack_speed_pct'].includes(key)) fail(`${weapon.id}: unsupported stat ${key}`);
+    if (!['p_atk', 'm_atk', 'attack_speed_pct', 'max_hp'].includes(key)) fail(`${weapon.id}: unsupported stat ${key}`);
     if (!Number.isFinite(value) || value <= 0) fail(`${weapon.id}: ${key} must be finite and positive`);
   }
 }
@@ -44,9 +44,15 @@ const requiredIds = [
   'weapon.iron_sword',
   'weapon.apprentice_staff',
   'weapon.swift_gloves',
+  'weapon.iron_armor',
   'weapon.duelist_blade'
 ];
-for (const id of requiredIds) if (!byId.has(id)) fail(`missing required weapon ${id}`);
+for (const id of requiredIds) if (!byId.has(id)) fail(`missing required equipment ${id}`);
+
+const armor = byId.get('weapon.iron_armor');
+if (Object.keys(armor?.stats ?? {}).length !== 1 || armor?.stats?.max_hp !== 120) {
+  fail('Iron Armor must grant exactly max_hp +120 and no other stat');
+}
 
 if (recipes.length !== 1) fail('vertical slice must define exactly one fusion recipe');
 for (const recipe of recipes) {
@@ -83,9 +89,12 @@ for (const locale of ['th', 'en']) {
 }
 
 if (data.inventoryRules?.equipSlotsPerHero !== 2) fail('inventoryRules.equipSlotsPerHero must equal 2');
-if (data.inventoryRules?.sameWeaponDuplicateOnOneHero !== false) fail('same weapon duplicates must be disabled in v1');
+if (data.inventoryRules?.sameWeaponDuplicateOnOneHero !== false) fail('same item duplicates must be disabled in v1');
 if (data.inventoryRules?.fullInventoryPurchaseBehavior !== 'reject_without_charging_gold') fail('full inventory purchase must reject before charge');
 if (data.inventoryRules?.fusionOutputWhenInventoryFull !== 'reject_before_consuming_inputs') fail('fusion must reject before consuming inputs');
+if (data.statApplicationRules?.maxHpApplication !== 'add_once_to_star_scaled_base_max_hp_before_percent_buffs') {
+  fail('max HP equipment ordering must be explicit');
+}
 if (data.statApplicationRules?.noBaseMutation !== true || data.statApplicationRules?.noDoubleApplication !== true) {
   fail('stat application must prohibit base mutation and double application');
 }
