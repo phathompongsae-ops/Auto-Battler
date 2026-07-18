@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "policy": {
+    "inputCopies": 3,
+    "selectionRequired": true,
+    "pauseGameplay": true,
+    "selectionTimer": null,
+    "cancelAfterConsumption": false,
+    "recordSelectionBeforeVisualReplacement": true
+  },
+  "rules": [
+    {"id":"fusion.fighter.class2","inputs":["fighter","fighter","fighter"],"outputs":["knight","berserker"]},
+    {"id":"fusion.swordman.class2","inputs":["swordman","swordman","swordman"],"outputs":["blade_master","duelist"]},
+    {"id":"fusion.archer.class2","inputs":["archer","archer","archer"],"outputs":["sniper","ranger"]},
+    {"id":"fusion.mage.class2","inputs":["mage","mage","mage"],"outputs":["archmage","frost_weaver"]},
+    {"id":"fusion.summoner.class2","inputs":["summoner","summoner","summoner"],"outputs":["beast_lord","spirit_blade"]},
+    {"id":"fusion.acolyte.class2","inputs":["acolyte","acolyte","acolyte"],"outputs":["priest","inquisitor"]},
+    {"id":"fusion.merchant.class2","inputs":["merchant","merchant","merchant"],"outputs":["tycoon","trickster"]}
+  ],
+  "uiContract": {
+    "modal":"centered_side_by_side",
+    "requiredFields":["nameKey","portraitAssetId","roleIconIds","damageProfile","rangeCategory","playstyleKey","skillSummaryKey","confirmLabelKey"]
+  }
+}

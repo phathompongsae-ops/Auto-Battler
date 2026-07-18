@@ -1,0 +1,108 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://auto-battler.local/schema/class-evolution.schema.json",
+  "title": "Auto-Battler Class Evolution v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "roleIcons", "classLines"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "roleIcons": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/roleIcon" }
+    },
+    "classLines": {
+      "type": "array",
+      "minItems": 7,
+      "maxItems": 7,
+      "items": { "$ref": "#/$defs/classLine" }
+    }
+  },
+  "$defs": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*(?:\\.[a-z0-9_]+)*$"
+    },
+    "idArray": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/id" },
+      "uniqueItems": true
+    },
+    "roleIcon": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "nameKey", "descriptionKey", "assetId"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "nameKey": { "$ref": "#/$defs/id" },
+        "descriptionKey": { "$ref": "#/$defs/id" },
+        "assetId": { "$ref": "#/$defs/id" }
+      }
+    },
+    "branch": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "heroId",
+        "roleIconIds",
+        "damageProfile",
+        "rangeCategory",
+        "playstyleKey",
+        "strengthKeys",
+        "weaknessKeys"
+      ],
+      "properties": {
+        "heroId": { "$ref": "#/$defs/id" },
+        "roleIconIds": {
+          "allOf": [
+            { "$ref": "#/$defs/idArray" },
+            { "minItems": 2, "maxItems": 3 }
+          ]
+        },
+        "damageProfile": { "enum": ["physical", "magical", "hybrid"] },
+        "rangeCategory": { "enum": ["melee", "mid", "long"] },
+        "playstyleKey": { "$ref": "#/$defs/id" },
+        "strengthKeys": {
+          "allOf": [
+            { "$ref": "#/$defs/idArray" },
+            { "minItems": 1, "maxItems": 3 }
+          ]
+        },
+        "weaknessKeys": {
+          "allOf": [
+            { "$ref": "#/$defs/idArray" },
+            { "minItems": 1, "maxItems": 3 }
+          ]
+        }
+      }
+    },
+    "classLine": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["class1Id", "roleIconIds", "evolutionOptions", "branches"],
+      "properties": {
+        "class1Id": { "$ref": "#/$defs/id" },
+        "roleIconIds": {
+          "allOf": [
+            { "$ref": "#/$defs/idArray" },
+            { "minItems": 2, "maxItems": 3 }
+          ]
+        },
+        "evolutionOptions": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/id" }
+        },
+        "branches": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": { "$ref": "#/$defs/branch" }
+        }
+      }
+    }
+  }
+}

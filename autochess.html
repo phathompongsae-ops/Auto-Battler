@@ -12,7 +12,10 @@
     --accent-green: #4caf6e; --accent-red: #d9534f; --card-bg: #1c2231; --card-border: #363f56;
   }
   html, body { margin: 0; padding: 0; overflow: hidden; background: var(--bg); font-family: 'Trebuchet MS', sans-serif; }
-  canvas { display: block; width: 100%; height: 100%; }
+  /* touch-action:none คือ root cause fix ของ drag hero ที่ Android touch ทำไม่ได้ — ถ้าไม่ตั้ง เบราว์เซอร์
+     จะตีความการลากค้างเป็น pan/scroll แล้วยิง pointercancel ตัดวงจร pointer events กลางลาก (ยืนยันซ้ำ
+     ด้วย CDP touch dispatch: down→move→CANCEL ทันทีก่อนใส่ค่านี้, down→move*N→up ถูกต้องหลังใส่) */
+  canvas { display: block; width: 100%; height: 100%; touch-action: none; }
   * { box-sizing: border-box; }
 
   #loading {
@@ -280,6 +283,11 @@
   .evoOption img { width: 100%; height: 90px; object-fit: cover; display: block; background: #333; }
   .evoOption .name { font-weight: bold; padding: 6px 2px 0; }
   .evoOption .tags { color: var(--accent-green); padding: 0 2px; font-size: 10px; }
+  #evolutionCancelBtn {
+    margin-top: 16px; background: transparent; color: var(--text-dim); border: 1px solid var(--card-border);
+    border-radius: 8px; font-size: 12px; padding: 6px 18px; cursor: pointer;
+  }
+  #evolutionCancelBtn:hover { color: var(--text); border-color: var(--accent); }
   /* drag-to-place ghost: floats above the pointer (offset applied in JS) so the
      sprite doesn't cover the tile the player is about to drop on, and reads a touch
      smaller than the bench card it came from */
@@ -467,6 +475,7 @@
     <h3>🌟 <span id="evolutionSourceName"></span> พร้อมเปลี่ยนคลาส!</h3>
     <div class="evoSub">รวม 3 ตัวสำเร็จ — เลือกคลาส Tier-2 (ไอเทมที่เก็บมา <span id="evolutionItemCount">0</span> ชิ้น จะสวมให้อัตโนมัติสูงสุด 2 ชิ้น ที่เหลือกลับกระเป๋า)</div>
     <div id="evolutionOptions"></div>
+    <button id="evolutionCancelBtn">ปิด (เลือกทีหลัง)</button>
   </div>
 </div>
 

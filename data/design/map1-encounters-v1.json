@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "map": {"id":"map1_arena_ruins","index":1,"stageCount":15,"secretClassUnlock":"ninja"},
+  "minibossSelectionPolicy": "shuffle_without_replacement",
+  "obsoleteBossIds": ["warden","champion","immortal_champion"],
+  "elitePolicy": {"startsAtStage":4,"maxPerStage":1,"excludedStages":[5,10,15],"statMultiplier":1.35},
+  "monsters": [
+    {"id":"slime","kind":"normal","stats":{"hp":520,"pAtk":48,"range":1},"targetingBehavior":"nearest","skillIds":[]},
+    {"id":"orc","kind":"normal","stats":{"hp":780,"pAtk":68,"range":1},"targetingBehavior":"nearest","skillIds":["skill.monster_heavy_swing"]},
+    {"id":"stone_wolf","kind":"normal","stats":{"hp":620,"pAtk":72,"range":1},"targetingBehavior":"hunter","skillIds":["skill.monster_pounce"]},
+    {"id":"skeleton","kind":"normal","stats":{"hp":560,"pAtk":62,"range":1},"targetingBehavior":"nearest","skillIds":[]},
+    {"id":"spirit_archer","kind":"normal","stats":{"hp":500,"pAtk":64,"range":4},"targetingBehavior":"backline","skillIds":["skill.monster_spirit_arrow"]},
+    {"id":"shadow_assassin","kind":"normal","stats":{"hp":540,"pAtk":78,"range":1},"targetingBehavior":"backline","skillIds":["skill.monster_shadow_step"]},
+    {"id":"golem","kind":"normal","stats":{"hp":980,"pAtk":58,"range":1},"targetingBehavior":"nearest","skillIds":["skill.monster_stone_guard"],"balanceNote":"escort-tier stats; also referenced as a Stage 5 minibossPool member — needs a separate miniboss-tier balance pass before runtime integration, not resolved by this change"},
+    {"id":"orc_warlord","kind":"miniboss","stats":{"hp":2600,"pAtk":105,"range":1},"targetingBehavior":"nearest","skillIds":["skill.miniboss_orc_warlord_slam"],"balanceNote":"stats mirror the retired Warden budget 1:1 (new Demo 1 pool member, no prior tuning history)"},
+    {"id":"bone_dragon","kind":"miniboss","stats":{"hp":3000,"pAtk":112,"range":3},"targetingBehavior":"cluster","skillIds":["skill.miniboss_bone_breath"]},
+    {"id":"lich_king","kind":"miniboss","stats":{"hp":3000,"pAtk":112,"range":3},"targetingBehavior":"cluster","skillIds":["skill.miniboss_lich_king_frost_nova"],"balanceNote":"stats mirror the bone_dragon budget 1:1 (new Demo 1 pool member, no prior tuning history)"},
+    {"id":"arena_overlord","kind":"boss","stats":{"hp":5200,"pAtk":145,"range":2},"targetingBehavior":"cluster","skillIds":["skill.boss_arena_quake","skill.boss_commanding_roar"]},
+    {"id":"warden","kind":"miniboss","stats":{"hp":2600,"pAtk":105,"range":1},"targetingBehavior":"nearest","skillIds":["skill.miniboss_warden_slam"],"status":"obsolete","obsoleteNote":"superseded by the [golem, orc_warlord] Stage 5 pool lock; kept for historical reference only, must not be spawned"},
+    {"id":"champion","kind":"boss","stats":{"hp":1450,"pAtk":48,"range":2},"targetingBehavior":"nearest","skillIds":["skill.boss_arena_curse"],"status":"obsolete","obsoleteNote":"superseded by arena_overlord as the Stage 15 fixed boss; kept for historical reference only, must not be spawned"}
+  ],
+  "stages": [
+    {"stage":1,"type":"normal","maxEnemies":3,"pool":["slime","skeleton"],"multiplier":1.00,"weaponLevels":[1]},
+    {"stage":2,"type":"normal","maxEnemies":3,"pool":["slime","orc","skeleton"],"multiplier":1.09,"weaponLevels":[1]},
+    {"stage":3,"type":"normal","maxEnemies":3,"pool":["orc","stone_wolf","skeleton"],"multiplier":1.18,"weaponLevels":[1]},
+    {"stage":4,"type":"normal","maxEnemies":4,"pool":["orc","stone_wolf","spirit_archer"],"multiplier":1.27,"weaponLevels":[1],"eliteAllowed":true},
+    {"stage":5,"type":"miniboss","maxEnemies":1,"minibossPool":["golem","orc_warlord"],"multiplier":1.36,"weaponLevels":[1],"augmentOffer":"augment.map1.after_5"},
+    {"stage":6,"type":"normal","maxEnemies":4,"pool":["orc","stone_wolf","spirit_archer"],"multiplier":1.45,"weaponLevels":[1,2],"eliteAllowed":true},
+    {"stage":7,"type":"normal","maxEnemies":5,"pool":["stone_wolf","spirit_archer","golem"],"multiplier":1.54,"weaponLevels":[1,2],"eliteAllowed":true},
+    {"stage":8,"type":"normal","maxEnemies":5,"pool":["orc","shadow_assassin","golem"],"multiplier":1.63,"weaponLevels":[1,2],"eliteAllowed":true},
+    {"stage":9,"type":"normal","maxEnemies":5,"pool":["spirit_archer","shadow_assassin","golem"],"multiplier":1.72,"weaponLevels":[1,2],"eliteAllowed":true},
+    {"stage":10,"type":"miniboss","maxEnemies":1,"minibossPool":["bone_dragon","lich_king"],"multiplier":1.81,"weaponLevels":[1,2,3],"augmentOffer":"augment.map1.after_10"},
+    {"stage":11,"type":"normal","maxEnemies":6,"pool":["orc","stone_wolf","shadow_assassin","golem"],"multiplier":1.90,"weaponLevels":[1,2,3],"eliteAllowed":true},
+    {"stage":12,"type":"normal","maxEnemies":6,"pool":["stone_wolf","spirit_archer","shadow_assassin","golem"],"multiplier":1.99,"weaponLevels":[1,2,3],"eliteAllowed":true},
+    {"stage":13,"type":"normal","maxEnemies":7,"pool":["orc","spirit_archer","shadow_assassin","golem"],"multiplier":2.08,"weaponLevels":[2,3],"eliteAllowed":true},
+    {"stage":14,"type":"normal","maxEnemies":7,"pool":["stone_wolf","spirit_archer","shadow_assassin","golem"],"multiplier":2.17,"weaponLevels":[2,3],"eliteAllowed":true},
+    {"stage":15,"type":"boss","maxEnemies":1,"finalBossId":"arena_overlord","multiplier":2.26,"weaponLevels":[2,3],"unlock":"ninja"}
+  ],
+  "rewardRule": {"baseGoldFormula":"10 + stageNumber","noDeathBonus":3}
+}

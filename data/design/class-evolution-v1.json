@@ -1,0 +1,197 @@
+{
+  "schemaVersion": 1,
+  "roleIcons": [
+    { "id": "tank", "nameKey": "role.tank.name", "descriptionKey": "role.tank.description", "assetId": "icon.role.tank" },
+    { "id": "melee_dps", "nameKey": "role.melee_dps.name", "descriptionKey": "role.melee_dps.description", "assetId": "icon.role.melee_dps" },
+    { "id": "ranged_dps", "nameKey": "role.ranged_dps.name", "descriptionKey": "role.ranged_dps.description", "assetId": "icon.role.ranged_dps" },
+    { "id": "mage", "nameKey": "role.mage.name", "descriptionKey": "role.mage.description", "assetId": "icon.role.mage" },
+    { "id": "healer", "nameKey": "role.healer.name", "descriptionKey": "role.healer.description", "assetId": "icon.role.healer" },
+    { "id": "support", "nameKey": "role.support.name", "descriptionKey": "role.support.description", "assetId": "icon.role.support" },
+    { "id": "aoe", "nameKey": "role.aoe.name", "descriptionKey": "role.aoe.description", "assetId": "icon.role.aoe" },
+    { "id": "single_target", "nameKey": "role.single_target.name", "descriptionKey": "role.single_target.description", "assetId": "icon.role.single_target" },
+    { "id": "burst", "nameKey": "role.burst.name", "descriptionKey": "role.burst.description", "assetId": "icon.role.burst" },
+    { "id": "assassin", "nameKey": "role.assassin.name", "descriptionKey": "role.assassin.description", "assetId": "icon.role.assassin" },
+    { "id": "summoner", "nameKey": "role.summoner.name", "descriptionKey": "role.summoner.description", "assetId": "icon.role.summoner" },
+    { "id": "economy", "nameKey": "role.economy.name", "descriptionKey": "role.economy.description", "assetId": "icon.role.economy" },
+    { "id": "control", "nameKey": "role.control.name", "descriptionKey": "role.control.description", "assetId": "icon.role.control" },
+    { "id": "frontline", "nameKey": "role.frontline.name", "descriptionKey": "role.frontline.description", "assetId": "icon.role.frontline" },
+    { "id": "backline", "nameKey": "role.backline.name", "descriptionKey": "role.backline.description", "assetId": "icon.role.backline" }
+  ],
+  "classLines": [
+    {
+      "class1Id": "fighter",
+      "roleIconIds": ["frontline", "melee_dps"],
+      "evolutionOptions": ["knight", "berserker"],
+      "branches": [
+        {
+          "heroId": "knight",
+          "roleIconIds": ["tank", "support", "frontline"],
+          "damageProfile": "physical",
+          "rangeCategory": "melee",
+          "playstyleKey": "hero.knight.playstyle",
+          "strengthKeys": ["hero.knight.strength.durability", "hero.knight.strength.protection"],
+          "weaknessKeys": ["hero.knight.weakness.low_damage"]
+        },
+        {
+          "heroId": "berserker",
+          "roleIconIds": ["melee_dps", "burst", "frontline"],
+          "damageProfile": "physical",
+          "rangeCategory": "melee",
+          "playstyleKey": "hero.berserker.playstyle",
+          "strengthKeys": ["hero.berserker.strength.high_damage", "hero.berserker.strength.execute"],
+          "weaknessKeys": ["hero.berserker.weakness.low_survivability"]
+        }
+      ]
+    },
+    {
+      "class1Id": "swordman",
+      "roleIconIds": ["melee_dps", "single_target"],
+      "evolutionOptions": ["blade_master", "duelist"],
+      "branches": [
+        {
+          "heroId": "blade_master",
+          "roleIconIds": ["melee_dps", "aoe", "frontline"],
+          "damageProfile": "physical",
+          "rangeCategory": "melee",
+          "playstyleKey": "hero.blade_master.playstyle",
+          "strengthKeys": ["hero.blade_master.strength.cleave", "hero.blade_master.strength.sustained_damage"],
+          "weaknessKeys": ["hero.blade_master.weakness.needs_positioning"]
+        },
+        {
+          "heroId": "duelist",
+          "roleIconIds": ["single_target", "burst", "melee_dps"],
+          "damageProfile": "physical",
+          "rangeCategory": "melee",
+          "playstyleKey": "hero.duelist.playstyle",
+          "strengthKeys": ["hero.duelist.strength.single_target", "hero.duelist.strength.dodge_or_parry"],
+          "weaknessKeys": ["hero.duelist.weakness.poor_aoe"]
+        }
+      ]
+    },
+    {
+      "class1Id": "archer",
+      "roleIconIds": ["ranged_dps", "backline"],
+      "evolutionOptions": ["sniper", "ranger"],
+      "branches": [
+        {
+          "heroId": "sniper",
+          "roleIconIds": ["ranged_dps", "single_target", "burst"],
+          "damageProfile": "physical",
+          "rangeCategory": "long",
+          "playstyleKey": "hero.sniper.playstyle",
+          "strengthKeys": ["hero.sniper.strength.long_range", "hero.sniper.strength.priority_target"],
+          "weaknessKeys": ["hero.sniper.weakness.low_attack_speed"]
+        },
+        {
+          "heroId": "ranger",
+          "roleIconIds": ["ranged_dps", "single_target", "backline"],
+          "damageProfile": "physical",
+          "rangeCategory": "long",
+          "playstyleKey": "hero.ranger.playstyle",
+          "strengthKeys": ["hero.ranger.strength.sustained_damage", "hero.ranger.strength.mobility"],
+          "weaknessKeys": ["hero.ranger.weakness.fragile"]
+        }
+      ]
+    },
+    {
+      "class1Id": "mage",
+      "roleIconIds": ["mage", "backline"],
+      "evolutionOptions": ["archmage", "frost_weaver"],
+      "branches": [
+        {
+          "heroId": "archmage",
+          "roleIconIds": ["mage", "aoe", "burst"],
+          "damageProfile": "magical",
+          "rangeCategory": "long",
+          "playstyleKey": "hero.archmage.playstyle",
+          "strengthKeys": ["hero.archmage.strength.aoe", "hero.archmage.strength.burst"],
+          "weaknessKeys": ["hero.archmage.weakness.high_mana_dependency"]
+        },
+        {
+          "heroId": "frost_weaver",
+          "roleIconIds": ["mage", "control", "support"],
+          "damageProfile": "magical",
+          "rangeCategory": "long",
+          "playstyleKey": "hero.frost_weaver.playstyle",
+          "strengthKeys": ["hero.frost_weaver.strength.slow", "hero.frost_weaver.strength.area_control"],
+          "weaknessKeys": ["hero.frost_weaver.weakness.lower_burst"]
+        }
+      ]
+    },
+    {
+      "class1Id": "summoner",
+      "roleIconIds": ["summoner", "support"],
+      "evolutionOptions": ["beast_lord", "spirit_blade"],
+      "branches": [
+        {
+          "heroId": "beast_lord",
+          "roleIconIds": ["summoner", "frontline", "support"],
+          "damageProfile": "hybrid",
+          "rangeCategory": "mid",
+          "playstyleKey": "hero.beast_lord.playstyle",
+          "strengthKeys": ["hero.beast_lord.strength.extra_units", "hero.beast_lord.strength.frontline_pressure"],
+          "weaknessKeys": ["hero.beast_lord.weakness.summon_dependency"]
+        },
+        {
+          "heroId": "spirit_blade",
+          "roleIconIds": ["summoner", "burst", "melee_dps"],
+          "damageProfile": "hybrid",
+          "rangeCategory": "melee",
+          "playstyleKey": "hero.spirit_blade.playstyle",
+          "strengthKeys": ["hero.spirit_blade.strength.spirit_combo", "hero.spirit_blade.strength.burst"],
+          "weaknessKeys": ["hero.spirit_blade.weakness.risky_positioning"]
+        }
+      ]
+    },
+    {
+      "class1Id": "acolyte",
+      "roleIconIds": ["healer", "support"],
+      "evolutionOptions": ["priest", "inquisitor"],
+      "branches": [
+        {
+          "heroId": "priest",
+          "roleIconIds": ["healer", "support", "backline"],
+          "damageProfile": "magical",
+          "rangeCategory": "long",
+          "playstyleKey": "hero.priest.playstyle",
+          "strengthKeys": ["hero.priest.strength.healing", "hero.priest.strength.protection"],
+          "weaknessKeys": ["hero.priest.weakness.low_damage"]
+        },
+        {
+          "heroId": "inquisitor",
+          "roleIconIds": ["mage", "single_target", "control"],
+          "damageProfile": "magical",
+          "rangeCategory": "mid",
+          "playstyleKey": "hero.inquisitor.playstyle",
+          "strengthKeys": ["hero.inquisitor.strength.punish", "hero.inquisitor.strength.disable"],
+          "weaknessKeys": ["hero.inquisitor.weakness.lower_healing"]
+        }
+      ]
+    },
+    {
+      "class1Id": "merchant",
+      "roleIconIds": ["economy", "support"],
+      "evolutionOptions": ["tycoon", "trickster"],
+      "branches": [
+        {
+          "heroId": "tycoon",
+          "roleIconIds": ["economy", "support", "backline"],
+          "damageProfile": "physical",
+          "rangeCategory": "mid",
+          "playstyleKey": "hero.tycoon.playstyle",
+          "strengthKeys": ["hero.tycoon.strength.gold_value", "hero.tycoon.strength.team_buff"],
+          "weaknessKeys": ["hero.tycoon.weakness.low_direct_damage"]
+        },
+        {
+          "heroId": "trickster",
+          "roleIconIds": ["assassin", "control", "burst"],
+          "damageProfile": "hybrid",
+          "rangeCategory": "mid",
+          "playstyleKey": "hero.trickster.playstyle",
+          "strengthKeys": ["hero.trickster.strength.disruption", "hero.trickster.strength.backline_access"],
+          "weaknessKeys": ["hero.trickster.weakness.inconsistent_damage"]
+        }
+      ]
+    }
+  ]
+}

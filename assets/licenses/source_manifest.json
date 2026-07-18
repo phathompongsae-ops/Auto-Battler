@@ -61,6 +61,15 @@
       "license": "original work; embedded fonts are OFL-licensed"
     },
     {
+      "path": "assets/orc_warlord.png, assets/lich_king.png, assets/arena_overlord.png",
+      "content": "Demo 1 Miniboss Pool members (Stage 5: orc_warlord alongside golem; Stage 10: lich_king alongside bone_dragon) and the fixed Stage 15 boss (arena_overlord), added when the Stage 5/10/15 boss policy was locked",
+      "source": "procedural",
+      "generator": "tools/gen_bosses.py — new px()-based pixel-art blocks added alongside the existing miniboss/boss sprites; each uses a distinct palette/silhouette/weapon and does not reuse or derive from boss_champion*.png pixels",
+      "postprocess": "none — output is used directly",
+      "provenance_note": "arena_overlord is a dedicated new asset, not a renamed or recolored copy of the obsolete boss_champion/boss_champion_big sprites",
+      "license": "original work, no external assets involved"
+    },
+    {
       "path": "game_config.json",
       "content": "hero/weapon/fusion/drop-table balance data",
       "source": "user-provided",

@@ -22,7 +22,9 @@ const TILE = 1;
 const PLAYER_ROWS = [3, 4, 5];       // แถวที่วางฮีโร่ลงสู้ได้
 const BENCH_ROW = 6;                 // แถวล่างสุด (ชิดจอผู้เล่นที่สุด) = ม้านั่งสำรอง ไม่ร่วมรบ
 const MAX_FIELD = 5;                 // ลงสนามพร้อมกันได้สูงสุด 5 ตัว ที่เหลือรอในม้านั่งสำรอง
-const MAX_BENCH = GRID_COLS;         // ม้านั่งสำรอง = 1 ช่องต่อ 1 คอลัมน์ในแถวม้านั่ง (8 ช่อง)
+const MAX_BENCH = 5;                 // ม้านั่งสำรอง = 5 ช่อง (ล็อกตามกฎ Demo 1) — แยกจาก GRID_COLS โดยตั้งใจ
+                                      // เพราะแถวม้านั่งยังกว้าง 8 คอลัมน์เท่าเดิม (ไม่แตะขนาดกระดาน)
+                                      // ใช้แค่ 5 คอลัมน์แรก (c=0..4) เป็นช่องม้านั่งที่วางได้จริง
 const WAVE_TOTAL = 15;
 const MAX_LOSSES = 3;                // แพ้ได้สูงสุด 3 ครั้งต่อรัน ก่อนที่จะจบเกมจริง (นับต่อแมพตาม GDD)
 
@@ -193,18 +195,26 @@ for (let r=0;r<GRID_ROWS;r++) for (let c=0;c<GRID_COLS;c++) {
   m.rotation.x = -Math.PI/2;
   const p = gridToWorld(c,r);
   m.position.set(p.x, 0, p.z);
-  m.userData = { isTile: true, c, r, playerZone: isPlayerZone || isBench, isBench, baseTint };
+  const isUsableBench = isBench && c < MAX_BENCH; // คอลัมน์ 5-7 ของแถวม้านั่งเกินโควตา 5 ช่อง — วางไม่ได้
+  m.userData = { isTile: true, c, r, playerZone: isPlayerZone || isUsableBench, isBench, baseTint };
   scene.add(m);
   tileMeshes.push(m);
 }
 // ไฮไลต์ช่องวางตัว: ทำงานเฉพาะตอนกำลังเลือก (selectedUnit) หรือกำลังลาก (unitDrag.moved) —
 // ช่องผู้เล่นที่ว่าง = เขียวอ่อน (แถวม้านั่ง = ฟ้าอ่อน), ช่องที่ใช้งานอยู่/วางไม่ได้ = แดงโปร่งใส,
 // เวลาปกติทุกช่องกลับเป็นสีพื้นจางๆ (baseTint) — แตะแค่ material color/opacity ไม่แตะพิกัด/กติกาวางตัว
+// ระหว่างลากจริง (dragging) ไฮไลต์เฉพาะ "ช่องเดียวใต้ pointer ตอนนี้" (unitDrag.hoverTile ซึ่งอัปเดต
+// แบบ real-time ใน pointermove) ไม่ใช่โชว์ทุกช่องที่วางได้พร้อมกัน — ต่างจากโหมด tap-select
+// (selectedUnit ไม่มีการลาก) ซึ่งยังคงพฤติกรรมเดิม (โชว์ปลายทางที่วางได้ทั้งหมดพร้อมกัน)
 function updateTileHighlights() {
-  const placing = !!selectedUnit || !!(unitDrag && unitDrag.moved);
+  const dragging = !!(unitDrag && unitDrag.moved);
+  const placing = !!selectedUnit || dragging;
   tileMeshes.forEach((m) => {
     const ud = m.userData;
-    if (!placing || !ud.playerZone) {
+    const show = dragging
+      ? (!!unitDrag.hoverTile && unitDrag.hoverTile.c === ud.c && unitDrag.hoverTile.r === ud.r)
+      : (placing && ud.playerZone);
+    if (!show) {
       m.material.color.set(ud.baseTint);
       m.material.opacity = 1;
       return;
@@ -338,10 +348,13 @@ const ASSET_META = {
   StoneWolf:      { path: 'assets/mon_stonewolf.png',      frames: 1 },
   SpiritArcher:   { path: 'assets/mon_spiritarcher.png',   frames: 1 },
   ShadowAssassin: { path: 'assets/mon_shadowassassin.png', frames: 1 },
-  Warden:         { path: 'assets/miniboss_warden.png',    frames: 1 },
+  Warden:         { path: 'assets/miniboss_warden.png',    frames: 1 }, // obsolete (ดู STAGE5_MINIBOSS_POOL) เก็บไว้อ้างอิงเท่านั้น
   Golem:          { path: 'assets/mon_golem.png',          frames: 1 },
+  OrcWarlord:     { path: 'assets/orc_warlord.png',        frames: 1 },
   BoneDragon:     { path: 'assets/mon_bonedragon.png',     frames: 1 },
-  ChampionBig:    { path: 'assets/boss_champion_big.png',  frames: 1 },
+  LichKing:       { path: 'assets/lich_king.png',          frames: 1 },
+  ArenaOverlord:  { path: 'assets/arena_overlord.png',     frames: 1 },
+  ChampionBig:    { path: 'assets/boss_champion_big.png',  frames: 1 }, // obsolete (ดู STAGE15_FINAL_BOSS) เก็บไว้อ้างอิงเท่านั้น
 };
 const SPRITES = {};
 // sprite key ที่โหลด texture ไม่สำเร็จ (ไฟล์หาย/พิมพ์ผิด/case ไม่ตรงบน GitHub Pages) — makeUnit()
@@ -1256,29 +1269,54 @@ const STAGE_PLAN = {
   13: [{ type:'OrcBrute', count:3 }, { type:'Golem', count:2 }, { type:'SpiritArcher', count:3 }],
   14: [{ type:'Golem', count:3 }, { type:'ShadowAssassin', count:3 }, { type:'SpiritArcher', count:3 }],
 };
+// Miniboss Pool ล็อกตาม docs/DEMO1_DATA_POLICY.md — ด่าน 5/10 สุ่มเลือก 1 ตัวจาก pool ของด่านนั้น
+// แบบไม่ซ้ำกันภายในรันเดียว (เลือกครั้งแรกที่ถึงด่านนั้น แล้วจำไว้ใช้ซ้ำตอน retry ด่านเดิม — ไม่มีฟังก์ชัน
+// reset ระหว่างรันอื่นอยู่แล้วเพราะจบรัน/แพ้ครบโควตาจะ location.reload() ทั้งหน้าเสมอ ดู onWaveFailed/
+// resultBtn) — สถิติของสมาชิก pool ใหม่ (orc_warlord/lich_king) ก็อปสถิติ+bossSkillId ของสมาชิกเดิมใน
+// pool เดียวกันมาตรง ๆ (Warden/Bone Dragon) ไม่ได้คิดค่าความยากใหม่ จึงไม่แตะ Combat/skill ใด ๆ เพิ่ม
+// Warden/Immortal Champion (ChampionBig) เป็นข้อมูล obsolete แล้ว เก็บไว้ในตารางสไปรท์ด้านบนเพื่ออ้างอิง
+// ประวัติเท่านั้น ไม่ถูกเรียกใช้จาก bossWave() อีกต่อไป
+const STAGE5_MINIBOSS_POOL = [
+  { name:'Golem', sprite:'Golem', hp:650, pAtk:32, atkSpeed:0.85, range:1, moveSpeed:1.4, armor:22, unitType:'boss', bossSkillId:'area_taunt' },
+  { name:'Orc Warlord', sprite:'OrcWarlord', hp:650, pAtk:32, atkSpeed:0.85, range:1, moveSpeed:1.4, armor:22, unitType:'boss', bossSkillId:'area_taunt' },
+];
+const STAGE10_MINIBOSS_POOL = [
+  { name:'Bone Dragon', sprite:'BoneDragon', hp:980, pAtk:40, atkSpeed:0.9, range:3, moveSpeed:1.6, frameSize:{ w:2.0, h:1.6 }, armor:18, unitType:'boss', bossSkillId:'cone_breath' },
+  { name:'Lich King', sprite:'LichKing', hp:980, pAtk:40, atkSpeed:0.9, range:3, moveSpeed:1.6, frameSize:{ w:2.0, h:1.6 }, armor:18, unitType:'boss', bossSkillId:'cone_breath' },
+];
+// ตัวเลือกที่สุ่มได้ของแต่ละรัน — null จนกว่าจะถึงด่านนั้นครั้งแรก; หน้าเทสสามารถ inject ผลลัพธ์ที่
+// ต้องการล่วงหน้าได้ตรง ๆ ผ่านตัวแปรนี้ (เช่น `stage5MinibossChoice = 1;` ก่อนกดเริ่มด่าน) โดยไม่ต้อง
+// แก้ RNG ของทั้งเกม
+let stage5MinibossChoice = null;
+let stage10MinibossChoice = null;
+function pickMinibossIndex() { return Math.random() < 0.5 ? 0 : 1; }
 const STAGE_LABEL = {
-  5:  '⚠ มินิบอส: Arena Warden',
-  10: '⚠ มินิบอส: Bone Dragon',
-  15: '💀 บอสใหญ่: Immortal Champion',
+  5:  '⚠ มินิบอส: Miniboss Pool (Golem / Orc Warlord)',
+  10: '⚠ มินิบอส: Miniboss Pool (Bone Dragon / Lich King)',
+  15: '💀 บอสใหญ่: Arena Overlord',
 };
-// บอสทั้ง 3 ตัวใช้สถิติจากฐานข้อมูล Codex ตรงๆ (สเปรตรูปเดิมของโปรเจกต์ที่มีอยู่แล้วผูกไว้ตามธีมที่
-// ใกล้เคียงที่สุด) — ยังไม่ได้ทำท่าพิเศษเฉพาะบอส (area_taunt/cone_breath/arena_curse) เพราะเป็นระบบ
-// สกิลใหม่ทั้งหมดที่ Codex ส่งมาโดยละเอียดยังไม่พอสำหรับ implement ตรงนี้ (cooldown/AOE/debuff แบบ
-// เต็มรูปแบบ) และอยู่นอกขอบเขตที่ขอมาตอนนี้ (แค่ specialBehavior หลัก 4 แบบ) ใช้แค่สถิติพื้นฐานไปก่อน
 function bossWave(stage) {
-  if (stage === 5) return [
-    { name:'Arena Warden', sprite:'Warden', c:3, r:0, hp:650, pAtk:32, atkSpeed:0.85, range:1, moveSpeed:1.4, armor:22, unitType:'boss', bossSkillId:'area_taunt' },
-    { name:'Skeleton Guard A', sprite:'Skeleton', c:1, r:1, hp:110, pAtk:13, atkSpeed:1.0, range:1, moveSpeed:1.8, armor:5 },
-    { name:'Skeleton Guard B', sprite:'Skeleton', c:5, r:1, hp:110, pAtk:13, atkSpeed:1.0, range:1, moveSpeed:1.8, armor:5 },
-  ];
-  if (stage === 10) return [
-    { name:'Bone Dragon', sprite:'BoneDragon', c:3, r:0, hp:980, pAtk:40, atkSpeed:0.9, range:3, moveSpeed:1.6, frameSize:{ w:2.0, h:1.6 }, armor:18, unitType:'boss', bossSkillId:'cone_breath' },
-    { name:'Golem', sprite:'Golem', c:3, r:1, hp:280, pAtk:24, atkSpeed:0.6, range:1, moveSpeed:1.1, frameSize:{ w:1.3, h:1.5 }, armor:16 },
-    { name:'Spirit Archer A', sprite:'SpiritArcher', c:1, r:1, hp:90, pAtk:18, atkSpeed:1.05, range:4, moveSpeed:1.7, armor:2 },
-    { name:'Spirit Archer B', sprite:'SpiritArcher', c:6, r:1, hp:90, pAtk:18, atkSpeed:1.05, range:4, moveSpeed:1.7, armor:2 },
-  ];
+  if (stage === 5) {
+    if (stage5MinibossChoice === null) stage5MinibossChoice = pickMinibossIndex();
+    const boss = STAGE5_MINIBOSS_POOL[stage5MinibossChoice];
+    return [
+      { ...boss, c:3, r:0 },
+      { name:'Skeleton Guard A', sprite:'Skeleton', c:1, r:1, hp:110, pAtk:13, atkSpeed:1.0, range:1, moveSpeed:1.8, armor:5 },
+      { name:'Skeleton Guard B', sprite:'Skeleton', c:5, r:1, hp:110, pAtk:13, atkSpeed:1.0, range:1, moveSpeed:1.8, armor:5 },
+    ];
+  }
+  if (stage === 10) {
+    if (stage10MinibossChoice === null) stage10MinibossChoice = pickMinibossIndex();
+    const boss = STAGE10_MINIBOSS_POOL[stage10MinibossChoice];
+    return [
+      { ...boss, c:3, r:0 },
+      { name:'Golem', sprite:'Golem', c:3, r:1, hp:280, pAtk:24, atkSpeed:0.6, range:1, moveSpeed:1.1, frameSize:{ w:1.3, h:1.5 }, armor:16 },
+      { name:'Spirit Archer A', sprite:'SpiritArcher', c:1, r:1, hp:90, pAtk:18, atkSpeed:1.05, range:4, moveSpeed:1.7, armor:2 },
+      { name:'Spirit Archer B', sprite:'SpiritArcher', c:6, r:1, hp:90, pAtk:18, atkSpeed:1.05, range:4, moveSpeed:1.7, armor:2 },
+    ];
+  }
   if (stage === 15) return [
-    { name:'Immortal Champion', sprite:'ChampionBig', c:3, r:0, hp:1450, pAtk:48, atkSpeed:1.0, range:2, moveSpeed:1.8, frameSize:{ w:1.9, h:2.6 }, armor:28, unitType:'boss', bossSkillId:'arena_curse' },
+    { name:'Arena Overlord', sprite:'ArenaOverlord', c:3, r:0, hp:1450, pAtk:48, atkSpeed:1.0, range:2, moveSpeed:1.8, frameSize:{ w:1.9, h:2.6 }, armor:28, unitType:'boss', bossSkillId:'arena_curse' },
     { name:'Golem A', sprite:'Golem', c:1, r:1, hp:280, pAtk:24, atkSpeed:0.6, range:1, moveSpeed:1.1, frameSize:{ w:1.3, h:1.5 }, armor:16 },
     { name:'Golem B', sprite:'Golem', c:6, r:1, hp:280, pAtk:24, atkSpeed:0.6, range:1, moveSpeed:1.1, frameSize:{ w:1.3, h:1.5 }, armor:16 },
     { name:'Shadow Assassin A', sprite:'ShadowAssassin', c:2, r:1, hp:105, pAtk:22, atkSpeed:1.4, range:1, moveSpeed:3.0, armor:3 },
@@ -2764,13 +2802,15 @@ function updateSummonAuras() {
 // shields, taunt-forces-target, etc).
 // ============================================================
 const BOSS_SKILLS = {
-  // Arena Warden (wave 5): yanks aggro from everyone in range, then tanks better for a few
-  // seconds — "damage reduction" is approximated via a temporary armor-% boost (this engine's
-  // enemy defense is a single %-mitigation stat, not a separate flat "incoming damage reduction").
-  area_taunt:  { name:"Warden's Challenge", cooldown:8, castTime:0.6, range:3, tauntDuration:2.5, armorPctBonus:60, armorBonusDuration:2.5 },
-  // Bone Dragon (wave 10): cone-shaped magic breath in front of whichever hero it's nearest to.
-  cone_breath: { name:'Bone Breath', cooldown:7, castTime:0.8, range:3, coneWidth:0.65, damageMultiplier:1.5, attackType:'magic' },
-  // Immortal Champion (wave 15): curses a random hero's defenses for several seconds.
+  // Stage 5 miniboss pool (Golem/Orc Warlord — see STAGE5_MINIBOSS_POOL): yanks aggro from
+  // everyone in range, then tanks better for a few seconds — "damage reduction" is approximated
+  // via a temporary armor-% boost (this engine's enemy defense is a single %-mitigation stat,
+  // not a separate flat "incoming damage reduction").
+  area_taunt:  { name:"Miniboss Challenge", cooldown:8, castTime:0.6, range:3, tauntDuration:2.5, armorPctBonus:60, armorBonusDuration:2.5 },
+  // Stage 10 miniboss pool (Bone Dragon/Lich King — see STAGE10_MINIBOSS_POOL): cone-shaped
+  // magic breath in front of whichever hero it's nearest to.
+  cone_breath: { name:'Miniboss Breath', cooldown:7, castTime:0.8, range:3, coneWidth:0.65, damageMultiplier:1.5, attackType:'magic' },
+  // Stage 15 fixed boss (Arena Overlord): curses a random hero's defenses for several seconds.
   arena_curse: { name:'Arena Curse', cooldown:9, castTime:0.7, targetCount:1, defensePct:-30, duration:5 },
 };
 function getNearestPlayerUnit(source, candidates) {
@@ -3382,12 +3422,48 @@ function scanForMergeCandidate() {
 // Removes exactly 3 matching source heroes from the bench, pools their equipment (in
 // source1-slot1/slot2, source2-slot1/slot2, source3-slot1/slot2 order — the priority order
 // restoreEquipment reads from later), and opens the evolution choice modal.
+// Locks in WHICH 3 bench instances are the fusion source (by instanceId only) and opens the
+// choice modal — does NOT touch benchHeroes/equipment yet. The 3 source units stay exactly as
+// they were (still real bench units, still sellable in principle) until the player actually
+// presses Confirm in chooseEvolution(); the modal overlay already blocks board/bench interaction
+// while open (same as every other modal in this file), so nothing else can touch them meanwhile.
 function lockMergeSources(heroKey) {
   const sourceIdx = [];
   for (let i = 0; i < benchHeroes.length && sourceIdx.length < 3; i++) {
     if (benchHeroes[i].heroKey === heroKey) sourceIdx.push(i);
   }
   if (sourceIdx.length < 3) return;
+  const sourceInstanceIds = sourceIdx.map((i) => benchHeroes[i].instanceId);
+  pendingEvolution = {
+    sourceHeroDefId: heroKey,
+    sourceInstanceIds,
+    availableEvolutionIds: EVOLUTION_TREE[heroKey].evolutions,
+    status: 'waiting_for_choice',
+  };
+  openEvolutionModal();
+  renderUI();
+}
+// Player closed the modal without choosing — the 3 source units were never touched, so this is
+// a pure no-op on game state; scanForMergeCandidate() will naturally re-offer the same trio (or
+// whichever trio still matches) the next time a bench-changing action runs.
+function cancelEvolution() {
+  if (!pendingEvolution) return;
+  pendingEvolution = null;
+  closeEvolutionModal();
+  renderUI();
+}
+// Creates the chosen tier-2 hero on the bench, auto-equips the first 2 pooled items (in
+// collection-priority order), and returns any overflow to the player's inventory — items are
+// never destroyed, matching equipment_transfer_policy.never_destroy_overflow_items. The 3
+// source units and their equipment are only consumed here, at confirm time.
+function chooseEvolution(evolutionId) {
+  if (!pendingEvolution) return;
+  if (!pendingEvolution.availableEvolutionIds.includes(evolutionId)) return;
+  if (HERO_DEFS[evolutionId].evolves_from !== pendingEvolution.sourceHeroDefId) return;
+  const sourceIdx = pendingEvolution.sourceInstanceIds
+    .map((id) => benchHeroes.findIndex((u) => u.instanceId === id))
+    .filter((i) => i >= 0);
+  if (sourceIdx.length !== pendingEvolution.sourceInstanceIds.length) { cancelEvolution(); return; } // defensive: a source left the bench somehow — abort, consume nothing
   const sourceInstances = sourceIdx.map((i) => benchHeroes[i]);
   const collectedItemInstanceIds = [];
   sourceInstances.forEach((inst) => {
@@ -3403,41 +3479,23 @@ function lockMergeSources(heroKey) {
   // so removeUnit() must run before splicing it out of the tracking array (else a "ghost" body
   // would stay in the scene forever — orphaned, never rendered-over, never cleaned up)
   [...sourceIdx].sort((a, b) => b - a).forEach((i) => { removeUnit(benchHeroes[i]); benchHeroes.splice(i, 1); });
-  pendingEvolution = {
-    sourceHeroDefId: heroKey,
-    sourceInstanceIds: sourceInstances.map((s) => s.instanceId),
-    availableEvolutionIds: EVOLUTION_TREE[heroKey].evolutions,
-    collectedItemInstanceIds,
-    status: 'waiting_for_choice',
-  };
-  openEvolutionModal();
-  renderUI();
-}
-// Creates the chosen tier-2 hero on the bench, auto-equips the first 2 pooled items (in
-// collection-priority order), and returns any overflow to the player's inventory — items are
-// never destroyed, matching equipment_transfer_policy.never_destroy_overflow_items.
-function chooseEvolution(evolutionId) {
-  if (!pendingEvolution) return;
-  if (!pendingEvolution.availableEvolutionIds.includes(evolutionId)) return;
-  if (HERO_DEFS[evolutionId].evolves_from !== pendingEvolution.sourceHeroDefId) return;
   const newInst = spawnToBench(createHeroInstance(evolutionId));
-  if (!newInst) return; // practically unreachable (3 slots were just freed for 1 new hero), defensive only
-  const collected = pendingEvolution.collectedItemInstanceIds;
+  if (!newInst) { pendingEvolution = null; closeEvolutionModal(); renderUI(); return; } // practically unreachable (3 slots were just freed for 1 new hero), defensive only
   let equipped = 0;
-  for (let i = 0; i < collected.length && equipped < 2; i++) {
-    const item = playerState.itemInstances[collected[i]];
+  for (let i = 0; i < collectedItemInstanceIds.length && equipped < 2; i++) {
+    const item = playerState.itemInstances[collectedItemInstanceIds[i]];
     if (!item) continue;
-    newInst.equipment[equipped] = collected[i];
+    newInst.equipment[equipped] = collectedItemInstanceIds[i];
     item.location = 'equipped';
     item.ownerHeroId = newInst.instanceId;
     equipped++;
   }
-  for (let i = equipped; i < collected.length; i++) {
-    const item = playerState.itemInstances[collected[i]];
+  for (let i = equipped; i < collectedItemInstanceIds.length; i++) {
+    const item = playerState.itemInstances[collectedItemInstanceIds[i]];
     if (!item) continue;
     item.location = 'inventory';
     item.ownerHeroId = null;
-    playerState.inventory.itemInstanceIds.push(collected[i]);
+    playerState.inventory.itemInstanceIds.push(collectedItemInstanceIds[i]);
   }
   pendingEvolution = null;
   closeEvolutionModal();
@@ -3573,9 +3631,9 @@ function createUnitFromInstance(instData, c, r) {
   updateEquipBadge(u);
   return u;
 }
-// หาคอลัมน์ว่างช่องแรกในแถวม้านั่งสำรอง (BENCH_ROW) — คืน -1 ถ้าเต็มทั้ง 8 ช่อง
+// หาคอลัมน์ว่างช่องแรกในแถวม้านั่งสำรอง (BENCH_ROW) — ใช้แค่ 5 คอลัมน์แรกตาม MAX_BENCH, คืน -1 ถ้าเต็ม
 function findFreeBenchCol() {
-  for (let c = 0; c < GRID_COLS; c++) if (!occupied.has(key(c, BENCH_ROW))) return c;
+  for (let c = 0; c < MAX_BENCH; c++) if (!occupied.has(key(c, BENCH_ROW))) return c;
   return -1;
 }
 // สร้างฮีโร่ใหม่ (จากร้านค้า/evolution/star-combine) ลงม้านั่งสำรองโดยตรงเป็นยูนิต 3D จริงบนกระดาน
@@ -3595,6 +3653,7 @@ function spawnToBench(instData) {
 // ม้านั่ง<->ม้านั่งสลับช่อง, สนาม<->สนามขยับตำแหน่ง) ไว้ในฟังก์ชันเดียว แทนที่ placeHeroAt/unplaceUnit เดิม
 function moveUnitTo(u, c, r) {
   if (phase !== 'shop') return null;
+  if (r === BENCH_ROW && c >= MAX_BENCH) return null; // เกินโควตาม้านั่ง 5 ช่อง — กันไว้อีกชั้นแม้ผู้เรียกกรองมาแล้ว
   if (occupied.has(key(c, r))) return null;
   const wasBattle = placedUnits.includes(u);
   const goingToBattle = r !== BENCH_ROW;
@@ -3673,7 +3732,7 @@ renderer.domElement.addEventListener('pointerdown', (e) => {
   const u = pickPlayerUnitAtScreenPoint(e.clientX, e.clientY);
   if (!u) return; // ปล่อยให้ pointerup ด้านล่างจัดการ "แตะช่องว่างเพื่อย้าย" กรณีนี้แทน
   e.preventDefault();
-  unitDrag = { unit: u, startX: e.clientX, startY: e.clientY, moved: false, pointerId: e.pointerId, ghostEl: null };
+  unitDrag = { unit: u, startX: e.clientX, startY: e.clientY, moved: false, pointerId: e.pointerId, ghostEl: null, hoverTile: null };
 });
 document.addEventListener('pointermove', (e) => {
   if (!unitDrag || e.pointerId !== unitDrag.pointerId) return;
@@ -3681,18 +3740,30 @@ document.addEventListener('pointermove', (e) => {
   if (!unitDrag.moved && Math.hypot(dx, dy) > 6) {
     unitDrag.moved = true;
     startBenchGhost(unitDrag, e.clientX, e.clientY);
-    updateTileHighlights(); // เริ่มลากจริง -> โชว์ช่องที่วางได้ (เขียว/ฟ้า) และช่องที่วางไม่ได้ (แดงโปร่ง)
   }
-  if (unitDrag.moved) moveBenchGhost(unitDrag, e.clientX, e.clientY);
+  if (unitDrag.moved) {
+    moveBenchGhost(unitDrag, e.clientX, e.clientY);
+    // ตรวจช่องใต้ pointer ตอนนี้ด้วย raycast เดิม (pickTileAtScreenPoint) แบบ real-time — อัปเดต
+    // ไฮไลต์เฉพาะตอนช่องที่ชี้อยู่เปลี่ยนจริง (ไม่ใช่ทุก pixel) ประหยัด repaint โดยยังใช้
+    // material/mesh เดิมของ tileMeshes ซ้ำเสมอ ไม่สร้าง/ลบอะไรใหม่
+    const tile = pickTileAtScreenPoint(e.clientX, e.clientY);
+    const next = (tile && tile.isTile && tile.playerZone) ? { c: tile.c, r: tile.r } : null;
+    const prev = unitDrag.hoverTile;
+    if ((next?.c !== prev?.c) || (next?.r !== prev?.r)) {
+      unitDrag.hoverTile = next;
+      updateTileHighlights();
+    }
+  }
 });
 document.addEventListener('pointerup', (e) => {
   if (unitDrag && e.pointerId === unitDrag.pointerId) {
     const ud = unitDrag; unitDrag = null;
     if (ud.moved) {
       endBenchGhost(ud);
-      const tile = pickTileAtScreenPoint(e.clientX, e.clientY);
-      if (tile && tile.isTile && tile.playerZone && !occupied.has(key(tile.c, tile.r))) {
-        moveUnitTo(ud.unit, tile.c, tile.r);
+      // ปล่อยลงตรงช่องที่กำลัง highlight เสมอ (ud.hoverTile ตัวเดียวกับที่ pointermove ใช้วาดไฮไลต์
+      // ล่าสุด) แทนที่จะ raycast ใหม่ที่พิกัดปล่อย ให้ตำแหน่งวางตรงกับสิ่งที่ผู้เล่นเห็นจริงเสมอ
+      if (ud.hoverTile && !occupied.has(key(ud.hoverTile.c, ud.hoverTile.r))) {
+        moveUnitTo(ud.unit, ud.hoverTile.c, ud.hoverTile.r);
       }
       updateTileHighlights(); // จบการลาก (สำเร็จหรือไม่ก็ตาม) -> เคลียร์/รีเฟรชไฮไลต์เสมอ
     } else {
@@ -3785,8 +3856,10 @@ function renderEquipModal() {
 }
 document.getElementById('equipCloseBtn').onclick = () => { closeEquipModal(); renderUI(); };
 
-// ---- Evolution modal (player-choice merge — no close button; a choice is required) ----
+// ---- Evolution modal (player-choice merge — Cancel closes without consuming anything; the 3
+// source units are only actually consumed inside chooseEvolution() at confirm time) ----
 const evolutionModalEl = document.getElementById('evolutionModal');
+document.getElementById('evolutionCancelBtn').onclick = cancelEvolution;
 function openEvolutionModal() {
   renderEvolutionModal();
   evolutionModalEl.style.display = 'flex';
@@ -3797,7 +3870,13 @@ function closeEvolutionModal() {
 function renderEvolutionModal() {
   if (!pendingEvolution) return;
   document.getElementById('evolutionSourceName').textContent = HERO_DEFS[pendingEvolution.sourceHeroDefId].name;
-  document.getElementById('evolutionItemCount').textContent = pendingEvolution.collectedItemInstanceIds.length;
+  // preview only — reads current equipment on the (still untouched) source bench units without
+  // collecting/mutating anything; the real collection happens in chooseEvolution() on confirm
+  const previewItemCount = pendingEvolution.sourceInstanceIds
+    .map((id) => benchHeroes.find((u) => u.instanceId === id))
+    .filter(Boolean)
+    .reduce((sum, u) => sum + u.equipment.filter(Boolean).length, 0);
+  document.getElementById('evolutionItemCount').textContent = previewItemCount;
   const optionsEl = document.getElementById('evolutionOptions');
   optionsEl.innerHTML = '';
   pendingEvolution.availableEvolutionIds.forEach((evoId) => {
