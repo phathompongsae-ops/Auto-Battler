@@ -1824,6 +1824,10 @@ function makeUnit(cfg) {
     animState: 'idle', animTimer: 0, animFrame: 0 };
   body.userData.unit = u;
   units.push(u);
+  // Asset & Animation Framework hook: attach a pilot animation controller for Archer/Slime/Golem
+  // (no-op for every other unit, and when the framework is absent/inactive). Purely additive —
+  // it drives a visual layer only; combat state, occupancy, grid coords are untouched.
+  if (globalThis.AssetAnimationRuntime) AssetAnimationRuntime.onUnitCreated(u);
   return u;
 }
 function updateManaBar(u) {
@@ -2351,6 +2355,10 @@ function disposeObjectTree(root) {
   });
 }
 function disposeUnitVisual(u) {
+  // Asset & Animation Framework cleanup FIRST: dispose this pilot's owned transient VFX, release
+  // its cached state textures, and tear down the controller before the group tree is disposed —
+  // so no callback fires after dispose and no shared texture is freed while still in use.
+  if (globalThis.AssetAnimationRuntime) AssetAnimationRuntime.onUnitRemoved(u);
   // ยกเลิก hit-flash timer ค้าง — ไม่ให้ callback restore สีไปแตะ material ที่กำลังจะถูก dispose
   if (u.hitFlashTimer) { clearTimeout(u.hitFlashTimer); u.hitFlashTimer = null; }
   disposeObjectTree(u.group);
@@ -2391,10 +2399,17 @@ function resetForWave(u) {
   updateManaBar(u);
   if (u.baseStats) buildCombatStats(u, ITEM_DEFS_BY_ID); // statuses cleared -> combatStats must drop any lingering modifier
   occupied.add(key(u.c, u.r));
+  // Asset & Animation Framework: reset the pilot controller to idle and drop leftover transient
+  // layers between waves (mirrors the visual reset resetForWave already does for the base body).
+  if (globalThis.AssetAnimationRuntime) AssetAnimationRuntime.onUnitReset(u);
 }
 
 const WALK_SEQ = [1,2,3,4], ATTACK_SEQ = [5,6,7], ATTACK_FRAME_DUR = 0.12;
 function updateAnim(u, dt) {
+  // Asset & Animation Framework owns frame animation for attached pilots (Archer/Slime/Golem):
+  // it reads the same logical state (animState/moving/action_state/alive) and drives its own
+  // multi-frame placeholder + facing. All other units keep the default stepper below unchanged.
+  if (u._aafOwned && globalThis.AssetAnimationRuntime) { AssetAnimationRuntime.tickAnim(u, dt); return; }
   if (u.frames <= 1) return;
   if (u.animState === 'attack') {
     u.animTimer += dt;
@@ -2439,6 +2454,9 @@ function restoreBodyColor(u) {
 }
 function applyHitFlash(u, colorHex, durationMs) {
   if (!u.body) return;
+  // Asset & Animation Framework: mirror the existing hit-flash onto the pilot 'hit' animation
+  // state (brief, visual only — reuses this central hit site, adds no new combat hook).
+  if (u._aafOwned && globalThis.AssetAnimationRuntime && AssetAnimationRuntime._markHit) AssetAnimationRuntime._markHit(u);
   if (u.hitFlashTimer) clearTimeout(u.hitFlashTimer); // flash ซ้อน: ตัวใหม่ทับตัวเก่า ไม่มี timer หลุดมือ
   u.body.material.color.set(colorHex);
   u.hitFlashTimer = setTimeout(() => { u.hitFlashTimer = null; restoreBodyColor(u); }, durationMs);
@@ -4539,6 +4557,9 @@ function animate(now) {
   // VFX เดินด้วย dt เดียวกับ combat (คูณ speedMul แล้วตอน battle) ให้จังหวะภาพตรงกับเกมทุกความเร็ว —
   // ตอน pause ระหว่าง battle หยุดตาม ไม่ให้เอฟเฟกต์เล่นต่อทั้งที่เกมหยุด
   if (!(phase === 'battle' && paused)) updateVFX(dt);
+  // Asset & Animation Framework transient layers (pilot projectiles/trails/impacts) advance with
+  // the same dt as VFX/combat, so their timing tracks the game at every speed incl. x4.
+  if (globalThis.AssetAnimationRuntime && !(phase === 'battle' && paused)) AssetAnimationRuntime.tickWorld(dt);
 
   for (const u of units) {
     if (!u.alive && u.deathT !== undefined && u.deathT < 1) {
