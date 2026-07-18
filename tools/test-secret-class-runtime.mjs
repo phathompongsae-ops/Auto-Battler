@@ -49,7 +49,15 @@ if (SCR && ninjaCanon) {
   eq(P.fusion.starCombine, ninjaCanon.fusion.starCombine, 'ninja fusion.starCombine');
   eq(P.fusion.allowClass1ToClass2Evolution, ninjaCanon.fusion.allowClass1ToClass2Evolution, 'ninja fusion.allowClass1ToClass2Evolution');
   eq(P.fusion.usesStandardClassFusionRules, ninjaCanon.fusion.usesStandardClassFusionRules, 'ninja fusion.usesStandardClassFusionRules');
-  eq(P.combatDataStatus, ninjaCanon.combatData.status, 'ninja combatData.status');
+  // Combat design v1 — projection must match canonical combatData exactly.
+  eq(P.combat.status, ninjaCanon.combatData.status, 'ninja combat.status');
+  eq(P.combat.skillId, ninjaCanon.combatData.skillId, 'ninja combat.skillId');
+  eq(P.combat.targetingBehavior, ninjaCanon.combatData.targetingBehavior, 'ninja combat.targetingBehavior');
+  eq(P.combat.castTime, ninjaCanon.combatData.castTime, 'ninja combat.castTime');
+  for (const k of ['hp','pAtk','mAtk','pDef','mDef','atkSpeed','moveSpeed','range','startingMana','maxMana']) {
+    eq(P.combat.stats[k], ninjaCanon.combatData.stats[k], `ninja combat.stats.${k}`);
+  }
+  eq(ninjaCanon.gender, 'female', 'ninja gender female (canonical)');
 
   // --- 2. Chance bands, gated by eligibility ---
   eq(SCR.ninjaChancePerRefresh(3, true), 0.05, 'stage 1-5 chance');
@@ -90,9 +98,22 @@ if (SCR && ninjaCanon) {
   eq(legacyUnlock.secretClassUnlocks.ninja, true, 'applyNinjaUnlock adds ninja to existing unlocks');
   eq(SCR.applyNinjaUnlock(null).secretClassUnlocks.ninja, true, 'applyNinjaUnlock tolerates null progress');
 
-  // --- 5. Combat-data safety gate ---
-  eq(SCR.isNinjaCombatReady(false), false, 'not combat-ready without hero def');
-  eq(SCR.isNinjaCombatReady(true), false, 'not combat-ready while combatData is design_pending');
+  // --- 5. Combat-data safety gate (now that combat data is ready) ---
+  eq(SCR.isNinjaCombatReady(true), true, 'combat-ready with a runtime hero def and complete data');
+  eq(SCR.isNinjaCombatReady(false), false, 'still fails closed without a runtime hero def');
+  // Fail-closed: temporarily break each required field and confirm the gate shuts.
+  const savedStatus = P.combat.status;
+  P.combat.status = 'design_pending';
+  eq(SCR.isNinjaCombatReady(true), false, 'gate closes when status not ready');
+  P.combat.status = savedStatus;
+  const savedSkill = P.combat.skillId;
+  P.combat.skillId = null;
+  eq(SCR.isNinjaCombatReady(true), false, 'gate closes when skillId missing');
+  P.combat.skillId = savedSkill;
+  const savedAtk = P.combat.stats.pAtk;
+  P.combat.stats.pAtk = 0;
+  eq(SCR.isNinjaCombatReady(true), false, 'gate closes when pAtk not positive');
+  P.combat.stats.pAtk = savedAtk;
 
   // --- 6. Fusion eligibility (data/ID level, no unit spawned) ---
   eq(SCR.isSecretClassHeroKey('ninja'), true, 'ninja is a secret class');
