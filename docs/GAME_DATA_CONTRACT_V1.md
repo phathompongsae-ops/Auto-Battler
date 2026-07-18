@@ -364,6 +364,41 @@ Warnings may be used for:
 - placeholder assets
 - incomplete maps during development
 
+## Running the validator against current canonical data
+
+`tools/validate-game-data.mjs` takes a single root JSON file matching the shape
+above, but the repository's canonical data lives in split authoring files
+(`data/design/*.json`, `data/demo1-localization.json`). `tools/build-game-data-fixture.mjs`
+is a small, deterministic adapter that assembles a root-shaped file from those
+split files without inventing canonical facts:
+
+```bash
+node tools/build-game-data-fixture.mjs /tmp/game-data.fixture.json
+node tools/validate-game-data.mjs /tmp/game-data.fixture.json
+```
+
+Field mapping used by the adapter:
+
+- `heroes`: id/gender/classTier from `hero-codex-v1.json`; stats/skillId from `hero-balance-v1.json`.
+- `monsters`: `map1-encounters-v1.json`, excluding entries marked `status:"obsolete"` (`warden`, `champion`).
+- `skills`: `hero-balance-v1.json` skills, with `ownerId`/`effect` wrapped into `ownerIds`/`effects` arrays and `mana`/`target` renamed to `cast.manaCost`/`cast.targetingBehavior`.
+- `fusionRules`: `hero-fusion-v1.json` rules, expanded from one two-output row into two single-output rows (the root schema has no concept of a player-choice output pair); inputs and the locked 3-identical-input rule are copied verbatim.
+- `stages`/`maps`: `map1-encounters-v1.json`; `bossPool` is derived from `minibossPool` (Stage 5/10) or `[finalBossId]` (Stage 15).
+- `weapons`: left empty — no canonical weapon-item records exist yet.
+
+A handful of fields have no canonical source at all yet (`hero.targetingBehavior`,
+`skill.cast.castTime`) and use an explicitly flagged placeholder rather than an
+invented value; the adapter prints these as a gap summary on every run.
+
+As of this adapter's introduction, running it against current canonical data
+still reports real (non-adapter) validation errors: missing localization for
+the 14 Class 2 heroes and 21 skills (see `docs/DATA_AUDIT_REPORT.md` W5),
+unresolved monster/boss `skillIds` (no monster-skill data file exists yet),
+and an unresolved `ninja` `secretClassUnlock` (no `ninja` hero record exists
+yet in `hero-codex-v1.json`). These are pre-existing data gaps the adapter
+surfaces accurately; closing them is tracked as follow-up work, not part of
+this adapter.
+
 ## Migration and ownership
 
 - This contract does not require immediate migration of constants already embedded in `src/game.js`.

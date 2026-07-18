@@ -40,6 +40,8 @@ Examples:
 
 **Action:** CC should build a small adapter or normalize the files before runtime use. Do not silently treat the compact files as final runtime JSON.
 
+**Status:** `tools/build-game-data-fixture.mjs` now provides this adapter (see `docs/GAME_DATA_CONTRACT_V1.md`, "Running the validator against current canonical data"). Running it does not yet produce a clean `validate-game-data.mjs` pass — it surfaces real, pre-existing gaps: missing localization for the 14 Class 2 heroes and 21 skills (W5 below), unresolved monster/boss `skillIds` (no monster-skill data file exists), and an unresolved `ninja` `secretClassUnlock` (no `ninja` hero record exists in `hero-codex-v1.json`). These are data gaps, not adapter defects, and remain open follow-up work.
+
 ### W2 — Skill presentation metadata is intentionally missing
 
 The balance draft does not yet define animation, effect, or projectile presentation IDs. These must be mapped only after Asset Manager, Animation, Effect, and Projectile contracts are accepted.
