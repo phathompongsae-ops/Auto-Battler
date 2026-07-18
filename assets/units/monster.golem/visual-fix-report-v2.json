@@ -1,0 +1,22 @@
+{
+  "id": "golem-attack-visual-fix-v2",
+  "sourcePackage": "golem-attack-user-poses-v1.zip",
+  "sourcePackageSha256": "a1516ef63afb4de5dd0894a504451ad1ae2a3da9796254e9bd31035b27621d19",
+  "changedFrames": [
+    "005",
+    "006",
+    "007"
+  ],
+  "changes": [
+    "Removed enclosed light-neutral checkerboard remnants from frames 005, 006 and 007.",
+    "Preserved pose, dimensions, anchor, timing, frame order, color and visual identity.",
+    "Kept sidecar metadata and source-map unchanged."
+  ],
+  "removedPixelCounts": {
+    "005": 3917,
+    "006": 1928,
+    "007": 3875
+  },
+  "canonicalApproved": false,
+  "status": "pending_in_game_visual_retest"
+}
