@@ -1,0 +1,88 @@
+{
+  "schemaVersion": 1,
+  "unitId": "monster.slime",
+  "state": "idle",
+  "base": {
+    "pullRequest": 50,
+    "branch": "coco/pilot-idle-motion-production-contract-v1",
+    "exactHead": "023af676666fde06f4ed7425261df1f6d8cfb5a9"
+  },
+  "identityMaster": {
+    "path": "assets/units/monster.slime/move/monster.slime_move_000.png",
+    "sha256": "12ca260a001dbda6177f29565e9df2c369c09216c889974aeee8b12fb5ae04f9",
+    "stateSidecar": "assets/units/monster.slime/monster.slime_move_motiontest.json",
+    "stateSourceMap": "assets/units/monster.slime/source-map.json",
+    "role": "Existing approved Slime Move identity and neutral-pose source; used without redesign, recolor, retouch, or replacement."
+  },
+  "productionMethod": {
+    "type": "identity-locked source-derived affine motion",
+    "description": "Frame 000 preserves the master pose. Frames 001-007 use minimal symmetric resampling of the same master pixels around x=256 while pinning the bottom opaque baseline at y=460. This makes a restrained jelly breathing loop without regenerating character details.",
+    "alpha": "The source true-alpha channel is retained and resampled; low-alpha resampling fringe was removed with an 8% alpha-level floor after a preserved pre-cleanup hash checkpoint. No checkerboard image is used.",
+    "rejectedCandidate": "An initial generative edit candidate was rejected before repository inclusion because it changed facial/horn details and baked a checkerboard. No pixels from that candidate are present in this set.",
+    "canonicalClaim": "Motion-test source only; not canonical artwork."
+  },
+  "frames": [
+    {
+      "frame": 0,
+      "role": "neutral_settle",
+      "source": "assets/units/monster.slime/move/monster.slime_move_000.png",
+      "transform": { "contentSize": [430, 410], "placement": [41, 51], "baselineY": 460 },
+      "sha256": "86479f476d075bc18e12ef2982d37ae765b78d973cf81fffc4e9d1407940749a"
+    },
+    {
+      "frame": 1,
+      "role": "gentle_inhale_squash",
+      "source": "assets/units/monster.slime/move/monster.slime_move_000.png",
+      "transform": { "contentSize": [434, 404], "placement": [39, 57], "baselineY": 460 },
+      "sha256": "f962c20dc1118832ad116884f85c5ccd3d46b777a91354951ab2ab09d9b1b042"
+    },
+    {
+      "frame": 2,
+      "role": "peak_expansion",
+      "source": "assets/units/monster.slime/move/monster.slime_move_000.png",
+      "transform": { "contentSize": [428, 415], "placement": [42, 46], "baselineY": 460 },
+      "sha256": "75576896e88798b68d78aefbaf8755820176b6b22c25ec82708310ae12f6b7ff"
+    },
+    {
+      "frame": 3,
+      "role": "inhale_settle",
+      "source": "assets/units/monster.slime/move/monster.slime_move_000.png",
+      "transform": { "contentSize": [430, 412], "placement": [41, 49], "baselineY": 460 },
+      "sha256": "fd04d6461b1ac76a90840c534c3545678338f7a5d04763a0e3c90e31c7f223ac"
+    },
+    {
+      "frame": 4,
+      "role": "tiny_gaze_body_adjustment",
+      "source": "assets/units/monster.slime/move/monster.slime_move_000.png",
+      "transform": { "contentSize": [432, 409], "placement": [40, 52], "baselineY": 460 },
+      "sha256": "b4c092a03996559bc38b340aea9e9172e65bdc87fd13d4aa8b820c2cc6484b1d"
+    },
+    {
+      "frame": 5,
+      "role": "soft_exhale",
+      "source": "assets/units/monster.slime/move/monster.slime_move_000.png",
+      "transform": { "contentSize": [434, 406], "placement": [39, 55], "baselineY": 460 },
+      "sha256": "ebcec2064ab3b41455fc3b33bdb0e8ea5ce657174dddeddfd7c0f7c66ab49434"
+    },
+    {
+      "frame": 6,
+      "role": "secondary_jelly_settle",
+      "source": "assets/units/monster.slime/move/monster.slime_move_000.png",
+      "transform": { "contentSize": [432, 408], "placement": [40, 53], "baselineY": 460 },
+      "sha256": "1da6c7fe5be54ab3f8ad72b6d7ddd505bbdd2a41bfaeecfb9ff8357063300129"
+    },
+    {
+      "frame": 7,
+      "role": "return_to_neutral",
+      "source": "assets/units/monster.slime/move/monster.slime_move_000.png",
+      "transform": { "contentSize": [430, 411], "placement": [41, 50], "baselineY": 460 },
+      "sha256": "2a5613d8f502df581fcf24e2372a68b8ac0e331c75a7d2a05021e623f603ae56"
+    }
+  ],
+  "reviewArtifacts": [
+    "docs/assets/review/slime-idle-motion-test-v1-contact-sheet.png",
+    "docs/assets/review/slime-idle-motion-test-v1-preview.gif"
+  ],
+  "browserX4Status": "not_run_by_coco_pending_cc_integration",
+  "canonicalApproved": false
+}

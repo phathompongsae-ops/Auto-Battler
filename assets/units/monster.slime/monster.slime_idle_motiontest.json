@@ -1,0 +1,20 @@
+{
+  "unitId": "monster.slime",
+  "state": "idle",
+  "fps": 8,
+  "frameCount": 8,
+  "loop": true,
+  "anchor": [0.5, 0.9],
+  "canvas": [512, 512],
+  "eventMarkers": [],
+  "rootMotion": "in-place",
+  "runtimeFlipX": true,
+  "canonicalApproved": false,
+  "status": "motion_test_source_pending_cc_integration_and_x4_review",
+  "notes": [
+    "Identity is derived directly from the existing Slime Move frame 000; no character regeneration or recolor is used in the delivered frames.",
+    "The eight-frame idle uses restrained source-derived squash/stretch with a fixed horizontal center and fixed y=460 opaque-pixel baseline.",
+    "No footstep cue, attack anticipation, projectile, VFX, particle, ground, shadow, scene, text, or baked world travel is present.",
+    "CC must integrate this source set separately and test it at x4; no browser/x4 approval is claimed here."
+  ]
+}

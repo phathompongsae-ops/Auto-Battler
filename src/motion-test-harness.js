@@ -38,6 +38,10 @@ globalThis.MotionTestHarness = (function () {
   const EXTRA_MOTION_TESTS = [
     { unit: 'hero.archer', state: 'idle', loop: true, fps: 8, frameTarget: 8, frameMin: 8, frameMax: 8, anchor: [0.5, 0.92], marker: null },
     { unit: 'hero.archer', state: 'move', loop: true, fps: 12, frameTarget: 8, frameMin: 8, frameMax: 8, anchor: [0.5, 0.92], marker: null, markers: [{ name: 'leftFootstepCue', normalizedTime: 0.25 }, { name: 'rightFootstepCue', normalizedTime: 0.75 }] },
+    // Pilot idles (PR #51/#52 source): 8 frames @ 8 FPS, seamless loop, NO event marker — the
+    // contract-table move/attack entries above stay each unit's default display state.
+    { unit: 'monster.slime', state: 'idle', loop: true, fps: 8, frameTarget: 8, frameMin: 8, frameMax: 8, anchor: [0.5, 0.9], marker: null },
+    { unit: 'monster.golem', state: 'idle', loop: true, fps: 8, frameTarget: 8, frameMin: 8, frameMax: 8, anchor: [0.5, 0.94], marker: null },
   ];
   const ALL_TESTS = MOTION_TESTS.concat(EXTRA_MOTION_TESTS);
   function keyOf(t) { return t.unit + '/' + t.state; }

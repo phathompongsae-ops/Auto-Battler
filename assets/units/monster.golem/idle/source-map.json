@@ -1,0 +1,89 @@
+{
+  "schemaVersion": 1,
+  "unitId": "monster.golem",
+  "state": "idle",
+  "base": {
+    "pullRequest": 51,
+    "branch": "coco/slime-idle-motion-test-v1",
+    "exactHead": "811e6858a7e2cbe004270a094e58982b8c1fbcf7"
+  },
+  "identityMaster": {
+    "path": "assets/units/monster.golem/attack/monster.golem_attack_000.png",
+    "sha256": "be41f186b37f99fed12e59844638ab0ed2e0020deb73ace5a840c2d4adda70d8",
+    "stateSidecar": "assets/units/monster.golem/monster.golem_attack_motiontest.json",
+    "visualFixReport": "assets/units/monster.golem/visual-fix-report-v2.json",
+    "visualFixReportSha256": "b95abd52e13a48d5f9cf730e4271b7a5a2437d6c6c7017a05a235e0aa4478dd2",
+    "role": "Golem Attack visual-fix-v2 identity and grounded neutral-pose source; earlier pre-fix artwork is forbidden."
+  },
+  "productionMethod": {
+    "type": "identity-locked source-derived control-point deformation",
+    "description": "Frame 000 preserves the visual-fix-v2 master. Frames 001-007 use restrained Shepard control-point motion on the same master pixels: feet/lower anchors stay fixed while torso, head, shoulders, and attached crystals move by 1-5 pixels. This provides heavy breathing and secondary lag without regenerating details.",
+    "alpha": "True alpha is retained. Low-alpha resampling fringe is removed with an 8% alpha-level floor; pixels below y=601 are cleared so the source foot baseline cannot drift. Checker forensic validation compares every frame with the clean visual-fix-v2 source topology.",
+    "rejectedCandidate": "An initial generative edit candidate was rejected before repository inclusion because it changed stone/crystal details and baked a checkerboard. No pixels from that candidate are present in this set.",
+    "canonicalClaim": "Motion-test source only; not canonical artwork."
+  },
+  "frames": [
+    {
+      "frame": 0,
+      "role": "neutral_grounded_stance",
+      "controlPointIntent": "visual-fix-v2 master unchanged",
+      "baselineY": 601,
+      "sha256": "4e0ca71130ae24f415752aeb1f3734bd31782c7a6b648c06301345df77e767b0"
+    },
+    {
+      "frame": 1,
+      "role": "subtle_torso_rise",
+      "controlPointIntent": "head -2y; shoulders -1y; chest -1y; feet fixed",
+      "baselineY": 601,
+      "sha256": "36c0d9cd5d3067a8c657aa6307b3b8c4a063ef2a7a9894c03b9c1f987ee33528"
+    },
+    {
+      "frame": 2,
+      "role": "shoulder_crystal_secondary_lag",
+      "controlPointIntent": "head -4y; shoulders/chest -3y; attached arms -1y; feet fixed",
+      "baselineY": 601,
+      "sha256": "afc5919345afeb6754c8e0b947fe3a817c975e1c94f5777e37d7ec41029a348e"
+    },
+    {
+      "frame": 3,
+      "role": "peak_weight_hold",
+      "controlPointIntent": "head -5y; shoulders/chest -4y; waist -1y; feet fixed",
+      "baselineY": 601,
+      "sha256": "e1340bc09411704a1ecef57b93e6dc6fa07cae0bf248d176aebe6414b71e0b1b"
+    },
+    {
+      "frame": 4,
+      "role": "slow_weight_transfer",
+      "controlPointIntent": "upper mass +1-2x and -2-3y; fixed feet and controlled center",
+      "baselineY": 601,
+      "sha256": "13550545cb92a12ff4920f87c7856de8b16b35af058414e4f603835fb51e69ca"
+    },
+    {
+      "frame": 5,
+      "role": "exhale_settle",
+      "controlPointIntent": "upper mass +1x and -1y returning toward neutral; feet fixed",
+      "baselineY": 601,
+      "sha256": "3d519b3af8fa2cf4b5f529d7d26a0a286ad44f8c80c219a0e65afaceaa266aaf"
+    },
+    {
+      "frame": 6,
+      "role": "secondary_return",
+      "controlPointIntent": "shoulders retain -1y lag while head/chest settle; feet fixed",
+      "baselineY": 601,
+      "sha256": "7e04a98518043a97ce00c87a5cd413784e5cd9ed700a4f07e816b6e9f5c8e045"
+    },
+    {
+      "frame": 7,
+      "role": "neutral_seam",
+      "controlPointIntent": "head retains -1y lag; all other control points at neutral; feet fixed",
+      "baselineY": 601,
+      "sha256": "a954928d77fb8dc4f6b7e19e80885a8c35afa9999e3434348f43b94fd86e267e"
+    }
+  ],
+  "reviewArtifacts": [
+    "docs/assets/review/golem-idle-motion-test-v1-contact-sheet.png",
+    "docs/assets/review/golem-idle-motion-test-v1-preview.gif"
+  ],
+  "browserX4Status": "not_run_by_coco_pending_cc_integration",
+  "canonicalApproved": false
+}
