@@ -1,0 +1,112 @@
+[
+  {
+    "frame": 0,
+    "source": "1000042774.png",
+    "pose": "combat_idle_start",
+    "bbox": [
+      34,
+      22,
+      287,
+      442
+    ]
+  },
+  {
+    "frame": 1,
+    "source": "1000042778.png",
+    "pose": "raise_bow",
+    "bbox": [
+      34,
+      22,
+      287,
+      442
+    ]
+  },
+  {
+    "frame": 2,
+    "source": "1000042772.png",
+    "pose": "nock_arrow",
+    "bbox": [
+      25,
+      22,
+      295,
+      442
+    ]
+  },
+  {
+    "frame": 3,
+    "source": "1000042770.png",
+    "pose": "draw_mid",
+    "bbox": [
+      30,
+      22,
+      291,
+      442
+    ]
+  },
+  {
+    "frame": 4,
+    "source": "1000042773.png",
+    "pose": "draw_full_tension",
+    "bbox": [
+      25,
+      22,
+      295,
+      442
+    ]
+  },
+  {
+    "frame": 5,
+    "source": "1000042775.png",
+    "pose": "release",
+    "bbox": [
+      34,
+      22,
+      286,
+      442
+    ]
+  },
+  {
+    "frame": 6,
+    "source": "1000042776.png",
+    "pose": "recoil_follow_through",
+    "bbox": [
+      12,
+      22,
+      309,
+      442
+    ]
+  },
+  {
+    "frame": 7,
+    "source": "1000042777.png",
+    "pose": "follow_through_open_hand",
+    "bbox": [
+      21,
+      22,
+      300,
+      442
+    ]
+  },
+  {
+    "frame": 8,
+    "source": "1000042779.png",
+    "pose": "return_to_ready",
+    "bbox": [
+      13,
+      22,
+      307,
+      442
+    ]
+  },
+  {
+    "frame": 9,
+    "source": "1000042771.png",
+    "pose": "combat_idle_end",
+    "bbox": [
+      24,
+      22,
+      296,
+      442
+    ]
+  }
+]
