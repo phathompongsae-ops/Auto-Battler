@@ -520,10 +520,97 @@
   </div>
 </div>
 
+<!-- Asset & Animation Framework dev panel (development-only; hidden unless URL has #aaf or the
+     👁 dev toggle is tapped). Touch/click controls, no hover-only. Never blocks the game. -->
+<div id="aafDebug" style="display:none; position:fixed; right:6px; bottom:52px; z-index:90;
+  width:min(76vw,240px); max-height:70vh; overflow:auto; padding:8px 9px; border-radius:8px;
+  background:rgba(6,8,11,0.90); border:1px solid #4a5a3a; color:#dfe6d6; font:11px/1.35 monospace;
+  pointer-events:auto; box-shadow:0 4px 16px rgba(0,0,0,0.5);">
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+    <b style="color:#c7e59a;">AAF pilot debug</b>
+    <button id="aafClose" style="background:#2a3320; color:#dfe6d6; border:1px solid #4a5a3a; border-radius:5px; padding:2px 7px;">✕</button>
+  </div>
+  <div style="margin-bottom:5px;">Pilot:
+    <select id="aafPilot" style="background:#1a2013; color:#dfe6d6; border:1px solid #4a5a3a; border-radius:4px;">
+      <option value="hero.archer">Archer</option>
+      <option value="monster.slime">Slime</option>
+      <option value="monster.golem">Golem</option>
+    </select>
+  </div>
+  <div style="margin-bottom:5px;">State:
+    <span id="aafStates"></span>
+  </div>
+  <div style="margin-bottom:5px; display:flex; gap:4px; flex-wrap:wrap;">
+    <button class="aafBtn" id="aafQuality">Quality: gameplay</button>
+    <button class="aafBtn" id="aafVfx">VFX: on</button>
+    <button class="aafBtn" id="aafMissing">Force missing→fallback</button>
+    <button class="aafBtn" id="aafImpact">Spawn impact</button>
+  </div>
+  <pre id="aafReadout" style="margin:6px 0 0; white-space:pre-wrap; color:#a9c98a;"></pre>
+</div>
+<button id="aafToggle" title="AAF debug" style="display:none; position:fixed; right:6px; bottom:6px; z-index:90;
+  background:rgba(6,8,11,0.85); color:#c7e59a; border:1px solid #4a5a3a; border-radius:6px; padding:4px 8px;
+  font:12px monospace; pointer-events:auto;">👁 AAF</button>
+<style>
+  #aafDebug .aafBtn, #aafDebug #aafStates button { background:#2a3320; color:#dfe6d6; border:1px solid #4a5a3a;
+    border-radius:5px; padding:3px 7px; font:11px monospace; cursor:pointer; }
+  #aafDebug #aafStates button.on { background:#5f8f4e; color:#0c1207; }
+  #aafDebug .aafBtn:active, #aafDebug #aafStates button:active { transform:translateY(1px); }
+</style>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" onerror="document.getElementById('loading').textContent='โหลดไลบรารีกราฟิก (Three.js) ไม่สำเร็จ — เช็คการเชื่อมต่ออินเทอร์เน็ต/Ad-blocker แล้วรีเฟรชหน้านี้ใหม่';"></script>
 <script src="src/secret-class.js"></script>
 <script src="src/augment-runtime.js"></script>
 <script src="src/asset-animation-runtime.js"></script>
 <script src="src/game.js"></script>
+<script>
+// AAF dev panel wiring — development-only, self-contained, no gameplay side effects.
+(function initAafDebugPanel() {
+  var AAR = window.AssetAnimationRuntime; if (!AAR) return;
+  var panel = document.getElementById('aafDebug'), toggle = document.getElementById('aafToggle');
+  var statesWrap = document.getElementById('aafStates'), readout = document.getElementById('aafReadout');
+  var qBtn = document.getElementById('aafQuality'), vBtn = document.getElementById('aafVfx');
+  var STATES = ['idle', 'move', 'attack', 'skill', 'hit', 'death'];
+  var quality = 'gameplay', vfxOn = true, driveTimer = null, last = 0;
+  // the panel is dev-only: shown when the URL hash mentions "aaf". The 👁 toggle is always
+  // available so a tester can open it on a touch device without editing the URL.
+  toggle.style.display = 'block';
+  function show(on) { panel.style.display = on ? 'block' : 'none'; if (on) startDrive(); else stopDrive(); }
+  if (/aaf/i.test(location.hash)) show(true);
+  toggle.onclick = function () { show(panel.style.display === 'none'); };
+  document.getElementById('aafClose').onclick = function () { show(false); };
+  STATES.forEach(function (s) {
+    var b = document.createElement('button'); b.textContent = s; b.dataset.state = s;
+    b.onclick = function () { AAR.debugDrive(document.getElementById('aafPilot').value, s); markActive(s); };
+    statesWrap.appendChild(b);
+  });
+  function markActive(s) { statesWrap.querySelectorAll('button').forEach(function (b) { b.classList.toggle('on', b.dataset.state === s); }); }
+  qBtn.onclick = function () { quality = quality === 'gameplay' ? 'showcase' : 'gameplay'; qBtn.textContent = 'Quality: ' + quality; AAR.debugSetQuality(document.getElementById('aafPilot').value, quality); };
+  vBtn.onclick = function () { vfxOn = !vfxOn; vBtn.textContent = 'VFX: ' + (vfxOn ? 'on' : 'off'); AAR.debugSetVfx(vfxOn); };
+  document.getElementById('aafMissing').onclick = function () {
+    var pid = document.getElementById('aafPilot').value;
+    var resolved = AAR.debugForceMissing(pid, 'death'); markActive('death');
+    readout.textContent = 'forced missing "death" -> fallback "' + resolved + '"\n' + readout.textContent;
+  };
+  document.getElementById('aafImpact').onclick = function () { AAR.debugSpawnImpact(document.getElementById('aafPilot').value); };
+  function startDrive() { if (driveTimer) return; last = performance.now(); driveTimer = setInterval(function () {
+    var now = performance.now(), dt = Math.min((now - last) / 1000, 0.05); last = now;
+    // in shop phase the battle loop is idle, so the panel advances the pilot animation itself
+    if (typeof phase === 'undefined' || phase !== 'battle') AAR.debugTick(dt);
+    refresh();
+  }, 1000 / 30); }
+  function stopDrive() { if (driveTimer) { clearInterval(driveTimer); driveTimer = null; } }
+  function refresh() {
+    var info = AAR.debugInfo(), pid = document.getElementById('aafPilot').value;
+    var c = (AAR.debugControllers() || []).filter(function (x) { return x.pilotId === pid; })[0];
+    var lines = [];
+    if (c) lines.push('state ' + c.state + ' -> ' + c.resolved, 'frame ' + (c.frame + 1) + '/' + c.frames + ' @ ' + c.fps + 'fps', 'quality ' + c.quality + '  facing ' + (c.facing < 0 ? 'L' : 'R') + '  layers ' + c.layers);
+    else lines.push('(no live ' + pid + ' — place/spawn one)');
+    lines.push('--', 'controllers ' + info.controllers, 'textures loaded ' + info.textures, 'active VFX ' + info.vfx + '/' + info.cap + '  dropped ' + info.vfxDropped);
+    readout.textContent = lines.join('\n');
+  }
+  refresh();
+})();
+</script>
 </body>
 </html>

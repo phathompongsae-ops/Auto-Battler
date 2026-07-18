@@ -435,6 +435,14 @@ globalThis.AssetAnimationRuntime = (function () {
     _installAdapter(a) { adapter = a; },
     getController(u) { return u && u._aafCtrl ? u._aafCtrl : null; },
     debugInfo() { return adapter ? adapter.debugInfo() : { active: api.AAF_ACTIVE, controllers: 0, textures: 0, vfx: 0 }; },
+    // development-only debug driver (no-ops without the browser adapter)
+    debugControllers() { return adapter ? adapter.debugControllers() : []; },
+    debugDrive(pilotId, state) { return adapter ? adapter.debugDrive(pilotId, state) : false; },
+    debugSetQuality(pilotId, tier) { return adapter ? adapter.debugSetQuality(pilotId, tier) : false; },
+    debugForceMissing(pilotId, state) { return adapter ? adapter.debugForceMissing(pilotId, state) : null; },
+    debugSetVfx(on) { if (adapter) adapter.debugSetVfx(on); },
+    debugSpawnImpact(pilotId) { if (adapter) adapter.debugSpawnImpact(pilotId); },
+    debugTick(dt) { if (adapter) adapter.debugTick(dt); },
   });
 
   return api;
@@ -459,6 +467,7 @@ globalThis.AssetAnimationRuntime = (function () {
   const budget = AAR.createVfxBudget(AAR.MAX_TRANSIENT_VFX);
   const controllers = new Set();     // live controllers (for debugInfo / world tick)
   const transients = [];             // active transient VFX layer records
+  let vfxEnabled = true;             // debug/global toggle for transient VFX layers (visual only)
 
   // --- placeholder sprite-sheet generation (clearly-labelled technical placeholder) ---
   // Key format: aaf://<pilotId>/<state>/<quality> . A horizontal strip of N frames; each frame
@@ -687,7 +696,7 @@ globalThis.AssetAnimationRuntime = (function () {
   }
 
   function spawnProjectileLayer(scene, u, target, rec) {
-    if (!scene || !budget.canSpawn('projectile')) return;
+    if (!vfxEnabled || !scene || !budget.canSpawn('projectile')) return;
     const from = u.group.position.clone(); from.y = (u._aafPlaneH || 1) * 0.6;
     const to = target.group.position.clone(); to.y = (target._aafPlaneH || 1) * 0.5;
     const geo = new THREE.PlaneGeometry(0.28, 0.06);
@@ -715,7 +724,7 @@ globalThis.AssetAnimationRuntime = (function () {
     makeTransient('trail', 'trail', dot, 0.18, (r, k) => { mat.opacity = 0.7 * (1 - k); });
   }
   function spawnImpactLayer(scene, target, rec) {
-    if (!scene || !target || !target.group || !budget.canSpawn('impact')) return;
+    if (!vfxEnabled || !scene || !target || !target.group || !budget.canSpawn('impact')) return;
     const pos = target.group.position.clone(); pos.y = (target._aafPlaneH || 1) * 0.4;
     const color = rec.vfx && rec.vfx.impact === 'slime_splat' ? 0x9be8ff : (rec.vfx && rec.vfx.impact === 'golem_impact' ? 0xd8c090 : 0xffe9a0);
     const geo = new THREE.RingGeometry(0.05, 0.16, 14);
@@ -782,11 +791,61 @@ globalThis.AssetAnimationRuntime = (function () {
       vfx: transients.length,
       vfxDropped: budget.droppedCount(),
       cap: budget.cap,
+      vfxEnabled,
     };
+  }
+
+  // ---- development-only debug driver (used by the #aafDebug panel; no gameplay effect) ----
+  function findCtrl(pilotId) { for (const c of controllers) if (c.pilotId === pilotId) return c; return null; }
+  function debugControllers() {
+    const arr = [];
+    for (const c of controllers) arr.push({
+      pilotId: c.pilotId, state: c.currentState, resolved: c.resolvedState,
+      frame: c.frameIndex, frames: c.frameCount, fps: AAR.fpsForState(c.record, c.resolvedState),
+      quality: c.qualityTier, facing: c.facing, layers: c.visualLayers.length,
+    });
+    return arr;
+  }
+  function debugDrive(pilotId, state) {
+    const c = findCtrl(pilotId); if (!c) return false;
+    c._debugHold = state; c.requestState(state, { restart: true });
+    return true;
+  }
+  function debugSetQuality(pilotId, tier) {
+    const c = findCtrl(pilotId); if (!c) return false;
+    c.setQuality(tier);
+    const u = c.unit;
+    if (u) { if (u._aafTexKey) { cache.release(u._aafTexKey); u._aafTexKey = null; } syncCharacterTexture(u, c); }
+    return true;
+  }
+  function debugForceMissing(pilotId, state) {
+    const c = findCtrl(pilotId); if (!c) return null;
+    const av = new Set(c.available); av.delete(state); c.setAvailable(av);
+    c._debugHold = state; c.requestState(state, { restart: true });
+    return c.resolvedState; // shows the deterministic fallback target
+  }
+  function debugSetVfx(on) { vfxEnabled = !!on; }
+  function debugSpawnImpact(pilotId) {
+    const c = findCtrl(pilotId); if (!c || !c.unit) return;
+    const scene = sceneOf(c.unit); if (scene) spawnImpactLayer(scene, c.unit, c.record);
+  }
+  // Debug RAF-independent tick: advances held controllers + their visible frame and the world.
+  // Runs only while the debug panel drives it (works in shop phase where the battle loop is idle).
+  function debugTick(dt) {
+    if (!Number.isFinite(dt) || dt <= 0) dt = 1 / 60;
+    for (const c of controllers) {
+      if (!c._debugHold) continue;
+      if (c.currentState !== c._debugHold && c.currentState !== 'death') c.requestState(c._debugHold, { restart: true });
+      c.update(dt);
+      const u = c.unit;
+      if (u) { syncCharacterTexture(u, c); if (u._aafTexClone && u._aafFrames > 0) u._aafTexClone.offset.x = c.frameIndex / u._aafFrames; }
+    }
+    tickWorld(dt);
   }
 
   AAR._installAdapter({
     onUnitCreated, onUnitRemoved, onUnitReset, tickAnim, tickWorld, markHit, debugInfo,
+    debugControllers, debugDrive, debugSetQuality, debugForceMissing, debugSetVfx, debugSpawnImpact, debugTick,
     _cache: cache, _budget: budget, _transients: transients, _controllers: controllers,
     _texKey: texKey, _spawnImpactLayer: spawnImpactLayer,
   });
