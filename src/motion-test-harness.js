@@ -42,6 +42,16 @@ globalThis.MotionTestHarness = (function () {
   const ALL_TESTS = MOTION_TESTS.concat(EXTRA_MOTION_TESTS);
   function keyOf(t) { return t.unit + '/' + t.state; }
 
+  // Archer Package-Level Review v1: transition chains across the three integrated archer states.
+  // Pure data (Node-testable); driven in the browser by runPackageSequence, which reuses the
+  // existing setActiveTest restart-on-switch path — no gameplay behavior involved.
+  const PACKAGE_SEQUENCES = {
+    A: ['hero.archer/idle', 'hero.archer/move', 'hero.archer/attack', 'hero.archer/idle'],
+    B: ['hero.archer/idle', 'hero.archer/attack', 'hero.archer/idle'],
+    C: ['hero.archer/move', 'hero.archer/attack', 'hero.archer/move'],
+    D: ['hero.archer/attack', 'hero.archer/idle', 'hero.archer/move'],
+  };
+
   function pad3(n) { return String(n).padStart(3, '0'); }
   // Contract naming: assets/units/{unitId}/{state}/{unitId}_{state}_{frameIndex}.png (+ sidecar)
   function framePath(unit, state, i) { return 'assets/units/' + unit + '/' + state + '/' + unit + '_' + state + '_' + pad3(i) + '.png'; }
@@ -88,7 +98,7 @@ globalThis.MotionTestHarness = (function () {
   }
 
   const core = {
-    FPS_DEFAULT, FPS_ACCEPTED, MOTION_TESTS, MARKER_VOCABULARY,
+    FPS_DEFAULT, FPS_ACCEPTED, MOTION_TESTS, EXTRA_MOTION_TESTS, PACKAGE_SEQUENCES, MARKER_VOCABULARY,
     framePath, sidecarPath, expectedFiles, evaluateDiagnostics,
   };
 
@@ -401,6 +411,30 @@ globalThis.MotionTestHarness = (function () {
       const unit = run.test.unit;
       if (state.activeByUnit[unit] !== key) { state.activeByUnit[unit] = key; restartRun(run); }
       return true;
+    },
+    // Play one PACKAGE_SEQUENCES chain: switch into each state (restart-on-switch), hold until a
+    // non-loop run completes or a loop run finishes >= minCycles, and snapshot what happened
+    // before moving on. Returns the per-hold log; null for an unknown sequence name.
+    async runPackageSequence(name, minCycles, capMs) {
+      const seq = PACKAGE_SEQUENCES[name];
+      if (!seq || !state.active) return null;
+      const want = minCycles || 1, cap = capMs || 3000;
+      const log = [];
+      for (let i = 0; i < seq.length; i++) {
+        const key = seq[i];
+        this.setActiveTest(key);
+        if (i === 0) restartRun(state.tests[key]); // a repeated leading state still starts clean
+        const run = state.tests[key];
+        const entry = { frameIndex: run.frameIndex, cycles: run.cycles, completed: run.completed, markerEvents: run.markerLog.length };
+        const t0 = Date.now();
+        await new Promise((resolve) => {
+          const iv = setInterval(() => {
+            if (run.completed || run.cycles >= want || Date.now() - t0 > cap) { clearInterval(iv); resolve(); }
+          }, 25);
+        });
+        log.push({ key, entry, exit: { frameIndex: run.frameIndex, cycles: run.cycles, completed: run.completed, markers: run.markerLog.slice() } });
+      }
+      return log;
     },
     _state: state,
   });
