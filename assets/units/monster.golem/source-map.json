@@ -1,0 +1,50 @@
+[
+  {
+    "frame": 0,
+    "sourceFile": "โกลเอ_มห_นร_ปทรงทรงพล_ง.png",
+    "outputFile": "assets/units/monster.golem/attack/monster.golem_attack_000.png",
+    "pose": "idle"
+  },
+  {
+    "frame": 1,
+    "sourceFile": "ห_นศ_ลาอ_ศว_นพล_งผล_ก.png",
+    "outputFile": "assets/units/monster.golem/attack/monster.golem_attack_001.png",
+    "pose": "anticipation"
+  },
+  {
+    "frame": 2,
+    "sourceFile": "ย_กษ_ห_นพล_งแสงส_น_าเง_น.png",
+    "outputFile": "assets/units/monster.golem/attack/monster.golem_attack_002.png",
+    "pose": "wind_up"
+  },
+  {
+    "frame": 3,
+    "sourceFile": "องค_ประกอบของย_กษ_ห_นก_บคร_สต_ลส_องแสง.png",
+    "outputFile": "assets/units/monster.golem/attack/monster.golem_attack_003.png",
+    "pose": "arms_raise"
+  },
+  {
+    "frame": 4,
+    "sourceFile": "ย_กษ_ห_นพล_งแสงคร_สต_ล.png",
+    "outputFile": "assets/units/monster.golem/attack/monster.golem_attack_004.png",
+    "pose": "apex"
+  },
+  {
+    "frame": 5,
+    "sourceFile": "ห_นโกล_ยมย_กษ_ในท_าทางพร_อมโจมต.png",
+    "outputFile": "assets/units/monster.golem/attack/monster.golem_attack_005.png",
+    "pose": "descending_contact"
+  },
+  {
+    "frame": 6,
+    "sourceFile": "โกเลมห_นพล_งเวทในท_ารบ.png",
+    "outputFile": "assets/units/monster.golem/attack/monster.golem_attack_006.png",
+    "pose": "full_double_slam"
+  },
+  {
+    "frame": 7,
+    "sourceFile": "โกลเอ_มห_นย_กษ_ก_บพล_งส_น_าเง_น.png",
+    "outputFile": "assets/units/monster.golem/attack/monster.golem_attack_007.png",
+    "pose": "recovery"
+  }
+]

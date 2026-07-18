@@ -100,6 +100,9 @@ globalThis.MotionTestHarness = (function () {
       frames: [], textures: [], metadata: null,
       frameIndex: 0, elapsed: 0, completed: false, cycles: 0,
       lastMarker: null, markerFiredThisPass: false, prevProgress: 0,
+      // effective marker: the sidecar's declared marker wins when valid (real files are the
+      // source of truth for a motion test); contract-table marker is the fallback
+      effectiveMarker: { name: test.marker.name, normalizedTime: test.marker.normalizedTime },
     };
   }
 
@@ -141,6 +144,11 @@ globalThis.MotionTestHarness = (function () {
       metadata: run.metadata || null, metadataError: run.metadataError || null, cornerAlphas,
     });
     run.status = verdict.status; run.problems = verdict.problems; run.warnings = verdict.warnings; run.reason = verdict.reason;
+    // sidecar marker override (validated against the framework vocabulary; contract is fallback)
+    const mMeta = run.metadata && Array.isArray(run.metadata.eventMarkers) ? run.metadata.eventMarkers[0] : null;
+    if (mMeta && MARKER_VOCABULARY.includes(mMeta.name) && typeof mMeta.normalizedTime === 'number' && mMeta.normalizedTime > 0 && mMeta.normalizedTime < 1) {
+      run.effectiveMarker = { name: mMeta.name, normalizedTime: mMeta.normalizedTime };
+    }
     if (verdict.status !== 'awaiting_production_frames') {
       run.frames = images;
       const THREE = globalThis.THREE;
@@ -197,9 +205,10 @@ globalThis.MotionTestHarness = (function () {
         else if (run.test.loop) { run.frameIndex = 0; run.cycles++; run.markerFiredThisPass = false; }
         else { run.completed = true; }
         const progress = n > 1 ? run.frameIndex / (n - 1) : 1;
-        const mt = run.test.marker.normalizedTime;
+        const em = run.effectiveMarker || run.test.marker;
+        const mt = em.normalizedTime;
         if (!run.markerFiredThisPass && ((prevProgress < mt && progress >= mt) || (run.completed && mt <= 1))) {
-          if (progress >= mt || run.completed) { fireMarker(run, run.test.marker.name, progress); run.markerFiredThisPass = true; }
+          if (progress >= mt || run.completed) { fireMarker(run, em.name, progress); run.markerFiredThisPass = true; }
         }
         if (run.completed) break;
       }
@@ -292,7 +301,7 @@ globalThis.MotionTestHarness = (function () {
       'frame  ' + (run.textures.length ? (run.frameIndex + 1) + '/' + run.textures.length : '-/' + t.frameTarget + ' (target)'),
       'fps    ' + t.fps + '   speed x' + state.speed + (state.playing ? '' : '  [paused]'),
       'anchor ' + JSON.stringify(t.anchor),
-      'marker ' + t.marker.name + ' @ ' + t.marker.normalizedTime + '  last: ' + (run.lastMarker ? run.lastMarker.name + ' @' + run.lastMarker.at + ' (f' + run.lastMarker.frame + ')' : '—'),
+      'marker ' + (run.effectiveMarker || t.marker).name + ' @ ' + (run.effectiveMarker || t.marker).normalizedTime + '  last: ' + (run.lastMarker ? run.lastMarker.name + ' @' + run.lastMarker.at + ' (f' + run.lastMarker.frame + ')' : '—'),
       'cycles ' + run.cycles + (run.completed ? '  [completed]' : ''),
       'status ' + run.status,
     ];

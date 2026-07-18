@@ -1,0 +1,30 @@
+{
+  "unitId": "monster.golem",
+  "state": "attack",
+  "fps": 12,
+  "frameCount": 8,
+  "loop": false,
+  "anchor": [
+    0.5,
+    0.94
+  ],
+  "canvas": [
+    640,
+    640
+  ],
+  "eventMarkers": [
+    {
+      "name": "impactCue",
+      "normalizedTime": 0.75
+    }
+  ],
+  "rootMotion": "in-place",
+  "canonicalApproved": false,
+  "status": "motion_test_pending_in_game_review",
+  "notes": [
+    "Eight-frame motion-test sequence generated from the user-approved Golem reference.",
+    "No baked dust, shockwave, projectile, damage numbers, or map elements.",
+    "Background checkerboard connected to canvas edges converted to true alpha.",
+    "Visual identity consistency and timing still require Arena Ruins x4 browser review."
+  ]
+}
