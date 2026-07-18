@@ -9,10 +9,10 @@ Scope: asset inventory and naming only. No runtime, combat, Three.js scene, stag
 - Class 1 roster: **7/7 declared and generated**.
 - Novice: **deprecated and must be removed from the playable/shop roster**. The repository still contains a legacy `assets/novice.png` file and generator entry, but it is not part of the locked Demo 1 design.
 - Current Map 1 procedural enemy set: **7 standard/special enemy sprites declared** across the root asset generators, plus older V5 sprites.
-- Stage 5 miniboss: **Warden present**.
-- Stage 10 miniboss: **Golem present**, but it is currently named with the normal-monster prefix `mon_`.
-- Stage 15 boss: **Champion present**.
-- Bone Dragon is present and documented as a Stage 13 featured enemy, not the Stage 15 boss.
+- Stage 5 miniboss pool (locked after this audit): **golem, orc_warlord** — Warden is present as an asset but is **obsolete**, no longer part of any confirmed Demo 1 pool.
+- Stage 10 miniboss pool (locked after this audit): **bone_dragon, lich_king** — Golem is present but its asset is named with the normal-monster prefix `mon_` despite now belonging to the Stage 5 pool.
+- Stage 15 fixed boss (locked after this audit): **arena_overlord** — Champion is present as an asset but is **obsolete**, must not be treated as a second final boss.
+- Bone Dragon is present and now belongs to the Stage 10 miniboss pool (not a Stage 13 featured enemy as originally documented in this audit).
 - Main gap: the repository contains more than one visual asset set and some naming/design assignments are inconsistent. Runtime integration should continue to be owned by CC.
 - New real-device finding: purchased heroes currently cannot be dragged from the bench to the board, and deployed heroes cannot be dragged back to the bench. This is a runtime interaction bug and is outside Coco's asset-only scope; CC should own the fix.
 
@@ -39,10 +39,10 @@ Scope: asset inventory and naming only. No runtime, combat, Three.js scene, stag
 | Skeleton | Normal enemy | `assets/mon_skeleton.png` | Present | None |
 | Spirit Archer | Normal enemy | `assets/mon_spiritarcher.png` | Present | None |
 | Shadow Assassin | Normal enemy | `assets/mon_shadowassassin.png` | Present | None |
-| Golem | Stage 10 miniboss per current generator comments | `assets/mon_golem.png` | Present | Naming is inconsistent with miniboss role; defer rename until CC confirms runtime references |
-| Warden | Stage 5 miniboss | `assets/miniboss_warden.png` | Present | None |
-| Bone Dragon | Stage 13 featured enemy per boss generator | `assets/mon_bonedragon.png` | Present | Confirm final stage assignment; it should not silently replace the locked Stage 15 boss |
-| Immortal Champion | Stage 15 boss | `assets/boss_champion.png` and larger boss variant from `tools/gen_bosses.py` | Present | Confirm which champion file/version runtime uses; remove duplication only in a dedicated asset migration |
+| Golem | Stage 5 miniboss pool member (alongside orc_warlord) — locked after this audit | `assets/mon_golem.png` | Present | Naming is inconsistent with miniboss role; defer rename until CC confirms runtime references |
+| Warden | **Obsolete** — was Stage 5 miniboss at audit time, superseded by the `[golem, orc_warlord]` pool lock | `assets/miniboss_warden.png` | Present, historical reference only | Must not be spawned as a production boss |
+| Bone Dragon | Stage 10 miniboss pool member (alongside lich_king) — locked after this audit, no longer Stage 13 | `assets/mon_bonedragon.png` | Present | None |
+| Immortal Champion | **Obsolete** — was Stage 15 boss at audit time, superseded by `arena_overlord` as the fixed Stage 15 boss | `assets/boss_champion.png` and larger boss variant from `tools/gen_bosses.py` | Present, historical reference only | Must not be treated as a second final boss or reused/renamed as `arena_overlord` |
 
 ## UI and icon inventory
 
@@ -65,9 +65,9 @@ Scope: asset inventory and naming only. No runtime, combat, Three.js scene, stag
 ## Naming and pipeline risks
 
 1. **Multiple asset generations coexist**: root procedural sprites, V5 AI-generated portraits/monsters, animated hero sheets, and flat-vector portrait cards.
-2. **Role-prefix mismatch**: `mon_golem.png` is described as the Stage 10 miniboss but uses the normal-monster prefix.
+2. **Role-prefix mismatch**: `mon_golem.png` is a Stage 5 minibossPool member but uses the normal-monster prefix.
 3. **Boss duplication**: `boss_champion` is generated in both sprite-generation scripts at different sizes.
-4. **Stage assignment mismatch risk**: Bone Dragon is documented as a Stage 13 enemy, while earlier data drafts may have treated it as a boss candidate.
+4. **Stage assignment resolved**: Bone Dragon was originally documented as a Stage 13 enemy at audit time; this is now superseded by the locked Stage 10 minibossPool `[bone_dragon, lich_king]`.
 5. **Incomplete icon taxonomy**: only five class/synergy icons are documented, fewer than the full playable class tree.
 6. **License risk for V5 AI assets**: the manifest marks the external AI generator/license as unknown. Prefer original procedural assets for a distributable build unless provenance is clarified.
 7. **Legacy Novice drift**: asset and generator entries remain even though Novice was removed from the locked design.
@@ -79,7 +79,7 @@ Priority order:
 1. CC fixes bench ↔ board drag-and-drop on mouse and touch, using the smallest runtime change and testing Combat at x4.
 2. CC removes Novice from shop pools, playable data, fusion/runtime references, and UI text while preserving the seven Class 1 roster.
 3. Lock a single Demo 1 asset pipeline: root procedural sprites or V5 assets, not a mixture without an explicit mapping.
-4. Confirm the final Stage 5 / 10 / 15 identities as Warden / Golem / Immortal Champion.
+4. ~~Confirm the final Stage 5 / 10 / 15 identities as Warden / Golem / Immortal Champion.~~ **Resolved and superseded**: Stage 5 = `[golem, orc_warlord]` pool, Stage 10 = `[bone_dragon, lich_king]` pool, Stage 15 = fixed `arena_overlord`; Warden and Immortal Champion are obsolete and must not be spawned as production bosses.
 5. Create a canonical asset mapping document or data file that maps each runtime ID to one exact file path.
 6. After mapping is locked, identify missing final-quality art and replace placeholders one asset at a time.
 7. Audit UI icons after the landscape-only PR is reviewed, because that PR may change visibility and spacing requirements.
