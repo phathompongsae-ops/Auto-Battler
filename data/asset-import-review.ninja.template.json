@@ -1,0 +1,69 @@
+{
+  "schemaVersion": 1,
+  "reviewId": "ninja-replace-with-file-hash-or-date",
+  "logicalId": "hero.ninja",
+  "sourceFile": {
+    "path": null,
+    "sha256": null,
+    "width": null,
+    "height": null,
+    "format": "png",
+    "hasAlpha": null,
+    "embeddedBackground": null,
+    "provenance": {
+      "type": null,
+      "source": null,
+      "license": null,
+      "commercialUseCleared": null
+    }
+  },
+  "plannedCanonicalPath": "assets/canonical/heroes/ninja.png",
+  "visualChecks": {
+    "matchesApprovedDirection": null,
+    "fullBodyCropValid": null,
+    "silhouetteReadableAtShopSize": null,
+    "silhouetteReadableAtBenchSize": null,
+    "silhouetteReadableAtBoardSize": null,
+    "classWeaponRulesPass": null,
+    "genderIdentityReadableAtShopSize": null,
+    "paletteDistinctFromRelatedClasses": null,
+    "enemyLookalikeRiskCleared": null,
+    "maleFaceDiversityRulePass": null,
+    "ninjaSpecific": {
+      "femaleIdentityReadable": null,
+      "pairedShortWeaponSilhouetteReadable": null,
+      "highSpeedAssassinPoseReadable": null,
+      "lightweightArmorReadable": null,
+      "distinctFromArcher": null,
+      "distinctFromRanger": null,
+      "distinctFromDuelist": null,
+      "distinctFromShadowAssassin": null,
+      "darkPaletteReadableOnDarkUi": null
+    },
+    "notes": []
+  },
+  "technicalChecks": {
+    "alphaVerifiedFromPixelData": null,
+    "noCheckerboardBakedIn": null,
+    "noSolidBackground": null,
+    "noWhiteFringe": null,
+    "dimensionsAccepted": null,
+    "filenameAccepted": null,
+    "notes": []
+  },
+  "approval": {
+    "currentStatus": "concept-approved",
+    "recommendedStatus": null,
+    "exactFileApprovedByUser": false,
+    "approvedBy": null,
+    "approvedAt": null
+  },
+  "runtime": {
+    "cardReady": false,
+    "runtimeLinked": false,
+    "runtimeIntegrationPr": null,
+    "temporaryFallbackAllowed": true,
+    "fallbackIsCanonical": false,
+    "note": "Existing Runtime fallback may be used until the exact Ninja PNG is approved. The fallback is not canonical and this review does not authorize Runtime changes."
+  }
+}
