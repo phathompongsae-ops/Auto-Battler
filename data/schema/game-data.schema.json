@@ -45,6 +45,10 @@
       "type": "array",
       "items": { "$ref": "#/$defs/stage" }
     },
+    "secretHeroes": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/secretHero" }
+    },
     "localization": {
       "type": "object",
       "minProperties": 1,
@@ -55,6 +59,16 @@
     }
   },
   "$defs": {
+    "secretHero": {
+      "type": "object",
+      "required": ["id", "nameKey", "descriptionKey", "classTier"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "nameKey": { "$ref": "#/$defs/id" },
+        "descriptionKey": { "$ref": "#/$defs/id" },
+        "classTier": { "const": 3 }
+      }
+    },
     "id": {
       "type": "string",
       "pattern": "^[a-z][a-z0-9_]*(?:\\.[a-z0-9_]+)*$"

@@ -100,6 +100,9 @@ function validate(data) {
   const fusionRules = collectById(data.fusionRules, 'fusionRules', errors);
   const maps = collectById(data.maps, 'maps', errors);
   const stages = collectById(data.stages, 'stages', errors);
+  // Optional Class Tier 3 secret classes. Backward-compatible: absent => empty.
+  // secretClassUnlock references may resolve against these as well as heroes[].
+  const secretHeroes = collectById(data.secretHeroes ?? [], 'secretHeroes', errors);
   const localization = requireObject(data.localization, 'localization');
 
   for (const [id, hero] of heroes) {
@@ -217,7 +220,7 @@ function validate(data) {
     if (referencedStageIds.length !== 15) {
       warnings.push(`${label} currently has ${referencedStageIds.length}/15 stage IDs`);
     }
-    if (!heroes.has(map.secretClassUnlock)) {
+    if (!heroes.has(map.secretClassUnlock) && !secretHeroes.has(map.secretClassUnlock)) {
       errors.push(`${label} references unknown secretClassUnlock: ${map.secretClassUnlock}`);
     }
 
