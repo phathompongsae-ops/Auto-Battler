@@ -1,0 +1,20 @@
+{
+  "version": "class1-animation-profiles-v1",
+  "canonicalApproved": false,
+  "shared": {
+    "fps": 12,
+    "loop": false,
+    "rootMotion": "in-place",
+    "runtimeOwns": ["projectiles", "hitVfx", "damageNumbers", "spellCircles", "particles", "mapInteraction"]
+  },
+  "profiles": [
+    {"unitId":"hero.fighter","state":"attack","concept":"heavy straight punch","targetFrames":[8,10],"marker":{"name":"impactCue","normalizedTime":0.58},"distinctFrom":["monster.golem","hero.swordman","hero.merchant"]},
+    {"unitId":"hero.swordman","state":"attack","concept":"controlled diagonal draw-slash","targetFrames":[10,12],"marker":{"name":"meleeHitCue","normalizedTime":0.55},"distinctFrom":["hero.fighter","hero.archer"]},
+    {"unitId":"hero.archer","state":"attack","concept":"bow draw and clean release","targetFrames":[10,10],"marker":{"name":"projectileRelease","normalizedTime":0.55},"distinctFrom":["hero.merchant"]},
+    {"unitId":"hero.mage","state":"attack","concept":"gather and forward arcane cast","targetFrames":[10,12],"marker":{"name":"spellRelease","normalizedTime":0.62},"distinctFrom":["hero.summoner","hero.acolyte"]},
+    {"unitId":"hero.summoner","state":"attack","concept":"ritual trace and command","targetFrames":[12,12],"marker":{"name":"summonRelease","normalizedTime":0.67},"distinctFrom":["hero.mage"]},
+    {"unitId":"hero.acolyte","state":"attack","concept":"holy focus lift and pulse","targetFrames":[10,12],"marker":{"name":"holyRelease","normalizedTime":0.60},"genderLock":"female","distinctFrom":["hero.mage","hero.summoner"]},
+    {"unitId":"hero.merchant","state":"attack","concept":"underhand gadget throw","targetFrames":[10,10],"marker":{"name":"projectileRelease","normalizedTime":0.58},"distinctFrom":["hero.archer","hero.fighter"]}
+  ],
+  "exclusions": ["class2", "secretClasses", "map2", "map3", "survival", "threeStarHeroes", "coreLogicChanges"]
+}
