@@ -48,6 +48,7 @@ async function build() {
   const balance = await readJson('data/design/hero-balance-v1.json');
   const fusion = await readJson('data/design/hero-fusion-v1.json');
   const map1 = await readJson('data/design/map1-encounters-v1.json');
+  const secret = await readJson('data/design/secret-heroes-v1.json');
   const localization = await readJson('data/demo1-localization.json');
 
   const statsById = new Map(balance.heroes.map((h) => [h.id, h]));
@@ -162,7 +163,19 @@ async function build() {
       secretClassUnlock: map1.map.secretClassUnlock,
     },
   ];
-  gapNotes.push(`map.${mapId}.secretClassUnlock: "${map1.map.secretClassUnlock}" is documented (docs/CLASS_EVOLUTION_AND_CODEX_POLICY.md) but hero-codex-v1.json has no matching hero record yet, so this reference will not resolve.`);
+
+  // secretHeroes: Class Tier 3 secret classes, kept in their own root array so
+  // map.secretClassUnlock resolves without forcing Ninja into the normal
+  // heroes[] roster (docs/GAME_DATA_CONTRACT_V1.md, secret-heroes-v1.json).
+  const secretHeroes = (secret.secretHeroes ?? []).map((hero) => ({
+    id: hero.id,
+    nameKey: hero.nameKey,
+    descriptionKey: hero.descriptionKey,
+    classTier: hero.classTier,
+  }));
+  if (!secretHeroes.some((hero) => hero.id === map1.map.secretClassUnlock)) {
+    gapNotes.push(`map.${mapId}.secretClassUnlock: "${map1.map.secretClassUnlock}" has no matching secret-hero record in secret-heroes-v1.json, so this reference will not resolve.`);
+  }
 
   const data = {
     schemaVersion: 1,
@@ -173,6 +186,7 @@ async function build() {
     fusionRules,
     maps,
     stages,
+    secretHeroes,
     localization,
   };
 
@@ -181,7 +195,7 @@ async function build() {
   console.log(`Built fixture: ${outPath}`);
   console.log(
     `heroes=${heroes.length} monsters=${monsters.length} skills=${skills.length} weapons=${weapons.length} `
-    + `fusionRules=${fusionRules.length} stages=${stages.length} maps=${maps.length}`,
+    + `fusionRules=${fusionRules.length} stages=${stages.length} maps=${maps.length} secretHeroes=${secretHeroes.length}`,
   );
   console.log('Known canonical-data gaps carried into this fixture (not adapter defects):');
   for (const note of gapNotes) console.log(`  - ${note}`);

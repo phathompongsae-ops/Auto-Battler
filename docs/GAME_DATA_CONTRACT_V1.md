@@ -384,23 +384,42 @@ Field mapping used by the adapter:
 - `skills`: `hero-balance-v1.json` skills, with `ownerId`/`effect` wrapped into `ownerIds`/`effects` arrays and `mana`/`target` renamed to `cast.manaCost`/`cast.targetingBehavior`.
 - `fusionRules`: `hero-fusion-v1.json` rules, expanded from one two-output row into two single-output rows (the root schema has no concept of a player-choice output pair); inputs and the locked 3-identical-input rule are copied verbatim.
 - `stages`/`maps`: `map1-encounters-v1.json`; `bossPool` is derived from `minibossPool` (Stage 5/10) or `[finalBossId]` (Stage 15).
+- `secretHeroes`: `secret-heroes-v1.json` (id/nameKey/descriptionKey/classTier). `map.secretClassUnlock` resolves against `heroes` **or** `secretHeroes`, so secret classes never have to be forced into the normal 21-hero roster.
 - `weapons`: left empty — no canonical weapon-item records exist yet.
+
+## Secret classes (Class Tier 3)
+
+Secret classes live in their own authoring file, `data/design/secret-heroes-v1.json`,
+validated by `tools/validate-secret-heroes.mjs`. They are deliberately kept out of
+`hero-codex-v1.json`, which `tools/validate-hero-codex.mjs` locks to exactly 21
+Class 1/Class 2 heroes across seven class lines. The root game-data contract adds
+an optional `secretHeroes` array for them; it is backward-compatible (absent means
+empty), and `validate-game-data.mjs` resolves `map.secretClassUnlock` against both
+`heroes` and `secretHeroes`.
+
+Each secret hero carries its full canonical unlock/shop/fusion rules as data, so
+runtime integration reads them rather than hard-coding constants:
+
+- `unlock`: mapId, stage, first-win condition, save `persistKey`, and `availableFromNextRun: true` (never same-run as the unlock).
+- `shop`: locked chance `0.0` until unlocked; once unlocked, a per-refresh (not per-slot) roll of `0.05` / `0.15` / `0.40` across stage bands 1-5 / 6-10 / 11-15, with `maxCopiesPerShop: 1`.
+- `fusion`: standard 3-identical-copy star combine only; never a Class 1 -> Class 2 evolution output and never in the normal class fusion rules.
+- `combatData`: `status: "design_pending"` with null `stats`/`skillId`/`targetingBehavior`/`castTime` until design supplies real values — the validator rejects any fabricated combat numbers while design-pending.
+
+`ninja` (Map 1) has real data this round. `black_dragon_knight` (Map 2) and
+`sword_saint` (Map 3) are listed under `reservedFutureIds` as names only — no
+fabricated data.
 
 A handful of fields have no canonical source at all yet (`hero.targetingBehavior`,
 `skill.cast.castTime`) and use an explicitly flagged placeholder rather than an
 invented value; the adapter prints these as a gap summary on every run.
 
 Localization for all 21 hero definitions (Class 1 and Class 2) and all 21 hero
-skills now exists in `data/demo1-localization.json`. Running the adapter output
-through the validator still reports real (non-adapter) errors from two remaining
-gaps: unresolved monster/boss `skillIds` (no monster-skill data file exists yet)
-and an unresolved `ninja` `secretClassUnlock` — `ninja` cannot be added to
-`hero-codex-v1.json` without a design decision, because
-`tools/validate-hero-codex.mjs` locks that file's contract to exactly 21
-Class 1/Class 2 heroes across the seven known class lines, and no canonical
-balance/skill data exists for `ninja`. These are pre-existing data gaps the
-adapter surfaces accurately; closing them is tracked as follow-up work, not
-part of this adapter.
+skills now exists in `data/demo1-localization.json`, and `ninja` now resolves via
+the `secretHeroes` array (see "Secret classes" above). Running the adapter output
+through the validator reports one remaining real (non-adapter) gap: unresolved
+monster/boss `skillIds` (no monster-skill data file exists yet). That is a
+pre-existing data gap the adapter surfaces accurately; closing it is tracked as
+follow-up work, not part of this adapter.
 
 ## Migration and ownership
 
