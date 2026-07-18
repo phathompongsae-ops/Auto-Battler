@@ -1,0 +1,39 @@
+{
+  "version": "1.0.0",
+  "locales": {
+    "th": {
+      "weapon.iron_sword.name": "ดาบเหล็ก",
+      "weapon.iron_sword.description": "เพิ่มพลังโจมตีกายภาพ 8",
+      "weapon.apprentice_staff.name": "คทาฝึกหัด",
+      "weapon.apprentice_staff.description": "เพิ่มพลังโจมตีเวท 8",
+      "weapon.swift_gloves.name": "ถุงมือว่องไว",
+      "weapon.swift_gloves.description": "เพิ่มความเร็วโจมตี 8%",
+      "weapon.duelist_blade.name": "ดาบนักดวล",
+      "weapon.duelist_blade.description": "เพิ่มพลังโจมตีกายภาพ 14 และความเร็วโจมตี 10%",
+      "weapon.ui.inventory_full": "คลังอาวุธเต็ม",
+      "weapon.ui.equip_slots_full": "ช่องอาวุธของฮีโร่เต็มแล้ว",
+      "weapon.ui.not_enough_gold": "ทองไม่เพียงพอ",
+      "weapon.ui.cannot_change_in_combat": "ไม่สามารถเปลี่ยนอาวุธระหว่างการต่อสู้",
+      "weapon.ui.fusion_ready": "พร้อมรวมเป็น {weapon}",
+      "weapon.ui.fusion_confirm": "รวมอาวุธ",
+      "weapon.ui.fusion_cancel": "ยกเลิก"
+    },
+    "en": {
+      "weapon.iron_sword.name": "Iron Sword",
+      "weapon.iron_sword.description": "Gain 8 Physical Attack.",
+      "weapon.apprentice_staff.name": "Apprentice Staff",
+      "weapon.apprentice_staff.description": "Gain 8 Magic Attack.",
+      "weapon.swift_gloves.name": "Swift Gloves",
+      "weapon.swift_gloves.description": "Gain 8% Attack Speed.",
+      "weapon.duelist_blade.name": "Duelist Blade",
+      "weapon.duelist_blade.description": "Gain 14 Physical Attack and 10% Attack Speed.",
+      "weapon.ui.inventory_full": "Weapon inventory is full.",
+      "weapon.ui.equip_slots_full": "This hero's weapon slots are full.",
+      "weapon.ui.not_enough_gold": "Not enough gold.",
+      "weapon.ui.cannot_change_in_combat": "Weapons cannot be changed during combat.",
+      "weapon.ui.fusion_ready": "Ready to fuse into {weapon}.",
+      "weapon.ui.fusion_confirm": "Fuse weapon",
+      "weapon.ui.fusion_cancel": "Cancel"
+    }
+  }
+}
