@@ -390,14 +390,17 @@ A handful of fields have no canonical source at all yet (`hero.targetingBehavior
 `skill.cast.castTime`) and use an explicitly flagged placeholder rather than an
 invented value; the adapter prints these as a gap summary on every run.
 
-As of this adapter's introduction, running it against current canonical data
-still reports real (non-adapter) validation errors: missing localization for
-the 14 Class 2 heroes and 21 skills (see `docs/DATA_AUDIT_REPORT.md` W5),
-unresolved monster/boss `skillIds` (no monster-skill data file exists yet),
-and an unresolved `ninja` `secretClassUnlock` (no `ninja` hero record exists
-yet in `hero-codex-v1.json`). These are pre-existing data gaps the adapter
-surfaces accurately; closing them is tracked as follow-up work, not part of
-this adapter.
+Localization for all 21 hero definitions (Class 1 and Class 2) and all 21 hero
+skills now exists in `data/demo1-localization.json`. Running the adapter output
+through the validator still reports real (non-adapter) errors from two remaining
+gaps: unresolved monster/boss `skillIds` (no monster-skill data file exists yet)
+and an unresolved `ninja` `secretClassUnlock` — `ninja` cannot be added to
+`hero-codex-v1.json` without a design decision, because
+`tools/validate-hero-codex.mjs` locks that file's contract to exactly 21
+Class 1/Class 2 heroes across the seven known class lines, and no canonical
+balance/skill data exists for `ninja`. These are pre-existing data gaps the
+adapter surfaces accurately; closing them is tracked as follow-up work, not
+part of this adapter.
 
 ## Migration and ownership
 

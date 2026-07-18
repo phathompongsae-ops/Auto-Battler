@@ -40,7 +40,7 @@ Examples:
 
 **Action:** CC should build a small adapter or normalize the files before runtime use. Do not silently treat the compact files as final runtime JSON.
 
-**Status:** `tools/build-game-data-fixture.mjs` now provides this adapter (see `docs/GAME_DATA_CONTRACT_V1.md`, "Running the validator against current canonical data"). Running it does not yet produce a clean `validate-game-data.mjs` pass — it surfaces real, pre-existing gaps: missing localization for the 14 Class 2 heroes and 21 skills (W5 below), unresolved monster/boss `skillIds` (no monster-skill data file exists), and an unresolved `ninja` `secretClassUnlock` (no `ninja` hero record exists in `hero-codex-v1.json`). These are data gaps, not adapter defects, and remain open follow-up work.
+**Status:** `tools/build-game-data-fixture.mjs` now provides this adapter (see `docs/GAME_DATA_CONTRACT_V1.md`, "Running the validator against current canonical data"). Hero and skill name/description localization (W5) has since been filled in for all 21 heroes and 21 skills. Running the adapter output does not yet produce a clean `validate-game-data.mjs` pass — it surfaces the remaining real gaps: unresolved monster/boss `skillIds` (no monster-skill data file exists), and an unresolved `ninja` `secretClassUnlock` (`hero-codex-v1.json` is locked by `validate-hero-codex.mjs` to exactly 21 Class 1/Class 2 heroes, and no canonical `ninja` balance/skill data exists). These are data gaps, not adapter defects, and remain open follow-up work.
 
 ### W2 — Skill presentation metadata is intentionally missing
 
