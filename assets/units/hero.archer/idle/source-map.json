@@ -1,0 +1,86 @@
+{
+  "schemaVersion": 1,
+  "assetId": "hero.archer.idle.motion-test.v1",
+  "unitId": "hero.archer",
+  "state": "idle",
+  "canonicalApproved": false,
+  "reference": {
+    "role": "master identity, scale, equipment, palette, and foot baseline",
+    "repository": "phathompongsae-ops/Auto-Battler",
+    "pullRequest": 31,
+    "branch": "cc/archer-motion-test-visual-fix-v2",
+    "commit": "6ab6a1f485d9e17badc56a671b5f105d049d8fe2",
+    "path": "assets/units/hero.archer/attack/hero.archer_attack_000.png",
+    "sha256": "4a1a24f9e691d48aeef55c235a47af07931032e6345b159122f0128d7aa7e888"
+  },
+  "productionMethod": {
+    "type": "identity-preserving deterministic subpixel motion",
+    "description": "Frames retain the exact Attack 000 pixels and apply restrained continuous remapping only for breathing, gaze, bow, and quiver secondary motion. The foot/anchor region is locked. Each frame is compared with the preceding frame for continuity while the approved Attack master remains the pixel source to prevent cumulative identity drift.",
+    "background": "transparent alpha inherited from the verified Attack master",
+    "canvasNormalization": "source master already normalized to 320x480 with anchor [0.5,0.92]"
+  },
+  "frames": [
+    {
+      "frame": 0,
+      "file": "hero.archer_idle_000.png",
+      "role": "neutral_alert",
+      "pixelSource": "reference.path exact copy",
+      "visualReference": "PR #31 Attack 000"
+    },
+    {
+      "frame": 1,
+      "file": "hero.archer_idle_001.png",
+      "role": "inhale_begin",
+      "pixelSource": "reference.path",
+      "visualReference": "hero.archer_idle_000.png"
+    },
+    {
+      "frame": 2,
+      "file": "hero.archer_idle_002.png",
+      "role": "inhale_peak",
+      "pixelSource": "reference.path",
+      "visualReference": "hero.archer_idle_001.png"
+    },
+    {
+      "frame": 3,
+      "file": "hero.archer_idle_003.png",
+      "role": "inhale_settle",
+      "pixelSource": "reference.path",
+      "visualReference": "hero.archer_idle_002.png"
+    },
+    {
+      "frame": 4,
+      "file": "hero.archer_idle_004.png",
+      "role": "neutral_gaze_adjust",
+      "pixelSource": "reference.path",
+      "visualReference": "hero.archer_idle_003.png"
+    },
+    {
+      "frame": 5,
+      "file": "hero.archer_idle_005.png",
+      "role": "exhale_begin",
+      "pixelSource": "reference.path",
+      "visualReference": "hero.archer_idle_004.png"
+    },
+    {
+      "frame": 6,
+      "file": "hero.archer_idle_006.png",
+      "role": "exhale_settle_secondary_lag",
+      "pixelSource": "reference.path",
+      "visualReference": "hero.archer_idle_005.png"
+    },
+    {
+      "frame": 7,
+      "file": "hero.archer_idle_007.png",
+      "role": "return_to_neutral",
+      "pixelSource": "reference.path",
+      "visualReference": "hero.archer_idle_006.png and loop target hero.archer_idle_000.png"
+    }
+  ],
+  "reviewArtifacts": {
+    "previewGif": "docs/assets/review/archer-idle-motion-test-v1-preview.gif",
+    "contactSheet": "docs/assets/review/archer-idle-motion-test-v1-contact-sheet.png",
+    "usage": "review only; never substitutes for the eight separate PNG frames"
+  },
+  "note": "Motion-test candidate only. This source map does not claim canonical artwork or approval."
+}
