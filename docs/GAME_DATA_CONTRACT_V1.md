@@ -88,6 +88,8 @@ Allowed `classTier` values:
 - `2`: Class 2
 - `3`: Secret class
 
+`classTier: 0` (Novice) is a generic-contract placeholder only. It is not valid for Demo 1; see `docs/DEMO1_DATA_POLICY.md`.
+
 Initial Class 1 IDs:
 
 - `fighter`
@@ -152,10 +154,11 @@ Initial normal monster IDs:
 - `shadowassassin`
 - `golem`
 
-Initial boss IDs:
+Initial boss ID:
 
-- `warden`
-- `bonedragon`
+- `arena_overlord`
+
+Stage 5 and Stage 10 minibosses are drawn from separate `kind: "miniboss"` pools rather than a single top-level boss list; see `docs/DEMO1_DATA_POLICY.md` for the confirmed Demo 1 pool membership.
 
 ## Skill definition
 
@@ -244,7 +247,7 @@ Stage depth shop odds:
 {
   "id": "fighter_to_knight",
   "kind": "hero_class_upgrade",
-  "inputs": ["app_fighter", "app_fighter"],
+  "inputs": ["fighter", "fighter", "fighter"],
   "output": "knight",
   "inputTier": 1,
   "outputTier": 2

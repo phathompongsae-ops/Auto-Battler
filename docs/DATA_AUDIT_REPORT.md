@@ -20,7 +20,7 @@ The design pack is internally organized and preserves the agreed boundaries, but
 - Starting gold equals one Class 1 hero purchase and cannot purchase two Class 1 heroes.
 - Sellback examples follow `floor(value * 0.8)`.
 - Map 1 contains stages 1–15 with minibosses at 5/10 and a fixed boss at 15.
-- Warden and Bone Dragon do not repeat.
+- Stage 5 and Stage 10 miniboss pools do not overlap.
 - Elite policy starts at stage 4, allows at most one elite, and excludes stages 5/10/15.
 - Ninja unlock is attached to Map 1 stage 15.
 - No Core Runtime files are changed in this PR.
