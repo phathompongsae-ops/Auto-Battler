@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "statusValues": [
+    "missing",
+    "concept-approved",
+    "canonical-approved",
+    "card-ready",
+    "runtime-linked"
+  ],
+  "assets": [
+    {
+      "logicalId": "hero_archer",
+      "category": "hero",
+      "classId": "archer",
+      "tier": 1,
+      "classLine": "archer",
+      "gender": "female",
+      "role": "pilot",
+      "canonicalStatus": "missing",
+      "sourcePath": null,
+      "cardAssetPath": null,
+      "runtimeAssetPath": null,
+      "dimensions": null,
+      "hasAlpha": null,
+      "approvedByUser": false,
+      "notes": "Recommended pilot hero; do not use shop-card mockup art as canonical source."
+    },
+    {
+      "logicalId": "monster_slime",
+      "category": "monster",
+      "monsterId": "slime",
+      "tier": null,
+      "classLine": null,
+      "gender": null,
+      "role": "pilot",
+      "canonicalStatus": "missing",
+      "sourcePath": null,
+      "cardAssetPath": null,
+      "runtimeAssetPath": null,
+      "dimensions": null,
+      "hasAlpha": null,
+      "approvedByUser": false,
+      "notes": "Recommended pilot normal monster."
+    },
+    {
+      "logicalId": "boss_stage5_warden",
+      "category": "boss",
+      "bossId": "warden",
+      "stage": 5,
+      "tier": null,
+      "classLine": null,
+      "gender": null,
+      "role": "pilot",
+      "canonicalStatus": "missing",
+      "sourcePath": null,
+      "cardAssetPath": null,
+      "runtimeAssetPath": null,
+      "dimensions": null,
+      "hasAlpha": null,
+      "approvedByUser": false,
+      "notes": "Confirm current stage-5 boss data before production."
+    }
+  ]
+}
