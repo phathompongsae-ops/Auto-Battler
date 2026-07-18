@@ -1,0 +1,121 @@
+{
+  "schemaVersion": 1,
+  "id": "map1.arena_ruins.board-implementation-contract.v1",
+  "status": "handoff-contract-only",
+  "mapId": "map1.arena_ruins",
+  "canonicalApproved": false,
+  "scope": {
+    "basePr": 47,
+    "baseBranch": "coco/arena-ruins-reference-matched-board-preview-v2",
+    "baseSha": "4d1403ec108f5846deb9f46af89da2d03ce1a666",
+    "referenceImage": "1000042598.png",
+    "referenceImageSha256": "194d941b5b10a2888f209336d6d1bf2e975df28359b86529dc711875d7111547",
+    "previewV2": "docs/assets/review/arena-ruins/reference-match-v2/arena-ruins-reference-match-board-only-v2.png",
+    "documentationAndMetadataOnly": true,
+    "runtimeIntegration": false,
+    "runtimeChanges": false
+  },
+  "runtimeFacts": {
+    "sources": [
+      "src/game.js",
+      "src/map-theme-runtime.js",
+      "src/game-presentation-tools.js",
+      "data/design/map1-arena-ruins-theme-v1.json",
+      "docs/MAP_THEME_RUNTIME_V1.md"
+    ],
+    "board": {
+      "columns": 8,
+      "rows": 7,
+      "tileCount": 56,
+      "tileWorldSize": 1,
+      "boardCenterWorld": [0, 0, 0],
+      "worldBounds": {"x": [-4, 4], "z": [-3.5, 3.5]},
+      "combatRows": [0, 1, 2, 3, 4, 5],
+      "deployRows": [3, 4, 5],
+      "benchRow": 6,
+      "usableBenchColumns": [0, 1, 2, 3, 4],
+      "originTile": [0, 0],
+      "originMeaning": "far-left enemy-side tile",
+      "columnDirection": "+world-x; screen-right under the locked camera",
+      "rowDirection": "+world-z; toward camera/player/bench",
+      "tileCenterFormula": "x=(c-8/2)+0.5, z=(r-7/2)+0.5"
+    },
+    "camera": {
+      "type": "THREE.OrthographicCamera",
+      "pitchDegrees": 45,
+      "yawDegrees": 90,
+      "distance": 20,
+      "lookTargetWorld": [0, 0, 1.3],
+      "containFit": "project board corners into camera-local space; fit height first; use width guard when required",
+      "boardFillRatio": 0.97,
+      "boardDownBias": 0.97,
+      "topbarClearPadPixels": 6,
+      "layoutOwner": "src/game.js:layoutBoard",
+      "locked": true
+    },
+    "renderer": {
+      "pixelRatio": 1,
+      "antialias": false,
+      "preserveDrawingBuffer": false,
+      "fullscreen": "document-root fullscreen followed by GamePresentationHooks.relayout",
+      "screenshot": "fresh native-size WebGL render copied before the player HUD strip is composited"
+    },
+    "unitAnchorIntent": "unit group origin remains at the runtime tile center; static board art supplies a quiet receiving area but never bakes a unit or its contact shadow"
+  },
+  "runtimeLayerContract": {
+    "rootName": "mapThemeRoot",
+    "supportedLayerNames": [
+      "boardSurface",
+      "arenaBorder",
+      "background",
+      "props",
+      "ambientVfx",
+      "lightingProfile"
+    ],
+    "insertionOrder": [
+      "boardSurface",
+      "arenaBorder",
+      "background",
+      "props",
+      "ambientVfx",
+      "lightingProfile"
+    ],
+    "explicitRenderOrder": false,
+    "visibilityApi": "MapThemeRuntime.setLayerVisible(name, boolean)",
+    "qualityApi": "MapThemeRuntime.setThemeQuality(high|medium|low)",
+    "qualityLevels": ["high", "medium", "low"]
+  },
+  "conceptualLayers": [
+    {"layerId": "boardSurface", "runtimeLayer": "boardSurface", "runtimeLayerExists": true, "assetIds": ["arenaRuins.boardSurface.v1"], "renderOrderIntent": 30, "support": "procedural-layer-exists; external-file-replacement-unresolved"},
+    {"layerId": "tileDetail", "runtimeLayer": "boardSurface", "runtimeLayerExists": true, "assetIds": [], "renderOrderIntent": 31, "support": "baked-into-board-surface-source; no-independent-runtime-layer"},
+    {"layerId": "arenaBorder", "runtimeLayer": "arenaBorder", "runtimeLayerExists": true, "assetIds": ["arenaRuins.borderCorners.v1"], "renderOrderIntent": 50, "support": "procedural-layer-exists; atlas-UV-and-loader-unresolved"},
+    {"layerId": "benchTreatment", "runtimeLayer": "boardSurface", "runtimeLayerExists": true, "assetIds": ["arenaRuins.benchTreatment.v1"], "renderOrderIntent": 32, "support": "bench-row-logic-exists; independent-art-composite-unresolved"},
+    {"layerId": "perimeterGround", "runtimeLayer": "background", "runtimeLayerExists": true, "assetIds": ["arenaRuins.perimeterGround.v1"], "renderOrderIntent": 10, "support": "current-ground-owned-by-src/game.js; theme-ownership-unresolved"},
+    {"layerId": "backgroundArchitecture", "runtimeLayer": "background", "runtimeLayerExists": true, "assetIds": ["arenaRuins.backgroundModules.v1"], "renderOrderIntent": 20, "support": "procedural-layer-exists; atlas-UV-and-loader-unresolved"},
+    {"layerId": "props", "runtimeLayer": "props", "runtimeLayerExists": true, "assetIds": ["arenaRuins.props.v1"], "renderOrderIntent": 60, "support": "procedural-layer-exists; atlas-UV-and-loader-unresolved"},
+    {"layerId": "ambientVfxReferenceOnly", "runtimeLayer": "ambientVfx", "runtimeLayerExists": true, "assetIds": [], "renderOrderIntent": 70, "support": "runtime-profile-only; no-static-production-bitmap"},
+    {"layerId": "lightingProfileReferenceOnly", "runtimeLayer": "lightingProfile", "runtimeLayerExists": true, "assetIds": [], "renderOrderIntent": 80, "support": "runtime-light-profile-only; no-static-production-bitmap"},
+    {"layerId": "tileStateOverlay", "runtimeLayer": "boardSurface", "runtimeLayerExists": true, "assetIds": ["arenaRuins.tileStates.v1"], "renderOrderIntent": 40, "support": "normal/placement-valid/placement-invalid-material-states-exist; full-nine-state-atlas-integration-unresolved"}
+  ],
+  "contractFiles": {
+    "layerPlacement": "data/design/arena-ruins-board-layer-placement-v1.json",
+    "cameraAlignment": "data/design/arena-ruins-board-camera-alignment-v1.json",
+    "uiSafeAreas": "data/design/arena-ruins-board-ui-safe-areas-v1.json",
+    "assetRegistry": "data/design/arena-ruins-board-asset-registry-v1.json",
+    "implementationZonesReview": "docs/assets/review/arena-ruins/reference-match-v2/arena-ruins-implementation-zones-v1.png"
+  },
+  "integrationBlockers": [
+    {"id": "external-file-loader", "status": "unresolved", "fact": "MapThemeRuntime.themeTexture creates CanvasTexture from a draw callback; no external board-art loader/path registry was found."},
+    {"id": "atlas-uv-contract", "status": "unresolved", "fact": "No atlas cell-to-geometry UV mapping contract was found for border, background, tile-state, or props atlases."},
+    {"id": "color-space-assignment", "status": "unresolved", "fact": "No final external texture colorSpace assignment policy was found."},
+    {"id": "perimeter-ground-ownership", "status": "unresolved", "fact": "The 60x60 repeat ground plane is created in src/game.js, outside mapThemeRoot."},
+    {"id": "explicit-render-order", "status": "unresolved", "fact": "Theme groups are inserted in layer order but no explicit THREE.Object3D.renderOrder contract exists."},
+    {"id": "tile-state-coverage", "status": "partial", "fact": "Runtime material behavior exposes normal, placement-valid, and placement-invalid; hover, selected, enemy-zone, target, AoE, and disabled atlas bindings were not found."},
+    {"id": "browser-ui-overlap", "status": "measurement-required", "fact": "Topbar height and responsive panel positions are DOM-dependent; fullscreen and device overlap still need browser measurement."}
+  ],
+  "futureReviewCheckpoints": [
+    {"id": "asset-structure", "name": "Asset Structure", "passed": false},
+    {"id": "board-readability", "name": "Board Readability", "passed": false},
+    {"id": "pilot-contrast", "name": "Pilot Contrast", "passed": false}
+  ]
+}

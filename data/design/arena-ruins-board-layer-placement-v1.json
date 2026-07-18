@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "id": "map1.arena_ruins.board-layer-placement.v1",
+  "mapId": "map1.arena_ruins",
+  "canonicalApproved": false,
+  "coordinateSpaces": {
+    "world": {"axes": {"x": "left-to-right", "y": "up", "z": "enemy/back to player/front"}, "boardBounds": {"x": [-4, 4], "z": [-3.5, 3.5]}},
+    "boardUv": {"range": [0, 1], "origin": "far-left enemy-side outer corner", "u": "left-to-right", "v": "enemy/back to player/front"},
+    "atlasUv": {"range": [0, 1], "origin": "top-left in authored PNG metadata; integration must convert for Three.js UV convention"}
+  },
+  "runtimeInsertionOrder": ["boardSurface", "arenaBorder", "background", "props", "ambientVfx", "lightingProfile"],
+  "explicitRenderOrderExists": false,
+  "renderOrderIntentIsNonRuntimeMetadata": true,
+  "placements": [
+    {
+      "assetId": "arenaRuins.perimeterGround.v1",
+      "conceptualLayer": "perimeterGround",
+      "runtimeLayer": "background",
+      "renderOrderIntent": 10,
+      "worldPlacement": {"center": [0, -0.08, 0], "planeSize": [60, 60], "repeat": [10, 10]},
+      "anchorOrigin": "world-center",
+      "tiling": "seamless-repeat",
+      "stretch": "forbidden",
+      "runtimeSupport": "unresolved-current-plane-owned-by-src/game.js"
+    },
+    {
+      "assetId": "arenaRuins.backgroundModules.v1",
+      "conceptualLayer": "backgroundArchitecture",
+      "runtimeLayer": "background",
+      "renderOrderIntent": 20,
+      "worldPlacement": {"radiusRange": [9, 13], "allowedSides": ["back", "left", "right"], "frontAllowed": false},
+      "anchorOrigin": "per-module-bottom-center",
+      "tiling": "none-atlas-modules",
+      "stretch": "uniform-scale-only",
+      "runtimeSupport": "unresolved-atlas-uv-and-file-loader"
+    },
+    {
+      "assetId": "arenaRuins.boardSurface.v1",
+      "conceptualLayer": "boardSurface",
+      "runtimeLayer": "boardSurface",
+      "renderOrderIntent": 30,
+      "worldPlacement": {"center": [0, 0.002, 0], "bounds": {"x": [-4, 4], "z": [-3.5, 3.5]}},
+      "boardUvPlacement": {"min": [0, 0], "max": [1, 1], "columns": 8, "rows": 7, "pixelsPerTile": [128, 128], "row0AtPngTop": true},
+      "anchorOrigin": "board-center",
+      "tiling": "none-full-board",
+      "stretch": "exact-8x7-only",
+      "runtimeSupport": "unresolved-external-file-replacement"
+    },
+    {
+      "assetId": "arenaRuins.benchTreatment.v1",
+      "conceptualLayer": "benchTreatment",
+      "runtimeLayer": "boardSurface",
+      "renderOrderIntent": 32,
+      "worldPlacement": {"center": [0, 0.003, 3], "bounds": {"x": [-4, 4], "z": [2.5, 3.5]}},
+      "boardUvPlacement": {"min": [0, 0.8571428571], "max": [1, 1], "benchRow": 6, "usableColumns": [0, 1, 2, 3, 4]},
+      "anchorOrigin": "bench-row-center",
+      "tiling": "none-full-row",
+      "stretch": "exact-8x1-only",
+      "runtimeSupport": "unresolved-independent-bench-art-composite"
+    },
+    {
+      "assetId": "arenaRuins.tileStates.v1",
+      "conceptualLayer": "tileStateOverlay",
+      "runtimeLayer": "boardSurface",
+      "renderOrderIntent": 40,
+      "worldPlacement": {"perTile": true, "tileCenterFormula": "x=(c-8/2)+0.5, z=(r-7/2)+0.5", "heightIntent": 0.006},
+      "atlasLayout": {"grid": [4, 3], "cellPixels": [256, 256], "usedCells": 9, "unusedCellsTransparent": 3},
+      "anchorOrigin": "tile-center",
+      "tiling": "one-atlas-cell-per-tile-state",
+      "stretch": "uniform-to-one-world-unit-tile",
+      "runtimeSupport": "partial-three-material-states-only; full-atlas-binding-unresolved"
+    },
+    {
+      "assetId": "arenaRuins.borderCorners.v1",
+      "conceptualLayer": "arenaBorder",
+      "runtimeLayer": "arenaBorder",
+      "renderOrderIntent": 50,
+      "worldPlacement": {
+        "boardOuterBounds": {"x": [-4, 4], "z": [-3.5, 3.5]},
+        "frontEdge": {"zGreaterThan": 3.5, "profile": "flat-only"},
+        "backEdge": {"zLessThan": -3.5, "profile": "broken-medium"},
+        "sideEdges": {"xOutside": [-4, 4], "profile": "low"}
+      },
+      "anchorOrigin": "per-module-bottom-center",
+      "tiling": "none-atlas-modules",
+      "stretch": "uniform-scale-only",
+      "runtimeSupport": "unresolved-atlas-uv-and-file-loader"
+    },
+    {
+      "assetId": "arenaRuins.props.v1",
+      "conceptualLayer": "props",
+      "runtimeLayer": "props",
+      "renderOrderIntent": 60,
+      "worldPlacement": {"insideBoardAllowed": false, "frontTallPropsAllowed": false, "safeSides": ["back", "left", "right", "flat-front"]},
+      "anchorOrigin": "per-module-bottom-center",
+      "tiling": "none-atlas-modules",
+      "stretch": "uniform-scale-only",
+      "runtimeSupport": "unresolved-atlas-uv-and-file-loader"
+    }
+  ],
+  "nonBitmapOwnership": [
+    {"conceptualLayer": "ambientVfxReferenceOnly", "runtimeLayer": "ambientVfx", "assetProduced": false, "reason": "motion/dust/light shafts remain runtime-only"},
+    {"conceptualLayer": "lightingProfileReferenceOnly", "runtimeLayer": "lightingProfile", "assetProduced": false, "reason": "cool fill and golden rim remain runtime-light data"}
+  ]
+}
