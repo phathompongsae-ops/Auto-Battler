@@ -25,6 +25,9 @@
     "silhouetteReadableAtBenchSize": null,
     "silhouetteReadableAtBoardSize": null,
     "classWeaponRulesPass": null,
+    "genderIdentityReadableAtShopSize": null,
+    "paletteDistinctFromRelatedClasses": null,
+    "enemyLookalikeRiskCleared": null,
     "maleFaceDiversityRulePass": null,
     "notes": []
   },
@@ -47,6 +50,8 @@
   "runtime": {
     "cardReady": false,
     "runtimeLinked": false,
-    "runtimeIntegrationPr": null
+    "runtimeIntegrationPr": null,
+    "temporaryFallbackAllowed": true,
+    "fallbackIsCanonical": false
   }
 }
