@@ -11,6 +11,7 @@ const TARGETING_BEHAVIORS = new Set([
   'lowest_hp_enemy',
   'backline',
   'hunter',
+  'self',
 ]);
 
 const MONSTER_KINDS = new Set(['normal', 'elite', 'miniboss', 'boss']);
@@ -100,8 +101,6 @@ function validate(data) {
   const fusionRules = collectById(data.fusionRules, 'fusionRules', errors);
   const maps = collectById(data.maps, 'maps', errors);
   const stages = collectById(data.stages, 'stages', errors);
-  // Optional Class Tier 3 secret classes. Backward-compatible: absent => empty.
-  // secretClassUnlock references may resolve against these as well as heroes[].
   const secretHeroes = collectById(data.secretHeroes ?? [], 'secretHeroes', errors);
   const localization = requireObject(data.localization, 'localization');
 
@@ -133,6 +132,15 @@ function validate(data) {
     const label = `skill ${id}`;
     checkLocalizationKey(localization, skill.nameKey, `${label}.nameKey`, errors);
     checkLocalizationKey(localization, skill.descriptionKey, `${label}.descriptionKey`, errors);
+
+    const ownerIds = requireArray(skill.ownerIds, `${label}.ownerIds`);
+    if (ownerIds.length === 0) errors.push(`${label}.ownerIds must contain at least one owner`);
+    for (const ownerId of ownerIds) {
+      if (!heroes.has(ownerId) && !monsters.has(ownerId) && !secretHeroes.has(ownerId)) {
+        errors.push(`${label} references unknown ownerId: ${ownerId}`);
+      }
+    }
+
     if (!skill.cast || typeof skill.cast !== 'object') errors.push(`${label}.cast must be an object`);
     else {
       checkTargeting(skill.cast.targetingBehavior, `${label}.cast`, errors);
@@ -140,7 +148,11 @@ function validate(data) {
         const value = skill.cast[key];
         if (!isFiniteNumber(value) || value < 0) errors.push(`${label}.cast.${key} must be finite and non-negative`);
       }
+      if (skill.cast.targetingBehavior === 'self' && skill.cast.range !== 0) {
+        errors.push(`${label}.cast.range must equal 0 when targetingBehavior is self`);
+      }
     }
+
     if (!Array.isArray(skill.effects) || skill.effects.length === 0) {
       errors.push(`${label}.effects must contain at least one effect`);
     }
