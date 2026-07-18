@@ -1,0 +1,124 @@
+{
+  "schemaVersion": 1,
+  "status": "balance_draft",
+  "notes": [
+    "Data-only definitions for the 10 active Map 1 monster and boss skill references.",
+    "The self targeting behavior is added to the shared data contract in this PR but still requires separate Runtime support before combat integration.",
+    "Bone Dragon and Lich King use their existing pAtk as the explicit scaling source for magical damage in v1; no hidden mAtk stat is fabricated.",
+    "All ratios and cast times are balance-draft values for later x4 Runtime validation by CC."
+  ],
+  "skills": [
+    {
+      "id": "skill.monster_heavy_swing",
+      "ownerId": "orc",
+      "mana": 100,
+      "target": "nearest",
+      "rangeMode": "owner_range",
+      "castTime": 0.5,
+      "effect": {"type":"damage","damageType":"physical","scalingStat":"pAtk","ratio":1.4},
+      "presentation": {"animationState":"cast","effectId":"hit.heavy","projectileId":null},
+      "tags": ["map1","normal_monster","single_target"]
+    },
+    {
+      "id": "skill.monster_pounce",
+      "ownerId": "stone_wolf",
+      "mana": 90,
+      "target": "lowest_hp_enemy",
+      "rangeMode": "owner_range",
+      "castTime": 0.3,
+      "effect": {"type":"damage","damageType":"physical","scalingStat":"pAtk","ratio":1.55},
+      "presentation": {"animationState":"cast","effectId":"hit.fast","projectileId":null},
+      "tags": ["map1","normal_monster","assassin"]
+    },
+    {
+      "id": "skill.monster_spirit_arrow",
+      "ownerId": "spirit_archer",
+      "mana": 100,
+      "target": "backline",
+      "rangeMode": "owner_range",
+      "castTime": 0.45,
+      "effect": {"type":"damage","damageType":"physical","scalingStat":"pAtk","ratio":1.45},
+      "presentation": {"animationState":"cast","effectId":"hit.spirit","projectileId":"projectile.spirit_arrow"},
+      "tags": ["map1","normal_monster","ranged","backline_pressure"]
+    },
+    {
+      "id": "skill.monster_shadow_step",
+      "ownerId": "shadow_assassin",
+      "mana": 85,
+      "target": "backline",
+      "rangeMode": "owner_range",
+      "castTime": 0.25,
+      "effect": {"type":"damage","damageType":"physical","scalingStat":"pAtk","ratio":1.65},
+      "presentation": {"animationState":"cast","effectId":"hit.shadow","projectileId":null},
+      "tags": ["map1","normal_monster","assassin","no_teleport"]
+    },
+    {
+      "id": "skill.monster_stone_guard",
+      "ownerId": "golem",
+      "mana": 110,
+      "target": "self",
+      "rangeMode": "fixed",
+      "range": 0,
+      "castTime": 0.6,
+      "effect": {"type":"shield","scalingStat":"hp","ratio":0.12},
+      "presentation": {"animationState":"cast","effectId":"shield.stone","projectileId":null},
+      "tags": ["map1","normal_monster","defensive","self_target"]
+    },
+    {
+      "id": "skill.miniboss_orc_warlord_slam",
+      "ownerId": "orc_warlord",
+      "mana": 100,
+      "target": "cluster",
+      "rangeMode": "owner_range",
+      "castTime": 0.75,
+      "effect": {"type":"damage","damageType":"physical","scalingStat":"pAtk","ratio":1.25},
+      "presentation": {"animationState":"cast","effectId":"hit.slam","projectileId":null},
+      "tags": ["map1","miniboss","cluster"]
+    },
+    {
+      "id": "skill.miniboss_bone_breath",
+      "ownerId": "bone_dragon",
+      "mana": 110,
+      "target": "cluster",
+      "rangeMode": "owner_range",
+      "castTime": 0.8,
+      "effect": {"type":"damage","damageType":"magical","scalingStat":"pAtk","ratio":1.35},
+      "presentation": {"animationState":"cast","effectId":"hit.bone_breath","projectileId":null},
+      "tags": ["map1","miniboss","cluster","explicit_patk_magic_scaling"]
+    },
+    {
+      "id": "skill.miniboss_lich_king_frost_nova",
+      "ownerId": "lich_king",
+      "mana": 110,
+      "target": "cluster",
+      "rangeMode": "owner_range",
+      "castTime": 0.8,
+      "effect": {"type":"damage","damageType":"magical","scalingStat":"pAtk","ratio":1.25},
+      "presentation": {"animationState":"cast","effectId":"hit.frost_nova","projectileId":null},
+      "tags": ["map1","miniboss","cluster","no_slow","explicit_patk_magic_scaling"]
+    },
+    {
+      "id": "skill.boss_arena_quake",
+      "ownerId": "arena_overlord",
+      "mana": 100,
+      "target": "cluster",
+      "rangeMode": "owner_range",
+      "castTime": 0.95,
+      "effect": {"type":"damage","damageType":"physical","scalingStat":"pAtk","ratio":1.35},
+      "presentation": {"animationState":"cast","effectId":"hit.arena_quake","projectileId":null},
+      "tags": ["map1","boss","cluster","telegraphed"]
+    },
+    {
+      "id": "skill.boss_commanding_roar",
+      "ownerId": "arena_overlord",
+      "mana": 120,
+      "target": "self",
+      "rangeMode": "fixed",
+      "range": 0,
+      "castTime": 0.65,
+      "effect": {"type":"shield","scalingStat":"hp","ratio":0.1},
+      "presentation": {"animationState":"cast","effectId":"shield.commanding_roar","projectileId":null},
+      "tags": ["map1","boss","defensive","self_target"]
+    }
+  ]
+}
