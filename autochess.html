@@ -193,6 +193,18 @@
   #shopDrawer h3 button:disabled { background: #444; border-color: #555; color: #999; cursor: not-allowed; }
   #shopCloseBtn { background: #262a33 !important; color: var(--text) !important; border-color: var(--panel-border) !important; }
   #shopCards { display: flex; gap: 6px; flex-wrap: wrap; }
+  /* Equipment shop + fusion — reuse the shop-card visual language, no new theme */
+  #equipShopHead { margin-top: 10px !important; }
+  #equipShopCards { display: flex; gap: 6px; flex-wrap: wrap; }
+  .equipShopCard { background: #23252b; border: 1px solid var(--panel-border); border-radius: 8px; padding: 6px 8px; min-width: 96px; cursor: pointer; }
+  .equipShopCard.sold { opacity: 0.4; cursor: default; }
+  .equipShopCard.disabled { opacity: 0.55; }
+  .equipShopCard .eqName { font-size: 12px; font-weight: bold; color: var(--accent); }
+  .equipShopCard .eqEff { font-size: 11px; color: var(--text-dim); }
+  .equipShopCard .eqPrice { font-size: 11px; }
+  #fusionBar { display: flex; align-items: center; gap: 8px; margin-top: 8px; font-size: 12px; color: var(--text-dim); flex-wrap: wrap; }
+  #fusionBar button { border-radius: 6px; padding: 4px 10px; font-size: 12px; cursor: pointer; }
+  #fusionBar button.confirm { background: var(--accent); color: #1a1408; border: 1px solid var(--accent-dim); }
   .subcount { font-weight: normal; color: var(--text-dim); font-size: 11px; }
   .card {
     width: 62px; background: var(--card-bg); border: 2px solid var(--card-border); border-radius: 6px; overflow: hidden;
@@ -462,6 +474,9 @@
 <div class="panel" id="shopDrawer">
   <h3>ร้านค้า <span><button id="rerollBtn">รีโรล (2💰)</button> <button id="shopCloseBtn">✕</button></span></h3>
   <div id="shopCards"></div>
+  <h3 id="equipShopHead">ร้านอุปกรณ์ <span><button id="equipRerollBtn">รีเฟรชอุปกรณ์ (2💰)</button></span></h3>
+  <div id="equipShopCards"></div>
+  <div id="fusionBar"></div>
 </div>
 
 <div id="bottomRight" class="hudCorner">
