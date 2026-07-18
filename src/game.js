@@ -900,6 +900,35 @@ const ITEM_BASE = {
 // flat id -> item def lookup across base_items + combined_items, for equip/buildCombatStats
 const ITEM_DEFS_BY_ID = {};
 [...ITEM_BASE.base_items, ...ITEM_BASE.combined_items].forEach((def) => { ITEM_DEFS_BY_ID[def.id] = def; });
+
+// ============================================================
+// EQUIPMENT VERTICAL SLICE — canonical Demo 1 catalog (5 items). Stats map to the same
+// keys buildCombatStats already folds: flat `stats` (p_atk/m_atk) add once; `percent_stats`
+// (attack_speed) multiply once; Iron Armor's flat hp is applied to Max HP in
+// applyPreCombatSynergyBuffs (buildCombatStats' combatStats.hp is not the Max-HP source).
+// Player-facing name uses "Equipment"; internal ids keep "weapon.*" per the contract.
+// Prices/effects mirror the PR #19 vertical-slice contract; localization is a local Thai
+// fallback (swap for PR #19 keys on stack reconciliation). Duelist Blade is fusion-only —
+// never a shop offer.
+// ============================================================
+const EQUIP_SLICE_ITEMS = [
+  { id: 'weapon.iron_sword',       name: 'ดาบเหล็ก',       level: 1, price: 6, stats: { p_atk: 8 },  effectTh: 'P.ATK +8' },
+  { id: 'weapon.apprentice_staff', name: 'คทาฝึกหัด',      level: 1, price: 6, stats: { m_atk: 8 },  effectTh: 'M.ATK +8' },
+  { id: 'weapon.swift_gloves',     name: 'ถุงมือว่องไว',    level: 1, price: 6, percent_stats: { attack_speed: 8 }, effectTh: 'ความเร็วโจมตี +8%' },
+  { id: 'weapon.iron_armor',       name: 'เกราะเหล็ก',      level: 1, price: 6, stats: { hp: 120 }, effectTh: 'พลังชีวิตสูงสุด +120' },
+  { id: 'weapon.duelist_blade',    name: 'ดาบนักดวล',      level: 2, price: 14, stats: { p_atk: 14 }, percent_stats: { attack_speed: 10 }, effectTh: 'P.ATK +14, ความเร็วโจมตี +10%', fusionOnly: true },
+];
+EQUIP_SLICE_ITEMS.forEach((d) => { ITEM_DEFS_BY_ID[d.id] = d; });
+const EQUIP_L1_POOL = ['weapon.iron_sword', 'weapon.apprentice_staff', 'weapon.swift_gloves', 'weapon.iron_armor'];
+const EQUIP_L1_PRICE = 6, EQUIP_REROLL_COST = 2, EQUIP_INVENTORY_CAP = 8;
+const EQUIP_FUSION_RECIPE = { inputs: ['weapon.iron_sword', 'weapon.swift_gloves'], output: 'weapon.duelist_blade' };
+// Thai UI strings (local fallback — replace with PR #19 localization keys on reconciliation).
+const EQ_TXT = {
+  shop: 'ร้านอุปกรณ์', reroll: 'รีเฟรชอุปกรณ์', inventory: 'คลังอุปกรณ์', slots: 'ช่องอุปกรณ์',
+  invFull: 'คลังอุปกรณ์เต็ม', noGold: 'ทองไม่เพียงพอ', heroSlotsFull: 'ช่องอุปกรณ์ของฮีโร่เต็มแล้ว',
+  dupItem: 'ฮีโร่ตัวนี้ใส่อุปกรณ์ชนิดนี้อยู่แล้ว', combatLock: 'ไม่สามารถเปลี่ยนอุปกรณ์ระหว่างการต่อสู้',
+  fuseMissing: 'วัตถุดิบไม่ครบ', fuseReady: 'พร้อมรวมเป็น ดาบนักดวล', fuse: 'รวมอุปกรณ์', cancel: 'ยกเลิก',
+};
 // no item art yet — pick a representative emoji from which stat(s) the item def carries
 function itemIcon(itemDefId) {
   const def = ITEM_DEFS_BY_ID[itemDefId];
@@ -925,7 +954,7 @@ function itemIcon(itemDefId) {
 // (a minimal factory needed to have anything to equip/test with until a shop exists).
 // ============================================================
 const playerState = {
-  inventory: { capacity: 20, itemInstanceIds: [] },
+  inventory: { capacity: EQUIP_INVENTORY_CAP, itemInstanceIds: [] }, // 8 unequipped items (equipped excluded)
   itemInstances: {}, // instanceId -> { instanceId, itemDefId, location:'inventory'|'equipped', ownerHeroId }
 };
 let nextItemInstanceSeq = 1;
@@ -935,11 +964,17 @@ function createItemInstance(itemDefId) {
   playerState.inventory.itemInstanceIds.push(instanceId);
   return instanceId;
 }
+// Equip is only valid outside combat, on a player hero, into an empty slot, and never two
+// copies of the same item id on one hero. All rejections happen BEFORE any state mutation.
 function equipItem(hero, itemInstanceId, slotIndex) {
+  if (phase !== 'shop') return false;                 // combat lock
   if (slotIndex !== 0 && slotIndex !== 1) return false;
-  if (hero.equipment[slotIndex] != null) return false;
+  if (hero.equipment[slotIndex] != null) return false; // slot occupied
   const inst = playerState.itemInstances[itemInstanceId];
   if (!inst || inst.location !== 'inventory') return false;
+  // duplicate item-id guard: a hero cannot equip two copies of the same item id
+  const already = hero.equipment.some((id) => id && playerState.itemInstances[id] && playerState.itemInstances[id].itemDefId === inst.itemDefId);
+  if (already) return false;
   const invIdx = playerState.inventory.itemInstanceIds.indexOf(itemInstanceId);
   if (invIdx < 0) return false;
   playerState.inventory.itemInstanceIds.splice(invIdx, 1);
@@ -949,15 +984,91 @@ function equipItem(hero, itemInstanceId, slotIndex) {
   return true;
 }
 function unequipItem(hero, slotIndex) {
+  if (phase !== 'shop') return false;                 // combat lock
   if (slotIndex !== 0 && slotIndex !== 1) return false;
   const itemInstanceId = hero.equipment[slotIndex];
   if (!itemInstanceId) return false;
-  if (playerState.inventory.itemInstanceIds.length >= playerState.inventory.capacity) return false;
+  if (playerState.inventory.itemInstanceIds.length >= playerState.inventory.capacity) return false; // full inventory: keep equipped, lose nothing
   const inst = playerState.itemInstances[itemInstanceId];
   hero.equipment[slotIndex] = null;
   if (inst) { inst.location = 'inventory'; inst.ownerHeroId = null; }
   playerState.inventory.itemInstanceIds.push(itemInstanceId);
   return true;
+}
+// Flat Max-HP from a unit's equipped items (Iron Armor). Summed from immutable item defs;
+// applied once per battle in applyPreCombatSynergyBuffs (never mutates base or item records).
+function equipFlatHp(hero) {
+  let hp = 0;
+  (hero.equipment || []).forEach((id) => {
+    const inst = id && playerState.itemInstances[id];
+    const def = inst && ITEM_DEFS_BY_ID[inst.itemDefId];
+    if (def && def.stats && typeof def.stats.hp === 'number') hp += def.stats.hp;
+  });
+  return hp;
+}
+
+// ============================================================
+// EQUIPMENT SHOP + FUSION (run-scoped; cleared on run reset = page reload)
+// ============================================================
+let equipShopOffers = []; // [{ defId, sold }] x2
+let fusionPending = false; // guards the confirm UI against double-submit
+function refreshEquipShop() {
+  // two DISTINCT L1 items, equal chance, no duplicate in the same refresh
+  const pool = [...EQUIP_L1_POOL];
+  const offers = [];
+  while (offers.length < 2 && pool.length) offers.push(pool.splice(Math.floor(Math.random() * pool.length), 1)[0]);
+  equipShopOffers = offers.map((defId) => ({ defId, sold: false }));
+}
+function inventoryFull() { return playerState.inventory.itemInstanceIds.length >= playerState.inventory.capacity; }
+// Buy an L1 equipment offer: exactly 6 gold, one inventory item, one-time per slot. All
+// rejections happen before any mutation (gold/offer/item untouched on failure).
+function buyEquipItem(slotIdx) {
+  if (phase !== 'shop') return { ok: false, reason: 'combat' };
+  const offer = equipShopOffers[slotIdx];
+  if (!offer || offer.sold) return { ok: false, reason: 'empty' };
+  if (inventoryFull()) return { ok: false, reason: EQ_TXT.invFull };
+  if (gold < EQUIP_L1_PRICE) return { ok: false, reason: EQ_TXT.noGold };
+  gold -= EQUIP_L1_PRICE;
+  createItemInstance(offer.defId);
+  offer.sold = true;
+  renderUI();
+  return { ok: true };
+}
+function rerollEquipShop() {
+  if (phase !== 'shop') return { ok: false, reason: 'combat' };
+  if (gold < EQUIP_REROLL_COST) return { ok: false, reason: EQ_TXT.noGold }; // preserves offers on insufficient gold
+  gold -= EQUIP_REROLL_COST;
+  refreshEquipShop();
+  renderUI();
+  return { ok: true };
+}
+// Count unequipped inventory copies of an item id (fusion reads inventory only).
+function inventoryCountOf(defId) {
+  return playerState.inventory.itemInstanceIds.filter((id) => playerState.itemInstances[id] && playerState.itemInstances[id].itemDefId === defId).length;
+}
+function canFuseDuelistBlade() {
+  if (phase !== 'shop') return false;
+  return EQUIP_FUSION_RECIPE.inputs.every((defId) => inventoryCountOf(defId) >= 1) && !!ITEM_DEFS_BY_ID[EQUIP_FUSION_RECIPE.output];
+}
+// Consume exactly one of each input from inventory, create exactly one output. Fusion frees a
+// net slot (2 in, 1 out), so capacity is never a blocker here. 0 gold. Guarded against double-submit.
+function fuseDuelistBlade() {
+  if (!canFuseDuelistBlade()) return { ok: false, reason: EQ_TXT.fuseMissing };
+  const consume = [];
+  for (const defId of EQUIP_FUSION_RECIPE.inputs) {
+    const id = playerState.inventory.itemInstanceIds.find((iid) => playerState.itemInstances[iid].itemDefId === defId && !consume.includes(iid));
+    if (!id) return { ok: false, reason: EQ_TXT.fuseMissing }; // validated before mutation
+    consume.push(id);
+  }
+  consume.forEach((id) => {
+    const idx = playerState.inventory.itemInstanceIds.indexOf(id);
+    if (idx >= 0) playerState.inventory.itemInstanceIds.splice(idx, 1);
+    delete playerState.itemInstances[id];
+  });
+  createItemInstance(EQUIP_FUSION_RECIPE.output);
+  fusionPending = false;
+  renderUI();
+  return { ok: true };
 }
 // ขายฮีโร่ (bench หรือ field) ต้องไม่ทำลายไอเทมที่สวมอยู่ — คืนกลับ inventory เสมอ ไม่เช็ค capacity
 // (เหมือน equipment_transfer_policy.never_destroy_overflow_items ที่ใช้ตอนรวมร่าง)
@@ -1206,10 +1317,10 @@ let synergyBuffs = null;
 function applyPreCombatSynergyBuffs() {
   synergyBuffs = computeSynergyBuffs();
   placedUnits.forEach((u) => {
-    // Demo 1 Team +8% HP augment folds in here, recomputed from the immutable baseMaxHp
-    // every battle start (never compounds). hp is set to the new maxHp, so a fresh battle
-    // starts at full — no NaN/negative possible from a positive multiplier.
-    u.maxHp = Math.round(u.baseMaxHp * (1 + synergyBuffs.maxHpPct / 100) * (1 + augTeamMaxHpPct() / 100));
+    // Max HP ordering: immutable star-scaled base + flat Equipment HP (Iron Armor +120)
+    // added ONCE, then percentage Synergy + Augment HP. Rebuilt from baseMaxHp every battle
+    // start so it never compounds; positive terms only => no NaN/negative.
+    u.maxHp = Math.round((u.baseMaxHp + equipFlatHp(u)) * (1 + synergyBuffs.maxHpPct / 100) * (1 + augTeamMaxHpPct() / 100));
     u.hp = u.maxHp;
     if (synergyBuffs.startBattleShieldPctMaxHp) {
       u.shield = (u.shield || 0) + u.maxHp * (synergyBuffs.startBattleShieldPctMaxHp / 100);
@@ -3596,6 +3707,8 @@ function renderUI() {
 
   placedUnits.forEach(updateEquipBadge); // Equipment Core: floating badge on any hero with an item equipped
   renderInventory();
+  renderEquipShop();
+  renderFusionBar();
   if (inspectingHero) renderEquipModal();
   if (pendingEvolution) renderEvolutionModal();
 }
@@ -4051,6 +4164,46 @@ function renderInventory() {
   inventoryCardsEl.innerHTML = '';
   playerState.inventory.itemInstanceIds.forEach((id) => inventoryCardsEl.appendChild(renderItemCard(id)));
 }
+// --- Equipment shop + fusion UI (rendered during shop phase from renderUI) ---
+const equipShopCardsEl = document.getElementById('equipShopCards');
+const equipRerollBtnEl = document.getElementById('equipRerollBtn');
+const fusionBarEl = document.getElementById('fusionBar');
+function renderEquipShop() {
+  equipShopCardsEl.innerHTML = '';
+  const affordable = gold >= EQUIP_L1_PRICE && !inventoryFull();
+  equipShopOffers.forEach((offer, idx) => {
+    const def = ITEM_DEFS_BY_ID[offer.defId];
+    const div = document.createElement('div');
+    div.className = 'equipShopCard' + (offer.sold ? ' sold' : (!affordable ? ' disabled' : ''));
+    div.innerHTML = `<div class="eqName">${def.name}</div><div class="eqEff">${def.effectTh}</div><div class="eqPrice">💰${EQUIP_L1_PRICE} • Lv.${def.level}</div>`;
+    if (!offer.sold) div.onclick = () => { const r = buyEquipItem(idx); if (!r.ok && r.reason && r.reason !== 'combat' && r.reason !== 'empty') flashHint(r.reason); };
+    equipShopCardsEl.appendChild(div);
+  });
+  equipRerollBtnEl.disabled = gold < EQUIP_REROLL_COST;
+}
+function renderFusionBar() {
+  fusionBarEl.innerHTML = '';
+  if (fusionPending) {
+    const span = document.createElement('span'); span.textContent = 'ดาบเหล็ก + ถุงมือว่องไว → ดาบนักดวล';
+    const confirm = document.createElement('button'); confirm.className = 'confirm'; confirm.textContent = EQ_TXT.fuse;
+    confirm.onclick = () => { const r = fuseDuelistBlade(); if (!r.ok) flashHint(r.reason); };
+    const cancel = document.createElement('button'); cancel.textContent = EQ_TXT.cancel;
+    cancel.onclick = () => { fusionPending = false; renderUI(); };
+    fusionBarEl.append(span, confirm, cancel);
+  } else if (canFuseDuelistBlade()) {
+    const btn = document.createElement('button'); btn.className = 'confirm'; btn.textContent = EQ_TXT.fuseReady;
+    btn.onclick = () => { fusionPending = true; renderUI(); };
+    fusionBarEl.appendChild(btn);
+  }
+}
+// Reuse the existing hint bar for a brief equipment warning (no new toast system).
+function flashHint(msg) {
+  const bar = document.getElementById('hintBar'), txt = document.getElementById('hintText');
+  if (!bar || !txt) return;
+  txt.textContent = msg; bar.style.display = '';
+  clearTimeout(flashHint._t); flashHint._t = setTimeout(() => { bar.style.display = 'none'; }, 1800);
+}
+equipRerollBtnEl.onclick = () => { const r = rerollEquipShop(); if (!r.ok && r.reason && r.reason !== 'combat') flashHint(r.reason); };
 
 function openEquipModal(heroRef) {
   if (phase !== 'shop') return;
@@ -4309,6 +4462,7 @@ function onWaveCleared() {
       wave += 1;
       healPlayerTeam();
       freeRerollsRemaining = SHOP_ECONOMY.reroll.free_rerolls_per_wave;
+      refreshEquipShop();
       pickShopOffers();
       phase = 'shop';
       renderUI();
@@ -4331,6 +4485,7 @@ function onWaveFailed(reason) {
     showResult(`💀 แพ้ด่าน ${wave}`, `${reason} — เสียโควตาแพ้ไป 1 ครั้ง (เหลืออีก ${left} ครั้ง) ได้ทอง +${income.total} จัดทัพใหม่แล้วลองด่านนี้อีกที`, () => {
       healPlayerTeam();
       freeRerollsRemaining = SHOP_ECONOMY.reroll.free_rerolls_per_wave;
+      refreshEquipShop();
       pickShopOffers();
       phase = 'shop';
       renderUI();
@@ -4406,6 +4561,7 @@ function animate(now) {
 loadAllSprites(() => {
   document.getElementById('loading').style.display = 'none';
   pickShopOffers();
+  refreshEquipShop();
   renderUI();
   requestAnimationFrame(animate);
 });
