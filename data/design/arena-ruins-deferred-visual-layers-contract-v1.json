@@ -1,0 +1,335 @@
+{
+  "schemaVersion": 1,
+  "id": "map1.arena_ruins.deferred-visual-layers-contract.v1",
+  "mapId": "map1.arena_ruins",
+  "status": "ready-with-explicit-deferred-bindings",
+  "canonicalApproved": false,
+  "scope": {
+    "documentationMetadataAndHandoffOnly": true,
+    "runtimeIntegration": false,
+    "runtimeChanges": false,
+    "artworkChanges": false,
+    "referenceImage": "1000042598.png"
+  },
+  "sources": {
+    "repository": "phathompongsae-ops/Auto-Battler",
+    "contractBase": {
+      "pr": 53,
+      "branch": "coco/arena-ruins-board-source-readiness-audit-v1",
+      "sha": "bc78c658ad066042041acf7e0bfad5173ce767fa",
+      "stateAtAudit": "open-draft-unmerged"
+    },
+    "productionPack": {
+      "pr": 49,
+      "branch": "coco/arena-ruins-static-board-production-pack-v1",
+      "sha": "d4f6793a40a8742f0bb4515402a33f204d58caea",
+      "stateAtAudit": "open-draft-unmerged",
+      "manifest": "assets/maps/arena-ruins/board/arena-ruins-static-board-pack-v1.json"
+    },
+    "runtimeReference": {
+      "pr": 55,
+      "branch": "cc/arena-ruins-static-board-runtime-integration-v1",
+      "sha": "08744faad0df8ce5fe1e43461ba59687fd0aebe8",
+      "baseBranch": "cc/motion-pipeline-merge-readiness-audit-v1",
+      "baseSha": "58824feb92452fb3c7ab72bf7984b4f22d558b3e",
+      "stateAtAudit": "open-draft-unmerged",
+      "usage": "read-only runtime reference; not ancestry for this Board contract"
+    },
+    "ancestryBoundary": {
+      "productionPackIsAncestorOfContractBase": true,
+      "runtimeReferenceIsAncestorOfContractBase": false,
+      "contractBaseIsAncestorOfRuntimeReference": false,
+      "contractBaseRuntimeReferenceMergeBase": "cc78057b4183776087c9756d1908f8ec3f735ea9",
+      "rule": "Do not cherry-pick or merge the PR 55 Motion-based ancestry into this Board source contract. A future CC runtime task may consume this contract path-limited."
+    }
+  },
+  "lockedRuntimeFacts": {
+    "columns": 8,
+    "rows": 7,
+    "tileCount": 56,
+    "combatRows": [0, 1, 2, 3, 4, 5],
+    "deployRows": [3, 4, 5],
+    "benchRow": 6,
+    "usableBenchColumns": [0, 1, 2, 3, 4],
+    "cameraAndContainFitMustRemainUnchanged": true,
+    "boardGeometryMustRemainUnchanged": true,
+    "map2AndMap3Deferred": true
+  },
+  "coordinateConventions": {
+    "pixelRect": {
+      "origin": "top-left",
+      "axes": "x right, y down",
+      "extent": "x/y are inclusive first pixel; width/height are pixel counts"
+    },
+    "authoredTopLeftUv": {
+      "origin": "top-left",
+      "order": ["uMin", "vTop", "uMaxExclusive", "vBottomExclusive"]
+    },
+    "threeUvInset": {
+      "origin": "bottom-left",
+      "order": ["uMin", "vMin", "uMax", "vMax"],
+      "rule": "Half-texel inset: uMin=(x+0.5)/W, uMax=(x+width-0.5)/W, vMin=1-(y+height-0.5)/H, vMax=1-(y+0.5)/H."
+    },
+    "freeformRegionRule": {
+      "contentRect": "tight union of all non-zero-alpha pixels assigned to the visible region",
+      "sampleRect": "contentRect expanded by two pixels on each side without modifying the source",
+      "samplingBoundaryRequirement": "sample boundary alpha must be <= 8/255; discard alpha <= 8/255",
+      "indexing": "top-to-bottom, then left-to-right within each visual row",
+      "paddingAndGutter": "irregular transparent gutters; no uniform grid is asserted"
+    }
+  },
+  "texturePolicy": {
+    "correctnessRequired": {
+      "runtimeVersionEvidence": "game.html loads Three.js r128",
+      "colorSpace": "preserve PR 55/default pass-through encoding; do not set only these atlases to THREE.sRGBEncoding while renderer outputEncoding remains unchanged",
+      "wrapS": "THREE.ClampToEdgeWrapping",
+      "wrapT": "THREE.ClampToEdgeWrapping",
+      "magFilter": "THREE.LinearFilter",
+      "minFilter": "THREE.LinearFilter",
+      "generateMipmaps": false,
+      "premultipliedAlpha": false,
+      "materialTransparent": true,
+      "materialDepthTest": true,
+      "materialDepthWrite": false,
+      "alphaDiscardThreshold": 0.031372549,
+      "blending": "THREE.NormalBlending",
+      "rationale": "The sources are straight-alpha color atlases. Half-texel inset plus no generated atlas mip chain prevents adjacent-region bleeding. Pass-through encoding preserves the PR 55 pipeline; a full sRGB migration is a separate global-renderer decision."
+    },
+    "qualityRecommended": {
+      "materialOpacity": 1,
+      "reason": "Tile-state opacity is already encoded in PNG alpha; applying the design opacity a second time would make it too faint.",
+      "anisotropy": 1,
+      "avoidOverlappingTransparentBillboards": true,
+      "uniformScaleOnly": true
+    },
+    "optionalOptimization": {
+      "customExtrudedMipAtlas": "allowed only in a separately generated derivative with a new hash and visual validation; never enable automatic mipmaps on these atlases",
+      "globalColorManagementMigration": "separate scope requiring renderer/output and all current textures to be regression-tested together"
+    }
+  },
+  "assets": [
+    {
+      "assetId": "arenaRuins.borderCorners.v1",
+      "path": "assets/maps/arena-ruins/board/arena-ruins-border-corners-v1.png",
+      "sourceSha256": "7c847c455bb77d9f9f7f036f59e63e920324eafec6a3512b5194677aa067ce8f",
+      "dimensions": [1024, 1024],
+      "format": "PNG RGBA8 straight alpha",
+      "alphaNonZeroFraction": 0.331762,
+      "layoutStatus": "ready",
+      "runtimeBindingStatus": "unresolved",
+      "placementOwner": "arenaBorder",
+      "placementEvidence": {
+        "front": "z > 3.5, flat only",
+        "back": "z < -3.5, broken-medium allowed",
+        "sides": "x outside [-4,4], low only",
+        "anchor": "per-region bottom-center",
+        "repeatAndStretch": "no repeat; no non-uniform stretch"
+      },
+      "unresolvedRationale": "Seven isolated regions are measurable, but no authored label proves which region is the front, back, left, right, or each board corner; no approved world scale or plane-orientation record exists. The review composite is not a runtime placement map.",
+      "smallestNextEvidence": "One reviewed atlas legend that labels all seven region IDs with board side/corner, bottom-center anchor pixel, world width/height, and billboard/ground-plane orientation.",
+      "regions": [
+        {"index": 0, "semanticId": "border.visual.long-edge-with-endcaps", "semanticConfidence": "visual-description-only", "contentRect": {"x": 77, "y": 81, "width": 867, "height": 146}, "sampleRect": {"x": 75, "y": 79, "width": 871, "height": 150}, "authoredTopLeftUv": [0.0732421875, 0.0771484375, 0.923828125, 0.2236328125], "threeUvInset": [0.0737304688, 0.7768554688, 0.9233398438, 0.9223632812], "sampleBoundaryAlphaMax": 0, "status": "unresolved"},
+        {"index": 1, "semanticId": "border.visual.low-wall-left-facing", "semanticConfidence": "visual-description-only", "contentRect": {"x": 46, "y": 289, "width": 395, "height": 141}, "sampleRect": {"x": 44, "y": 287, "width": 399, "height": 145}, "authoredTopLeftUv": [0.04296875, 0.2802734375, 0.4326171875, 0.421875], "threeUvInset": [0.0434570312, 0.5786132812, 0.4321289062, 0.7192382812], "sampleBoundaryAlphaMax": 0, "status": "unresolved"},
+        {"index": 2, "semanticId": "border.visual.low-wall-right-facing", "semanticConfidence": "visual-description-only", "contentRect": {"x": 544, "y": 289, "width": 432, "height": 139}, "sampleRect": {"x": 542, "y": 287, "width": 436, "height": 143}, "authoredTopLeftUv": [0.529296875, 0.2802734375, 0.955078125, 0.419921875], "threeUvInset": [0.5297851562, 0.5805664062, 0.9545898438, 0.7192382812], "sampleBoundaryAlphaMax": 0, "status": "unresolved"},
+        {"index": 3, "semanticId": "border.visual.broken-wall", "semanticConfidence": "visual-description-only", "contentRect": {"x": 247, "y": 483, "width": 506, "height": 162}, "sampleRect": {"x": 245, "y": 481, "width": 510, "height": 166}, "authoredTopLeftUv": [0.2392578125, 0.4697265625, 0.7373046875, 0.6318359375], "threeUvInset": [0.2397460938, 0.3686523438, 0.7368164062, 0.5297851562], "sampleBoundaryAlphaMax": 0, "status": "unresolved"},
+        {"index": 4, "semanticId": "border.visual.corner-left-facing", "semanticConfidence": "visual-description-only", "contentRect": {"x": 44, "y": 685, "width": 254, "height": 247}, "sampleRect": {"x": 42, "y": 683, "width": 258, "height": 251}, "authoredTopLeftUv": [0.041015625, 0.6669921875, 0.29296875, 0.912109375], "threeUvInset": [0.0415039062, 0.0883789062, 0.2924804688, 0.3325195312], "sampleBoundaryAlphaMax": 0, "status": "unresolved"},
+        {"index": 5, "semanticId": "border.visual.corner-center", "semanticConfidence": "visual-description-only", "contentRect": {"x": 373, "y": 720, "width": 262, "height": 193}, "sampleRect": {"x": 371, "y": 718, "width": 266, "height": 197}, "authoredTopLeftUv": [0.3623046875, 0.701171875, 0.6220703125, 0.8935546875], "threeUvInset": [0.3627929688, 0.1069335938, 0.6215820312, 0.2983398438], "sampleBoundaryAlphaMax": 0, "status": "unresolved"},
+        {"index": 6, "semanticId": "border.visual.corner-right-facing", "semanticConfidence": "visual-description-only", "contentRect": {"x": 722, "y": 687, "width": 246, "height": 253}, "sampleRect": {"x": 720, "y": 685, "width": 250, "height": 257}, "authoredTopLeftUv": [0.703125, 0.6689453125, 0.947265625, 0.919921875], "threeUvInset": [0.7036132812, 0.0805664062, 0.9467773438, 0.3305664062], "sampleBoundaryAlphaMax": 0, "status": "unresolved"}
+      ]
+    },
+    {
+      "assetId": "arenaRuins.backgroundModules.v1",
+      "path": "assets/maps/arena-ruins/board/arena-ruins-background-modules-v1.png",
+      "sourceSha256": "55cde4ac422c9f54888b4addaa5cdfa343e417d0b554ebdb40efac6fb41412b4",
+      "dimensions": [1024, 1024],
+      "format": "PNG RGBA8 straight alpha",
+      "alphaNonZeroFraction": 0.378282,
+      "layoutStatus": "ready",
+      "runtimeBindingStatus": "unresolved",
+      "placementOwner": "background",
+      "placementEvidence": {
+        "allowedWorldRadius": [9, 13],
+        "allowedSides": ["back", "left", "right"],
+        "frontAllowed": false,
+        "anchor": "per-region bottom-center",
+        "repeatAndStretch": "no repeat; uniform scale only",
+        "uiAndGameplayRule": "No opaque module may cross the 8x7 board, unit/HP envelope, projectile corridor, or target indicators."
+      },
+      "deterministicPlacementRecommendation": "Use a fixed checked-in slot table if placement is later approved. Do not use per-run randomness. Preserve the current procedural background until all selected modules load and pass desktop plus 844x390 overlap checks.",
+      "unresolvedRationale": "Six isolated visual modules are measurable and visually identifiable, but the source has no approved mapping from module to the existing radius-9-to-13 candidate slots, world height, facing rule, or replacement set. Choosing those values would still be guesswork.",
+      "smallestNextEvidence": "A single labeled placement review using the locked camera, with module-to-slot coordinates, bottom-center anchors, world heights, and the exact high/medium/low subsets.",
+      "regions": [
+        {"index": 0, "semanticId": "background.curved-terrace-left-facing", "semanticConfidence": "resolved-from-visible-content", "contentRect": {"x": 43, "y": 32, "width": 439, "height": 290}, "sampleRect": {"x": 41, "y": 30, "width": 443, "height": 294}, "authoredTopLeftUv": [0.0400390625, 0.029296875, 0.47265625, 0.31640625], "threeUvInset": [0.0405273438, 0.6840820312, 0.4721679688, 0.9702148438], "sampleBoundaryAlphaMax": 0, "status": "deferred"},
+        {"index": 1, "semanticId": "background.curved-terrace-right-facing", "semanticConfidence": "resolved-from-visible-content", "contentRect": {"x": 546, "y": 42, "width": 428, "height": 277}, "sampleRect": {"x": 544, "y": 40, "width": 432, "height": 281}, "authoredTopLeftUv": [0.53125, 0.0390625, 0.953125, 0.3134765625], "threeUvInset": [0.5317382812, 0.6870117188, 0.9526367188, 0.9604492188], "sampleBoundaryAlphaMax": 0, "status": "deferred"},
+        {"index": 2, "semanticId": "background.ruined-arch", "semanticConfidence": "resolved-from-visible-content", "contentRect": {"x": 69, "y": 353, "width": 370, "height": 302}, "sampleRect": {"x": 67, "y": 351, "width": 374, "height": 306}, "authoredTopLeftUv": [0.0654296875, 0.3427734375, 0.4306640625, 0.6416015625], "threeUvInset": [0.0659179688, 0.3588867188, 0.4301757812, 0.6567382812], "sampleBoundaryAlphaMax": 0, "status": "deferred"},
+        {"index": 3, "semanticId": "background.arena-stair-platform", "semanticConfidence": "resolved-from-visible-content", "contentRect": {"x": 497, "y": 354, "width": 460, "height": 311}, "sampleRect": {"x": 495, "y": 352, "width": 464, "height": 315}, "authoredTopLeftUv": [0.4833984375, 0.34375, 0.9365234375, 0.6513671875], "threeUvInset": [0.4838867188, 0.3491210938, 0.9360351562, 0.6557617188], "sampleBoundaryAlphaMax": 2, "status": "deferred"},
+        {"index": 4, "semanticId": "background.small-fortified-tower", "semanticConfidence": "resolved-from-visible-content", "contentRect": {"x": 115, "y": 675, "width": 293, "height": 290}, "sampleRect": {"x": 113, "y": 673, "width": 297, "height": 294}, "authoredTopLeftUv": [0.1103515625, 0.6572265625, 0.400390625, 0.9443359375], "threeUvInset": [0.1108398438, 0.0561523438, 0.3999023438, 0.3422851562], "sampleBoundaryAlphaMax": 0, "status": "deferred"},
+        {"index": 5, "semanticId": "background.ruined-gate-tunnel", "semanticConfidence": "resolved-from-visible-content", "contentRect": {"x": 556, "y": 666, "width": 356, "height": 320}, "sampleRect": {"x": 554, "y": 664, "width": 360, "height": 324}, "authoredTopLeftUv": [0.541015625, 0.6484375, 0.892578125, 0.96484375], "threeUvInset": [0.5415039062, 0.0356445312, 0.8920898438, 0.3510742188], "sampleBoundaryAlphaMax": 2, "status": "deferred"}
+      ]
+    },
+    {
+      "assetId": "arenaRuins.props.v1",
+      "path": "assets/maps/arena-ruins/board/arena-ruins-props-v1.png",
+      "sourceSha256": "79ca34009f5e55cf9d996fd95620ddee832f097023fc0b37e6a4c3cef0b2fcc9",
+      "dimensions": [1024, 1024],
+      "format": "PNG RGBA8 straight alpha",
+      "alphaNonZeroFraction": 0.332923,
+      "layoutStatus": "ready",
+      "runtimeBindingStatus": "unresolved",
+      "placementOwner": "props",
+      "placementEvidence": {
+        "insideBoardAllowed": false,
+        "frontTallPropsAllowed": false,
+        "allowedSides": ["back", "left", "right"],
+        "anchor": "per-region bottom-center",
+        "repeatAndStretch": "no repeat; uniform scale only",
+        "raycast": "disabled; never add to tileMeshes or unit bodies",
+        "maximumHeightGuidance": "Do not exceed the corresponding current procedural silhouette; existing props range from low rubble to a 1.9-world-unit broken column. Exact per-region height remains unapproved."
+      },
+      "deterministicVariationRecommendation": "A fixed seed may select only from an approved region-to-slot table. Position jitter, uniform scale jitter, and rotation are unsafe until a visual placement review proves no board/UI overlap.",
+      "unresolvedRationale": "Nine regions and visible identities are resolved, but no exact region-to-current-prop-slot mapping, per-region world height, or facing/rotation approval exists. The round dais can also resemble a target/AoE marker and must not be placed without an explicit readability review.",
+      "smallestNextEvidence": "A labeled prop placement sheet with exact world slot, world height, facing, quality tier, and a target/AoE confusion check for the round dais.",
+      "regions": [
+        {"index": 0, "semanticId": "props.broken-column", "semanticConfidence": "resolved-from-visible-content", "contentRect": {"x": 48, "y": 32, "width": 289, "height": 342}, "sampleRect": {"x": 46, "y": 30, "width": 293, "height": 346}, "authoredTopLeftUv": [0.044921875, 0.029296875, 0.3310546875, 0.3671875], "threeUvInset": [0.0454101562, 0.6333007812, 0.3305664062, 0.9702148438], "sampleBoundaryAlphaMax": 0, "status": "deferred"},
+        {"index": 1, "semanticId": "props.block-rubble", "semanticConfidence": "resolved-from-visible-content", "contentRect": {"x": 396, "y": 122, "width": 299, "height": 253}, "sampleRect": {"x": 394, "y": 120, "width": 303, "height": 257}, "authoredTopLeftUv": [0.384765625, 0.1171875, 0.6806640625, 0.3681640625], "threeUvInset": [0.3852539062, 0.6323242188, 0.6801757812, 0.8823242188], "sampleBoundaryAlphaMax": 0, "status": "deferred"},
+        {"index": 2, "semanticId": "props.red-banner", "semanticConfidence": "resolved-from-visible-content", "contentRect": {"x": 788, "y": 17, "width": 171, "height": 356}, "sampleRect": {"x": 786, "y": 15, "width": 175, "height": 360}, "authoredTopLeftUv": [0.767578125, 0.0146484375, 0.9384765625, 0.3662109375], "threeUvInset": [0.7680664062, 0.6342773438, 0.9379882812, 0.9848632812], "sampleBoundaryAlphaMax": 0, "status": "deferred"},
+        {"index": 3, "semanticId": "props.rock-rubble", "semanticConfidence": "resolved-from-visible-content", "contentRect": {"x": 60, "y": 467, "width": 252, "height": 189}, "sampleRect": {"x": 58, "y": 465, "width": 256, "height": 193}, "authoredTopLeftUv": [0.056640625, 0.4541015625, 0.306640625, 0.642578125], "threeUvInset": [0.0571289062, 0.3579101562, 0.3061523438, 0.5454101562], "sampleBoundaryAlphaMax": 0, "status": "deferred"},
+        {"index": 4, "semanticId": "props.carved-rubble", "semanticConfidence": "resolved-from-visible-content", "contentRect": {"x": 385, "y": 462, "width": 291, "height": 214}, "sampleRect": {"x": 383, "y": 460, "width": 295, "height": 218}, "authoredTopLeftUv": [0.3740234375, 0.44921875, 0.662109375, 0.662109375], "threeUvInset": [0.3745117188, 0.3383789062, 0.6616210938, 0.5502929688], "sampleBoundaryAlphaMax": 0, "status": "deferred"},
+        {"index": 5, "semanticId": "props.blue-banner", "semanticConfidence": "resolved-from-visible-content", "contentRect": {"x": 762, "y": 376, "width": 168, "height": 328}, "sampleRect": {"x": 760, "y": 374, "width": 172, "height": 332}, "authoredTopLeftUv": [0.7421875, 0.365234375, 0.91015625, 0.689453125], "threeUvInset": [0.7426757812, 0.3110351562, 0.9096679688, 0.6342773438], "sampleBoundaryAlphaMax": 0, "status": "deferred"},
+        {"index": 6, "semanticId": "props.brazier-shell", "semanticConfidence": "resolved-from-visible-content", "contentRect": {"x": 70, "y": 720, "width": 233, "height": 232}, "sampleRect": {"x": 68, "y": 718, "width": 237, "height": 236}, "authoredTopLeftUv": [0.06640625, 0.701171875, 0.2978515625, 0.931640625], "threeUvInset": [0.0668945312, 0.0688476562, 0.2973632812, 0.2983398438], "sampleBoundaryAlphaMax": 0, "status": "deferred"},
+        {"index": 7, "semanticId": "props.dry-grass", "semanticConfidence": "resolved-from-visible-content", "contentRect": {"x": 384, "y": 727, "width": 220, "height": 223}, "sampleRect": {"x": 382, "y": 725, "width": 224, "height": 227}, "authoredTopLeftUv": [0.373046875, 0.7080078125, 0.591796875, 0.9296875], "threeUvInset": [0.3735351562, 0.0708007812, 0.5913085938, 0.2915039062], "sampleBoundaryAlphaMax": 0, "status": "deferred"},
+        {"index": 8, "semanticId": "props.round-stone-dais", "semanticConfidence": "resolved-from-visible-content", "contentRect": {"x": 675, "y": 751, "width": 302, "height": 214}, "sampleRect": {"x": 673, "y": 749, "width": 306, "height": 218}, "authoredTopLeftUv": [0.6572265625, 0.7314453125, 0.9560546875, 0.9443359375], "threeUvInset": [0.6577148438, 0.0561523438, 0.9555664062, 0.2680664062], "sampleBoundaryAlphaMax": 0, "status": "deferred", "readabilityRisk": "may resemble target or AoE marker"}
+      ]
+    },
+    {
+      "assetId": "arenaRuins.tileStates.v1",
+      "path": "assets/maps/arena-ruins/board/arena-ruins-tile-states-v1.png",
+      "sourceSha256": "5cb733ad8906358562b409ebc4679dffe5d527839d91b97baccd8aad3cdd8c3d",
+      "dimensions": [1024, 768],
+      "format": "PNG RGBA8 straight alpha",
+      "alphaNonZeroFraction": 0.527039,
+      "layoutStatus": "ready",
+      "runtimeBindingStatus": "ready-for-current-three-signals-only",
+      "placementOwner": "boardSurface.tileStateOverlay",
+      "layout": {
+        "gridColumns": 4,
+        "gridRows": 3,
+        "cellWidth": 256,
+        "cellHeight": 256,
+        "indexing": "row-major from authored PNG top-left",
+        "usedCells": 9,
+        "unusedCells": [9, 10, 11],
+        "unusedCellsNonZeroAlphaPixels": 0,
+        "minimumMeasuredTransparentEdgePixels": 11,
+        "worldHeight": 0.006,
+        "worldSize": [1, 1],
+        "orientation": "horizontal plane, rotation.x=-PI/2, row direction follows board row 0 enemy/back to row 6 bench/front"
+      },
+      "material": {
+        "semantics": "overlay; never replace gameplay tile geometry or state logic",
+        "materialOpacity": 1,
+        "reason": "per-state opacity is encoded in PNG alpha",
+        "depthWrite": false,
+        "raycast": "disabled",
+        "oneResolvedCellPerTile": true
+      },
+      "regions": [
+        {"index": 0, "semanticId": "normal", "row": 0, "column": 0, "pixelRect": {"x": 0, "y": 0, "width": 256, "height": 256}, "authoredTopLeftUv": [0, 0, 0.25, 0.3333333333], "threeUvInset": [0.0004882812, 0.6673177083, 0.2495117188, 0.9993489583], "alphaContentLocalRect": {"x": 14, "y": 14, "width": 229, "height": 229}, "maxAlpha": 97, "semantics": "quiet visual rhythm over the integrated board surface", "runtimeSignal": "tile material opacity is 1 and tile material color equals userData.baseTint", "status": "ready", "priority": 10},
+        {"index": 1, "semanticId": "hover", "row": 0, "column": 1, "pixelRect": {"x": 256, "y": 0, "width": 256, "height": 256}, "authoredTopLeftUv": [0.25, 0, 0.5, 0.3333333333], "threeUvInset": [0.2504882812, 0.6673177083, 0.4995117188, 0.9993489583], "alphaContentLocalRect": {"x": 12, "y": 12, "width": 233, "height": 233}, "maxAlpha": 184, "semantics": "single pointer focus overlay", "runtimeSignal": null, "status": "deferred", "priority": 40},
+        {"index": 2, "semanticId": "selected", "row": 0, "column": 2, "pixelRect": {"x": 512, "y": 0, "width": 256, "height": 256}, "authoredTopLeftUv": [0.5, 0, 0.75, 0.3333333333], "threeUvInset": [0.5004882812, 0.6673177083, 0.7495117188, 0.9993489583], "alphaContentLocalRect": {"x": 12, "y": 12, "width": 233, "height": 233}, "maxAlpha": 233, "semantics": "persistent selected-tile overlay", "runtimeSignal": null, "status": "deferred", "priority": 60},
+        {"index": 3, "semanticId": "deploy-valid", "row": 0, "column": 3, "pixelRect": {"x": 768, "y": 0, "width": 256, "height": 256}, "authoredTopLeftUv": [0.75, 0, 1, 0.3333333333], "threeUvInset": [0.7504882812, 0.6673177083, 0.9995117188, 0.9993489583], "alphaContentLocalRect": {"x": 12, "y": 12, "width": 233, "height": 233}, "maxAlpha": 208, "semantics": "legal placement overlay", "runtimeSignal": "non-quiet tile with opacity 1 and color 0x8fe6a8 for field or 0x9fd8e8 for bench", "status": "ready", "priority": 30},
+        {"index": 4, "semanticId": "deploy-invalid", "row": 1, "column": 0, "pixelRect": {"x": 0, "y": 256, "width": 256, "height": 256}, "authoredTopLeftUv": [0, 0.3333333333, 0.25, 0.6666666667], "threeUvInset": [0.0004882812, 0.333984375, 0.2495117188, 0.666015625], "alphaContentLocalRect": {"x": 12, "y": 13, "width": 233, "height": 232}, "maxAlpha": 225, "semantics": "illegal or occupied placement overlay", "runtimeSignal": "tile material color 0xe07a70 and opacity 0.72", "status": "ready", "priority": 80},
+        {"index": 5, "semanticId": "enemy-zone", "row": 1, "column": 1, "pixelRect": {"x": 256, "y": 256, "width": 256, "height": 256}, "authoredTopLeftUv": [0.25, 0.3333333333, 0.5, 0.6666666667], "threeUvInset": [0.2504882812, 0.333984375, 0.4995117188, 0.666015625], "alphaContentLocalRect": {"x": 12, "y": 12, "width": 233, "height": 233}, "maxAlpha": 159, "semantics": "enemy-side territory overlay", "runtimeSignal": null, "status": "deferred", "priority": 20},
+        {"index": 6, "semanticId": "target", "row": 1, "column": 2, "pixelRect": {"x": 512, "y": 256, "width": 256, "height": 256}, "authoredTopLeftUv": [0.5, 0.3333333333, 0.75, 0.6666666667], "threeUvInset": [0.5004882812, 0.333984375, 0.7495117188, 0.666015625], "alphaContentLocalRect": {"x": 28, "y": 36, "width": 201, "height": 185}, "maxAlpha": 233, "semantics": "primary target-tile overlay", "runtimeSignal": null, "status": "deferred", "priority": 70},
+        {"index": 7, "semanticId": "AoE", "row": 1, "column": 3, "pixelRect": {"x": 768, "y": 256, "width": 256, "height": 256}, "authoredTopLeftUv": [0.75, 0.3333333333, 1, 0.6666666667], "threeUvInset": [0.7504882812, 0.333984375, 0.9995117188, 0.666015625], "alphaContentLocalRect": {"x": 32, "y": 33, "width": 193, "height": 191}, "maxAlpha": 218, "semantics": "multi-tile area overlay", "runtimeSignal": null, "status": "deferred", "priority": 50},
+        {"index": 8, "semanticId": "disabled", "row": 2, "column": 0, "pixelRect": {"x": 0, "y": 512, "width": 256, "height": 256}, "authoredTopLeftUv": [0, 0.6666666667, 0.25, 1], "threeUvInset": [0.0004882812, 0.0006510417, 0.2495117188, 0.3326822917], "alphaContentLocalRect": {"x": 13, "y": 13, "width": 231, "height": 231}, "maxAlpha": 165, "semantics": "temporarily unavailable tile overlay", "runtimeSignal": null, "status": "deferred", "priority": 90},
+        {"index": 9, "semanticId": "unused-9", "row": 2, "column": 1, "pixelRect": {"x": 256, "y": 512, "width": 256, "height": 256}, "authoredTopLeftUv": [0.25, 0.6666666667, 0.5, 1], "threeUvInset": [0.2504882812, 0.0006510417, 0.4995117188, 0.3326822917], "nonZeroAlphaPixels": 0, "status": "unused"},
+        {"index": 10, "semanticId": "unused-10", "row": 2, "column": 2, "pixelRect": {"x": 512, "y": 512, "width": 256, "height": 256}, "authoredTopLeftUv": [0.5, 0.6666666667, 0.75, 1], "threeUvInset": [0.5004882812, 0.0006510417, 0.7495117188, 0.3326822917], "nonZeroAlphaPixels": 0, "status": "unused"},
+        {"index": 11, "semanticId": "unused-11", "row": 2, "column": 3, "pixelRect": {"x": 768, "y": 512, "width": 256, "height": 256}, "authoredTopLeftUv": [0.75, 0.6666666667, 1, 1], "threeUvInset": [0.7504882812, 0.0006510417, 0.9995117188, 0.3326822917], "nonZeroAlphaPixels": 0, "status": "unused"}
+      ],
+      "stateResolutionPriority": ["disabled", "deploy-invalid", "target", "selected", "AoE", "hover", "deploy-valid", "enemy-zone", "normal"],
+      "priorityRule": "Choose one visual cell per tile; never stack multiple atlas state planes. This is a visual precedence rule only and does not create gameplay states."
+    }
+  ],
+  "runtimeOwnership": [
+    {"concern": "boardSurface", "existingOwnerAtPr55": "src/map-theme-runtime.js buildBoardSurface + attachProductionBoardArt", "proposedVisualOwner": "unchanged boardSurface layer", "newObjectRequired": false, "dispose": "existing mapThemeRoot owned-resource lifecycle", "fallback": "procedural board baseline plus current integrated surface", "raycast": "disabled"},
+    {"concern": "tileStateOverlay", "existingOwnerAtPr55": "gameplay signals in src/game.js updateTileHighlights; no atlas visual owner", "proposedVisualOwner": "new subgroup under boardSurface in src/map-theme-runtime.js", "newObjectRequired": true, "dispose": "shared atlas texture/material and tracked geometries disposed with theme", "fallback": "existing tile material colors/opacity remain visible", "raycast": "disabled"},
+    {"concern": "arenaBorder", "existingOwnerAtPr55": "procedural buildArenaBorder under mapThemeRoot plus unchanged scene stage frame", "proposedVisualOwner": "arenaBorder layer only after region-to-side evidence", "newObjectRequired": true, "dispose": "theme owned", "fallback": "keep procedural arenaBorder", "raycast": "disabled"},
+    {"concern": "background", "existingOwnerAtPr55": "procedural buildBackground under mapThemeRoot", "proposedVisualOwner": "background layer only after module-to-slot evidence", "newObjectRequired": true, "dispose": "theme owned", "fallback": "keep procedural background", "raycast": "disabled"},
+    {"concern": "props", "existingOwnerAtPr55": "procedural buildProps under mapThemeRoot", "proposedVisualOwner": "props layer only after region-to-slot evidence", "newObjectRequired": true, "dispose": "theme owned", "fallback": "keep procedural props", "raycast": "disabled"},
+    {"concern": "ambientVfx", "existingOwnerAtPr55": "procedural buildAmbientVfx under mapThemeRoot", "proposedVisualOwner": "unchanged; no bitmap from this pack", "newObjectRequired": false, "dispose": "existing theme lifecycle", "fallback": "existing quality degradation", "raycast": "disabled"},
+    {"concern": "lightingProfile", "existingOwnerAtPr55": "buildLightingProfile under mapThemeRoot", "proposedVisualOwner": "unchanged; no bitmap from this pack", "newObjectRequired": false, "dispose": "existing theme lifecycle", "fallback": "existing game lights remain", "raycast": "not applicable"},
+    {"concern": "perimeterGround", "existingOwnerAtPr55": "60x60 plane remains owned by src/game.js; map theme swaps map/tint and restores on dispose", "proposedVisualOwner": "unchanged PR 55 ownership", "newObjectRequired": false, "dispose": "restore old map/tint before texture disposal", "fallback": "existing procedural ground", "raycast": "not a gameplay raycast target"}
+  ],
+  "layerOrdering": [
+    {"order": 0, "concern": "terrain-perimeter", "existingY": -0.02, "explicitRenderOrderRequired": false, "rule": "opaque depth-tested ground"},
+    {"order": 10, "concern": "gameplay-tile-base", "existingY": 0, "explicitRenderOrderRequired": false, "rule": "owned by gameplay source; never replace geometry"},
+    {"order": 20, "concern": "board-surface-production-decals", "existingY": 0.002, "explicitRenderOrderRequired": false, "rule": "PR 55 per-tile decals"},
+    {"order": 30, "concern": "bench-treatment", "existingY": 0.003, "explicitRenderOrderRequired": false, "rule": "PR 55 row-6 overlay"},
+    {"order": 40, "concern": "procedural-board-detail", "existingYRange": [0.004, 0.006], "explicitRenderOrderRequired": false, "rule": "existing cracks; moss lies outside the board"},
+    {"order": 50, "concern": "tile-state-overlay", "proposedY": 0.006, "explicitRenderOrderRequired": false, "rule": "one resolved state plane per tile; y separation and depth test are sufficient"},
+    {"order": 60, "concern": "unit-shadows", "existingY": 0.01, "explicitRenderOrderRequired": false, "rule": "must remain above tile-state overlay"},
+    {"order": 70, "concern": "world-linked-ground-rings-and-ground-vfx", "existingYRange": [0.02, 0.05], "explicitRenderOrderRequired": false, "rule": "must remain above static tile states"},
+    {"order": 80, "concern": "arena-border-background-props", "explicitRenderOrderRequired": false, "rule": "opaque geometry/current depth test owns order; future transparent billboards must not overlap and remain outside gameplay envelopes"},
+    {"order": 90, "concern": "units-projectiles-hp-and-world-ui", "explicitRenderOrderRequired": false, "rule": "retain existing depth/billboard behavior; no scenery renderOrder may force itself over these elements"},
+    {"order": 100, "concern": "ambientVfx-and-lightingProfile", "explicitRenderOrderRequired": false, "rule": "ambient uses current material/depth settings; lights have no render order"}
+  ],
+  "integrationScope": {
+    "safeToIntegrateNow": [
+      "In PR 55's src/map-theme-runtime.js only, load arena-ruins-tile-states-v1.png through the existing failure-safe fileTexture seam.",
+      "Create one non-raycast tile-state subgroup under boardSurface at y=0.006, sharing one texture/material and using the exact half-texel UVs in this contract.",
+      "Bind only normal, deploy-valid, and deploy-invalid by read-only observation of the existing tile material signals documented in this contract.",
+      "Keep one resolved state cell per tile, keep material opacity at 1, and let PNG alpha perform the blend.",
+      "On missing/decode/apply failure, show the existing PR 55 tile material highlights and procedural baseline unchanged."
+    ],
+    "mustRemainDeferred": [
+      "All runtime binding of border/corners atlas regions until the seven-region side/corner legend and world sizes are approved.",
+      "All runtime binding of background modules until module-to-slot coordinates, world heights, facing, and quality subsets are approved.",
+      "All runtime binding of props until region-to-slot coordinates, world heights, facing/rotation, and the round-dais readability check are approved.",
+      "hover, selected, enemy-zone, target, AoE, and disabled tile-state bindings until an existing runtime signal is explicitly exposed; do not infer them from unrelated game state.",
+      "Automatic atlas mipmaps, global color-space migration, Map 2-3, and any artwork regeneration or retouching."
+    ],
+    "protectedAreas": [
+      "src/game.js",
+      "Core Logic",
+      "Combat",
+      "targeting",
+      "pathfinding",
+      "economy",
+      "stage logic",
+      "main loop",
+      "board dimensions and gridToWorld",
+      "camera and contain-fit geometry",
+      "Map 2-3",
+      "Motion source assets and Motion-source PRs 50-52 and 54; PR 53 is the Board readiness audit",
+      "character animation assets"
+    ]
+  },
+  "pr55Compatibility": {
+    "preserve": [
+      "8x7 / 56 tiles",
+      "combat rows 0-5",
+      "deploy rows 3-5",
+      "bench row 6 and usable columns 0-4",
+      "camera and contain-fit",
+      "existing board-surface integration",
+      "existing bench treatment",
+      "existing perimeter-ground swap/restore",
+      "existing tile highlight behavior",
+      "pilot readability",
+      "844x390 mobile framing",
+      "procedural fallback baseline"
+    ],
+    "srcGameChangeRequired": false,
+    "runtimeFrameworkReplacementRequired": false
+  },
+  "evidence": [
+    "PR 49 production manifest hashes/dimensions/alpha metadata",
+    "PR 49 production-pack validator",
+    "PR 48 implementation/layer/camera/safe-area contracts inherited by PR 53",
+    "Direct RGBA pixel and connected-alpha-region analysis of the four deferred PNGs",
+    "PR 55 src/map-theme-runtime.js and runtime integration validator read-only inspection",
+    "PR 55 src/game.js unchanged from its runtime base",
+    "PR 55 runtime review for surface, bench, perimeter, highlights, pilots, 844x390, and procedural fallback"
+  ]
+}
