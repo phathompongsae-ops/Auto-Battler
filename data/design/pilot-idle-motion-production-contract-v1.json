@@ -1,0 +1,159 @@
+{
+  "schemaVersion": 1,
+  "contractId": "pilot-idle-motion-production-contract-v1",
+  "status": "source-production-contract_pending_visual_review",
+  "base": {
+    "pullRequest": 45,
+    "branch": "cc/motion-pipeline-merge-readiness-audit-v1",
+    "exactHead": "58824feb92452fb3c7ab72bf7984b4f22d558b3e"
+  },
+  "scope": {
+    "states": [
+      "monster.slime/idle",
+      "monster.golem/idle"
+    ],
+    "metadataAndDocumentationOnly": true,
+    "runtimeIntegration": false,
+    "browserX4ValidationRequiredFromCC": true
+  },
+  "common": {
+    "frameCount": 8,
+    "fps": 8,
+    "loop": true,
+    "rootMotion": "in-place",
+    "eventMarkers": [],
+    "transparentBackground": true,
+    "pngFormat": "8-bit RGBA",
+    "frameNumbering": "000-007 only",
+    "identityLock": true,
+    "paletteLock": true,
+    "materialLock": true,
+    "cameraLock": true,
+    "scaleLock": true,
+    "footBaselineLock": true,
+    "forbidden": [
+      "checkerboard pixels",
+      "opaque canvas border",
+      "crop",
+      "detached residue",
+      "horizontal travel",
+      "baked ground shadow",
+      "scene or map",
+      "text",
+      "projectile",
+      "particle or VFX",
+      "attack anticipation"
+    ]
+  },
+  "units": {
+    "monster.slime": {
+      "unitId": "monster.slime",
+      "state": "idle",
+      "identityMaster": {
+        "state": "move",
+        "frameDirectory": "assets/units/monster.slime/move",
+        "sidecar": "assets/units/monster.slime/monster.slime_move_motiontest.json",
+        "sourceMap": "assets/units/monster.slime/source-map.json",
+        "neutralFrame": "assets/units/monster.slime/move/monster.slime_move_000.png"
+      },
+      "canvas": [512, 512],
+      "anchor": [0.5, 0.9],
+      "runtimeFlipX": true,
+      "runtimeFlipXEvidence": {
+        "path": "src/asset-animation-runtime.js",
+        "field": "ASSET_MANIFEST['monster.slime'].facingMode",
+        "value": "flip_x"
+      },
+      "frameCount": 8,
+      "fps": 8,
+      "loop": true,
+      "rootMotion": "in-place",
+      "eventMarkers": [],
+      "motionIntent": [
+        "gentle squash/stretch breathing",
+        "subtle internal jelly settling",
+        "restrained eye or body gaze adjustment without identity change",
+        "soft loop seam back to neutral"
+      ],
+      "stateSpecificForbidden": [
+        "locomotion",
+        "footstepCue",
+        "attack anticipation",
+        "projectile or VFX",
+        "baked shadow"
+      ],
+      "canonicalApproved": false
+    },
+    "monster.golem": {
+      "unitId": "monster.golem",
+      "state": "idle",
+      "identityMaster": {
+        "state": "attack_visual_fix_v2",
+        "frameDirectory": "assets/units/monster.golem/attack",
+        "sidecar": "assets/units/monster.golem/monster.golem_attack_motiontest.json",
+        "neutralFrame": "assets/units/monster.golem/attack/monster.golem_attack_000.png",
+        "visualFixReport": "assets/units/monster.golem/visual-fix-report-v2.json"
+      },
+      "canvas": [640, 640],
+      "anchor": [0.5, 0.94],
+      "runtimeFlipX": true,
+      "runtimeFlipXEvidence": {
+        "path": "src/asset-animation-runtime.js",
+        "field": "ASSET_MANIFEST['monster.golem'].facingMode",
+        "value": "flip_x"
+      },
+      "frameCount": 8,
+      "fps": 8,
+      "loop": true,
+      "rootMotion": "in-place",
+      "eventMarkers": [],
+      "motionIntent": [
+        "slow heavy breathing and restrained weight shift",
+        "subtle crystal and spiral secondary lag without VFX",
+        "fixed foot baseline",
+        "soft loop seam back to the grounded neutral stance"
+      ],
+      "stateSpecificForbidden": [
+        "locomotion",
+        "attack pose",
+        "impactCue",
+        "dust or VFX",
+        "baked shadow"
+      ],
+      "canonicalApproved": false
+    }
+  },
+  "sourceIntegrity": {
+    "hashAlgorithm": "sha256",
+    "monster.slime/move": [
+      "12ca260a001dbda6177f29565e9df2c369c09216c889974aeee8b12fb5ae04f9",
+      "faa84cb10f47609e40f7e1719d4128398b1800fb3369d7035825f94b7457a25e",
+      "a058cc87045e4268542285daed94f52e25cd3d590f422ea36227057d9552d342",
+      "432389277ccc6d5d330395188fa507e44b9c30dbd06ce0d08d3790098001a1b4",
+      "e82a2185a715ee315b38bc1e8cb997662b6852eca0748b74420cdb920c8f0870",
+      "f68f7795f4b09d36ef01bed8a279aed9d2bde5bbfbb5e01d563aba8d38804d02",
+      "94464d28e02924ed4aa747fafa6cdf05c1885136ab8720fd40dcf7794e445522",
+      "cdb445e9d254820f6c7ca4daf94ddce5921c4d348facd61b5a9c76f25b91e05b"
+    ],
+    "monster.golem/attack": [
+      "be41f186b37f99fed12e59844638ab0ed2e0020deb73ace5a840c2d4adda70d8",
+      "afe4b574db041e6aff62b8a9b849db15d27f42068bb92362d24009e5cb3a6c80",
+      "3b18e6e818e6873af3f2dcfb5824caba5c1b07c0479283921507c9be0e87c762",
+      "7de604de2c907028e0e7d4c748bb33de5ad1263b42b453ea71ee3894f4d73346",
+      "1970d3558db1e5471d2e066adb04c1699fe779ff7a487d4a520c434123f32490",
+      "cafe0898c343fa681f5d21295ab542f436f8f6c2396689a0ab9afdc5f973dddf",
+      "6443e26470ddead503f0901e9fe138e0274ff4e8676da4afbd95e5f1d00398c8",
+      "e87f1c55c3fd858f0eb54f8acf9166ef15acedaac5365fb1f583ab1d8e2b027e"
+    ],
+    "sidecars": {
+      "assets/units/monster.slime/monster.slime_move_motiontest.json": "ce5d2ab1d3c66dd3a1bf26ef080525138aaf2457258d09a90dfdbe90e3aad2e3",
+      "assets/units/monster.golem/monster.golem_attack_motiontest.json": "a5547bc3d214069f1ecaa278916435007c879f6288b208a791119c9e7c943771"
+    }
+  },
+  "futureReviewCheckpoints": [
+    "Asset Load",
+    "Playback/Loop/Anchor Stability",
+    "No-marker + Visual Regression"
+  ],
+  "canonicalApproved": false
+}

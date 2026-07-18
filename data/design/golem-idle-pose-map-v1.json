@@ -1,0 +1,66 @@
+{
+  "schemaVersion": 1,
+  "unitId": "monster.golem",
+  "state": "idle",
+  "frameCount": 8,
+  "fps": 8,
+  "loop": true,
+  "canvas": [640, 640],
+  "anchor": [0.5, 0.94],
+  "runtimeFlipX": true,
+  "rootMotion": "in-place",
+  "eventMarkers": [],
+  "identityMaster": "assets/units/monster.golem/attack/monster.golem_attack_000.png",
+  "requiredIdentityVersion": "golem-attack-motion-test-v1-visual-fix-v2",
+  "poses": [
+    {
+      "frame": 0,
+      "role": "neutral_grounded_stance",
+      "body": "visual-fix-v2 identity, fully grounded with fixed feet",
+      "secondary": "crystals and spirals settled"
+    },
+    {
+      "frame": 1,
+      "role": "subtle_torso_rise",
+      "body": "slow, very small chest and shoulder rise without foot motion",
+      "secondary": "crystals hold their prior position"
+    },
+    {
+      "frame": 2,
+      "role": "shoulder_crystal_secondary_lag",
+      "body": "torso continues the restrained rise",
+      "secondary": "shoulder plates, crystals, and spiral details follow slightly"
+    },
+    {
+      "frame": 3,
+      "role": "peak_weight_hold",
+      "body": "brief heavy hold; no attack wind-up",
+      "secondary": "all parts remain attached and silhouette stays unchanged"
+    },
+    {
+      "frame": 4,
+      "role": "slow_weight_transfer",
+      "body": "minimal in-place weight shift with the same foot baseline",
+      "secondary": "upper mass begins to settle"
+    },
+    {
+      "frame": 5,
+      "role": "exhale_settle",
+      "body": "torso lowers by a restrained amount",
+      "secondary": "shoulder and crystal lag remains subtle and non-emissive"
+    },
+    {
+      "frame": 6,
+      "role": "secondary_return",
+      "body": "main body nearly still",
+      "secondary": "crystals, plates, and spirals finish settling without VFX"
+    },
+    {
+      "frame": 7,
+      "role": "neutral_seam",
+      "body": "returns toward frame 000 without foot, scale, or centroid pop",
+      "secondary": "final delayed motion resolves before the 007-to-000 seam"
+    }
+  ],
+  "canonicalApproved": false
+}
