@@ -1,0 +1,11 @@
+{
+  "id": "archer-motion-test-visual-fix-v2",
+  "sourceZip": "archer-motion-test-user-poses-v1.zip",
+  "changes": [
+    "Removed large enclosed bright neutral checkerboard remnants from all 10 frames.",
+    "Replaced frames 005-006 with existing approved arrow-free follow-through/recovery poses.",
+    "Kept canvas 320x480, naming, anchor [0.5,0.92], fps 12, frameCount 10, loop false."
+  ],
+  "canonicalApproved": false,
+  "note": "Motion-test correction only; exact files still require in-game visual re-review."
+}
