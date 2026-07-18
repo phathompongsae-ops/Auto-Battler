@@ -21,6 +21,7 @@ This matrix is documentation-only. It does not authorize runtime integration or 
 |---|---|---|---|---|---|---|---|---|---|---|
 | Fighter | concept-approved | `assets/canonical/heroes/fighter.png` | No | Pending | Pending | Pending | Direction approved: male unarmed fighter, reinforced metal gauntlets, no sword, no shield | Pending | No | canonical-approved |
 | Archer | concept-approved | `assets/canonical/heroes/archer.png` | No | Pending | Pending | Pending | Direction approved: female woodland archer, olive hood/cape, bow, quiver | Pending | No | canonical-approved |
+| Ninja | concept-approved | `assets/canonical/heroes/ninja.png` | No | Pending | Pending | Pending | Direction approved: female high-speed physical assassin, paired short weapons, dark indigo/violet lightweight armor | Pending | No | canonical-approved |
 | Slime | candidate-present | `assets/canonical/monsters/slime.png` | No exact canonical file | Pending | Pending | Pending | Pending final stylized 3D/hand-painted review | Pending | No | canonical-approved |
 | Golem | candidate-present | `assets/canonical/bosses/golem.png` | No exact canonical file | Pending | Pending | Pending | Existing procedural file is not final boss art | Pending | No | canonical-approved |
 | Warden | reserved-future-use | `assets/reserved/bosses/warden.png` | Existing reserve candidate only | Pending if reused | Pending | Pending | No Map 1 assignment | N/A for current pilot | No | reserved-future-use |
@@ -45,6 +46,25 @@ Before promotion:
 2. Confirm olive-green hood/cape, bow, and quiver remain readable after reduction.
 3. Reject the existing small procedural `assets/archer.png` as a final canonical source.
 4. Confirm true transparency, dimensions, and exact-file approval.
+
+### Ninja
+
+Before promotion:
+
+1. Import the exact approved female Ninja PNG at `assets/canonical/heroes/ninja.png`.
+2. Confirm a paired-weapon silhouette: twin short blades, short blade plus visible secondary blade, or paired kunai with one dominant readable weapon.
+3. Confirm the female face, hair, and head shape remain readable at Shop-card size; a fully sealed hood or helmet fails.
+4. Confirm the silhouette and palette do not duplicate Archer, Ranger, Duelist, or the enemy Shadow Assassin.
+5. Confirm dark indigo/violet cloth does not disappear against dark Shop UI; a controlled accent must remain visible.
+6. Confirm real alpha from pixel data, no baked checkerboard, no solid background, and no white fringe.
+7. Review the exact image at Shop, Bench, and Board sizes and record each result separately.
+8. Record explicit user approval of the exact repository file before promotion.
+
+Runtime note:
+
+- Until the exact portrait passes this gate, Runtime may use its existing fallback/placeholder behavior only.
+- A fallback is not a canonical Ninja asset and must not be relabeled as one.
+- Runtime integration remains owned by CC and must occur in a separate PR.
 
 ### Slime
 
