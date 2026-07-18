@@ -1,0 +1,42 @@
+[
+  {
+    "frame": 0,
+    "sourceFile": "1000042784.png",
+    "outputFile": "assets/units/monster.slime/move/monster.slime_move_000.png"
+  },
+  {
+    "frame": 1,
+    "sourceFile": "1000042783.png",
+    "outputFile": "assets/units/monster.slime/move/monster.slime_move_001.png"
+  },
+  {
+    "frame": 2,
+    "sourceFile": "1000042782.png",
+    "outputFile": "assets/units/monster.slime/move/monster.slime_move_002.png"
+  },
+  {
+    "frame": 3,
+    "sourceFile": "1000042787.png",
+    "outputFile": "assets/units/monster.slime/move/monster.slime_move_003.png"
+  },
+  {
+    "frame": 4,
+    "sourceFile": "1000042786.png",
+    "outputFile": "assets/units/monster.slime/move/monster.slime_move_004.png"
+  },
+  {
+    "frame": 5,
+    "sourceFile": "1000042785.png",
+    "outputFile": "assets/units/monster.slime/move/monster.slime_move_005.png"
+  },
+  {
+    "frame": 6,
+    "sourceFile": "1000042788.png",
+    "outputFile": "assets/units/monster.slime/move/monster.slime_move_006.png"
+  },
+  {
+    "frame": 7,
+    "sourceFile": "1000042789.png",
+    "outputFile": "assets/units/monster.slime/move/monster.slime_move_007.png"
+  }
+]
