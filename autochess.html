@@ -557,6 +557,41 @@
 <button id="aafToggle" data-dev-only data-no-capture title="AAF debug" style="display:none; position:fixed; right:6px; bottom:6px; z-index:90;
   background:rgba(6,8,11,0.85); color:#c7e59a; border:1px solid #4a5a3a; border-radius:6px; padding:4px 8px;
   font:12px monospace; pointer-events:auto;">👁 AAF</button>
+
+<!-- Map Theme dev panel (development-only; shown via URL #mapTheme / #aaf or the 🗺 toggle).
+     data-dev-only -> auto-hidden in fullscreen by PR #24; data-no-capture -> never in screenshots.
+     Touch/click controls; never blocks gameplay outside its own panel. -->
+<div id="mapThemeDebug" data-dev-only data-no-capture style="display:none; position:fixed; left:6px; bottom:52px; z-index:90;
+  width:min(76vw,250px); max-height:70vh; overflow:auto; padding:8px 9px; border-radius:8px;
+  background:rgba(6,9,12,0.92); border:1px solid #3a4a5a; color:#d6e0e8; font:11px/1.35 monospace;
+  pointer-events:auto; box-shadow:0 4px 16px rgba(0,0,0,0.5);">
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+    <b style="color:#9ac2e5;">Map Theme debug</b>
+    <button id="mtClose" class="mtBtn">✕</button>
+  </div>
+  <div style="margin-bottom:5px;">Quality:
+    <button class="mtBtn mtQ" data-q="high">high</button>
+    <button class="mtBtn mtQ" data-q="medium">med</button>
+    <button class="mtBtn mtQ" data-q="low">low</button>
+  </div>
+  <div id="mtLayers" style="margin-bottom:5px; display:flex; gap:4px; flex-wrap:wrap;"></div>
+  <div style="margin-bottom:5px; display:flex; gap:4px; flex-wrap:wrap;">
+    <button class="mtBtn" id="mtMissing">Force missing res</button>
+    <button class="mtBtn" id="mtRebuild">Rebuild once</button>
+    <button class="mtBtn" id="mtDispose">Dispose</button>
+    <button class="mtBtn" id="mtActivate">Reactivate</button>
+  </div>
+  <pre id="mtReadout" style="margin:6px 0 0; white-space:pre-wrap; color:#9ab8cf;"></pre>
+</div>
+<button id="mapThemeToggle" data-dev-only data-no-capture title="Map Theme debug" style="display:none; position:fixed; right:84px; bottom:6px; z-index:90;
+  background:rgba(6,9,12,0.85); color:#9ac2e5; border:1px solid #3a4a5a; border-radius:6px; padding:4px 8px;
+  font:12px monospace; pointer-events:auto;">🗺 Theme</button>
+<style>
+  #mapThemeDebug .mtBtn { background:#22303c; color:#d6e0e8; border:1px solid #3a4a5a; border-radius:5px;
+    padding:3px 7px; font:11px monospace; cursor:pointer; }
+  #mapThemeDebug .mtBtn.on { background:#4e7ea3; color:#0a1016; }
+  #mapThemeDebug .mtBtn:active { transform:translateY(1px); }
+</style>
 <style>
   #aafDebug .aafBtn, #aafDebug #aafStates button { background:#2a3320; color:#dfe6d6; border:1px solid #4a5a3a;
     border-radius:5px; padding:3px 7px; font:11px monospace; cursor:pointer; }
@@ -595,6 +630,59 @@
 <script src="src/game.js"></script>
 <script src="src/game-presentation-tools.js"></script>
 <script src="src/map-theme-runtime.js"></script>
+<script>
+// Map Theme dev panel wiring — development-only, no gameplay side effects.
+(function initMapThemeDebugPanel() {
+  var M = window.MapThemeRuntime; if (!M) return;
+  var panel = document.getElementById('mapThemeDebug'), toggle = document.getElementById('mapThemeToggle');
+  if (!panel || !toggle) return;
+  var readout = document.getElementById('mtReadout'), layersWrap = document.getElementById('mtLayers');
+  var missingOn = false, refreshTimer = null;
+  toggle.style.display = 'block';
+  function show(on) {
+    panel.style.display = on ? 'block' : 'none';
+    if (on && !refreshTimer) refreshTimer = setInterval(refresh, 500);
+    if (!on && refreshTimer) { clearInterval(refreshTimer); refreshTimer = null; }
+    if (on) refresh();
+  }
+  if (/maptheme|aaf/i.test(location.hash)) show(true);
+  toggle.onclick = function () { show(panel.style.display === 'none'); };
+  document.getElementById('mtClose').onclick = function () { show(false); };
+  panel.querySelectorAll('.mtQ').forEach(function (b) {
+    b.onclick = function () { M.setThemeQuality(b.dataset.q); refresh(); };
+  });
+  M.LAYER_NAMES.forEach(function (name) {
+    var b = document.createElement('button');
+    b.className = 'mtBtn on'; b.textContent = name.replace('Profile', ''); b.dataset.layer = name;
+    b.onclick = function () {
+      var on = !b.classList.contains('on');
+      b.classList.toggle('on', on);
+      M.setLayerVisible(name, on);
+    };
+    layersWrap.appendChild(b);
+  });
+  document.getElementById('mtMissing').onclick = function () {
+    missingOn = !missingOn;
+    this.classList.toggle('on', missingOn);
+    M.setForceMissing(missingOn);
+    M.refreshTheme(); // rebuild so the missing-resource fallback path is visible
+    refresh();
+  };
+  document.getElementById('mtRebuild').onclick = function () { M.refreshTheme(); refresh(); };
+  document.getElementById('mtDispose').onclick = function () { M.disposeTheme(); refresh(); };
+  document.getElementById('mtActivate').onclick = function () { M.activateTheme('map1.arena_ruins', null); refresh(); };
+  function refresh() {
+    var d = M.getThemeDebugState();
+    var lines = ['theme ' + (d.activeThemeId || '(none)'), 'quality ' + d.quality + '  fallback ' + d.fallbackState];
+    for (var k in d.layers) lines.push(k + ': ' + d.layers[k].objects + ' obj' + (d.layers[k].visible ? '' : ' [hidden]') + (d.layers[k].fellBack ? ' [fallback]' : ''));
+    lines.push('--', 'geo ' + d.geometries + '  mat ' + d.materials + '  tex ' + d.textures,
+      'particles ' + d.ambientParticles, 'refresh ' + d.refreshCount + '  dispose ' + d.disposeCount,
+      'forceMissing ' + d.forceMissing);
+    readout.textContent = lines.join('\n');
+    panel.querySelectorAll('.mtQ').forEach(function (b) { b.classList.toggle('on', b.dataset.q === d.quality); });
+  }
+})();
+</script>
 <script>
 // AAF dev panel wiring — development-only, self-contained, no gameplay side effects.
 (function initAafDebugPanel() {
