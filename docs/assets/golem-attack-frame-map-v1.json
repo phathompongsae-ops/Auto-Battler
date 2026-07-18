@@ -1,0 +1,44 @@
+{
+  "id": "golem-attack-production-plan-v1",
+  "unitId": "monster.golem",
+  "state": "attack",
+  "frameCount": 12,
+  "fps": 12,
+  "loop": false,
+  "canvas": [512, 512],
+  "anchor": [0.5, 0.94],
+  "rootMotion": "in-place",
+  "eventMarkers": [
+    {
+      "name": "impactCue",
+      "normalizedTime": 0.58,
+      "expectedTransition": "006_to_007"
+    }
+  ],
+  "canonicalApproved": false,
+  "attackConcept": "two-handed ground slam",
+  "frames": [
+    {"index": 0, "phase": "ready", "intent": "neutral combat stance, both fists low"},
+    {"index": 1, "phase": "compression", "intent": "knees and torso lower, weight gathers"},
+    {"index": 2, "phase": "windup_start", "intent": "elbows bend and fists begin rising"},
+    {"index": 3, "phase": "windup", "intent": "fists beside shoulders, feet fixed"},
+    {"index": 4, "phase": "peak_windup", "intent": "highest readable fist position"},
+    {"index": 5, "phase": "direction_change", "intent": "torso pitches forward, fists start descending"},
+    {"index": 6, "phase": "downswing", "intent": "strong acceleration toward ground"},
+    {"index": 7, "phase": "impact", "intent": "lowest and heaviest contact pose without VFX"},
+    {"index": 8, "phase": "impact_hold", "intent": "brief compressed hold"},
+    {"index": 9, "phase": "follow_through", "intent": "fists lift and torso rebounds"},
+    {"index": 10, "phase": "recovery", "intent": "shoulders and stance return"},
+    {"index": 11, "phase": "ready_return", "intent": "close to ready stance"}
+  ],
+  "forbidden": [
+    "baked projectile",
+    "baked dust",
+    "baked shockwave",
+    "baked floor crack",
+    "damage number",
+    "horizontal root motion",
+    "camera change",
+    "identity or rune drift"
+  ]
+}
