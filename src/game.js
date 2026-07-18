@@ -459,6 +459,15 @@ const HERO_DEFS = {
   trickster:    { name:'Trickster',    class_tier:2, evolves_from:'merchant', cost:3, sprite:'Trickster', synergy:['Merchant','Trickster','Disruptor'], attack_type:'magic', // per legacy_roster_migration.trickster
     stats:{ hp:570, p_atk:0, m_atk:60, p_def:25, m_def:38, move_speed:2.8, attack_speed:1.35, attack_range:4 },
     active_skill:{ name:'Loaded Dice', description:'โยนลูกเต๋าเวทใส่พื้นที่เป้าหมาย สร้างความเสียหายเวท 140% ของ M.Atk และทำให้ศัตรูติด Stun 1.5 วินาที พร้อมขโมยบัฟเชิงบวก 1 อย่างจากศัตรูที่แข็งแกร่งที่สุดในพื้นที่' } },
+  // Ninja — Class Tier 3 secret class (Map 1). Stats mirror data/design/secret-heroes-v1.json
+  // combatData v1 (hp/p_atk/... use the runtime stat names). NOT in ownedPool (tier != 1) and
+  // NOT in the tier-2 star scan by tier; it enters the shop only via maybeInjectNinjaOffer() and
+  // star-combines through the secret-class path in scanForStarCombine(). sprite:'Duelist' is a
+  // role-matched placeholder (agile melee physical striker) exactly like the other 13 heroes
+  // without dedicated art — a real Ninja portrait remains a visual to-do, not a blocker.
+  ninja:        { name:'Ninja',        class_tier:3, cost:3, sprite:'Duelist', gender:'female', secret_class:true, synergy:['Assassin'], attack_type:'physical',
+    stats:{ hp:360, p_atk:40, m_atk:0, p_def:14, m_def:16, move_speed:2.9, attack_speed:1.7, attack_range:1 },
+    active_skill:{ name:'Shadow Flurry', description:'พุ่งเข้าโจมตีศัตรูที่พลังชีวิตต่ำที่สุด สร้างความเสียหายกายภาพ 130% ของ P.Atk' } },
 };
 // ============================================================
 // EVOLUTION_TREE — derived from HERO_DEFS.evolves_from (never hand-duplicated, so it can't
@@ -614,6 +623,15 @@ const SKILL_DEFS = {
     status_effects:[
       { status_id:'slow', duration:3, chance:1, modifiers:{ move_speed_pct:-20 }, stack_rule:'strongest' },
     ],
+  },
+  // Ninja (Class Tier 3 secret class) — reuses the existing single-target physical payload and
+  // the 'lowest_hp_enemy' targeting (same mechanics as merchant/fighter). A modest 1.3x finisher,
+  // not a burst nuke: Ninja's damage comes from its high basic-attack speed, not this skill.
+  ninja: {
+    skill_id:'ninja_shadow_flurry', skill_name:'Shadow Flurry', mana_cost:100, max_mana:100, cast_time:0.35,
+    target_type:'lowest_hp_enemy',
+    damage_payload:{ damage_type:'physical', p_atk_multiplier:1.3, m_atk_multiplier:0, base_damage:0, max_targets:1 },
+    status_effects:[],
   },
   // ---- Tier-2 (14 heroes) — dynamic max_mana per hero, richer targeting/payloads/conditions ----
   knight: {
@@ -1398,6 +1416,100 @@ let freeRerollsRemaining = SHOP_ECONOMY.reroll.free_rerolls_per_wave; // รี�
 // มีหลายสำเนาต่อฮีโร่ 1 ตัว (ไม่ใช่แค่ 1) เพื่อให้ซื้อซ้ำจนครบ 3 ตัวสำหรับรวมร่างได้จริงผ่านร้านค้า
 let ownedPool = Object.keys(HERO_DEFS).filter(k => HERO_DEFS[k].class_tier === 1)
   .flatMap(k => Array(HERO_POOL_COPIES_PER_TIER1).fill(k));
+
+// ============================================================
+// SECRET CLASS (Ninja) — runtime glue over the DOM-free SecretClassRuntime helper
+// (src/secret-class.js). All rule values (chances, gating, fusion policy) live in
+// that helper, sourced from data/design/secret-heroes-v1.json — not duplicated here.
+// ============================================================
+const SECRET = globalThis.SecretClassRuntime || null;
+const PROGRESS_SAVE_KEY = 'autobattler.progress.v1';
+// Minimal persistence for permanent progress. The game had no save system before;
+// this only stores secretClassUnlocks and is backward-compatible with an absent or
+// malformed save (defaults to no unlocks), never overwriting unrelated keys.
+function loadProgress() {
+  try {
+    const raw = localStorage.getItem(PROGRESS_SAVE_KEY);
+    const p = raw ? JSON.parse(raw) : {};
+    if (!p || typeof p !== 'object' || Array.isArray(p)) return { secretClassUnlocks: {} };
+    if (!p.secretClassUnlocks || typeof p.secretClassUnlocks !== 'object') p.secretClassUnlocks = {};
+    return p;
+  } catch (e) { return { secretClassUnlocks: {} }; }
+}
+function saveProgress() {
+  try { localStorage.setItem(PROGRESS_SAVE_KEY, JSON.stringify(progress)); } catch (e) { /* storage unavailable — non-fatal */ }
+}
+let progress = loadProgress();
+// Permanent unlock flag, read ONCE at run start (page load = run boundary here).
+let ninjaUnlockedPermanent = !!(progress.secretClassUnlocks && progress.secretClassUnlocks.ninja);
+// Run-start eligibility snapshot: eligible for shop rolls THIS run only if unlocked
+// BEFORE this run began. This is what keeps Ninja out of the run it was unlocked in.
+let ninjaEligibleThisRun = SECRET ? SECRET.computeRunStartEligibility(ninjaUnlockedPermanent) : false;
+let ninjaUnlockJustHappened = false; // one-time victory-modal notice this run
+let ninjaBlockedWarned = false;      // dev warning shown at most once
+
+function ninjaCombatReady() {
+  return !!SECRET && SECRET.isNinjaCombatReady(!!HERO_DEFS['ninja']);
+}
+// Called ONLY from a genuine Map 1 Stage 15 victory (see onWaveCleared). Idempotent.
+function unlockNinjaOnMap1Stage15Victory() {
+  if (!SECRET || ninjaUnlockedPermanent) return;
+  ninjaUnlockedPermanent = true;
+  progress = SECRET.applyNinjaUnlock(progress);
+  saveProgress();
+  ninjaUnlockJustHappened = true; // eligibility still false this run — next run only
+}
+// One roll per shop refresh, at most one Ninja per shop, normal odds otherwise.
+// rng defaults to Math.random; tests inject a deterministic function.
+function maybeInjectNinjaOffer(rng) {
+  if (!SECRET) return;
+  if (shopOffers.includes('ninja')) return; // never >1 Ninja, never double-count a refresh
+  if (!SECRET.rollNinjaAppearance(wave, ninjaEligibleThisRun, rng)) return;
+  if (!ninjaCombatReady()) {
+    // Combat-data safety gate: the roll can succeed (and is testable), but Ninja
+    // combat data is design_pending, so production must not offer a card that would
+    // spawn a broken unit. Suppress the offer and warn once in the console.
+    if (!ninjaBlockedWarned) {
+      console.warn('[SecretClass] Ninja shop roll succeeded but combat data is design_pending — offer suppressed in production. Provide secret-heroes-v1.json combatData and a HERO_DEFS.ninja definition to enable.');
+      ninjaBlockedWarned = true;
+    }
+    return;
+  }
+  const pick = (typeof rng === 'function' ? rng() : Math.random());
+  if (shopOffers.length > 0) shopOffers[Math.floor(pick * shopOffers.length)] = 'ninja';
+  else shopOffers.push('ninja');
+}
+
+// Namespaced debug surface for deterministic tests. Read-mostly; production code
+// never calls it, so it does not alter shop/combat behavior.
+globalThis.__NinjaSecretDebug = {
+  state: () => ({
+    unlockedPermanent: ninjaUnlockedPermanent,
+    eligibleThisRun: ninjaEligibleThisRun,
+    unlockJustHappened: ninjaUnlockJustHappened,
+    combatReady: ninjaCombatReady(),
+    wave,
+    shopOffers: [...shopOffers],
+    saved: (() => { try { return JSON.parse(localStorage.getItem(PROGRESS_SAVE_KEY) || '{}'); } catch (e) { return {}; } })(),
+  }),
+  chance: (w) => SECRET ? SECRET.ninjaChancePerRefresh(w, ninjaEligibleThisRun) : 0,
+  setWave: (w) => { wave = w; },
+  setEligibleThisRun: (v) => { ninjaEligibleThisRun = !!v; },
+  injectWith: (rngVal) => { maybeInjectNinjaOffer(() => rngVal); return [...shopOffers]; },
+  // Read-only roster/stat probes for tests (no engine mutation).
+  roster: () => ({
+    bench: benchHeroes.map((h) => ({ key: h.heroKey, star: normalizeStarLevel(h.starLevel || 1) })),
+    placed: placedUnits.map((u) => u.heroKey),
+    ownedPoolHasNinja: ownedPool.includes('ninja'),
+    pendingEvolution: !!pendingEvolution,
+    heroDefsHasNinja: !!HERO_DEFS['ninja'],
+    gold,
+  }),
+  heroStatsFinite: (k) => { const s = getScaledHeroStats(k, 1); return !!s && Object.values(s).every((v) => typeof v !== 'number' || Number.isFinite(v)); },
+  grantGold: (n) => { gold += n; renderUI(); }, // test-only economy helper; production never calls it
+  placeBench: (heroKey, c, r) => { const u = benchHeroes.find((h) => h.heroKey === heroKey); return u ? !!moveUnitTo(u, c, r) : false; }, // test-only: real placement path
+  placedFinite: () => placedUnits.every((u) => Object.values(u).every((v) => typeof v !== 'number' || Number.isFinite(v))),
+};
 // ม้านั่งสำรองรวมเป็นเนื้อเดียวกับกระดานแล้ว (แถว BENCH_ROW) — benchHeroes เก็บ "ยูนิต 3D จริง"
 // (alive:false, ไม่ร่วมรบ) ไม่ใช่ข้อมูลเบาๆ แบบเดิมอีกต่อไป ดู createUnitFromInstance/spawnToBench
 let benchHeroes = [];
@@ -3132,6 +3244,7 @@ function pickShopOffers() {
     offers.push(pool.splice(i,1)[0]);
   }
   shopOffers = offers;
+  maybeInjectNinjaOffer(); // one secret roll per refresh (0% unless unlocked before this run)
 }
 
 // ไทยชื่อย่อของ effect key แต่ละตัว ใช้แสดงผลในกล่อง Synergy panel เท่านั้น (ไม่กระทบ logic)
@@ -3367,6 +3480,7 @@ function renderUI() {
   shopCardsEl.innerHTML = '';
   shopOffers.forEach((hkey, idx) => {
     const def = HERO_DEFS[hkey];
+    if (!def) return; // defensive: a secret-class id without a runtime hero def is never rendered/purchasable
     const div = document.createElement('div');
     div.className = 'card' + (gold < def.cost || benchFull ? ' disabled' : '');
     div.innerHTML = `<img src="${heroPortraitSrc(hkey)}"><div class="name">${def.name}</div><div class="tags">${tagLabel(hkey)}</div><div class="cost">💰${def.cost}</div>`;
@@ -3512,7 +3626,14 @@ function scanForStarCombine() {
   const buckets = {};
   [...benchHeroes, ...placedUnits].forEach((inst) => {
     const def = HERO_DEFS[inst.heroKey];
-    if (!def || def.class_tier !== 2) return;
+    // Tier-2 heroes star-combine as before. Secret classes (e.g. Ninja, tier 3) also
+    // star-combine — but only when their canonical fusion policy allows the standard
+    // 3-identical merge AND they have a runtime def; secret classes without data (no
+    // HERO_DEFS entry) are naturally excluded, so this does not auto-enable future ones.
+    const secretStarEligible = def && SECRET
+      && SECRET.secretClassFusionEligibility(inst.heroKey)
+      && SECRET.secretClassFusionEligibility(inst.heroKey).usesStandardThreeIdenticalStarCombine;
+    if (!def || (def.class_tier !== 2 && !secretStarEligible)) return;
     const star = normalizeStarLevel(inst.starLevel || 1);
     if (star >= HERO_STAR_MAX) return;
     const bucketKey = inst.heroKey + '@' + star;
@@ -3567,6 +3688,7 @@ function buyHero(offerIdx) {
   const hkey = shopOffers[offerIdx];
   if (!hkey) return;
   const def = HERO_DEFS[hkey];
+  if (!def) return; // defensive: secret-class id (e.g. ninja while design_pending) has no runtime unit
   if (gold < def.cost) return;
   if (benchHeroes.length >= MAX_BENCH) return; // ม้านั่งสำรองเต็ม ต้องวางลงกระดานหรือรอก่อน
   gold -= def.cost;
@@ -4051,7 +4173,11 @@ function onWaveCleared() {
   despawnSummons(); // summon_payload.despawn_on_wave_end
   clearAllVFX(); // จบเวฟ: ล้างเอฟเฟกต์ค้างทั้งหมด (รวม flash/shake/บรรยากาศคำสาป) คืน pool ครบ
   if (wave >= WAVE_TOTAL) {
-    showResult('🏆 พิชิตซากอารีน่าหินสำเร็จ!', `ทำครบ ${WAVE_TOTAL} ด่าน ได้ทอง +${reward} — ขอบคุณที่เล่น!`, () => {
+    unlockNinjaOnMap1Stage15Victory(); // Map 1 Stage 15 first-win: permanent unlock, next-run only
+    const ninjaNote = ninjaUnlockJustHappened
+      ? ' 🥷 ปลดล็อกนินจา (อาชีพลับ)! จะปรากฏในร้านค้าตั้งแต่รอบเล่นถัดไป'
+      : '';
+    showResult('🏆 พิชิตซากอารีน่าหินสำเร็จ!', `ทำครบ ${WAVE_TOTAL} ด่าน ได้ทอง +${reward} — ขอบคุณที่เล่น!${ninjaNote}`, () => {
       phase = 'gameover';
       phaseLabel.textContent = 'จบเกม';
     });
