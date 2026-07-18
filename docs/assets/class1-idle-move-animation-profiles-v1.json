@@ -1,0 +1,264 @@
+{
+  "schemaVersion": 1,
+  "id": "class1-idle-move-animation-profiles-v1",
+  "scope": "class1-only",
+  "defaultFps": 12,
+  "rootMotion": "in-place",
+  "runtimeFlipX": true,
+  "canonicalApproved": false,
+  "sharedRules": {
+    "transparentBackground": true,
+    "fixedCanvasPerUnitState": true,
+    "noBakedWorldTravel": true,
+    "noBakedVfx": true,
+    "noBakedProjectiles": true,
+    "noBakedMapElements": true,
+    "moveMarkers": ["leftFootstepCue", "rightFootstepCue"],
+    "browserReviewSpeed": 4,
+    "reviewCheckpoints": [
+      "asset_load",
+      "playback_loop",
+      "marker_visual_review"
+    ]
+  },
+  "profiles": [
+    {
+      "unitId": "hero.fighter",
+      "classId": "fighter",
+      "gender": "male",
+      "idle": {
+        "concept": "guarded_bounce",
+        "frameCountTarget": 8,
+        "frameCountRange": [6, 10],
+        "fps": 12,
+        "loop": true,
+        "anchor": [0.5, 0.92],
+        "markers": [],
+        "weight": "heavy_grounded",
+        "secondaryMotion": ["gloves_minimal", "belt_minimal"],
+        "forbidden": ["horizontal_shuffle", "large_vertical_bob", "face_hidden_by_fists"]
+      },
+      "move": {
+        "concept": "heavy_combat_march",
+        "frameCountTarget": 8,
+        "frameCountRange": [8, 10],
+        "fps": 12,
+        "loop": true,
+        "anchor": [0.5, 0.92],
+        "markers": [
+          {"name": "leftFootstepCue", "normalizedTime": 0.2},
+          {"name": "rightFootstepCue", "normalizedTime": 0.7}
+        ],
+        "torsoPath": "low_heavy",
+        "weaponBehavior": "compact_guard",
+        "distinctionLock": "not_swordman_balanced_advance"
+      }
+    },
+    {
+      "unitId": "hero.swordman",
+      "classId": "swordman",
+      "gender": "male",
+      "idle": {
+        "concept": "measured_blade_guard",
+        "frameCountTarget": 8,
+        "frameCountRange": [6, 10],
+        "fps": 12,
+        "loop": true,
+        "anchor": [0.5, 0.92],
+        "markers": [],
+        "weight": "balanced",
+        "secondaryMotion": ["blade_tip_settle", "cloth_restrained"],
+        "forbidden": ["attack_windup", "blade_crosses_face", "large_breath_bounce"]
+      },
+      "move": {
+        "concept": "controlled_blade_advance",
+        "frameCountTarget": 8,
+        "frameCountRange": [8, 10],
+        "fps": 12,
+        "loop": true,
+        "anchor": [0.5, 0.92],
+        "markers": [
+          {"name": "leftFootstepCue", "normalizedTime": 0.18},
+          {"name": "rightFootstepCue", "normalizedTime": 0.68}
+        ],
+        "torsoPath": "stable_balanced",
+        "weaponBehavior": "ready_no_attack_swing",
+        "distinctionLock": "more_technical_than_fighter_less_springy_than_archer"
+      }
+    },
+    {
+      "unitId": "hero.archer",
+      "classId": "archer",
+      "gender": "female",
+      "idle": {
+        "concept": "light_target_scan",
+        "frameCountTarget": 8,
+        "frameCountRange": [6, 10],
+        "fps": 12,
+        "loop": true,
+        "anchor": [0.5, 0.92],
+        "markers": [],
+        "weight": "light_rear_foot",
+        "secondaryMotion": ["hair_tips", "short_cape", "bowstring_settle"],
+        "forbidden": ["nock_arrow", "release_arrow", "baked_projectile", "full_torso_turn"]
+      },
+      "move": {
+        "concept": "ready_bow_step",
+        "frameCountTarget": 8,
+        "frameCountRange": [8, 10],
+        "fps": 12,
+        "loop": true,
+        "anchor": [0.5, 0.92],
+        "markers": [
+          {"name": "leftFootstepCue", "normalizedTime": 0.22},
+          {"name": "rightFootstepCue", "normalizedTime": 0.72}
+        ],
+        "torsoPath": "light_minimal_bounce",
+        "weaponBehavior": "bow_clear_of_legs",
+        "distinctionLock": "smallest_vertical_bounce_physical_classes"
+      }
+    },
+    {
+      "unitId": "hero.mage",
+      "classId": "mage",
+      "gender": "male",
+      "idle": {
+        "concept": "arcane_suspension",
+        "frameCountTarget": 8,
+        "frameCountRange": [6, 10],
+        "fps": 12,
+        "loop": true,
+        "anchor": [0.5, 0.91],
+        "markers": [],
+        "weight": "grounded_float_impression",
+        "secondaryMotion": ["robe_hem", "sleeves", "hair", "staff_ornament"],
+        "forbidden": ["actual_levitation", "baked_particles", "spell_cast_gesture"]
+      },
+      "move": {
+        "concept": "gliding_caster_walk",
+        "frameCountTarget": 10,
+        "frameCountRange": [8, 10],
+        "fps": 12,
+        "loop": true,
+        "anchor": [0.5, 0.91],
+        "markers": [
+          {"name": "leftFootstepCue", "normalizedTime": 0.24},
+          {"name": "rightFootstepCue", "normalizedTime": 0.74}
+        ],
+        "torsoPath": "smoothest_class1",
+        "weaponBehavior": "staff_counter_sway",
+        "distinctionLock": "no_world_space_glide_in_sprite"
+      }
+    },
+    {
+      "unitId": "hero.summoner",
+      "classId": "summoner",
+      "gender": "male",
+      "idle": {
+        "concept": "ritual_hand_control",
+        "frameCountTarget": 8,
+        "frameCountRange": [6, 10],
+        "fps": 12,
+        "loop": true,
+        "anchor": [0.5, 0.92],
+        "markers": [],
+        "weight": "asymmetric_guarded",
+        "secondaryMotion": ["sleeves", "charms", "talismans", "short_tassels"],
+        "forbidden": ["summoned_creature", "magic_circle", "portal", "floating_rune"]
+      },
+      "move": {
+        "concept": "cautious_ritual_step",
+        "frameCountTarget": 10,
+        "frameCountRange": [8, 10],
+        "fps": 12,
+        "loop": true,
+        "anchor": [0.5, 0.92],
+        "markers": [
+          {"name": "leftFootstepCue", "normalizedTime": 0.2},
+          {"name": "rightFootstepCue", "normalizedTime": 0.7}
+        ],
+        "torsoPath": "guarded_asymmetric",
+        "weaponBehavior": "reduced_arm_swing",
+        "distinctionLock": "more_guarded_than_mage"
+      }
+    },
+    {
+      "unitId": "hero.acolyte",
+      "classId": "acolyte",
+      "gender": "female",
+      "idle": {
+        "concept": "serene_staff_brace",
+        "frameCountTarget": 8,
+        "frameCountRange": [6, 10],
+        "fps": 12,
+        "loop": true,
+        "anchor": [0.5, 0.92],
+        "markers": [],
+        "weight": "centered_stable",
+        "secondaryMotion": ["robe_edge", "hair_gentle"],
+        "forbidden": ["prayer_cast", "healing_glow", "halo", "wings", "raised_staff_attack"]
+      },
+      "move": {
+        "concept": "processional_staff_walk",
+        "frameCountTarget": 10,
+        "frameCountRange": [8, 10],
+        "fps": 12,
+        "loop": true,
+        "anchor": [0.5, 0.92],
+        "markers": [
+          {"name": "leftFootstepCue", "normalizedTime": 0.25},
+          {"name": "rightFootstepCue", "normalizedTime": 0.75}
+        ],
+        "torsoPath": "formal_even",
+        "weaponBehavior": "staff_close_to_body",
+        "distinctionLock": "more_grounded_than_mage_or_summoner"
+      }
+    },
+    {
+      "unitId": "hero.merchant",
+      "classId": "merchant",
+      "gender": "male",
+      "idle": {
+        "concept": "inventory_check",
+        "frameCountTarget": 8,
+        "frameCountRange": [6, 10],
+        "fps": 12,
+        "loop": true,
+        "anchor": [0.5, 0.92],
+        "markers": [],
+        "weight": "practical_restless",
+        "secondaryMotion": ["bag", "coins_attached", "belts", "small_tools"],
+        "forbidden": ["projectile_draw", "item_throw", "shop_ui", "detached_coins"]
+      },
+      "move": {
+        "concept": "loaded_quick_step",
+        "frameCountTarget": 10,
+        "frameCountRange": [8, 10],
+        "fps": 12,
+        "loop": true,
+        "anchor": [0.5, 0.92],
+        "markers": [
+          {"name": "leftFootstepCue", "normalizedTime": 0.18},
+          {"name": "rightFootstepCue", "normalizedTime": 0.68}
+        ],
+        "torsoPath": "brisk_loaded",
+        "weaponBehavior": "accessories_lag_then_settle",
+        "distinctionLock": "busiest_accessory_motion_class1"
+      }
+    }
+  ],
+  "outOfScope": [
+    "class2",
+    "secret_classes",
+    "map2",
+    "map3",
+    "survival_mode",
+    "three_star_heroes",
+    "combat_logic",
+    "pathfinding",
+    "targeting",
+    "economy",
+    "stage_logic",
+    "game_loop"
+  ]
+}
