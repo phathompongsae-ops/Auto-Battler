@@ -1,5 +1,5 @@
 {
-  "version": "1.1.0",
+  "version": "1.2.0",
   "locales": {
     "th": {
       "weapon.iron_sword.name": "ดาบเหล็ก",
@@ -12,6 +12,8 @@
       "weapon.iron_armor.description": "เพิ่มพลังชีวิตสูงสุด 120",
       "weapon.duelist_blade.name": "ดาบนักดวล",
       "weapon.duelist_blade.description": "เพิ่มพลังโจมตีกายภาพ 14 และความเร็วโจมตี 10%",
+      "weapon.ui.shop_title": "ร้านอุปกรณ์",
+      "weapon.ui.refresh": "รีเฟรช 2 ทอง",
       "weapon.ui.inventory_full": "คลังอุปกรณ์เต็ม",
       "weapon.ui.equip_slots_full": "ช่องอุปกรณ์ของฮีโร่เต็มแล้ว",
       "weapon.ui.not_enough_gold": "ทองไม่เพียงพอ",
@@ -31,6 +33,8 @@
       "weapon.iron_armor.description": "Gain 120 maximum HP.",
       "weapon.duelist_blade.name": "Duelist Blade",
       "weapon.duelist_blade.description": "Gain 14 Physical Attack and 10% Attack Speed.",
+      "weapon.ui.shop_title": "Equipment Shop",
+      "weapon.ui.refresh": "Refresh: 2 Gold",
       "weapon.ui.inventory_full": "Equipment inventory is full.",
       "weapon.ui.equip_slots_full": "This hero's equipment slots are full.",
       "weapon.ui.not_enough_gold": "Not enough gold.",
