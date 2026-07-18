@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "id": "map1.arena_ruins.board-ui-safe-areas.v1",
+  "mapId": "map1.arena_ruins",
+  "canonicalApproved": false,
+  "coordinateSpaces": {
+    "screenUv": {"range": [0, 1], "origin": "top-left viewport", "u": "left-to-right", "v": "top-to-bottom"},
+    "boardUv": {"range": [0, 1], "origin": "far-left enemy-side board corner", "u": "left-to-right", "v": "enemy-to-bench"},
+    "tileUv": {"range": [0, 1], "origin": "far-left tile corner", "u": "left-to-right", "v": "far-to-near"},
+    "tileBillboardUv": {"range": [0, 1], "origin": "bottom-left projected unit envelope", "u": "unit left-to-right", "v": "feet-to-HP-bar-top"}
+  },
+  "screenZones": [
+    {"zoneId": "top-hud-risk", "role": "top HUD", "coordinateSpace": "screenUv", "shape": "rect", "min": [0, 0], "max": [1, 0.18], "policy": "no-critical-art", "runtimeMeasurement": "DOM-dependent"},
+    {"zoneId": "left-panel-risk", "role": "left synergy/inventory panels", "coordinateSpace": "screenUv", "shape": "rect", "min": [0, 0.12], "max": [0.32, 1], "policy": "no-critical-art", "runtimeMeasurement": "responsive"},
+    {"zoneId": "right-panel-risk", "role": "right monster/team panels", "coordinateSpace": "screenUv", "shape": "rect", "min": [0.68, 0.12], "max": [1, 1], "policy": "no-critical-art", "runtimeMeasurement": "responsive"},
+    {"zoneId": "bottom-shop-risk", "role": "shop, inventory, selected bar and battle controls", "coordinateSpace": "screenUv", "shape": "rect", "min": [0, 0.78], "max": [1, 1], "policy": "no-critical-art", "runtimeMeasurement": "drawer-state-dependent"},
+    {"zoneId": "board-critical-visibility", "role": "locked Preview v2 board footprint", "coordinateSpace": "screenUv", "shape": "rect", "min": [0.1393229167, 0.072265625], "max": [0.8606770833, 0.7421875], "policy": "all-grid-corners-remain-identifiable", "runtimeMeasurement": "preview-reconstruction"},
+    {"zoneId": "bench-critical-visibility", "role": "integrated bench row 6", "coordinateSpace": "screenUv", "shape": "rect", "min": [0.1393229167, 0.646484375], "max": [0.8606770833, 0.7421875], "policy": "no-important-prop-or-panel-tangent", "runtimeMeasurement": "preview-reconstruction"}
+  ],
+  "boardAndTileZones": [
+    {"zoneId": "combat-board", "role": "rows 0-5", "coordinateSpace": "boardUv", "shape": "rect", "min": [0, 0], "max": [1, 0.8571428571], "policy": "no-raised-decoration"},
+    {"zoneId": "full-board-decoration-no-go", "role": "all 56 tiles including bench", "coordinateSpace": "boardUv", "shape": "rect", "min": [0, 0], "max": [1, 1], "policy": "no-props-walls-flags-rubble"},
+    {"zoneId": "deploy-overlay-envelope", "role": "deploy rows 3-5", "coordinateSpace": "boardUv", "shape": "rect", "min": [0, 0.4285714286], "max": [1, 0.8571428571], "policy": "quiet-base-for-overlay"},
+    {"zoneId": "enemy-overlay-envelope", "role": "observed enemy rows 0-1", "coordinateSpace": "boardUv", "shape": "rect", "min": [0, 0], "max": [1, 0.2857142857], "policy": "quiet-base-for-overlay"},
+    {"zoneId": "projectile-corridor", "role": "projectile and target paths", "coordinateSpace": "boardUv", "shape": "rect", "min": [0, 0], "max": [1, 0.8571428571], "policy": "no-bright-line-or-combat-like-mark"},
+    {"zoneId": "selected-target-aoe-envelope", "role": "selected, target and AoE overlays", "coordinateSpace": "boardUv", "shape": "rect", "min": [0, 0], "max": [1, 0.8571428571], "policy": "base-detail-subordinate-to-state-art"},
+    {"zoneId": "unit-foot-area", "role": "anchor/contact receiving area per tile", "coordinateSpace": "tileUv", "shape": "rect", "min": [0.18, 0.18], "max": [0.82, 0.82], "policy": "low-frequency-only"},
+    {"zoneId": "edge-unit-clearance", "role": "edge pilot silhouette per tile", "coordinateSpace": "tileUv", "shape": "rect", "min": [0.08, 0.08], "max": [0.92, 0.92], "policy": "no-raised-detail"},
+    {"zoneId": "unit-silhouette-envelope", "role": "full projected unit per tile", "coordinateSpace": "tileBillboardUv", "shape": "rect", "min": [0.02, 0.02], "max": [0.98, 0.9], "policy": "no-background-tangent"},
+    {"zoneId": "hp-bar-envelope", "role": "projected HP/mana/badge area", "coordinateSpace": "tileBillboardUv", "shape": "rect", "min": [0.02, 0.5], "max": [0.98, 1], "policy": "no-high-contrast-background-detail"}
+  ],
+  "decorativeNoGoRules": [
+    "No pillar, wall, flag, rubble, brazier or opaque background module may overlap a logical tile.",
+    "Front/bench-side art remains flat and side borders remain below edge-unit and HP-bar envelopes.",
+    "No character, character shadow, projectile, target ring, deploy marker, enemy marker or UI may be baked into production assets.",
+    "Static runes stay at seams/perimeter and cannot resemble selected, target, AoE or projectile visuals.",
+    "Screen zones are conservative review metadata, not replacement UI geometry."
+  ],
+  "browserMeasurementRequired": [
+    "dynamic topbar height at each breakpoint",
+    "left/right panel overlap in portrait and landscape",
+    "shop-open and shop-closed bottom overlap",
+    "fullscreen board bounds",
+    "largest unit and boss HP-bar envelope on every edge tile"
+  ]
+}

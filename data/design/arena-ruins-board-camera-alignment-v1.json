@@ -1,0 +1,71 @@
+{
+  "schemaVersion": 1,
+  "id": "map1.arena_ruins.board-camera-alignment.v1",
+  "mapId": "map1.arena_ruins",
+  "canonicalApproved": false,
+  "camera": {
+    "type": "THREE.OrthographicCamera",
+    "pitchDegrees": 45,
+    "yawDegrees": 90,
+    "distance": 20,
+    "lookTargetWorld": [0, 0, 1.3],
+    "near": 0.1,
+    "far": 1000,
+    "locked": true
+  },
+  "board": {
+    "columns": 8,
+    "rows": 7,
+    "worldBounds": {"x": [-4, 4], "z": [-3.5, 3.5]},
+    "benchRow": 6,
+    "rowDirection": "+world-z toward camera"
+  },
+  "framing": {
+    "method": "contain-fit from projected board corners",
+    "boardFillRatio": 0.97,
+    "boardDownBias": 0.97,
+    "widthGuardMultiplier": 1.02,
+    "topbarClearPadPixels": 6,
+    "topbarHeightSource": "live #topbar.getBoundingClientRect().bottom",
+    "containFitSteps": [
+      "project four board corners into camera-local space",
+      "derive contentHalfW and contentHalfH",
+      "fit height by boardFillRatio",
+      "expand by width guard on narrow viewports",
+      "apply boardDownBias to remaining vertical slack",
+      "apply only the positive topbar-clearance deficit"
+    ]
+  },
+  "previewV2Alignment": {
+    "viewportPixels": [1536, 1024],
+    "viewportAspect": 1.5,
+    "boardOuterBoundsPixels": {"min": [214, 74], "max": [1322, 760]},
+    "boardOuterBoundsScreenUv": {"min": [0.1393229167, 0.072265625], "max": [0.8606770833, 0.7421875]},
+    "rowBandsPixels": {
+      "enemyObservedRows0to1": [74, 270],
+      "neutralRow2": [270, 368],
+      "deployRows3to5": [368, 662],
+      "benchRow6": [662, 760]
+    },
+    "boardCornersSharedAcross": [
+      "camera-preview-runtime-v2.png",
+      "arena-ruins-reference-match-board-only-v2.png",
+      "arena-ruins-reference-match-with-pilots-v2.png",
+      "arena-ruins-reference-match-readability-v2.png",
+      "reference-alignment-guide-v2.png"
+    ],
+    "cameraSource": "deterministic Preview v1 projection reconstruction; not a live browser capture",
+    "dynamicDomTopbarUnresolved": true
+  },
+  "viewportAssumptions": [
+    {"id": "desktop-review", "pixels": [1536, 1024], "measuredInBrowser": false, "purpose": "contract alignment master"},
+    {"id": "mobile-review", "pixels": [844, 390], "measuredInBrowser": false, "purpose": "readability simulation only"}
+  ],
+  "forbiddenAdjustments": [
+    "change pitch, yaw, distance or look target to fit art",
+    "change board dimensions or add an eighth row",
+    "move bench row away from row 6",
+    "stretch the board footprint independently by axis",
+    "bake a screen-space vignette into world-space art"
+  ]
+}
