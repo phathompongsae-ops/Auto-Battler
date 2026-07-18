@@ -1,0 +1,109 @@
+{
+  "version": "1.0.0",
+  "status": "candidate_audit_only",
+  "policy": {
+    "sourceOrder": [
+      "exact_user_approved_existing_file",
+      "licensed_downloadable_candidate",
+      "chatgpt_generated_new_asset"
+    ],
+    "canonicalPromotionRequires": [
+      "exact_file_user_approval",
+      "license_or_provenance_evidence",
+      "png_and_real_alpha_check",
+      "dimension_check",
+      "reduced_size_shop_bench_board_readability",
+      "runtime_scale_and_anchor_review"
+    ],
+    "cocoMayGenerateImages": false,
+    "downloadDoesNotEqualCanonicalApproval": true
+  },
+  "repoFindings": [
+    {
+      "pilotId": "hero.archer",
+      "knownPath": "assets/archer.png",
+      "status": "procedural_or_placeholder_pending_exact_file_review",
+      "decision": "do_not_promote"
+    },
+    {
+      "pilotId": "monster.slime",
+      "knownPath": "candidate_or_original_project_file_pending_provenance",
+      "status": "candidate_pending_exact_file_and_provenance_review",
+      "decision": "inspect_existing_before_download"
+    },
+    {
+      "pilotId": "monster.golem",
+      "knownPath": "assets/mon_golem.png",
+      "status": "procedural_or_placeholder_pending_exact_file_review",
+      "decision": "do_not_promote"
+    }
+  ],
+  "externalCandidates": [
+    {
+      "pilotId": "hero.archer",
+      "source": "OpenGameArt",
+      "title": "Top View Crossbow man",
+      "author": "Cliipso",
+      "license": "CC0",
+      "candidateUrl": "https://opengameart.org/content/top-view-crossbow-man",
+      "hasAnimationEvidence": true,
+      "fitAssessment": "license_clear_but_top_view_and_crossbow_style_do_not_match_locked_female_3_4_archer_direction",
+      "recommendation": "reject_for_canonical_style; usable_only_as_technical_animation_reference"
+    },
+    {
+      "pilotId": "hero.archer",
+      "source": "OpenGameArt",
+      "title": "archer [Static] [64x64]",
+      "author": "LordNeo",
+      "license": "CC0",
+      "candidateUrl": "https://opengameart.org/content/archer-static-64x64",
+      "hasAnimationEvidence": false,
+      "fitAssessment": "license_clear_but_static_pixel_asset_conflicts_with_stylized_3d_hand_painted_direction",
+      "recommendation": "reject_for_canonical"
+    },
+    {
+      "pilotId": "monster.slime",
+      "source": "OpenGameArt",
+      "title": "Slimes",
+      "author": "AntumDeluge / nudelchef",
+      "license": "CC0",
+      "candidateUrl": "https://opengameart.org/content/slimes-0",
+      "hasAnimationEvidence": true,
+      "fitAssessment": "license_clear_and_animated_but orthogonal pixel style conflicts with target visual direction",
+      "recommendation": "reject_for_canonical; acceptable only as temporary framework test if user explicitly approves"
+    },
+    {
+      "pilotId": "monster.golem",
+      "source": "OpenGameArt",
+      "title": "Some Characters by Ragewortt in Vector",
+      "author": "Ragewortt / vector conversion contributor",
+      "license": "CC0",
+      "candidateUrl": "https://opengameart.org/node/65086",
+      "hasAnimationEvidence": false,
+      "fitAssessment": "contains plant golem vector but silhouette and presentation do not match arena stone golem pilot",
+      "recommendation": "reject_for_canonical"
+    }
+  ],
+  "licenseReference": {
+    "source": "Kenney Support",
+    "url": "https://kenney.nl/support",
+    "statement": "Kenney asset pages are CC0 and may be used commercially; exact pack fit still requires visual review."
+  },
+  "finalRoute": [
+    {
+      "pilotId": "hero.archer",
+      "route": "chatgpt_generate_after_exact_prompt_lock",
+      "reason": "downloaded candidates fail the approved female woodland archer visual direction"
+    },
+    {
+      "pilotId": "monster.slime",
+      "route": "inspect_existing_original_project_candidate_first_then_chatgpt_generate_if_not_approved",
+      "reason": "licensed downloadable candidates found are pixel/orthogonal and do not match the target"
+    },
+    {
+      "pilotId": "monster.golem",
+      "route": "chatgpt_generate_after_exact_prompt_lock",
+      "reason": "downloaded candidates do not match the canonical stone golem style and required animation set"
+    }
+  ]
+}
