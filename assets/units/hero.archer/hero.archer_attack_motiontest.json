@@ -1,0 +1,25 @@
+{
+  "unitId": "hero.archer",
+  "state": "attack",
+  "fps": 12,
+  "frameCount": 10,
+  "loop": false,
+  "anchor": [
+    0.5,
+    0.92
+  ],
+  "canvas": [
+    320,
+    480
+  ],
+  "eventMarkers": [
+    {
+      "name": "projectileRelease",
+      "normalizedTime": 0.55
+    }
+  ],
+  "rootMotion": "in-place",
+  "sourceStatus": "user_supplied_reference_pose_sequence_normalized_for_motion_test",
+  "canonicalApproved": false,
+  "notes": "First in-game motion-test candidate made from the user-supplied ten-pose reference set. Checkerboard backgrounds were converted to alpha; all frames normalized to one canvas and anchor. Visual continuity still requires in-game review."
+}
