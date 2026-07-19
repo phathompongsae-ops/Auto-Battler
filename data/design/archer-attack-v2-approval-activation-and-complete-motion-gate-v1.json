@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "id": "archer-attack-v2-approval-activation-and-complete-motion-gate-v1",
+  "existingTemplate": "data/design/archer-attack-v2-package-exact-file-approval-template-v1.json",
+  "templateAssessment": "STRUCTURALLY_SUFFICIENT_DO_NOT_ACTIVATE_YET",
+  "candidate": {"pr": 72, "head": "26ea251386199720138ea3c3b32d308acbdeaed9"},
+  "activationRequiresAll": [
+    "exact CC PR HEAD verified",
+    "10 exact frame SHA-256 records locked",
+    "actual projectileRelease frame/time locked",
+    "Neutral/Idle/Move/Attack-v1 protected-byte pass",
+    "required review artifacts complete",
+    "Coco return verification PASS",
+    "user explicit visual approval",
+    "drawVisible=true",
+    "fullDrawVisible=true",
+    "releaseVisible=true",
+    "followThroughVisible=true"
+  ],
+  "currentActivationState": {
+    "attackV2PackageApproved": false,
+    "completeArcherMotionApproved": false,
+    "approvalActivationAuthorizedNow": false
+  },
+  "pathAUserApproves": [
+    "create Attack v2 exact-file approval record",
+    "lock exact frame hashes",
+    "lock actual projectileRelease marker",
+    "set attackV2PackageApproved=true",
+    "set completeArcherMotionApproved=true only after Neutral+Idle+Move+Attack-v2 gates all true",
+    "authorize a separate CC runtime integration task"
+  ],
+  "pathBUserRejects": [
+    "keep attackV2PackageApproved=false",
+    "preserve v2 immutable as rejected candidate",
+    "classify failure using archer-attack-v2-failure-taxonomy-v1",
+    "authorize next production method appropriate to the failure",
+    "prefer distinct articulated key-pose reconstruction or pose-guided regeneration when pose clarity fails",
+    "do not authorize runtime integration"
+  ],
+  "onlyTwoDecisionPathsAfterUserReview": true,
+  "completeArcherRule": "Neutral approved AND Idle approved AND Move approved AND Attack v2 exact-file approved",
+  "attackV1Rule": "Attack v1 rejection does not block v2 approval, but Attack v1 must never be runtime-bound or used as fallback once v2 is approved."
+}
