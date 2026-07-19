@@ -1,0 +1,86 @@
+{
+  "gateVersion": 1,
+  "id": "archer-attack-v2-post-approval-runtime-authorization-gate-v1",
+  "characterId": "hero.archer",
+  "owner": "CC",
+  "authorizedNow": false,
+  "purpose": "Readiness gate for a future runtime task after explicit exact-file approval of Archer Attack v2. This record does not authorize runtime work now.",
+  "preconditionsAllRequired": [
+    "Neutral Master exact approval remains valid and SHA locked",
+    "Idle exact package remains approved and byte-locked",
+    "Move exact package remains approved and byte-locked",
+    "Attack v1 remains rejected/superseded and is never promoted",
+    "Attack v2 exact package exists and has explicit user visual approval",
+    "Attack v2 exact frame hashes and package semantics are locked in an active approval record",
+    "projectileRelease mapping is locked to the approved actual visual release frame",
+    "no source drift across Neutral/Idle/Move/Attack v2",
+    "complete Archer motion handoff contains exact paths, hashes, FPS, loop, rootMotion, anchors, markers, runtimeFlipX, transition notes, review concerns, and rollback plan"
+  ],
+  "currentPreconditionState": {
+    "neutralApproved": true,
+    "idleApproved": true,
+    "moveApproved": true,
+    "attackV1Rejected": true,
+    "attackV2AuthorizedForProduction": true,
+    "attackV2Generated": false,
+    "attackV2UserVisualApproval": false,
+    "attackV2Approved": false,
+    "exactAttackV2HashesLocked": false,
+    "runtimeAuthorization": false
+  },
+  "runtimeExecutionRules": [
+    "reuse the technical motion pipeline demonstrated by PR #56 as a read-only technical baseline",
+    "avoid framework rewrite unless a demonstrated blocker requires separately reviewed scope",
+    "integrate only exact approved Neutral/Idle/Move/Attack v2 package bytes and semantics",
+    "preserve approved FPS, loop, rootMotion, anchor, markers, and runtimeFlipX",
+    "preserve Move leftFootstepCue/rightFootstepCue behavior",
+    "map approved Attack v2 projectileRelease to projectile timing without altering approved art",
+    "validate Idle -> Attack -> Idle and Move -> Attack transitions",
+    "keep a reversible rollback path to the immediately prior approved runtime mapping"
+  ],
+  "testing": {
+    "speed": "x4",
+    "targetedCheckpointCount": 3,
+    "mustBeExactly": true,
+    "checkpoints": [
+      {
+        "index": 1,
+        "name": "Asset Load + State Registration",
+        "checks": [
+          "exact approved Idle/Move/Attack v2 packages load under correct hero.archer states",
+          "FPS/loop/rootMotion/anchor/runtimeFlipX metadata register correctly",
+          "no stale rejected-v1 or legacy texture binding",
+          "no asset-load errors"
+        ]
+      },
+      {
+        "index": 2,
+        "name": "Playback + Transition + Anchor Stability",
+        "checks": [
+          "Idle loops at approved 8 FPS",
+          "Move loops at approved 12 FPS",
+          "Attack v2 plays once at approved 12 FPS/non-loop semantics",
+          "Idle -> Attack -> Idle transitions cleanly",
+          "Move -> Attack transitions cleanly",
+          "no root drift, crop, scale pop, anchor jump, stale frame, or obvious transition pop"
+        ]
+      },
+      {
+        "index": 3,
+        "name": "Marker + Projectile Timing + Regression",
+        "checks": [
+          "Move footstep cues remain isolated to approved semantics",
+          "Attack v2 projectileRelease fires exactly once at the approved visual release point per playback",
+          "projectile timing consumes the approved marker without changing Attack v2 art",
+          "targeted Combat/gameplay regression remains functional at x4",
+          "no marker leakage across states"
+        ]
+      }
+    ]
+  },
+  "rollback": {
+    "required": true,
+    "rule": "Runtime integration must be reversible without modifying any approved Neutral/Idle/Move/Attack v2 bytes."
+  },
+  "authorizationRule": "Set authorizedNow=true only in a later scoped record after explicit Attack v2 exact-file approval and every precondition passes."
+}

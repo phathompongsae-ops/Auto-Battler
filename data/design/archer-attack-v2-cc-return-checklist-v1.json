@@ -1,0 +1,121 @@
+{
+  "checklistVersion": 1,
+  "id": "archer-attack-v2-cc-return-checklist-v1",
+  "characterId": "hero.archer",
+  "state": "attack",
+  "purpose": "Exact checklist for Coco to verify the CC Attack v2 production return before any user approval decision.",
+  "GITHUB": {
+    "required": ["PR number", "PR title", "branch", "HEAD SHA", "exact base SHA", "direct ancestry evidence", "open/draft/unmerged state", "changed-path inventory"],
+    "rule": "Any unexpected source drift or non-versioned overwrite is a hard stop."
+  },
+  "SOURCE": {
+    "required": [
+      "Neutral Master ID/path/SHA-256",
+      "Neutral Master SHA equals 4911e7e3ba59241ee011be3e62f1b64230dcf9b3c24c6aeb23dc939d83311013",
+      "approved Idle protected-byte comparison PASS",
+      "approved Move protected-byte comparison PASS",
+      "old PR #30/#31 pose reference identified as read-only motion reference",
+      "rejected PR #67 v1 retained unchanged for comparison"
+    ]
+  },
+  "ATTACK_V2": {
+    "requiredFields": [
+      "packageId",
+      "package paths",
+      "frameCount",
+      "dimensions/mode",
+      "fps",
+      "loop",
+      "rootMotion",
+      "runtimeFlipX",
+      "anchor with revalidation evidence",
+      "actual projectileRelease frameIndex and normalizedTime",
+      "per-frame SHA-256",
+      "source-map/provenance",
+      "production method"
+    ],
+    "expectedContract": {
+      "frameCount": 10,
+      "fps": 12,
+      "loop": false,
+      "rootMotion": "in-place",
+      "runtimeFlipX": true,
+      "preferredAnchor": [0.5, 0.92],
+      "markerName": "projectileRelease"
+    },
+    "poseProgressionEvidence": [
+      "000 ready/anticipation",
+      "001 raise bow",
+      "002 nock/prep",
+      "003 draw mid",
+      "004 full draw/high tension",
+      "005 or actual mapped release",
+      "006 recoil/follow-through",
+      "007 open-hand/follow-through hold",
+      "008 recovery",
+      "009 return/neutral exit"
+    ]
+  },
+  "VISUAL": {
+    "required": [
+      "meaningful pose diversity beyond unique hashes",
+      "visible shoulder/upper-arm/elbow/forearm articulation",
+      "drawing hand visibly travels backward",
+      "bow arm raises/stabilizes",
+      "full draw clearly distinct from ready/neutral",
+      "release is a semantic pose change from full draw",
+      "follow-through is visibly distinct from release and neutral",
+      "approved Archer face/costume/palette/bow identity preserved",
+      "board-scale motion reads as Archer bow attack without projectile VFX"
+    ],
+    "comparativeEvidence": ["old PR #31 CLEAR reference", "PR #67 NEAR_STATIC rejected v1", "new v2 candidate"],
+    "hardRule": "If draw, full draw, release, or follow-through is not clearly visible, approval is forbidden."
+  },
+  "REVIEW_ARTIFACTS": {
+    "required": [
+      "10-frame contact sheet",
+      "12 FPS sequence preview GIF",
+      "board-scale preview GIF or sample sequence",
+      "full-draw diagnostic",
+      "projectileRelease diagnostic"
+    ],
+    "preferred": ["old-vs-v1-vs-v2 comparison contact sheet or GIF"],
+    "mobileReadable": true
+  },
+  "VALIDATION": {
+    "required": [
+      "validator command list and exit codes",
+      "technical checks retained from v1",
+      "pose-diversity evidence result",
+      "arm-articulation evidence result",
+      "full-draw distinction result",
+      "release distinction result",
+      "follow-through distinction result",
+      "board-scale perceptual evidence status",
+      "protected-byte comparison result",
+      "JSON/schema/design-data audit result",
+      "changed-path audit result",
+      "git diff --check result",
+      "warnings and unresolved concerns"
+    ],
+    "rule": "Technical PASS may only mean ready for user review; it cannot grant visual approval."
+  },
+  "STATUS_REQUIRED_ON_RETURN": {
+    "attackV1PackageApproved": false,
+    "attackV2Generated": true,
+    "attackV2PackageApproved": false,
+    "userVisualApproval": false,
+    "completeArcherMotionApproved": false,
+    "canonicalApproved": false,
+    "runtimeEligible": false,
+    "runtimeIntegrated": false
+  },
+  "STOP_CONDITIONS": [
+    "candidate overwrites rejected v1 package instead of versioning v2",
+    "core motion relies primarily on neutral-pose subtle warp",
+    "missing exact hashes/provenance",
+    "visual evidence is not mobile-readable",
+    "marker is blindly forced without matching actual release pose",
+    "any runtime/src/gameplay change is mixed into production return"
+  ]
+}

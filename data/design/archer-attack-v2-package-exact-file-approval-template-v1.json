@@ -1,0 +1,117 @@
+{
+  "templateVersion": 1,
+  "id": "archer-attack-v2-package-exact-file-approval-template-v1",
+  "title": "Archer Attack v2 Package Exact-File Approval v1",
+  "templateStatus": "pending-user-approval-template-only",
+  "characterId": "hero.archer",
+  "state": "attack",
+  "activationRule": "Do not activate this template or set approval flags until an exact CC-produced v2 candidate exists, Coco verifies the returned package, and the user explicitly approves that exact candidate after visual review.",
+  "planningSource": {
+    "repository": "phathompongsae-ops/Auto-Battler",
+    "redoContractPR": 69,
+    "redoContractHead": "2abbe77235e6ed78f0953770dc6d8ade5f21bf76",
+    "neutralMaster": {
+      "id": "hero.archer.production-master.candidate.v1",
+      "path": "docs/assets/review/character-production/archer/master-v1/archer-production-master-candidate-v1.png",
+      "sha256": "4911e7e3ba59241ee011be3e62f1b64230dcf9b3c24c6aeb23dc939d83311013"
+    },
+    "rejectedV1": {
+      "pr": 67,
+      "head": "390c288c90ee060bccba5f5a00aa673ed503d521",
+      "visualVerdict": "NEAR_STATIC",
+      "userVisualApproval": false,
+      "packageApproved": false,
+      "supersededCandidateOnly": true
+    },
+    "oldClearMotionReference": {
+      "preferredPR": 31,
+      "head": "6ab6a1f485d9e17badc56a671b5f105d049d8fe2",
+      "purpose": "pose/readability reference only; old pixels are not approvable as v2 final art"
+    }
+  },
+  "candidatePackageToFillAfterProduction": {
+    "packageId": null,
+    "productionPR": null,
+    "productionBranch": null,
+    "productionHeadSha": null,
+    "exactBaseSha": null,
+    "frameCount": null,
+    "fps": null,
+    "loop": null,
+    "rootMotion": null,
+    "runtimeFlipX": null,
+    "anchor": null,
+    "projectileRelease": {
+      "frameIndex": null,
+      "normalizedTime": null,
+      "derivedFromActualVisualRelease": null
+    },
+    "frames": [],
+    "sidecarPath": null,
+    "sourceMapPath": null,
+    "productionContractPath": null,
+    "validationReportPath": null,
+    "humanReviewPath": null,
+    "reviewArtifactPaths": []
+  },
+  "requiredFrameRecordShape": {
+    "frameIndex": "integer",
+    "path": "string",
+    "sha256": "64-char lowercase hex",
+    "dimensions": "exact recorded dimensions",
+    "mode": "RGBA",
+    "alphaBounds": "measured bounds",
+    "poseIntent": "semantic pose role"
+  },
+  "visualApprovalEvidenceToFillOnlyAfterReview": {
+    "userVisualApproval": null,
+    "decisionRecordedAt": null,
+    "sevenQuestionRubric": {
+      "raiseBowVisible": null,
+      "drawVisible": null,
+      "fullDrawClear": null,
+      "releaseClear": null,
+      "followThroughClear": null,
+      "sameApprovedArcherIdentity": null,
+      "boardScaleReadable": null
+    },
+    "hardRule": "draw, full draw, release, and follow-through must all be clearly YES before activation"
+  },
+  "protectedByteBoundary": {
+    "neutralMasterMustRemainUnchanged": true,
+    "approvedIdleMustRemainUnchanged": true,
+    "approvedMoveMustRemainUnchanged": true,
+    "rejectedAttackV1MustRemainAvailableForForensics": true,
+    "v2ApprovalLocksExactCandidateBytesAndSemantics": true,
+    "laterPixelOrSemanticChangeRequiresNewVersionAndApproval": true
+  },
+  "approvalRecordToFillOnlyAfterExplicitUserApproval": {
+    "owner": "user",
+    "decision": null,
+    "explicitApprovalEvidence": null,
+    "approvedExactFrameHashes": [],
+    "approvedPackageSemantics": [],
+    "approvedVisualGateEvidence": []
+  },
+  "currentState": {
+    "neutralMasterApproved": true,
+    "idlePackageApproved": true,
+    "movePackageApproved": true,
+    "attackV1Rejected": true,
+    "attackV1PackageApproved": false,
+    "attackV2AuthorizedForProduction": true,
+    "attackV2Generated": false,
+    "attackV2PackageApproved": false,
+    "completeArcherMotionApproved": false,
+    "canonicalApproved": false,
+    "runtimeEligible": false,
+    "runtimeIntegrated": false
+  },
+  "forbiddenNow": [
+    "setting attackV2PackageApproved=true",
+    "recording fake or inferred user approval",
+    "using technical validator PASS as visual approval",
+    "authorizing runtime integration",
+    "creating an active exact-file approval record before exact candidate review"
+  ]
+}
