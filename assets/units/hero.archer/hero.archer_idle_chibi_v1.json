@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "assetId": "hero.archer.idle.chibi-production-candidate.v1",
+  "unitId": "hero.archer",
+  "state": "idle",
+  "fps": 8,
+  "frameCount": 8,
+  "loop": true,
+  "anchor": [
+    0.5,
+    0.92
+  ],
+  "canvas": [
+    640,
+    960
+  ],
+  "eventMarkers": [],
+  "rootMotion": "in-place",
+  "runtimeFlipX": true,
+  "framePathPattern": "idle-chibi-v1/hero.archer_idle_{frame:03d}.png",
+  "sourceMap": "idle-chibi-v1/source-map.json",
+  "neutralMasterApproved": true,
+  "idlePackageApproved": false,
+  "canonicalApproved": false,
+  "runtimeEligible": false,
+  "runtimeIntegrated": false
+}

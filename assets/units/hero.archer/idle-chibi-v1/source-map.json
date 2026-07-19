@@ -1,0 +1,351 @@
+{
+  "schemaVersion": 1,
+  "assetId": "hero.archer.idle.chibi-production-candidate.v1",
+  "unitId": "hero.archer",
+  "state": "idle",
+  "sourceNeutralMaster": {
+    "candidateId": "hero.archer.production-master.candidate.v1",
+    "path": "docs/assets/review/character-production/archer/master-v1/archer-production-master-candidate-v1.png",
+    "sha256": "4911e7e3ba59241ee011be3e62f1b64230dcf9b3c24c6aeb23dc939d83311013",
+    "dimensions": [
+      640,
+      960
+    ],
+    "mode": "RGBA",
+    "sourcePR": 61,
+    "approvalSource": {
+      "branch": "coco/archer-neutral-master-exact-file-approval-v1",
+      "sha": "7e1f0639b577b6f8c1d5f6ba43c8160f1c4115e2",
+      "stateAtProductionStart": "open-draft-unmerged"
+    },
+    "approvedNeutralMasterSource": true
+  },
+  "motionContract": {
+    "fps": 8,
+    "frameCount": 8,
+    "loop": true,
+    "rootMotion": "in-place",
+    "eventMarkers": [],
+    "runtimeFlipX": true,
+    "anchor": [
+      0.5,
+      0.92
+    ],
+    "canvas": [
+      640,
+      960
+    ]
+  },
+  "productionMethod": {
+    "type": "identity-preserving deterministic source-derived deformation",
+    "aiRegeneration": false,
+    "description": "Frame 000 is the exact approved master bytes. Frames 001-007 are sampled directly from that master with one periodic premultiplied-alpha displacement field; no accumulated frame-to-frame edits occur.",
+    "upperBodyAmplitudePixels": {
+      "vertical": 2.0,
+      "horizontal": 0.65
+    },
+    "contactZonePinnedFromY": 800,
+    "filter": "bilinear in premultiplied RGBA"
+  },
+  "frames": [
+    {
+      "frameIndex": 0,
+      "path": "assets/units/hero.archer/idle-chibi-v1/hero.archer_idle_000.png",
+      "sha256": "4911e7e3ba59241ee011be3e62f1b64230dcf9b3c24c6aeb23dc939d83311013",
+      "bytes": 569259,
+      "dimensions": [
+        640,
+        960
+      ],
+      "mode": "RGBA",
+      "role": "neutral",
+      "sourceOperation": "exact byte copy",
+      "motionParameters": {
+        "phaseRadians": 0.0,
+        "inhale01": 0.0,
+        "upperBodyVerticalOffsetPixels": -0.0,
+        "upperBodyHorizontalOffsetPixels": 0.0,
+        "contactZonePinnedFromY": 800
+      },
+      "alphaBounds": {
+        "origin": "top-left",
+        "x": 71,
+        "y": 125,
+        "width": 501,
+        "height": 730
+      },
+      "footBaselineY": 854,
+      "anchorPixel": [
+        320.0,
+        883.2
+      ],
+      "anchorToFootBaselinePixels": 29.2,
+      "outerBorderNonTransparentPixels": 0,
+      "transparentPixels": 405248,
+      "partiallyTransparentPixels": 11718,
+      "opaquePixels": 197434
+    },
+    {
+      "frameIndex": 1,
+      "path": "assets/units/hero.archer/idle-chibi-v1/hero.archer_idle_001.png",
+      "sha256": "1996f524359331c22ce7950c0494a4bb803d466b772794fffeeee18e49d681fc",
+      "bytes": 484644,
+      "dimensions": [
+        640,
+        960
+      ],
+      "mode": "RGBA",
+      "role": "inhale-begin",
+      "sourceOperation": "premultiplied-alpha bilinear displacement from exact approved Neutral Master",
+      "motionParameters": {
+        "phaseRadians": 0.785398163,
+        "inhale01": 0.146446609,
+        "upperBodyVerticalOffsetPixels": -0.292893,
+        "upperBodyHorizontalOffsetPixels": 0.459619,
+        "contactZonePinnedFromY": 800
+      },
+      "alphaBounds": {
+        "origin": "top-left",
+        "x": 71,
+        "y": 124,
+        "width": 502,
+        "height": 731
+      },
+      "footBaselineY": 854,
+      "anchorPixel": [
+        320.0,
+        883.2
+      ],
+      "anchorToFootBaselinePixels": 29.2,
+      "outerBorderNonTransparentPixels": 0,
+      "transparentPixels": 402096,
+      "partiallyTransparentPixels": 18948,
+      "opaquePixels": 193356
+    },
+    {
+      "frameIndex": 2,
+      "path": "assets/units/hero.archer/idle-chibi-v1/hero.archer_idle_002.png",
+      "sha256": "ce9e92977f6fe1f128d941f9c8309892a9fe3391e51f68bf98c3e7534b375924",
+      "bytes": 492841,
+      "dimensions": [
+        640,
+        960
+      ],
+      "mode": "RGBA",
+      "role": "inhale-mid",
+      "sourceOperation": "premultiplied-alpha bilinear displacement from exact approved Neutral Master",
+      "motionParameters": {
+        "phaseRadians": 1.570796327,
+        "inhale01": 0.5,
+        "upperBodyVerticalOffsetPixels": -1.0,
+        "upperBodyHorizontalOffsetPixels": 0.65,
+        "contactZonePinnedFromY": 800
+      },
+      "alphaBounds": {
+        "origin": "top-left",
+        "x": 71,
+        "y": 124,
+        "width": 502,
+        "height": 731
+      },
+      "footBaselineY": 854,
+      "anchorPixel": [
+        320.0,
+        883.2
+      ],
+      "anchorToFootBaselinePixels": 29.2,
+      "outerBorderNonTransparentPixels": 0,
+      "transparentPixels": 402668,
+      "partiallyTransparentPixels": 17625,
+      "opaquePixels": 194107
+    },
+    {
+      "frameIndex": 3,
+      "path": "assets/units/hero.archer/idle-chibi-v1/hero.archer_idle_003.png",
+      "sha256": "57d29515f980b5e9c6ec04b087dc89ed8c5a57d4f06896b46cdb0fe65188e2c0",
+      "bytes": 482752,
+      "dimensions": [
+        640,
+        960
+      ],
+      "mode": "RGBA",
+      "role": "inhale-peak",
+      "sourceOperation": "premultiplied-alpha bilinear displacement from exact approved Neutral Master",
+      "motionParameters": {
+        "phaseRadians": 2.35619449,
+        "inhale01": 0.853553391,
+        "upperBodyVerticalOffsetPixels": -1.707107,
+        "upperBodyHorizontalOffsetPixels": 0.459619,
+        "contactZonePinnedFromY": 800
+      },
+      "alphaBounds": {
+        "origin": "top-left",
+        "x": 71,
+        "y": 123,
+        "width": 502,
+        "height": 732
+      },
+      "footBaselineY": 854,
+      "anchorPixel": [
+        320.0,
+        883.2
+      ],
+      "anchorToFootBaselinePixels": 29.2,
+      "outerBorderNonTransparentPixels": 0,
+      "transparentPixels": 401716,
+      "partiallyTransparentPixels": 19051,
+      "opaquePixels": 193633
+    },
+    {
+      "frameIndex": 4,
+      "path": "assets/units/hero.archer/idle-chibi-v1/hero.archer_idle_004.png",
+      "sha256": "30bf88ec7006a0ddbb8b69a6a5585588582b2208c7c92bef72b5cc974fc5b761",
+      "bytes": 508499,
+      "dimensions": [
+        640,
+        960
+      ],
+      "mode": "RGBA",
+      "role": "breath-apex",
+      "sourceOperation": "premultiplied-alpha bilinear displacement from exact approved Neutral Master",
+      "motionParameters": {
+        "phaseRadians": 3.141592654,
+        "inhale01": 1.0,
+        "upperBodyVerticalOffsetPixels": -2.0,
+        "upperBodyHorizontalOffsetPixels": 0.0,
+        "contactZonePinnedFromY": 800
+      },
+      "alphaBounds": {
+        "origin": "top-left",
+        "x": 71,
+        "y": 123,
+        "width": 501,
+        "height": 732
+      },
+      "footBaselineY": 854,
+      "anchorPixel": [
+        320.0,
+        883.2
+      ],
+      "anchorToFootBaselinePixels": 29.2,
+      "outerBorderNonTransparentPixels": 0,
+      "transparentPixels": 404297,
+      "partiallyTransparentPixels": 12610,
+      "opaquePixels": 197493
+    },
+    {
+      "frameIndex": 5,
+      "path": "assets/units/hero.archer/idle-chibi-v1/hero.archer_idle_005.png",
+      "sha256": "ecb10ad466cc36ebf05957211ea79e59150d470a51df1a8f451dc952f2edb4ff",
+      "bytes": 482721,
+      "dimensions": [
+        640,
+        960
+      ],
+      "mode": "RGBA",
+      "role": "exhale-begin",
+      "sourceOperation": "premultiplied-alpha bilinear displacement from exact approved Neutral Master",
+      "motionParameters": {
+        "phaseRadians": 3.926990817,
+        "inhale01": 0.853553391,
+        "upperBodyVerticalOffsetPixels": -1.707107,
+        "upperBodyHorizontalOffsetPixels": -0.459619,
+        "contactZonePinnedFromY": 800
+      },
+      "alphaBounds": {
+        "origin": "top-left",
+        "x": 70,
+        "y": 123,
+        "width": 502,
+        "height": 732
+      },
+      "footBaselineY": 854,
+      "anchorPixel": [
+        320.0,
+        883.2
+      ],
+      "anchorToFootBaselinePixels": 29.2,
+      "outerBorderNonTransparentPixels": 0,
+      "transparentPixels": 401750,
+      "partiallyTransparentPixels": 18994,
+      "opaquePixels": 193656
+    },
+    {
+      "frameIndex": 6,
+      "path": "assets/units/hero.archer/idle-chibi-v1/hero.archer_idle_006.png",
+      "sha256": "a0d284b73d007f4bd78251cc1b9492545da97582dbca6b31851242b328f0ec29",
+      "bytes": 492666,
+      "dimensions": [
+        640,
+        960
+      ],
+      "mode": "RGBA",
+      "role": "exhale-mid",
+      "sourceOperation": "premultiplied-alpha bilinear displacement from exact approved Neutral Master",
+      "motionParameters": {
+        "phaseRadians": 4.71238898,
+        "inhale01": 0.5,
+        "upperBodyVerticalOffsetPixels": -1.0,
+        "upperBodyHorizontalOffsetPixels": -0.65,
+        "contactZonePinnedFromY": 800
+      },
+      "alphaBounds": {
+        "origin": "top-left",
+        "x": 70,
+        "y": 124,
+        "width": 502,
+        "height": 731
+      },
+      "footBaselineY": 854,
+      "anchorPixel": [
+        320.0,
+        883.2
+      ],
+      "anchorToFootBaselinePixels": 29.2,
+      "outerBorderNonTransparentPixels": 0,
+      "transparentPixels": 402720,
+      "partiallyTransparentPixels": 17570,
+      "opaquePixels": 194110
+    },
+    {
+      "frameIndex": 7,
+      "path": "assets/units/hero.archer/idle-chibi-v1/hero.archer_idle_007.png",
+      "sha256": "815717f5dc733fcc3ba0275ac086fc7a5a11847ae627ddd6f49c9f8174327985",
+      "bytes": 484735,
+      "dimensions": [
+        640,
+        960
+      ],
+      "mode": "RGBA",
+      "role": "return-to-neutral",
+      "sourceOperation": "premultiplied-alpha bilinear displacement from exact approved Neutral Master",
+      "motionParameters": {
+        "phaseRadians": 5.497787144,
+        "inhale01": 0.146446609,
+        "upperBodyVerticalOffsetPixels": -0.292893,
+        "upperBodyHorizontalOffsetPixels": -0.459619,
+        "contactZonePinnedFromY": 800
+      },
+      "alphaBounds": {
+        "origin": "top-left",
+        "x": 70,
+        "y": 124,
+        "width": 502,
+        "height": 731
+      },
+      "footBaselineY": 854,
+      "anchorPixel": [
+        320.0,
+        883.2
+      ],
+      "anchorToFootBaselinePixels": 29.2,
+      "outerBorderNonTransparentPixels": 0,
+      "transparentPixels": 402143,
+      "partiallyTransparentPixels": 18880,
+      "opaquePixels": 193377
+    }
+  ],
+  "canonicalApproved": false,
+  "runtimeEligible": false,
+  "idlePackageApproved": false
+}
