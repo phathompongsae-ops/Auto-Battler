@@ -1,0 +1,69 @@
+{
+  "schemaVersion": 1,
+  "id": "archer-attack-v2-final-return-verification-v1",
+  "repository": "phathompongsae-ops/Auto-Battler",
+  "candidate": {
+    "pr": 72,
+    "title": "Archer Attack v2 Production — Articulated Motion Visual Review Candidate",
+    "branch": "cc/archer-attack-v2-production-v1",
+    "head": "26ea251386199720138ea3c3b32d308acbdeaed9",
+    "state": "open-draft-unmerged",
+    "directDescendantOfPr69Head": true,
+    "aheadBy": 4,
+    "behindBy": 0
+  },
+  "effectiveState": {
+    "neutralMasterApproved": true,
+    "idlePackageApproved": true,
+    "movePackageApproved": true,
+    "attackV1": "rejected-superseded-not-approved",
+    "attackV2": "generated-pending-user-review",
+    "attackV2PackageApproved": false,
+    "canonicalApproved": false,
+    "runtimeEligible": false,
+    "runtimeIntegrated": false
+  },
+  "package": {
+    "id": "hero.archer.attack.chibi-production-candidate-v2",
+    "frameCount": 10,
+    "dimensions": [640, 960],
+    "mode": "RGBA",
+    "fps": 12,
+    "loop": false,
+    "rootMotion": "in-place",
+    "runtimeFlipX": true,
+    "anchor": [0.5, 0.92],
+    "projectileRelease": {"frameIndex": 5, "normalizedTime": 0.55},
+    "sidecar": "assets/units/hero.archer/hero.archer_attack_chibi_v2.json",
+    "sourceMap": "assets/units/hero.archer/attack-chibi-v2/source-map.json",
+    "perFrameSha256Present": true,
+    "uniqueHashes": 8,
+    "hashesAreNotVisualApprovalEvidence": true
+  },
+  "protectedBytes": {
+    "neutralUnchanged": true,
+    "idleUnchanged": true,
+    "moveUnchanged": true,
+    "attackV1Unchanged": true,
+    "evidence": "PR69-to-PR72 compare is additive v2 scope only"
+  },
+  "artifacts": {
+    "v2PreviewGif": "PRESENT",
+    "tenFrameContactSheet": "PRESENT",
+    "fullDrawDiagnosticFrame04": "PRESENT",
+    "releaseDiagnosticFrame05": "PRESENT",
+    "oldV1V2VisualComparison": "MISSING",
+    "dedicatedBoardScalePreview": "MISSING"
+  },
+  "validation": {
+    "technicalIntegrity": "PASS",
+    "articulationMetrics": "PARTIAL_FAIL",
+    "validatorExitCode": 1,
+    "humanVisualReport": "MARGINAL",
+    "reportedFailingHumanGates": ["raiseVisible", "fullDrawVisible"],
+    "metricPassDoesNotEqualVisualPass": true
+  },
+  "returnDisposition": "RETURN_RECEIVED_WITH_REVIEW_GAPS_PENDING_USER_DECISION",
+  "approvalReadyNow": false,
+  "decisionFlow": "APPROVE_OR_REJECT_ONLY"
+}
