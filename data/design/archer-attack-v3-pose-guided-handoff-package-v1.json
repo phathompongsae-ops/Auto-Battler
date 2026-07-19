@@ -1,0 +1,123 @@
+{
+  "packageId": "archer-attack-v3-pose-guided-handoff-package-v1",
+  "packageVersion": 1,
+  "date": "2026-07-19",
+  "characterId": "hero.archer",
+  "purpose": "Exact, ready-to-execute specification for producing Archer Attack v3 via pose-guided image generation / rigged key-pose reconstruction. Created because this execution environment has no pose-generation capability (PIL+numpy only; no diffusion/inpainting/rigging/pose-estimation tools). Hand this package to a pose-capable pipeline or artist; import the resulting frames with the validation plan below.",
+  "environmentCapabilityAudit": {
+    "available": ["python3 + PIL + numpy (deterministic pixel ops)", "node"],
+    "missing": ["torch", "diffusers", "cv2", "onnxruntime", "controlnet_aux", "mediapipe", "ffmpeg", "imagemagick", "any image-generation or inpainting model", "any rigging/puppet tool"],
+    "conclusion": "Cannot synthesize genuinely new limb poses here. Per v2 root-cause analysis (docs/reviews/archer-v2-defect-analysis/), deterministic displacement large enough to read as a draw is exactly what tears the bow; smaller displacement collapses to a static pose. STOP-and-handoff is the mandated path."
+  },
+  "lineage": {
+    "baseBranch": "cc/archer-attack-v2-production-v1",
+    "baseSha": "72ca4fc725a30a453fefe00374cc00240d148649",
+    "attackV2Status": "REJECTED by human review (FAIL, torn-bow defect frames 002-004; no real draw motion beneath). Preserved as evidence in PR #72. Do NOT reuse v2 draw-phase pixels.",
+    "rootCauseEvidence": "docs/reviews/archer-v2-defect-analysis/archer-v2-drawphase-defect-root-cause-v1.json"
+  },
+  "identitySourceAssets": [
+    {
+      "role": "PRIMARY identity + neutral pose reference (approved)",
+      "path": "docs/assets/review/character-production/archer/master-v1/archer-production-master-candidate-v1.png",
+      "sha256": "4911e7e3ba59241ee011be3e62f1b64230dcf9b3c24c6aeb23dc939d83311013",
+      "dimensions": [640, 960],
+      "mode": "RGBA"
+    },
+    {
+      "role": "SECONDARY clean raise-pose reference (undamaged v2 frame; bow + grip readable)",
+      "path": "assets/units/hero.archer/attack-chibi-v2/hero.archer_attack_001.png",
+      "sha256": "a15f1927dc5a6d04963b20b654c9bfc563725420d3e56d7c3ca45e84eee47582",
+      "dimensions": [640, 960],
+      "mode": "RGBA"
+    }
+  ],
+  "canvasContract": {
+    "canvas": [640, 960],
+    "mode": "8-bit RGBA PNG, non-interlaced, fully transparent background",
+    "anchor": [0.5, 0.92],
+    "footBaselineY": 854,
+    "alphaSafeBounds": {"minX": 60, "maxX": 595, "minY": 110, "maxY": 860},
+    "rootMotion": "in-place (no world travel baked into frames)",
+    "runtimeFlipX": true,
+    "facingConvention": "character faces viewer/slightly right as in Neutral Master; runtime mirrors via flipX",
+    "feetPolicy": "Feet planted, same stance and baseline y=854 as Neutral Master throughout. NOTE: v2's byte-identical y>=800 pin is NOT required for generated frames (a real draw shifts weight slightly); the v3 validator must instead verify foot baseline within +/-6 px and no foot slide. This is an explicit, documented contract change, not a silent relaxation."
+  },
+  "identityConstraints": [
+    "SAME character: young elf archer, chibi proportions (large head ~1/3 height)",
+    "Face: large green eyes, confident brow, small smile — identical to Neutral Master",
+    "Hair: long wavy green hair",
+    "Hood: green hood with ornate gold trim and gold leaf crest, worn up",
+    "Ears: long pointed elf ears visible through/beside hood",
+    "Costume: green tunic/dress with gold filigree edging, brown belts with gold star buckles, side pouch, green boots with gold armor trim, dark-green cape",
+    "Quiver: on character's left hip/back with green-fletched arrows",
+    "Bow: ornate golden recurve bow with green inlay, distinctive curved blade-like limb tips — EXACT same design",
+    "Palette: same greens/golds/browns; no hue shift",
+    "Style: same painted chibi rendering, same lighting direction, same outline weight"
+  ],
+  "negativeConstraints": [
+    "NO redesigned or generic archer",
+    "NO face/expression change",
+    "NO costume, color, or bow redesign",
+    "NO proportion/gender change",
+    "NO added VFX (glow, trails, arrows in flight, motion blur) baked into frames",
+    "NO background pixels (transparent only)",
+    "NO torn/fragmented bow, NO floating limbs, NO missing hands (v2 failure mode)",
+    "NO near-duplicate frames across the draw phase (v1/v2 failure mode)",
+    "NO baked-in ground shadow beyond what Neutral Master has"
+  ],
+  "framePlan": {
+    "frameCount": 10,
+    "fpsRecommended": 12,
+    "fpsPolicy": "12 FPS default; producer may deliver at 10-15 FPS if motion reads better, but MUST state the actual FPS so the sidecar records truth",
+    "loop": false,
+    "outputDirectory": "assets/units/hero.archer/attack-chibi-v3/",
+    "outputFilenamePattern": "hero.archer_attack_{000..009}.png",
+    "frames": [
+      {"index": 0, "pose": "A", "name": "Ready / Pre-Nock", "spec": "Neutral-adjacent stance; bow in left hand angled up ~20-30deg from rest, right hand reaching toward quiver/string. Must clearly differ from pure Neutral but read as 'about to shoot'."},
+      {"index": 1, "pose": "B1", "name": "Nock", "spec": "Bow raised toward horizontal; right hand at string nocking an arrow; head/eyes toward target (viewer-right)."},
+      {"index": 2, "pose": "B2", "name": "Raise", "spec": "Bow arm (left) extending toward target, bow near vertical in profile; right hand gripping string at chest height; shoulders rotating into archery stance."},
+      {"index": 3, "pose": "C", "name": "Mid Draw", "spec": "Left arm extended; right hand pulling string visibly back ~30-40% draw, right elbow bending up/back; bow limbs beginning to flex; torso leans slightly."},
+      {"index": 4, "pose": "C2", "name": "Deep Draw", "spec": "String pulled ~70%; right hand near jaw line; right elbow high; bow visibly flexed; cape/hair may swing slightly for energy."},
+      {"index": 5, "pose": "D", "name": "Full Draw (climax)", "spec": "MUST be the most distinct silhouette: left arm fully extended, right hand anchored at cheek, string at maximum draw, bow at maximum flex, arrow level. Readable even at 120x180 px."},
+      {"index": 6, "pose": "E", "name": "Release", "spec": "String snapped forward (straight), right hand opened and moved back past cheek in follow-through, bow limbs sprung straight; NO arrow visible (projectile is runtime-spawned). Sharpest single-frame change in the sequence."},
+      {"index": 7, "pose": "E2", "name": "Follow-through", "spec": "Right arm relaxing down/back; bow arm easing; body weight settling forward slightly."},
+      {"index": 8, "pose": "F", "name": "Recovery", "spec": "Bow lowering toward rest position; right hand returning toward side; approaching Neutral silhouette."},
+      {"index": 9, "pose": "F2", "name": "Neutral exit", "spec": "Match approved Neutral Master pose as closely as generation allows. If the producer can emit the EXACT Neutral Master file byte-identically, do so; otherwise deliver the closest generated match and the importer will decide whether to substitute the byte-exact Neutral Master (documented decision at import)."}
+    ],
+    "holdPolicy": "An intentional 1-frame hold at Full Draw (pose D) is acceptable if delivered as a genuinely re-rendered near-identical frame or explicitly declared as a hold; accidental byte-duplicate hashes are rejected."
+  },
+  "releaseEvent": {
+    "marker": "projectileRelease",
+    "policy": "Bind to the ACTUAL visual release frame of the delivered sequence (expected index 6 under this plan, normalizedTime ~0.65 at 10 frames). Do NOT blindly copy v2's frame-5/0.55 values. Importer must set frameIndex + normalizedTime from the delivered frames and record visual reasoning."
+  },
+  "importValidationPlan": {
+    "steps": [
+      "Verify 10 RGBA 640x960 non-interlaced PNGs named per pattern",
+      "SHA-256 every frame; reject accidental duplicate hashes (declared holds exempted only if visually justified)",
+      "Alpha bounds within alphaSafeBounds; zero non-transparent border pixels",
+      "Foot baseline within +/-6 px of y=854 across frames; no horizontal foot slide beyond +/-4 px",
+      "Draw progression: adjacent-frame premultiplied-MAE must show a progression structure (rise into full draw, spike at release, decay through recovery). Thresholds must be DERIVED from the delivered frames' honest measurement and justified in writing — never tuned to force PASS, never blind-copied from v2.",
+      "Identity check: human visual comparison against Neutral Master (face/hood/bow/palette) — automated metrics cannot approve identity",
+      "Sidecar: fps/frameCount/loop/anchor/canvas/rootMotion/runtimeFlipX/eventMarkers recorded from DELIVERED truth",
+      "Source-map: per-frame SHA-256 + provenance to this handoff package ID",
+      "All approval flags remain false pending human visual PASS + exact-file approval workflow"
+    ]
+  },
+  "approvalFlags": {
+    "attackPackageApproved": false,
+    "canonicalApproved": false,
+    "completeArcherMotionApproved": false,
+    "runtimeEligible": false,
+    "runtimeIntegrated": false,
+    "rule": "None of these may be set true by the producer or importer. Human visual PASS + exact-file approval workflow required."
+  },
+  "blocker": {
+    "id": "no-pose-generation-capability-in-environment",
+    "owner": "user",
+    "resolutionOptions": [
+      "Run this package through a pose-guided image-generation pipeline (image-to-image with pose control / controlled inpainting) outside this environment",
+      "Commission/produce the 10 frames manually per this spec",
+      "Deliver frames via the established user-supplied import pattern (as previously done for Archer motion-test and Golem attack frames), after which this repo's import validation plan executes"
+    ]
+  }
+}
