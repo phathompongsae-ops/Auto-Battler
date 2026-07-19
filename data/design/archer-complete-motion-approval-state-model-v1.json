@@ -1,0 +1,95 @@
+{
+  "modelVersion": 1,
+  "id": "archer-complete-motion-approval-state-model-v1",
+  "characterId": "hero.archer",
+  "repository": "phathompongsae-ops/Auto-Battler",
+  "coordinationBase": {
+    "pr": 66,
+    "sha": "b2bc48ca3b246f6c72879c2683a9b19e1cf5cd11"
+  },
+  "states": [
+    {
+      "order": 1,
+      "deliverable": "Neutral Master",
+      "status": "approved",
+      "approvalRequired": true,
+      "approved": true,
+      "sourceId": "hero.archer.production-master.candidate.v1",
+      "sourceSha256": "4911e7e3ba59241ee011be3e62f1b64230dcf9b3c24c6aeb23dc939d83311013"
+    },
+    {
+      "order": 2,
+      "deliverable": "Idle",
+      "status": "exact-package-approved",
+      "approvalRequired": true,
+      "approved": true,
+      "approvalRecord": "data/design/archer-idle-package-exact-file-approval-v1.json"
+    },
+    {
+      "order": 3,
+      "deliverable": "Move",
+      "status": "exact-package-approved",
+      "approvalRequired": true,
+      "approved": true,
+      "approvalRecord": "data/design/archer-move-package-exact-file-approval-v1.json"
+    },
+    {
+      "order": 4,
+      "deliverable": "Attack Production",
+      "status": "pending-production-by-CC",
+      "executionOwner": "CC",
+      "generated": false,
+      "approved": false,
+      "nextGate": "CC returns exact candidate package plus review and validation evidence"
+    },
+    {
+      "order": 5,
+      "deliverable": "Attack User Visual Review",
+      "status": "blocked-until-attack-candidate-exists",
+      "owner": "user",
+      "required": true,
+      "mayBeSkipped": false,
+      "rubric": "data/design/archer-attack-review-rubric-v1.json"
+    },
+    {
+      "order": 6,
+      "deliverable": "Attack Exact-File Approval",
+      "status": "blocked-until-explicit-user-approval",
+      "approved": false,
+      "template": "data/design/archer-attack-package-exact-file-approval-template-v1.json",
+      "rule": "Only explicit user approval of the exact candidate may create an active approval record and set attackPackageApproved=true."
+    },
+    {
+      "order": 7,
+      "deliverable": "Complete Archer Motion Approved",
+      "status": "blocked-until-neutral-idle-move-attack-all-approved",
+      "approved": false,
+      "requiredComponents": ["Neutral Master", "Idle", "Move", "Attack"]
+    },
+    {
+      "order": 8,
+      "deliverable": "CC Runtime Integration Authorization",
+      "status": "not-authorized",
+      "owner": "CC",
+      "authorizationGate": "data/design/archer-post-approval-runtime-authorization-gate-v1.json",
+      "rule": "Runtime integration is authorized only after all four motion/source approvals are locked and no source drift is detected."
+    }
+  ],
+  "currentEffectiveState": {
+    "neutralMasterApproved": true,
+    "idlePackageApproved": true,
+    "movePackageApproved": true,
+    "attackGenerated": false,
+    "attackPackageApproved": false,
+    "completeArcherMotionApproved": false,
+    "canonicalApproved": false,
+    "runtimeEligible": false,
+    "runtimeIntegrated": false
+  },
+  "forbiddenTransitions": [
+    "Attack Production -> Attack Exact-File Approval without user visual review",
+    "Attack technical pass -> attackPackageApproved=true",
+    "Move approved -> runtime integration before Attack approval",
+    "Attack generated -> Complete Archer Motion Approved without exact-file approval"
+  ]
+}
