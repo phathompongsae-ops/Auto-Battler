@@ -1,0 +1,128 @@
+{
+  "planVersion": 1,
+  "id": "archer-attack-v2-validator-upgrade-plan-v1",
+  "characterId": "hero.archer",
+  "state": "attack",
+  "purpose": "Upgrade validation so a technically correct but visually near-static Attack cannot pass as production-ready.",
+  "executionOwner": "CC",
+  "technicalChecksToRetain": [
+    "repository identity and exact source chain",
+    "approved Neutral Master exact SHA-256",
+    "approved Idle protected-byte verification",
+    "approved Move protected-byte verification",
+    "frame inventory and per-frame SHA-256",
+    "PNG decode, dimensions, RGBA and alpha",
+    "bounds/crop checks",
+    "anchor/support evidence",
+    "rootMotion=in-place",
+    "runtimeFlipX=true",
+    "FPS and non-loop semantics",
+    "projectileRelease marker metadata",
+    "source-map/provenance",
+    "protected-byte boundaries",
+    "JSON/schema/design-data audits",
+    "changed-path audit",
+    "git diff --check"
+  ],
+  "newVisualEvidenceChecks": {
+    "poseDiversity": {
+      "required": true,
+      "machineEvidence": [
+        "key-frame silhouette/bounds table",
+        "pairwise changed-region bounding boxes for semantic key frames",
+        "documented distinct-pose clusters or held-pose intent"
+      ],
+      "rule": "Unique SHA-256 values are not a substitute for meaningful pose diversity."
+    },
+    "armArticulation": {
+      "required": true,
+      "machineEvidence": [
+        "annotated or measured shoulder/elbow/drawing-hand landmarks on ready, draw-mid, full-draw, release",
+        "drawing-hand displacement vector",
+        "elbow/forearm geometry change",
+        "arm-region centroid as secondary metric only"
+      ],
+      "rule": "Validator must reject evidence that shows only subpixel centroid wobble without visible joint articulation."
+    },
+    "fullDrawDistinction": {
+      "required": true,
+      "compare": "frame004 full draw vs frame000 ready/neutral",
+      "evidence": [
+        "silhouette overlay",
+        "changed-region bbox",
+        "landmark geometry",
+        "full-draw diagnostic image"
+      ],
+      "rule": "Full-draw distinction must be semantic and visibly readable, not merely nonzero pixel delta."
+    },
+    "releaseDistinction": {
+      "required": true,
+      "compare": "actual full-draw frame vs actual release frame",
+      "evidence": [
+        "release diagnostic",
+        "changed-region bbox",
+        "drawing-hand/arm geometry change",
+        "marker-to-visual-release mapping"
+      ],
+      "rule": "Largest adjacent pixel delta alone cannot prove a release pose."
+    },
+    "followThroughDistinction": {
+      "required": true,
+      "compare": "release vs frames006/007 vs neutral",
+      "rule": "At least one visible follow-through pose must remain distinct from release and neutral."
+    },
+    "boardScaleReadability": {
+      "required": true,
+      "evidence": [
+        "board-scale sequence preview or sample set without projectile VFX",
+        "mobile-readable review artifact",
+        "human rubric result"
+      ],
+      "rule": "Character motion alone must read as Archer bow attack."
+    }
+  },
+  "comparativeMetrics": {
+    "baselines": [
+      {"reference": "PR #31 old Archer Attack", "verdict": "CLEAR"},
+      {"reference": "PR #67 Attack v1", "verdict": "NEAR_STATIC"}
+    ],
+    "requiredMetrics": [
+      "silhouette width/shape variation",
+      "changed-region bounding boxes",
+      "drawing-hand displacement",
+      "shoulder/elbow/forearm landmark changes",
+      "arm-region centroid shift",
+      "bow orientation/extent changes where relevant",
+      "full-draw vs neutral difference",
+      "release vs full-draw difference"
+    ],
+    "thresholdRule": "Use normalized comparative evidence; do not invent a hard absolute threshold solely to make validation pass.",
+    "passDirection": "Attack v2 evidence must be materially closer to old CLEAR articulation/readability than to rejected PR #67 near-static behavior."
+  },
+  "humanGate": {
+    "required": true,
+    "validatorMayOnlyReport": "technical-and-evidence-ready-for-user-review",
+    "validatorMayNotSet": [
+      "userVisualApproval=true",
+      "attackPackageApproved=true",
+      "canonicalApproved=true",
+      "runtimeEligible=true"
+    ],
+    "requiredQuestions": [
+      "เห็นยกธนูไหม",
+      "เห็นง้างสายไหม",
+      "เห็น full draw ชัดไหม",
+      "เห็นปล่อยลูกศรไหม",
+      "เห็น follow-through ไหม",
+      "ยังเป็น Archer ตัวเดิมไหม",
+      "ที่ board scale ยังอ่านออกไหม"
+    ],
+    "hardFailureRule": "If questions 2-5 are not clearly YES, exact-file approval is forbidden."
+  },
+  "implementationPolicy": {
+    "keepValidatorSmallAndPackageSpecific": true,
+    "largeNewFrameworkForbidden": true,
+    "doNotModifyLegacyValidatorToForcePass": true,
+    "technicalPassDoesNotOverrideVisualFailure": true
+  }
+}
