@@ -1,0 +1,222 @@
+{
+  "contractVersion": 1,
+  "id": "archer-production-master-migration-map-v1",
+  "characterId": "hero.archer",
+  "styleDirectionApproved": true,
+  "neutralMasterApproved": false,
+  "canonicalApproved": false,
+  "runtimeEligible": false,
+  "migrationExecuted": false,
+  "source": {
+    "stylePR": {
+      "pr": 58,
+      "branch": "coco/character-art-style-lock-and-migration-contract-v1",
+      "sha": "b3db907dfd33a181fae34859770c872319ab994e"
+    },
+    "technicalBaselinePR": {
+      "pr": 56,
+      "branch": "cc/pilot-idle-motion-runtime-integration-v1",
+      "sha": "bbe63518c42761f49a0aa068c78e0d07d3e88214",
+      "usage": "read-only; no CC runtime ancestry is included"
+    }
+  },
+  "candidate": {
+    "path": "docs/assets/review/character-production/archer/master-v1/archer-production-master-candidate-v1.png",
+    "sha256": "4911e7e3ba59241ee011be3e62f1b64230dcf9b3c24c6aeb23dc939d83311013",
+    "status": "review-only-exact-file-approval-pending",
+    "replacementSource": false
+  },
+  "technicallyReusable": [
+    {
+      "paths": ["src/asset-animation-runtime.js"],
+      "capability": "asset resolution, state machine, FPS handling, fallback, texture cache/ref-count disposal, and marker delivery",
+      "reusePolicy": "reuse unchanged unless a later integration task proves a minimal seam is required"
+    },
+    {
+      "paths": ["src/motion-test-harness.js"],
+      "capability": "state selection, x1/x4 playback, pause/restart, flipX, transitions, diagnostics, and disposal",
+      "reusePolicy": "reuse as the technical review harness after new motion exists"
+    },
+    {
+      "paths": [
+        "assets/units/hero.archer/hero.archer_idle_motiontest.json",
+        "assets/units/hero.archer/hero.archer_move_motiontest.json",
+        "assets/units/hero.archer/hero.archer_attack_motiontest.json",
+        "assets/units/hero.archer/*/source-map.json",
+        "assets/units/hero.archer/source-map.json"
+      ],
+      "capability": "unit/state IDs, FPS, loop, root-motion, anchor, event-marker, runtimeFlipX, provenance, and frame-validation schema",
+      "reusePolicy": "preserve schema and semantics; revalidate visual-master-specific anchors, bounds, hashes, and provenance in future asset tasks"
+    },
+    {
+      "paths": [
+        "tools/test-asset-animation-runtime.mjs",
+        "tools/test-motion-test-harness.mjs",
+        "tools/test-archer-package-transitions-v1.mjs",
+        "tools/validate-*-frames-v1.mjs",
+        "tools/validate-motion-pipeline-stack-v1.mjs",
+        "tools/validate-pilot-motion-test-contract-v1.mjs"
+      ],
+      "capability": "runtime, harness, transition, frame, marker, package, and pipeline validation",
+      "reusePolicy": "reuse validation structure; update expected visual hashes only in the authorized replacement task"
+    }
+  ],
+  "visualReplacementPlanned": [
+    {
+      "oldAssetPath": "assets/archer.png",
+      "currentRole": "legacy static Archer visual/fallback",
+      "replacementTarget": "approved transparent Neutral Master derivative at a runtime path chosen by a later CC integration task",
+      "dependency": "exact Neutral Master approval and runtime-size/anchor review",
+      "approvalGate": "neutralMasterApproved=true for the exact source, then exact derivative hash approval",
+      "actionInThisTask": "none"
+    },
+    {
+      "oldAssetPath": "assets/units/hero.archer/idle/*.png",
+      "currentRole": "existing Archer Idle visual frames",
+      "replacementTarget": "future chibi-style Archer Idle frame package",
+      "dependency": "approved Neutral Master",
+      "approvalGate": "Idle frame, continuity, loop, alpha, anchor, and package validation",
+      "actionInThisTask": "none"
+    },
+    {
+      "oldAssetPath": "assets/units/hero.archer/move/*.png",
+      "currentRole": "existing Archer Move visual frames",
+      "replacementTarget": "future chibi-style Archer Move frame package",
+      "dependency": "approved Neutral Master and approved Idle identity continuity",
+      "approvalGate": "Move frame, footstep marker, in-place root-motion, runtimeFlipX, alpha, anchor, and package validation",
+      "actionInThisTask": "none"
+    },
+    {
+      "oldAssetPath": "assets/units/hero.archer/attack/*.png",
+      "currentRole": "existing Archer Attack visual frames",
+      "replacementTarget": "future chibi-style Archer Attack frame package",
+      "dependency": "approved Neutral Master plus approved Idle and Move identity continuity",
+      "approvalGate": "Attack frame, projectileRelease marker, non-loop, in-place root-motion, alpha, anchor, and package validation",
+      "actionInThisTask": "none"
+    },
+    {
+      "oldAssetPath": "assets/v5/body_archer.png",
+      "currentRole": "legacy composited Archer body source",
+      "replacementTarget": "future approved Archer presentation derivative if the v5 composer remains active",
+      "dependency": "approved Neutral Master and read-only ownership audit in the derivative task",
+      "approvalGate": "exact visual comparison and no identity drift",
+      "actionInThisTask": "none"
+    },
+    {
+      "oldAssetPath": "assets/v5/face_archer.png",
+      "currentRole": "legacy composited Archer face source",
+      "replacementTarget": "future approved Archer face/portrait derivative if the v5 composer remains active",
+      "dependency": "approved Neutral Master and portrait crop specification",
+      "approvalGate": "exact face continuity and reduced-scale review",
+      "actionInThisTask": "none"
+    },
+    {
+      "oldAssetPath": "assets/heroes/sniper_sheet.png",
+      "currentRole": "legacy Archer-line Class 2 Sniper sheet",
+      "replacementTarget": "future female Sniper production package under the Class 2 migration phase",
+      "dependency": "Archer pilot style approval and separate Sniper identity contract",
+      "approvalGate": "separate exact-file Class 2 approval",
+      "actionInThisTask": "out of scope; no replacement produced"
+    },
+    {
+      "oldAssetPath": "assets/portraits/sniper.png",
+      "currentRole": "legacy Archer-line Class 2 Sniper portrait",
+      "replacementTarget": "future portrait derived from an approved female Sniper master",
+      "dependency": "approved Sniper master",
+      "approvalGate": "separate exact-file portrait approval",
+      "actionInThisTask": "out of scope; no replacement produced"
+    }
+  ],
+  "reviewRequired": [
+    {
+      "oldAssetPath": "assets/icons/classes/ranger.png",
+      "currentRole": "class/synergy icon rather than a character production binary",
+      "reviewQuestion": "Does the icon remain semantically and visually compatible with the new Archer/Ranger language at UI scale?",
+      "default": "retain until a separate UI icon review identifies a readability failure",
+      "actionInThisTask": "none"
+    }
+  ],
+  "explicitlyNotArcherMigrationTargets": [
+    {
+      "path": "assets/mon_spiritarcher.png",
+      "reason": "Spirit Archer is a monster roster identity, not hero.archer; it belongs to the Core Monsters migration phase."
+    },
+    {
+      "path": "all Slime and Golem assets",
+      "reason": "They may inform the style language but are outside this Archer-only task."
+    }
+  ],
+  "preservedTechnicalSemantics": {
+    "idle": {
+      "fps": 8,
+      "frameCount": 8,
+      "loop": true,
+      "rootMotion": "in-place",
+      "eventMarkers": [],
+      "anchor": [0.5, 0.92]
+    },
+    "move": {
+      "fps": 12,
+      "frameCount": 8,
+      "loop": true,
+      "rootMotion": "in-place",
+      "runtimeFlipX": true,
+      "eventMarkers": [
+        {"name": "leftFootstepCue", "normalizedTime": 0.25},
+        {"name": "rightFootstepCue", "normalizedTime": 0.75}
+      ],
+      "anchor": [0.5, 0.92]
+    },
+    "attack": {
+      "fps": 12,
+      "frameCount": 10,
+      "loop": false,
+      "rootMotion": "in-place",
+      "eventMarkers": [
+        {"name": "projectileRelease", "normalizedTime": 0.55}
+      ],
+      "anchor": [0.5, 0.92]
+    },
+    "policy": "Art-style migration alone does not authorize semantic or runtime changes. New proportions require anchor/bounds revalidation; any necessary change is documented and approved in the future motion package rather than made here."
+  },
+  "orderedMigration": [
+    {
+      "step": 1,
+      "deliverable": "exact Neutral Master candidate",
+      "currentStatus": "candidate-generated-approval-pending",
+      "gate": "user exact-file approval"
+    },
+    {
+      "step": 2,
+      "deliverable": "Archer Idle",
+      "currentStatus": "deferred",
+      "gate": "Neutral Master approved"
+    },
+    {
+      "step": 3,
+      "deliverable": "Archer Move",
+      "currentStatus": "deferred",
+      "gate": "Idle package approved"
+    },
+    {
+      "step": 4,
+      "deliverable": "Archer Attack",
+      "currentStatus": "deferred",
+      "gate": "Move package approved"
+    },
+    {
+      "step": 5,
+      "deliverable": "CC runtime integration",
+      "currentStatus": "deferred",
+      "gate": "all required exact visual packages approved"
+    }
+  ],
+  "invariants": {
+    "oldAssetsDeleted": false,
+    "oldAssetsModified": false,
+    "runtimeModified": false,
+    "motionFramesGenerated": false,
+    "motionFramesModified": false,
+    "nonArcherCharactersModified": false
+  }
+}
