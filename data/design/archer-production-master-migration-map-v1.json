@@ -3,7 +3,10 @@
   "id": "archer-production-master-migration-map-v1",
   "characterId": "hero.archer",
   "styleDirectionApproved": true,
-  "neutralMasterApproved": false,
+  "neutralMasterApproved": true,
+  "approvedNeutralMasterSource": true,
+  "userApprovalRecorded": true,
+  "approvalRecord": "data/design/archer-neutral-master-exact-file-approval-v1.json",
   "canonicalApproved": false,
   "runtimeEligible": false,
   "migrationExecuted": false,
@@ -23,8 +26,9 @@
   "candidate": {
     "path": "docs/assets/review/character-production/archer/master-v1/archer-production-master-candidate-v1.png",
     "sha256": "4911e7e3ba59241ee011be3e62f1b64230dcf9b3c24c6aeb23dc939d83311013",
-    "status": "review-only-exact-file-approval-pending",
-    "replacementSource": false
+    "status": "approved-neutral-master-source-review-path-retained",
+    "replacementSource": true,
+    "runtimeReplacement": false
   },
   "technicallyReusable": [
     {
@@ -183,14 +187,14 @@
     {
       "step": 1,
       "deliverable": "exact Neutral Master candidate",
-      "currentStatus": "candidate-generated-approval-pending",
-      "gate": "user exact-file approval"
+      "currentStatus": "complete-exact-file-approved",
+      "gate": "passed-user-exact-file-approval"
     },
     {
       "step": 2,
       "deliverable": "Archer Idle",
-      "currentStatus": "deferred",
-      "gate": "Neutral Master approved"
+      "currentStatus": "authorized-next-task-not-started",
+      "gate": "Neutral Master approved; separate Archer Idle Production v1 task required"
     },
     {
       "step": 3,

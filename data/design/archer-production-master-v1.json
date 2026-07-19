@@ -2,10 +2,13 @@
   "contractVersion": 1,
   "id": "archer-production-master-v1",
   "characterId": "hero.archer",
-  "status": "review-candidate-generated-exact-file-approval-pending",
+  "status": "neutral-master-exact-file-approved-motion-production-not-started",
   "styleDirectionApproved": true,
   "productionMasterCandidatePending": false,
-  "neutralMasterApproved": false,
+  "neutralMasterApproved": true,
+  "approvedNeutralMasterSource": true,
+  "userApprovalRecorded": true,
+  "approvalRecord": "data/design/archer-neutral-master-exact-file-approval-v1.json",
   "canonicalApproved": false,
   "runtimeEligible": false,
   "motionGenerated": false,
@@ -76,10 +79,11 @@
       "opaquePixels": 197434,
       "outerBorderNonTransparentPixels": 0
     },
-    "approvalStatus": "awaiting-user-exact-file-approval",
+    "approvalStatus": "user-approved-exact-neutral-master-source",
     "runtimeEligible": false,
     "canonicalApproved": false,
-    "neutralMasterApproved": false,
+    "neutralMasterApproved": true,
+    "approvedNeutralMasterSource": true,
     "usage": [
       "exact-file visual review",
       "full-size identity review",
@@ -87,7 +91,7 @@
     ],
     "forbiddenUsage": [
       "runtime texture",
-      "motion source before exact-file approval",
+      "motion production outside a separately scoped and approved future task",
       "replacement for any existing Archer asset",
       "canonical production asset"
     ],
@@ -117,7 +121,7 @@
         "visually checked over a warm-stone surrogate background"
       ],
       "generatedBinaryIsUserSuppliedReference": false,
-      "approvalBoundary": "Generation and technical inspection do not constitute user approval of this exact file."
+      "approvalBoundary": "Generation and technical inspection did not constitute approval. Explicit user exact-file approval is recorded separately in data/design/archer-neutral-master-exact-file-approval-v1.json."
     }
   },
   "identityLock": {
@@ -348,7 +352,7 @@
     }
   ],
   "productionSequence": [
-    "user approves the exact Neutral Master candidate",
+    "exact Neutral Master user approval recorded (complete)",
     "produce and approve Archer Idle",
     "produce and approve Archer Move",
     "produce and approve Archer Attack",
