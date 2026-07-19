@@ -1,0 +1,292 @@
+{
+  "contractVersion": 1,
+  "id": "archer-attack-production-v1",
+  "packageId": "hero.archer.attack.chibi-production-candidate.v1",
+  "characterId": "hero.archer",
+  "state": "attack",
+  "status": "production-candidate-pending-user-approval",
+  "styleDirectionApproved": true,
+  "neutralMasterApproved": true,
+  "idlePackageApproved": true,
+  "movePackageApproved": true,
+  "attackGenerated": true,
+  "attackPackageApproved": false,
+  "canonicalApproved": false,
+  "runtimeEligible": false,
+  "runtimeIntegrated": false,
+  "source": {
+    "repository": "phathompongsae-ops/Auto-Battler",
+    "basePR": {
+      "pr": 65,
+      "branch": "coco/archer-move-package-exact-file-approval-v1",
+      "sha": "5305c84e80a7117c69a2f8048f9f5ca76e051d09",
+      "verifiedState": "open-draft-unmerged",
+      "ancestryRole": "exact base, approved Move overlay, approved Idle overlay, and approved Neutral Master linkage"
+    },
+    "technicalBaselinePR": {
+      "pr": 56,
+      "branch": "cc/pilot-idle-motion-runtime-integration-v1",
+      "sha": "bbe63518c42761f49a0aa068c78e0d07d3e88214",
+      "usage": "read-only Attack FPS, frame-count, loop, root-motion, projectileRelease marker, runtimeFlipX, and anchor semantics from the hero.archer/attack runtime contract row",
+      "ancestryIncluded": false
+    },
+    "executionOwner": "CC (local exact workspace prepared from PR #65 HEAD; Coco filesystem is not shared with CC)",
+    "ccRuntimeAncestryIncluded": false
+  },
+  "sourceNeutralMaster": {
+    "candidateId": "hero.archer.production-master.candidate.v1",
+    "path": "docs/assets/review/character-production/archer/master-v1/archer-production-master-candidate-v1.png",
+    "sha256": "4911e7e3ba59241ee011be3e62f1b64230dcf9b3c24c6aeb23dc939d83311013",
+    "dimensions": [
+      640,
+      960
+    ],
+    "format": "PNG",
+    "mode": "RGBA",
+    "neutralMasterApproved": true,
+    "approvedNeutralMasterSource": true,
+    "bytesChangedByThisPackage": false
+  },
+  "approvedIdleSource": {
+    "packageId": "hero.archer.idle.chibi-production-candidate.v1",
+    "approvalRecord": "data/design/archer-idle-package-exact-file-approval-v1.json",
+    "approvalRecordSha256": "894c7724c2935fafb1b35e1f943de95de11a3e68494444bc8bb00c9753cc6c45",
+    "sourcePR": 63,
+    "idlePackageApproved": true,
+    "usage": "identity, silhouette, readability, anchor, and pinned-feet constraints; Attack pixels derive from the Neutral Master, not cumulatively from Idle frames"
+  },
+  "approvedMoveSource": {
+    "packageId": "hero.archer.move.chibi-production-candidate.v1",
+    "approvalRecord": "data/design/archer-move-package-exact-file-approval-v1.json",
+    "approvalRecordSha256": "9f386748bb296cba8023618eb006368e839087f43001471346633b1cab2d3c5b",
+    "sourcePR": 65,
+    "movePackageApproved": true,
+    "usage": "carried-forward visual constraints only; the Move locomotion deformation is NOT reused as the Attack deformation, per the Move approval overlay"
+  },
+  "motionContract": {
+    "fps": 12,
+    "frameCount": 10,
+    "durationSeconds": 0.833333,
+    "loop": false,
+    "rootMotion": "in-place",
+    "runtimeFlipX": true,
+    "eventMarkers": [
+      {
+        "name": "projectileRelease",
+        "normalizedTime": 0.55,
+        "frameIndex": 5,
+        "displayedInterval": [
+          0.5,
+          0.6
+        ],
+        "visualContact": "string-arm snaps from full draw back toward the bow; torso recoil begins"
+      }
+    ],
+    "runtimeContractRow": {
+      "declaredIn": "src/motion-test-harness.js (read-only technical baseline)",
+      "unit": "hero.archer",
+      "state": "attack",
+      "loop": false,
+      "fps": 12,
+      "frameTarget": 10,
+      "frameMin": 8,
+      "frameMax": 12,
+      "anchor": [
+        0.5,
+        0.92
+      ],
+      "marker": {
+        "name": "projectileRelease",
+        "normalizedTime": 0.55
+      },
+      "markerInGlobalVocabulary": true
+    },
+    "markersChangedFromBaseline": false,
+    "canvas": [
+      640,
+      960
+    ],
+    "anchor": [
+      0.5,
+      0.92
+    ],
+    "anchorDecision": "retained-from-approved-idle-and-move-packages",
+    "anchorEvidence": {
+      "feetPinExclusiveY": 800,
+      "reason": "Rows y>=800 are byte-identical to the Neutral Master in every frame, so both feet and the y=854 contact baseline are pinned exactly; zero foot slide by construction and the approved anchor remains correct."
+    }
+  },
+  "productionMethod": {
+    "type": "identity-preserving deterministic draw-and-release displacement",
+    "aiRegeneration": false,
+    "pixelSource": "every frame independently samples the exact approved Neutral Master; frame 009 is a verbatim byte copy of the master file",
+    "feetPinZone": "rows y>=800 remain byte-identical to the Neutral Master in all frames",
+    "attackMotion": {
+      "leanAmplitudePixels": 9,
+      "crouchAmplitudePixels": 7,
+      "armPullAmplitudePixels": 16,
+      "armDropRatio": 0.35,
+      "drawEnvelope": [
+        0.15,
+        0.45,
+        0.75,
+        0.95,
+        1.0,
+        0.0,
+        -0.18,
+        -0.08,
+        0.03,
+        0.0
+      ],
+      "leanEnvelope": [
+        0.1,
+        0.4,
+        0.7,
+        0.9,
+        1.0,
+        0.25,
+        -0.3,
+        -0.12,
+        0.02,
+        0.0
+      ],
+      "crouchEnvelope": [
+        0.1,
+        0.35,
+        0.6,
+        0.85,
+        0.9,
+        0.35,
+        0.15,
+        0.08,
+        0.03,
+        0.0
+      ],
+      "filter": "bilinear in premultiplied RGBA"
+    },
+    "worldTravelBaked": false,
+    "accumulatedFrameEdits": false,
+    "generator": "tools/generate-archer-attack-production-v1.py",
+    "moveDeformationReused": false,
+    "identityPreservation": [
+      "face, green eyes, hood, green hair, and pointed ears move only as a rigid subpixel translation of the torso lean; no local deformation, repaint, or regeneration touches them",
+      "the ornate bow is excluded from the string-arm lobe partition and never locally deformed",
+      "palette and lighting are pixel-identical up to the bilinear resample of the lean",
+      "no repaint, retouch, AI regeneration, weapon morph, or costume morph",
+      "the projectile arrow is intentionally absent: the runtime spawns a procedural arrow at the projectileRelease marker per the animation framework"
+    ]
+  },
+  "frameInventory": [
+    {
+      "frameIndex": 0,
+      "path": "assets/units/hero.archer/attack-chibi-v1/hero.archer_attack_000.png",
+      "sha256": "d78c33f9405c857ed6c363b2638dce0f8413f363fd5f6ac040bbec9fe263360a",
+      "role": "stance-set"
+    },
+    {
+      "frameIndex": 1,
+      "path": "assets/units/hero.archer/attack-chibi-v1/hero.archer_attack_001.png",
+      "sha256": "f34fb3f3c22a4dc8c44019caaf1be6de5c1307d7752914b0a2bd5dde1a160654",
+      "role": "draw-begin"
+    },
+    {
+      "frameIndex": 2,
+      "path": "assets/units/hero.archer/attack-chibi-v1/hero.archer_attack_002.png",
+      "sha256": "3fc48be14c04b05f23f9db1e6c742d6895df2d2ab4d074995a88baf8dcac585e",
+      "role": "draw-mid"
+    },
+    {
+      "frameIndex": 3,
+      "path": "assets/units/hero.archer/attack-chibi-v1/hero.archer_attack_003.png",
+      "sha256": "f3a1a1e67bfffee3507ef896ee3ab64526ced7b55dbb10e125b033f5a4d5eac0",
+      "role": "draw-deep"
+    },
+    {
+      "frameIndex": 4,
+      "path": "assets/units/hero.archer/attack-chibi-v1/hero.archer_attack_004.png",
+      "sha256": "1dc7e9a4a73d309dae9f854c8a0eda47ecb12c7efad5dcf23c8115d18cc3b72b",
+      "role": "full-draw-hold"
+    },
+    {
+      "frameIndex": 5,
+      "path": "assets/units/hero.archer/attack-chibi-v1/hero.archer_attack_005.png",
+      "sha256": "1d479de9c679346b54241d8076fd86cb9bc1364e3057468a99d1ba694da46d3f",
+      "role": "release"
+    },
+    {
+      "frameIndex": 6,
+      "path": "assets/units/hero.archer/attack-chibi-v1/hero.archer_attack_006.png",
+      "sha256": "6e8cd53abd3a3d0aba7cd1f6b02a979be4bc21bf9929e35e1ebfdaa407574fed",
+      "role": "follow-through"
+    },
+    {
+      "frameIndex": 7,
+      "path": "assets/units/hero.archer/attack-chibi-v1/hero.archer_attack_007.png",
+      "sha256": "5d5ebd9340e003fdefacdb4087bf722741a3da07f844f5533a0fd3162d078c99",
+      "role": "recoil-settle"
+    },
+    {
+      "frameIndex": 8,
+      "path": "assets/units/hero.archer/attack-chibi-v1/hero.archer_attack_008.png",
+      "sha256": "40bc3c341043536793d4176fe533349a6cb49630d80c580959906cff3a8fd6ee",
+      "role": "recovery"
+    },
+    {
+      "frameIndex": 9,
+      "path": "assets/units/hero.archer/attack-chibi-v1/hero.archer_attack_009.png",
+      "sha256": "4911e7e3ba59241ee011be3e62f1b64230dcf9b3c24c6aeb23dc939d83311013",
+      "role": "return-to-neutral"
+    }
+  ],
+  "validationSummary": {
+    "releaseSnapPremultipliedRgbaMae": 0.037425932,
+    "maximumAdjacentPremultipliedRgbaMae": 0.037425932,
+    "releaseSnapIsMaximumAdjacent": true,
+    "entryDeltaFromNeutral": 0.011041382,
+    "settlePair8To9": 0.003106928,
+    "exitFrameByteIdenticalToNeutral": true,
+    "horizontalAlphaCentroidRangePixels": 6.662169,
+    "verticalAlphaCentroidRangePixels": 3.832277,
+    "accumulatedTranslationPixels": 0,
+    "markerAlignment": "pass",
+    "identityContinuity": "pass-with-user-visual-approval-pending"
+  },
+  "packagePaths": {
+    "frames": "assets/units/hero.archer/attack-chibi-v1/hero.archer_attack_000.png through hero.archer_attack_009.png",
+    "sidecar": "assets/units/hero.archer/hero.archer_attack_chibi_v1.json",
+    "sourceMap": "assets/units/hero.archer/attack-chibi-v1/source-map.json",
+    "validationReport": "docs/reviews/archer-attack-production-v1-validation.json",
+    "humanReview": "docs/reviews/archer-attack-production-v1.md"
+  },
+  "review": {
+    "directory": "docs/assets/review/character-production/archer/attack-production-v1",
+    "contactSheet": "archer-attack-production-v1-contact-sheet.png",
+    "sequencePreview": "archer-attack-production-v1-sequence-preview.gif",
+    "boardScaleSample": "archer-attack-production-v1-board-scale-sample.png",
+    "markerReleaseDiagnostic": "archer-attack-production-v1-marker-release-diagnostic.png",
+    "reviewOnly": true,
+    "runtimeEligible": false,
+    "boardObservation": "The draw builds as a readable lean-and-crouch toward the bow, snaps at the release marker, and settles back to the exact neutral master; identity, bow, and green-and-gold silhouette remain stable throughout.",
+    "smallScaleRisk": "The draw-arm pull is deliberately restrained and secondary to the whole-body lean; user review should confirm the charge-then-snap read is sufficient at board scale, where the procedural runtime arrow will carry most of the attack read.",
+    "userApprovalRequired": true
+  },
+  "protectedScope": {
+    "existingAttackAssetsOverwritten": false,
+    "approvedMoveChanged": false,
+    "approvedIdleChanged": false,
+    "neutralMasterChanged": false,
+    "slimeOrGolemProductionCreated": false,
+    "runtimeChanged": false,
+    "srcChanged": false,
+    "coreLogicChanged": false,
+    "combatChanged": false,
+    "gameplayChanged": false,
+    "cameraOrBoardChanged": false,
+    "prMerged": false
+  },
+  "approvalGate": {
+    "current": "Attack package user review required",
+    "canonicalApprovalAuthorized": false,
+    "runtimeIntegrationAuthorized": false
+  }
+}
