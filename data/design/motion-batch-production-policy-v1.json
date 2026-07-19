@@ -1,0 +1,188 @@
+{
+  "schemaVersion": 1,
+  "id": "motion-batch-production-policy-v1",
+  "status": "planning-only-no-production-authorized",
+  "repository": "phathompongsae-ops/Auto-Battler",
+  "activationGate": "Use after Archer Pilot Acceptance and after the relevant archetype/source-identity prerequisites pass. This record does not authorize current production.",
+  "coreGoal": "Replace serial pilot-style production with archetype-driven batch production while preserving per-package quality, exact-file approval, rollback and auditability.",
+  "workflowDecomposition": {
+    "A_oneTimePilotWork": [
+      "prove source/identity approval and immutable exact-file boundaries",
+      "prove sidecar/source-map schema, anchor, rootMotion, runtimeFlipX and marker vocabulary",
+      "prove runtime loader/state/fallback/cache/dispose seams",
+      "prove x4 integration/checkpoint pattern",
+      "prove board/mobile review artifacts and exact approval sequencing",
+      "capture visual-failure lessons such as near-static motion, identity drift and baked artifacts"
+    ],
+    "B_reusableWork": [
+      "project style and identity rules",
+      "package/config schema and naming",
+      "common technical validator",
+      "motion-archetype quality gates",
+      "review artifact generator conventions",
+      "batch review index/page",
+      "exact-file approval overlay shape",
+      "runtime import seams and rollback structure",
+      "three-checkpoint x4 integration pattern"
+    ],
+    "C_characterSpecificWork": [
+      "approved exact neutral/source identity",
+      "character silhouette and face/costume/material locks",
+      "anchor/support evidence",
+      "weapon/anatomy biomechanics",
+      "attack or skill semantic pose progression",
+      "marker timing when visually meaningful",
+      "human visual approval of exact candidate"
+    ],
+    "D_batchableWork": [
+      "candidate inventory and package manifests",
+      "simple idle production across compatible units",
+      "locomotion production within one archetype",
+      "basic attacks only within compatible biomechanics subgroups",
+      "common technical validation",
+      "automatic review artifacts",
+      "combined human review presentation",
+      "batch exact-file approval overlay containing isolated per-package hashes",
+      "grouped runtime migration for already approved isolated packages"
+    ],
+    "E_mustRemainIndividuallyReviewed": [
+      "exact neutral/source identity decisions",
+      "each exact package visual acceptance even when displayed in one batch review",
+      "complex weapon articulation",
+      "unique or ambiguous markers",
+      "signature skills and multi-phase actions",
+      "boss or unusual anatomy motion",
+      "any package with identity drift, near-static motion or repeated visual rejection"
+    ]
+  },
+  "postPilotWorkflow": [
+    "Motion Archetype",
+    "Batch Candidates",
+    "Parallel/Batch Production",
+    "Batch Technical Validation",
+    "Human Visual Review",
+    "Exact Approval",
+    "Runtime Migration"
+  ],
+  "batchSizeGuidelines": [
+    {"motion":"idle","complexity":"simple","recommendedUnitsPerBatch":[4,8],"notes":"Broadest safe batching; keep identity and weight differences in per-package config."},
+    {"motion":"move","complexity":"simple-to-medium","recommendedUnitsPerBatch":[3,6],"notes":"Group by locomotion biomechanics; markers and anchor/support remain package-specific."},
+    {"motion":"hit","complexity":"simple-later-polish","recommendedUnitsPerBatch":[4,8],"notes":"Only when dedicated hit motion is prioritized; runtime hit-flash already exists."},
+    {"motion":"death","complexity":"medium-later-polish","recommendedUnitsPerBatch":[3,5],"notes":"Group by anatomy/weight; bosses excluded."},
+    {"motion":"basicAttack","complexity":"small-creature","recommendedUnitsPerBatch":[2,4],"notes":"Only similar deformation/attack mechanics."},
+    {"motion":"basicAttack","complexity":"humanoid-same-weapon-biomechanics","recommendedUnitsPerBatch":[2,3],"notes":"Workflow can batch; final poses must remain class/character distinct."},
+    {"motion":"basicAttack","complexity":"caster-small-semantic-group","recommendedUnitsPerBatch":[2,3],"notes":"Only when cast skeleton and marker semantics are truly compatible."},
+    {"motion":"basicAttack","complexity":"heavy-construct","recommendedUnitsPerBatch":[1,2],"notes":"Weight/impact readability limits batch size."},
+    {"motion":"skill-or-boss","complexity":"complex","recommendedUnitsPerBatch":[1,1],"notes":"Individual by default."}
+  ],
+  "continueBatchWhen": [
+    "all units share a proven archetype pipeline",
+    "source identities are already approved",
+    "technical package schema and validator support all candidates",
+    "motion semantics are compatible enough to share production tooling without cloning poses",
+    "no candidate requires a unique runtime/gameplay change",
+    "review artifacts can show every package clearly at board/mobile scale",
+    "each package can be approved, rejected, reverted and migrated independently"
+  ],
+  "splitToIndividualWhen": [
+    "one unit shows identity drift or near-static motion",
+    "weapon/anatomy requires different articulation method",
+    "marker timing is ambiguous or unique",
+    "a boss or signature skill needs bespoke timing",
+    "a package fails visual review twice",
+    "a source/master changes after batch production starts",
+    "a runtime change would be needed for only one candidate"
+  ],
+  "validatorArchitecturePlan": {
+    "implementationStatus": "PLANNING_ONLY_DO_NOT_REFACTOR_NOW",
+    "commonTechnicalValidator": {
+      "checks": [
+        "PNG decode and naming",
+        "dimensions and RGBA",
+        "per-frame hashes",
+        "real alpha and border/crop bounds",
+        "anchor/support evidence",
+        "FPS and loop semantics",
+        "rootMotion",
+        "runtimeFlipX",
+        "provenance/source chain",
+        "sidecar and marker schema",
+        "protected-byte/source boundaries"
+      ],
+      "design": "One reusable engine driven by package config; avoid copying a full validator file per character when checks are structurally identical."
+    },
+    "motionSpecificGates": [
+      "idle-loop continuity and identity stability",
+      "locomotion gait/contact/anchor and loop seam",
+      "ranged-attack draw/release or projectile-origin readability",
+      "melee-attack anticipation/contact/follow-through",
+      "caster gather/release/readability",
+      "creature squash/stretch or anatomy-specific deformation",
+      "heavy attack weight/impact/recovery",
+      "boss/unique custom gate config"
+    ],
+    "characterSpecificConfig": [
+      "unitId/state/version",
+      "exact source/master hashes",
+      "canvas/anchor/FPS/loop/rootMotion/runtimeFlipX",
+      "expected marker names and semantic frames",
+      "identity lock notes",
+      "archetype gate selection",
+      "package-specific exceptions with justification"
+    ],
+    "rule": "Common technical PASS never overrides motion-specific or human visual failure."
+  },
+  "reviewArtifactPipeline": {
+    "automaticForEveryPackage": [
+      "contact sheet",
+      "preview GIF",
+      "board-scale preview",
+      "marker diagnostic only when the package has a semantic marker"
+    ],
+    "complexOnly": [
+      "full-draw/full-windup/impact diagnostic",
+      "comparison diagnostic against reference or rejected predecessor",
+      "special transition diagnostic when risk is known"
+    ],
+    "batchArtifacts": [
+      "one combined contact-sheet index/page linking or grouping all package contact sheets",
+      "one combined preview page/grid optimized for phone review",
+      "per-package exact artifact/hash manifest remains separate"
+    ],
+    "rule": "Do not manually create redundant review artifacts when the standard set already proves the gate."
+  },
+  "batchApprovalStrategy": {
+    "humanReview": "A user may review and approve several simple packages in one combined batch view.",
+    "exactApproval": "Exact hashes and semantics remain isolated per package even when one approval record/PR contains multiple approved packages.",
+    "partialFailure": "If one package fails, reject/redo only that package; passed packages may proceed if ancestry and approval records are independent.",
+    "noAllOrNothingBatch": true,
+    "technicalPassCannotAutoApprove": true
+  },
+  "prGroupingStrategy": {
+    "fastPathRecommended": [
+      "one Batch Production PR for 3-6 compatible units/packages",
+      "one Batch Exact-File Approval overlay PR containing only packages explicitly approved by the user",
+      "one Grouped Runtime Migration PR for approved packages, with per-unit/state rollback isolation"
+    ],
+    "avoidByDefault": [
+      "one planning PR per unit",
+      "one readiness PR per simple motion",
+      "one production PR per simple package when several compatible packages can be isolated in one PR",
+      "copying Archer pilot bureaucracy to every unit"
+    ],
+    "separatePRRequiredWhen": [
+      "complex boss/unique motion",
+      "new archetype pilot",
+      "runtime/gameplay change is required",
+      "significant identity or source-master problem",
+      "a failed package needs an isolated redo/version"
+    ]
+  },
+  "rollbackAuditRules": [
+    "every unit/state package has its own version, manifest and hashes",
+    "batch PR paths must remain package-isolated",
+    "approval is recorded per package even if decisions are made in one review session",
+    "runtime mapping must be reversible per unit/state without changing approved bytes",
+    "a failed package must not force byte changes in sibling packages"
+  ]
+}
