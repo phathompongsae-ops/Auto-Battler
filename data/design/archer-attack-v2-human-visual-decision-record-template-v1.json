@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "id": "archer-attack-v2-human-visual-decision-record-template-v1",
+  "candidate": {
+    "pr": 72,
+    "head": "26ea251386199720138ea3c3b32d308acbdeaed9",
+    "packageId": "hero.archer.attack.chibi-production-candidate-v2"
+  },
+  "decisionEnum": [
+    "PENDING_USER_REVIEW",
+    "APPROVED_BY_USER",
+    "REJECTED_NEAR_STATIC",
+    "REJECTED_POSE_UNCLEAR",
+    "REJECTED_IDENTITY_DRIFT",
+    "REJECTED_BOARD_SCALE",
+    "REJECTED_OTHER"
+  ],
+  "decision": "PENDING_USER_REVIEW",
+  "userAnswers": {
+    "raiseVisible": null,
+    "drawVisible": null,
+    "fullDrawVisible": null,
+    "releaseVisible": null,
+    "followThroughVisible": null,
+    "identityPreserved": null,
+    "boardScaleReadable": null
+  },
+  "hardApprovalRule": {
+    "drawVisible": true,
+    "fullDrawVisible": true,
+    "releaseVisible": true,
+    "followThroughVisible": true,
+    "allMustBeTrue": true
+  },
+  "candidateReportedObservationsNotUserDecision": {
+    "raiseVisible": false,
+    "drawVisible": true,
+    "fullDrawVisible": false,
+    "releaseVisible": true,
+    "followThroughVisible": true,
+    "identityPreserved": true,
+    "boardScaleReadable": true,
+    "source": "PR72 final visual review report"
+  },
+  "explicitUserApprovalRequired": true,
+  "technicalOrMetricPassCannotSetApprovedByUser": true,
+  "attackV2PackageApproved": false
+}

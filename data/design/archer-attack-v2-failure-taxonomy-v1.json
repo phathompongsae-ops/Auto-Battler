@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "id": "archer-attack-v2-failure-taxonomy-v1",
+  "failures": {
+    "NEAR_STATIC": {"redoRequired": true, "currentMethodMayContinue": false, "methodChangeRequired": true},
+    "INSUFFICIENT_ARM_ARTICULATION": {"redoRequired": true, "currentMethodMayContinue": false, "methodChangeRequired": true},
+    "FULL_DRAW_NOT_DISTINCT": {"redoRequired": true, "currentMethodMayContinue": false, "methodChangeRequired": true},
+    "RELEASE_NOT_DISTINCT": {"redoRequired": true, "currentMethodMayContinue": false, "methodChangeRequired": true},
+    "FOLLOW_THROUGH_NOT_DISTINCT": {"redoRequired": true, "currentMethodMayContinue": false, "methodChangeRequired": true},
+    "IDENTITY_DRIFT": {"redoRequired": true, "currentMethodMayContinue": true, "methodChangeRequired": false, "requiredCorrection": "identity anchoring correction"},
+    "BOW_DEFORMATION": {"redoRequired": true, "currentMethodMayContinue": true, "methodChangeRequired": false, "requiredCorrection": "bow geometry preservation correction"},
+    "BOARD_SCALE_UNREADABLE": {"redoRequired": true, "currentMethodMayContinue": false, "methodChangeRequired": true},
+    "MARKER_MISMATCH": {"redoRequired": false, "currentMethodMayContinue": true, "methodChangeRequired": false, "requiredCorrection": "metadata/marker correction may be sufficient only if visuals pass"},
+    "OTHER": {"redoRequired": "case-by-case", "currentMethodMayContinue": "case-by-case", "methodChangeRequired": "case-by-case"}
+  },
+  "methodChangeRecommendationWhenRequired": [
+    "distinct articulated key-pose reconstruction",
+    "pose-guided regeneration using the approved Archer identity",
+    "do not use neutral-pose subtle warp as the core attack method"
+  ]
+}

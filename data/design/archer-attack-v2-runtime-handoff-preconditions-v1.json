@@ -1,0 +1,45 @@
+{
+  "schemaVersion": 1,
+  "id": "archer-attack-v2-runtime-handoff-preconditions-v1",
+  "authorizedNow": false,
+  "runtimeOwner": "CC",
+  "technicalReference": {"pr": 56, "role": "read-only technical motion pipeline reference"},
+  "authorizationRequires": [
+    "Neutral Master exact approval remains valid",
+    "Idle exact approval remains valid",
+    "Move exact approval remains valid",
+    "Attack v2 exact-file approval is active",
+    "actual approved projectileRelease marker is locked",
+    "Complete Archer Motion Approved=true",
+    "no source/head drift since approval"
+  ],
+  "runtimeMustBind": [
+    "approved Idle package",
+    "approved Move package",
+    "approved Attack v2 package",
+    "actual approved projectileRelease marker"
+  ],
+  "runtimeMustPrevent": [
+    "Attack v1 binding",
+    "stale asset path binding",
+    "marker leakage across states",
+    "fallback to rejected Attack v1",
+    "silent substitution of unapproved candidate bytes"
+  ],
+  "testing": {
+    "speed": "x4",
+    "exactCheckpointCount": 3,
+    "checkpoints": [
+      "Asset Load + State Registration",
+      "Playback + Transition + Anchor Stability",
+      "Marker + Projectile Timing + Regression"
+    ],
+    "moreThanThreeCheckpointsForbidden": true
+  },
+  "forbiddenBeforeApproval": [
+    "runtime integration",
+    "src changes",
+    "Combat/gameplay changes",
+    "binding any Attack v2 candidate before exact approval"
+  ]
+}
