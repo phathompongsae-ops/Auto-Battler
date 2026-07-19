@@ -1,0 +1,116 @@
+{
+  "modelVersion": 2,
+  "id": "archer-complete-motion-approval-state-model-v2",
+  "characterId": "hero.archer",
+  "repository": "phathompongsae-ops/Auto-Battler",
+  "supersedes": {
+    "record": "data/design/archer-complete-motion-approval-state-model-v1.json",
+    "sourcePR": 68,
+    "reason": "v1 model predates discovery of PR #67 and incorrectly represents Attack as not generated."
+  },
+  "sourceOfTruth": {
+    "planningLineagePR": 68,
+    "planningLineageHead": "fce85bdc79a702d51b3fd4a24852396c21913f8e",
+    "attackV1ExecutionPR": 67,
+    "attackV1ExecutionHead": "390c288c90ee060bccba5f5a00aa673ed503d521",
+    "reconciliationRecord": "data/design/archer-attack-v1-rejection-reconciliation-v1.json"
+  },
+  "states": [
+    {
+      "order": 1,
+      "deliverable": "Neutral Master",
+      "status": "approved",
+      "approved": true,
+      "sourceId": "hero.archer.production-master.candidate.v1",
+      "sourceSha256": "4911e7e3ba59241ee011be3e62f1b64230dcf9b3c24c6aeb23dc939d83311013"
+    },
+    {
+      "order": 2,
+      "deliverable": "Idle",
+      "status": "exact-package-approved",
+      "approved": true,
+      "approvalRecord": "data/design/archer-idle-package-exact-file-approval-v1.json"
+    },
+    {
+      "order": 3,
+      "deliverable": "Move",
+      "status": "exact-package-approved",
+      "approved": true,
+      "approvalRecord": "data/design/archer-move-package-exact-file-approval-v1.json"
+    },
+    {
+      "order": 4,
+      "deliverable": "Attack v1",
+      "status": "generated-rejected-superseded-candidate",
+      "generated": true,
+      "userVisualApproval": false,
+      "approved": false,
+      "sourcePR": 67,
+      "sourceHead": "390c288c90ee060bccba5f5a00aa673ed503d521",
+      "verdict": "NEAR_STATIC",
+      "rejectionReasonCode": "near_static_visual_motion",
+      "runtimeEligible": false
+    },
+    {
+      "order": 5,
+      "deliverable": "Attack v2 Production",
+      "status": "authorized-not-generated",
+      "executionOwner": "CC",
+      "generated": false,
+      "approved": false,
+      "contract": "data/design/archer-attack-v2-redo-contract-v1.json",
+      "nextGate": "CC produces exact v2 candidate and visual/technical evidence without runtime integration"
+    },
+    {
+      "order": 6,
+      "deliverable": "Attack v2 User Visual Review",
+      "status": "blocked-until-v2-candidate-exists",
+      "owner": "user",
+      "required": true,
+      "mayBeSkipped": false,
+      "rubric": "docs/reviews/archer-attack-v2-human-review-rubric-v1.md"
+    },
+    {
+      "order": 7,
+      "deliverable": "Attack v2 Exact-File Approval",
+      "status": "blocked-until-explicit-user-approval",
+      "approved": false,
+      "rule": "Only explicit user approval of exact v2 files may create an active exact-file approval record and set Attack approved."
+    },
+    {
+      "order": 8,
+      "deliverable": "Complete Archer Motion Approved",
+      "status": "blocked-until-neutral-idle-move-attack-v2-all-approved",
+      "approved": false
+    },
+    {
+      "order": 9,
+      "deliverable": "CC Runtime Integration Authorization",
+      "status": "not-authorized",
+      "owner": "CC",
+      "rule": "Runtime remains unauthorized until exact Attack v2 approval is locked and source hashes are stable."
+    }
+  ],
+  "currentEffectiveState": {
+    "neutralMasterApproved": true,
+    "idlePackageApproved": true,
+    "movePackageApproved": true,
+    "attackV1Generated": true,
+    "attackV1Rejected": true,
+    "attackV1PackageApproved": false,
+    "attackV2AuthorizedForProduction": true,
+    "attackV2Generated": false,
+    "attackV2PackageApproved": false,
+    "completeArcherMotionApproved": false,
+    "canonicalApproved": false,
+    "runtimeEligible": false,
+    "runtimeIntegrated": false
+  },
+  "forbiddenTransitions": [
+    "Attack v1 technical PASS -> visual approval",
+    "Attack v1 rejected -> runtime integration",
+    "Attack v2 generation -> exact-file approval without user visual review",
+    "Attack v2 technical PASS -> attackPackageApproved=true",
+    "Move approved -> runtime integration before Attack v2 approval"
+  ]
+}
