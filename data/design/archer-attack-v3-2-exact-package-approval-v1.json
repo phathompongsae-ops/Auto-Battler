@@ -1,0 +1,202 @@
+{
+  "schemaVersion": 1,
+  "approvalRecordId": "archer-attack-v3-2-exact-package-approval-v1",
+  "characterId": "hero.archer",
+  "state": "attack",
+  "candidateVersion": "v3.2",
+  "recordType": "additive-approval-overlay",
+  "note": "This record does not modify, replace, or supersede any file in PR #79. It is an additive approval overlay referencing the exact candidate by SHA.",
+
+  "sourcePr": 79,
+  "sourcePrUrl": "https://github.com/phathompongsae-ops/Auto-Battler/pull/79",
+  "exactCandidateHeadSha": "ddd0b655f867d0b01106a9e1d274234e1e9b71e9",
+  "exactBaseBranch": "cc/archer-attack-v3-pose-guided-handoff-v1",
+  "exactBaseSha": "d949bbec0ae61891e9794e28d0c1a3b49b719a56",
+  "candidateGitHubStateAtApproval": {
+    "state": "open",
+    "draft": true,
+    "merged": false,
+    "verifiedVia": "mcp__github__pull_request_read (method=get) at approval time"
+  },
+  "priorRejectedCandidate": {
+    "sourcePr": 78,
+    "sourcePrUrl": "https://github.com/phathompongsae-ops/Auto-Battler/pull/78",
+    "githubStateAtApproval": {
+      "state": "open",
+      "draft": true,
+      "merged": false,
+      "verifiedVia": "mcp__github__pull_request_read (method=get) at approval time"
+    },
+    "note": "PR #78 (v3.1) is preserved unmodified as historical rejected-candidate evidence. This approval record does not touch, close, or alter PR #78 in any way."
+  },
+
+  "exactSourceZipFilename": "archer_attack_v3_2_targeted_inbetween_rework_human_review_package.zip",
+  "exactSourceZipSha256": "bf3653d72c9a5b3eec8b8a24224dcff098527dae194fbbafd3ec69c15072fc3e",
+  "exactMasterSha256": "4911e7e3ba59241ee011be3e62f1b64230dcf9b3c24c6aeb23dc939d83311013",
+
+  "approvedFrames": {
+    "directory": "docs/assets/review/character-production/archer/attack-v3-2/frames/",
+    "count": 12,
+    "hashes": {
+      "000": "6cbaf2ee52334539355837e294126c429edf4f65355581f8a1cc596c54e704ef",
+      "001": "b937db7fd7eb3ae8e4d40fa05e4b98e375f39ac4a210973bbaea1cf06d251051",
+      "002": "67c3a401c4845ce2dc85153b215bcdbd4f31d3a8a7c00ddb86ecaed74c1ae487",
+      "003": "cfdf8b7256597e1c303402e0bbf416fcff44df28a5f96338329971e441059ebc",
+      "004": "69af0c5088492db38fc81a365e1295264057ffe62f1141f173b86d815da5b277",
+      "005": "c59180e3109ad93b07b64d95b0d1c81aca2bd7055cfdac838f8010e614a7249f",
+      "006": "7a63d3f0b357e7559c84c75650baa75c1865c8ced75a6abe618d1893d42e2787",
+      "007": "c4e9214835d7881adff48786e4a19c59464f6292947c25aa125e4f7256727c0b",
+      "008": "a7906c0fb0ad1fb19e51162680f35c697cc45bda4519c4d40fbce1e506a1f659",
+      "009": "2922bbd79dcec9f070a6b144b056287ba11d87feb4fb708589dfb362c5cc874e",
+      "010": "fe7e873572a220c4f05f26ae8248dacd9c8630b8b556345d619d0df22bb8cd36",
+      "011": "4911e7e3ba59241ee011be3e62f1b64230dcf9b3c24c6aeb23dc939d83311013"
+    },
+    "reworkOrInsertedFrameIndices": [4, 6],
+    "originalMappingVerified10Of10": true,
+    "fullDrawFrameIndex": 7,
+    "releaseFrameIndex": 8,
+    "neutralExitFrameIndex": 11,
+    "neutralExitEqualsExactMaster": true
+  },
+
+  "timing": {
+    "loop": false,
+    "rootMotion": "in-place",
+    "runtimeFlipX": true,
+    "anchor": [0.5, 0.92],
+    "perFrameDurationCs": [16, 12, 10, 7, 6, 6, 6, 9, 7, 10, 14, 24],
+    "totalDurationCs": 127,
+    "releaseFrameIndex": 8,
+    "releaseDurationCs": 7,
+    "fullDrawFrameIndex": 7,
+    "fullDrawDurationCs": 9
+  },
+
+  "userApprovalEvidence": {
+    "userVerdict": "โอเครละ",
+    "verdictTranslationNote": "Informal Thai for 'okay, that's fine / good to go' -- recorded verbatim as given, with a plain-language gloss for non-Thai-reading reviewers.",
+    "verdictContext": [
+      "Given after Coco delivered the Archer Attack v3.2 package in status READY_FOR_HUMAN_REVIEW (PR #79).",
+      "User confirmed the visual result looked acceptable.",
+      "The benchmark direction discussed alongside the verdict emphasized 'looks smooth at normal speed' as the operative standard.",
+      "The user did not approve, and this record does not interpret the verdict as approving, a rule that every animation must use 12 frames."
+    ],
+    "independentAuditResult": "CC_RETURN_VERIFIED",
+    "independentAuditRecommendation": "READY FOR EXACT-PACKAGE APPROVAL RECORD",
+    "approvalScope": {
+      "approved": [
+        "the exact visual package v3.2 as delivered in PR #79",
+        "the final 12-frame sequence specific to this package",
+        "the motion-smoothing quality of v3.2 (frames 004 and 006 specifically)",
+        "identity, anatomy, and bow/arrow/string continuity of this package",
+        "the exact hashes and timing recorded in PR #79 and reproduced in this record"
+      ],
+      "notApproved": [
+        "merging any PR",
+        "runtime integration",
+        "canonical runtime promotion",
+        "any change to Core Logic",
+        "a rule that every animation must have 12 frames",
+        "a rule that every animation must use the same frame count",
+        "a rule that every action must add exactly 2 in-between frames",
+        "a rule that every animation must use Archer's specific timing values"
+      ]
+    }
+  },
+
+  "approvalTimestampUtc": "2026-07-19T14:45:22Z",
+
+  "immutablePackageBoundary": {
+    "description": "This approval is scoped exactly to the 12 frame binaries listed above, identified by SHA-256, as they exist at PR #79 commit ddd0b655f867d0b01106a9e1d274234e1e9b71e9. Any future change to any of those 12 files -- including format normalization -- invalidates this approval record for the changed file(s) and requires a new approval cycle.",
+    "coveredPaths": [
+      "docs/assets/review/character-production/archer/attack-v3-2/frames/hero.archer_attack_v3_2_000.png",
+      "docs/assets/review/character-production/archer/attack-v3-2/frames/hero.archer_attack_v3_2_001.png",
+      "docs/assets/review/character-production/archer/attack-v3-2/frames/hero.archer_attack_v3_2_002.png",
+      "docs/assets/review/character-production/archer/attack-v3-2/frames/hero.archer_attack_v3_2_003.png",
+      "docs/assets/review/character-production/archer/attack-v3-2/frames/hero.archer_attack_v3_2_004.png",
+      "docs/assets/review/character-production/archer/attack-v3-2/frames/hero.archer_attack_v3_2_005.png",
+      "docs/assets/review/character-production/archer/attack-v3-2/frames/hero.archer_attack_v3_2_006.png",
+      "docs/assets/review/character-production/archer/attack-v3-2/frames/hero.archer_attack_v3_2_007.png",
+      "docs/assets/review/character-production/archer/attack-v3-2/frames/hero.archer_attack_v3_2_008.png",
+      "docs/assets/review/character-production/archer/attack-v3-2/frames/hero.archer_attack_v3_2_009.png",
+      "docs/assets/review/character-production/archer/attack-v3-2/frames/hero.archer_attack_v3_2_010.png",
+      "docs/assets/review/character-production/archer/attack-v3-2/frames/hero.archer_attack_v3_2_011.png"
+    ]
+  },
+
+  "knownFormatObservation": {
+    "id": "frame-004-16bit-rgba",
+    "affectedFrame": "004",
+    "affectedFrameSha256": "69af0c5088492db38fc81a365e1295264057ffe62f1141f173b86d815da5b277",
+    "finding": "Frame 004 is PNG RGBA, 16-bit per channel. Every other frame in this package -- and every frame across the entire approved Archer pipeline (Neutral Master, Idle, Move, Attack v2/v3/v3.1) -- is 8-bit RGBA.",
+    "hashConfirmedMatchesApprovedPackage": true,
+    "decodeDisplayReviewValidatorStatus": "PASS -- decoded and rendered correctly throughout review; PR #79's validator (extended with 16-bit-aware decoding) confirms alpha bounds are correct.",
+    "independentAuditClassification": "NON_BLOCKING_FORMAT_ANOMALY",
+    "actionTakenInThisApprovalTask": "none -- binary not re-encoded, resized, or otherwise modified",
+    "approvalBlocker": false,
+    "runtimeCompatibilityFollowUpRequired": true,
+    "runtimeIntegrationBlockedUntilCompatibilityCheck": true,
+    "followUpDescription": "Before any Runtime Integration of this or a related package, the target asset decoder/toolchain must be verified to correctly support 16-bit-per-channel RGBA PNG. This observation does not invalidate the exact-visual approval recorded here, but it does gate runtime promotion independently of this approval."
+  },
+
+  "gitDiffCheckObservation": {
+    "affectedFile": "docs/reviews/archer-attack-v3-2-technical-qa-report.md",
+    "finding": "git diff --check between PR #79's parent commit and PR #79 head, scoped to this file, reports 'new blank line at EOF' and exits 2.",
+    "reproducedIndependently": true,
+    "reproductionCommand": "git diff --check ddd0b655f867d0b01106a9e1d274234e1e9b71e9^ ddd0b655f867d0b01106a9e1d274234e1e9b71e9 -- docs/reviews/archer-attack-v3-2-technical-qa-report.md",
+    "reproductionResult": "exit 2, 'docs/reviews/archer-attack-v3-2-technical-qa-report.md:52: new blank line at EOF.'",
+    "fileByteIdenticalToApprovedSourcePackage": true,
+    "verificationMethod": "SHA-256 and byte-for-byte cmp against the file as originally extracted from the approved source ZIP -- confirmed identical (not drift, not modified after import)",
+    "classification": "whitespace-lint-observation, not binary drift, not a visual defect",
+    "actionTakenInThisApprovalTask": "none -- file not modified, because doing so would change the exact-approved PR #79 candidate snapshot",
+    "note": "PR #79's own description states 'git diff --check: clean'. That statement is not accurate for the full history of the file's introduction and is corrected here for the record. It is NOT accurate to say PR #79's git diff --check is clean when checked against its parent commit for this file. This does not change any approval conclusion -- the file content is confirmed unmodified and correct."
+  },
+
+  "animationQualityBenchmarkV1": {
+    "policyId": "animation-quality-benchmark-v1",
+    "standardCoversQualityOf": [
+      "looks smooth at normal playback speed",
+      "true motion progression (not a mesh-warp/scale-collapse substitute for motion)",
+      "frame spacing appropriate to the motion being depicted",
+      "character identity consistency across all frames",
+      "anatomy continuity (hands, limbs, no missing/extra parts)",
+      "weapon/prop continuity (for Archer specifically: bow/arrow/string continuity)",
+      "baseline/foot stability across frames",
+      "timing and release-beat preservation where a release/impact event exists",
+      "technical QA (format, dimensions, alpha bounds) and comparative review against the prior candidate"
+    ],
+    "standardDoesNotMandate": [
+      "every animation must have exactly 12 frames",
+      "every character/animation must use the same frame count as another",
+      "every action must add exactly 2 in-between frames",
+      "every animation must reuse Archer's specific per-frame timing values",
+      "frames must be added even when the existing animation already reads as smooth"
+    ],
+    "guidingPrinciple": "Use as many frames as are actually needed for the motion to read as smooth while preserving the weight/impact of the action -- no more, no fewer. Frame count and timing are motion-driven decisions per animation, not a fixed template.",
+    "benchmarkActivationAuthorized": true,
+    "benchmarkActivationScope": "This authorization activates the benchmark as a quality standard for future Archer (and by extension, other character) animation review. It does not itself approve any other character's existing or future animation -- each candidate still requires its own exact-package approval record."
+  },
+
+  "approvalFlags": {
+    "humanVisualApproval": true,
+    "attackV3_2PackageApproved": true,
+    "exactPackageApproved": true,
+    "animationQualityBenchmarkV1Approved": true,
+    "benchmarkActivationAuthorized": true,
+    "canonicalApproved": false,
+    "runtimeEligible": false,
+    "runtimeIntegrated": false,
+    "runtimeIntegrationAuthorized": false,
+    "merged": false
+  },
+
+  "runtimeRestrictions": {
+    "runtimeIntegrationAuthorized": false,
+    "coreLogicChangesAuthorized": false,
+    "combatSystemChangesAuthorized": false,
+    "note": "This record authorizes exact-package visual/quality approval only. It does not authorize merging PR #79, runtime integration, canonical promotion, or any Core Logic/Combat/projectile/marker/Game Loop change."
+  },
+
+  "nextAuthorizedGate": "PRE-RUNTIME 16-BIT PNG COMPATIBILITY CHECK",
+  "nextGateNote": "This gate is not started by this record. It must independently verify that the target asset decoder/toolchain correctly supports 16-bit-per-channel RGBA PNG (specifically for frame 004) before any Runtime Integration work begins."
+}
