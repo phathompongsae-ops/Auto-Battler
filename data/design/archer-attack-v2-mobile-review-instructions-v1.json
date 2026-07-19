@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "id": "archer-attack-v2-mobile-review-instructions-v1",
+  "order": [
+    {"step": 1, "artifact": "OLD-v1-v2 comparison", "inspect": "v2 must read clearer than rejected v1 and approach old CLEAR semantic attack poses", "current": "MISSING_COMBINED_VISUAL_ARTIFACT"},
+    {"step": 2, "artifact": "archer-v2-animation.gif", "inspect": "natural raise-draw-full-draw-release-follow-through flow"},
+    {"step": 3, "artifact": "board-scale preview", "inspect": "must read as bow attack without projectile VFX", "current": "MISSING_DEDICATED_ARTIFACT"},
+    {"step": 4, "artifact": "archer-v2-contact-sheet.png", "inspect": "meaningful pose diversity across all 10 frames"},
+    {"step": 5, "artifact": "archer-v2-frame-04-diagnostic.png", "inspect": "drawing hand, elbow, shoulder/torso, bow-string relation and maximum-tension full draw"},
+    {"step": 6, "artifact": "archer-v2-frame-05-diagnostic.png", "inspect": "visible release matches projectileRelease timing"}
+  ],
+  "doNotApproveIf": [
+    "draw requires zoom or metrics to notice",
+    "full draw resembles ready or mid-draw",
+    "release is only a warp snap",
+    "follow-through is missing",
+    "board scale looks near-static",
+    "bow or body deformation is unnatural",
+    "identity drift is visible",
+    "projectileRelease does not match visible release"
+  ],
+  "decisionAfterReview": "APPROVE_OR_REJECT_ONLY"
+}
