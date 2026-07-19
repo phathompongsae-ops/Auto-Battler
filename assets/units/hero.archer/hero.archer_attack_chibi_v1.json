@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "assetId": "hero.archer.attack.chibi-production-candidate.v1",
+  "unitId": "hero.archer",
+  "state": "attack",
+  "fps": 12,
+  "frameCount": 10,
+  "loop": false,
+  "anchor": [
+    0.5,
+    0.92
+  ],
+  "canvas": [
+    640,
+    960
+  ],
+  "eventMarkers": [
+    {
+      "name": "projectileRelease",
+      "normalizedTime": 0.55
+    }
+  ],
+  "rootMotion": "in-place",
+  "runtimeFlipX": true,
+  "framePathPattern": "attack-chibi-v1/hero.archer_attack_{frame:03d}.png",
+  "sourceMap": "attack-chibi-v1/source-map.json",
+  "neutralMasterApproved": true,
+  "idlePackageApproved": true,
+  "movePackageApproved": true,
+  "attackPackageApproved": false,
+  "canonicalApproved": false,
+  "runtimeEligible": false,
+  "runtimeIntegrated": false
+}

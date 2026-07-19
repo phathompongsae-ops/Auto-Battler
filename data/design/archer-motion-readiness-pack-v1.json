@@ -1,0 +1,250 @@
+{
+  "recordVersion": 1,
+  "id": "archer-motion-readiness-pack-v1",
+  "characterId": "hero.archer",
+  "purpose": "Single aggregated record of the complete Archer motion set (Idle + Move + Attack) with exact file hashes and gate state, for review and for the future separately-scoped CC runtime integration task.",
+  "generatedAt": "2026-07-19",
+  "executionOwner": "CC (local exact workspace prepared from PR #65 HEAD)",
+  "sourceNeutralMaster": {
+    "candidateId": "hero.archer.production-master.candidate.v1",
+    "path": "docs/assets/review/character-production/archer/master-v1/archer-production-master-candidate-v1.png",
+    "sha256": "4911e7e3ba59241ee011be3e62f1b64230dcf9b3c24c6aeb23dc939d83311013",
+    "dimensions": [
+      640,
+      960
+    ],
+    "format": "PNG",
+    "mode": "RGBA",
+    "neutralMasterApproved": true
+  },
+  "states": {
+    "idle": {
+      "packageId": "hero.archer.idle.chibi-production-candidate.v1",
+      "approved": true,
+      "approvalRecord": "data/design/archer-idle-package-exact-file-approval-v1.json",
+      "approvalRecordSha256": "894c7724c2935fafb1b35e1f943de95de11a3e68494444bc8bb00c9753cc6c45",
+      "fps": 8,
+      "frameCount": 8,
+      "loop": true,
+      "rootMotion": "in-place",
+      "anchor": [
+        0.5,
+        0.92
+      ],
+      "runtimeFlipX": true,
+      "eventMarkers": [],
+      "sidecar": "assets/units/hero.archer/hero.archer_idle_chibi_v1.json",
+      "frameDirectory": "assets/units/hero.archer/idle-chibi-v1/",
+      "frames": [
+        {
+          "frameIndex": 0,
+          "path": "assets/units/hero.archer/idle-chibi-v1/hero.archer_idle_000.png",
+          "sha256": "4911e7e3ba59241ee011be3e62f1b64230dcf9b3c24c6aeb23dc939d83311013"
+        },
+        {
+          "frameIndex": 1,
+          "path": "assets/units/hero.archer/idle-chibi-v1/hero.archer_idle_001.png",
+          "sha256": "1996f524359331c22ce7950c0494a4bb803d466b772794fffeeee18e49d681fc"
+        },
+        {
+          "frameIndex": 2,
+          "path": "assets/units/hero.archer/idle-chibi-v1/hero.archer_idle_002.png",
+          "sha256": "ce9e92977f6fe1f128d941f9c8309892a9fe3391e51f68bf98c3e7534b375924"
+        },
+        {
+          "frameIndex": 3,
+          "path": "assets/units/hero.archer/idle-chibi-v1/hero.archer_idle_003.png",
+          "sha256": "57d29515f980b5e9c6ec04b087dc89ed8c5a57d4f06896b46cdb0fe65188e2c0"
+        },
+        {
+          "frameIndex": 4,
+          "path": "assets/units/hero.archer/idle-chibi-v1/hero.archer_idle_004.png",
+          "sha256": "30bf88ec7006a0ddbb8b69a6a5585588582b2208c7c92bef72b5cc974fc5b761"
+        },
+        {
+          "frameIndex": 5,
+          "path": "assets/units/hero.archer/idle-chibi-v1/hero.archer_idle_005.png",
+          "sha256": "ecb10ad466cc36ebf05957211ea79e59150d470a51df1a8f451dc952f2edb4ff"
+        },
+        {
+          "frameIndex": 6,
+          "path": "assets/units/hero.archer/idle-chibi-v1/hero.archer_idle_006.png",
+          "sha256": "a0d284b73d007f4bd78251cc1b9492545da97582dbca6b31851242b328f0ec29"
+        },
+        {
+          "frameIndex": 7,
+          "path": "assets/units/hero.archer/idle-chibi-v1/hero.archer_idle_007.png",
+          "sha256": "815717f5dc733fcc3ba0275ac086fc7a5a11847ae627ddd6f49c9f8174327985"
+        }
+      ]
+    },
+    "move": {
+      "packageId": "hero.archer.move.chibi-production-candidate.v1",
+      "approved": true,
+      "approvalRecord": "data/design/archer-move-package-exact-file-approval-v1.json",
+      "approvalRecordSha256": "9f386748bb296cba8023618eb006368e839087f43001471346633b1cab2d3c5b",
+      "fps": 12,
+      "frameCount": 8,
+      "loop": true,
+      "rootMotion": "in-place",
+      "anchor": [
+        0.5,
+        0.92
+      ],
+      "runtimeFlipX": true,
+      "eventMarkers": [
+        {
+          "name": "leftFootstepCue",
+          "normalizedTime": 0.25,
+          "frameIndex": 2
+        },
+        {
+          "name": "rightFootstepCue",
+          "normalizedTime": 0.75,
+          "frameIndex": 6
+        }
+      ],
+      "sidecar": "assets/units/hero.archer/hero.archer_move_chibi_v1.json",
+      "frameDirectory": "assets/units/hero.archer/move-chibi-v1/",
+      "frames": [
+        {
+          "frameIndex": 0,
+          "path": "assets/units/hero.archer/move-chibi-v1/hero.archer_move_000.png",
+          "sha256": "a9142fb9aff23110822e2eae491fd10a483aaec21f0ce44616108c3d5e797d79"
+        },
+        {
+          "frameIndex": 1,
+          "path": "assets/units/hero.archer/move-chibi-v1/hero.archer_move_001.png",
+          "sha256": "91ccd270ed2796d6a6d0d11a95582537af95cbfe0334c701022522f4e3def1fc"
+        },
+        {
+          "frameIndex": 2,
+          "path": "assets/units/hero.archer/move-chibi-v1/hero.archer_move_002.png",
+          "sha256": "1b92c2c694f03866798c5c0d67e7a1a2f929b2d4181c172fa493c0f583f146d9"
+        },
+        {
+          "frameIndex": 3,
+          "path": "assets/units/hero.archer/move-chibi-v1/hero.archer_move_003.png",
+          "sha256": "904eff4bf047861d6e4da257ecd733471a2de73c36ca5333b0c7ec18b181e70c"
+        },
+        {
+          "frameIndex": 4,
+          "path": "assets/units/hero.archer/move-chibi-v1/hero.archer_move_004.png",
+          "sha256": "8890f16ab7a903d7638a35e8fcc3456cb82ad49a67f0d4ff85371e55bbc3c2d9"
+        },
+        {
+          "frameIndex": 5,
+          "path": "assets/units/hero.archer/move-chibi-v1/hero.archer_move_005.png",
+          "sha256": "2d6f9200366e3056a8309e249f6fd2ddf31b32fea7538ae35860878126446d03"
+        },
+        {
+          "frameIndex": 6,
+          "path": "assets/units/hero.archer/move-chibi-v1/hero.archer_move_006.png",
+          "sha256": "444f4b9833c3e5bd3be41c2873673b881e0ef7d40b1092ed1894cd4a33f3927c"
+        },
+        {
+          "frameIndex": 7,
+          "path": "assets/units/hero.archer/move-chibi-v1/hero.archer_move_007.png",
+          "sha256": "383adfadbeba4314ecade83b6080c753ed2a976fc80b03d4820b0546bdb035b1"
+        }
+      ]
+    },
+    "attack": {
+      "packageId": "hero.archer.attack.chibi-production-candidate.v1",
+      "approved": false,
+      "status": "production-candidate-pending-user-approval",
+      "productionContract": "data/design/archer-attack-production-v1.json",
+      "validationReport": "docs/reviews/archer-attack-production-v1-validation.json",
+      "fps": 12,
+      "frameCount": 10,
+      "loop": false,
+      "rootMotion": "in-place",
+      "anchor": [
+        0.5,
+        0.92
+      ],
+      "runtimeFlipX": true,
+      "eventMarkers": [
+        {
+          "name": "projectileRelease",
+          "normalizedTime": 0.55,
+          "frameIndex": 5
+        }
+      ],
+      "sidecar": "assets/units/hero.archer/hero.archer_attack_chibi_v1.json",
+      "frameDirectory": "assets/units/hero.archer/attack-chibi-v1/",
+      "frames": [
+        {
+          "frameIndex": 0,
+          "path": "assets/units/hero.archer/attack-chibi-v1/hero.archer_attack_000.png",
+          "sha256": "d78c33f9405c857ed6c363b2638dce0f8413f363fd5f6ac040bbec9fe263360a"
+        },
+        {
+          "frameIndex": 1,
+          "path": "assets/units/hero.archer/attack-chibi-v1/hero.archer_attack_001.png",
+          "sha256": "f34fb3f3c22a4dc8c44019caaf1be6de5c1307d7752914b0a2bd5dde1a160654"
+        },
+        {
+          "frameIndex": 2,
+          "path": "assets/units/hero.archer/attack-chibi-v1/hero.archer_attack_002.png",
+          "sha256": "3fc48be14c04b05f23f9db1e6c742d6895df2d2ab4d074995a88baf8dcac585e"
+        },
+        {
+          "frameIndex": 3,
+          "path": "assets/units/hero.archer/attack-chibi-v1/hero.archer_attack_003.png",
+          "sha256": "f3a1a1e67bfffee3507ef896ee3ab64526ced7b55dbb10e125b033f5a4d5eac0"
+        },
+        {
+          "frameIndex": 4,
+          "path": "assets/units/hero.archer/attack-chibi-v1/hero.archer_attack_004.png",
+          "sha256": "1dc7e9a4a73d309dae9f854c8a0eda47ecb12c7efad5dcf23c8115d18cc3b72b"
+        },
+        {
+          "frameIndex": 5,
+          "path": "assets/units/hero.archer/attack-chibi-v1/hero.archer_attack_005.png",
+          "sha256": "1d479de9c679346b54241d8076fd86cb9bc1364e3057468a99d1ba694da46d3f"
+        },
+        {
+          "frameIndex": 6,
+          "path": "assets/units/hero.archer/attack-chibi-v1/hero.archer_attack_006.png",
+          "sha256": "6e8cd53abd3a3d0aba7cd1f6b02a979be4bc21bf9929e35e1ebfdaa407574fed"
+        },
+        {
+          "frameIndex": 7,
+          "path": "assets/units/hero.archer/attack-chibi-v1/hero.archer_attack_007.png",
+          "sha256": "5d5ebd9340e003fdefacdb4087bf722741a3da07f844f5533a0fd3162d078c99"
+        },
+        {
+          "frameIndex": 8,
+          "path": "assets/units/hero.archer/attack-chibi-v1/hero.archer_attack_008.png",
+          "sha256": "40bc3c341043536793d4176fe533349a6cb49630d80c580959906cff3a8fd6ee"
+        },
+        {
+          "frameIndex": 9,
+          "path": "assets/units/hero.archer/attack-chibi-v1/hero.archer_attack_009.png",
+          "sha256": "4911e7e3ba59241ee011be3e62f1b64230dcf9b3c24c6aeb23dc939d83311013"
+        }
+      ]
+    }
+  },
+  "gateState": {
+    "neutralMasterApproved": true,
+    "idlePackageApproved": true,
+    "movePackageApproved": true,
+    "attackGenerated": true,
+    "attackPackageApproved": false,
+    "canonicalApproved": false,
+    "runtimeEligible": false,
+    "runtimeIntegrated": false
+  },
+  "remainingGates": [
+    "Archer Attack exact-file approval (separate task, user decision)",
+    "canonical approval of the complete motion set (separate task, user decision)",
+    "CC runtime integration (separate task; requires the two approvals above)"
+  ],
+  "runtimeHandoff": {
+    "readinessDocument": "docs/reviews/archer-runtime-integration-handoff-readiness-v1.md",
+    "runtimeContractSource": "src/motion-test-harness.js (read-only technical baseline, PR #56)",
+    "integrationAuthorized": false
+  }
+}

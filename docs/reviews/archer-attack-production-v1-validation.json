@@ -1,0 +1,929 @@
+{
+  "reportVersion": 1,
+  "packageId": "hero.archer.attack.chibi-production-candidate.v1",
+  "generatedAt": "2026-07-19",
+  "generator": "tools/generate-archer-attack-production-v1.py",
+  "sourceNeutralMaster": {
+    "candidateId": "hero.archer.production-master.candidate.v1",
+    "path": "docs/assets/review/character-production/archer/master-v1/archer-production-master-candidate-v1.png",
+    "sha256": "4911e7e3ba59241ee011be3e62f1b64230dcf9b3c24c6aeb23dc939d83311013",
+    "dimensions": [
+      640,
+      960
+    ],
+    "mode": "RGBA"
+  },
+  "approvedIdle": {
+    "approvalRecord": "data/design/archer-idle-package-exact-file-approval-v1.json",
+    "approvalRecordSha256": "894c7724c2935fafb1b35e1f943de95de11a3e68494444bc8bb00c9753cc6c45",
+    "sourcePR": 63,
+    "idlePackageApproved": true
+  },
+  "approvedMove": {
+    "approvalRecord": "data/design/archer-move-package-exact-file-approval-v1.json",
+    "approvalRecordSha256": "9f386748bb296cba8023618eb006368e839087f43001471346633b1cab2d3c5b",
+    "sourcePR": 65,
+    "movePackageApproved": true
+  },
+  "motion": {
+    "fps": 12,
+    "frameCount": 10,
+    "loop": false,
+    "rootMotion": "in-place",
+    "anchor": [
+      0.5,
+      0.92
+    ],
+    "runtimeFlipX": true,
+    "eventMarkers": [
+      {
+        "name": "projectileRelease",
+        "normalizedTime": 0.55,
+        "frameIndex": 5
+      }
+    ]
+  },
+  "frames": [
+    {
+      "frameIndex": 0,
+      "path": "assets/units/hero.archer/attack-chibi-v1/hero.archer_attack_000.png",
+      "sha256": "d78c33f9405c857ed6c363b2638dce0f8413f363fd5f6ac040bbec9fe263360a",
+      "bytes": 492238,
+      "dimensions": [
+        640,
+        960
+      ],
+      "mode": "RGBA",
+      "role": "stance-set",
+      "marker": null,
+      "sourceOperation": "independent premultiplied-alpha draw-and-release displacement from exact approved Neutral Master",
+      "motionParameters": {
+        "drawEnvelope": 0.15,
+        "leanEnvelope": 0.1,
+        "crouchEnvelope": 0.1,
+        "leanAmplitudePixels": 9.0,
+        "crouchAmplitudePixels": 7.0,
+        "armPullAmplitudePixels": 16.0,
+        "armDropRatio": 0.35,
+        "feetPinExclusiveY": 800
+      },
+      "alphaBounds": {
+        "origin": "top-left",
+        "x": 71,
+        "y": 125,
+        "width": 502,
+        "height": 730
+      },
+      "overallAlphaMaxY": 854,
+      "outerBorderNonTransparentPixels": 0,
+      "footContact": {
+        "characterRightViewerLeft": {
+          "region": [
+            120,
+            700,
+            195,
+            200
+          ],
+          "maxVisibleY": 828,
+          "baselinePixelCountY852to854": 0
+        },
+        "characterLeftViewerRight": {
+          "region": [
+            315,
+            700,
+            135,
+            200
+          ],
+          "maxVisibleY": 854,
+          "baselinePixelCountY852to854": 73
+        }
+      },
+      "alphaCentroid": [
+        312.498353,
+        482.076555
+      ],
+      "stringArmRegionCentroid": [
+        217.314979,
+        556.56952
+      ]
+    },
+    {
+      "frameIndex": 1,
+      "path": "assets/units/hero.archer/attack-chibi-v1/hero.archer_attack_001.png",
+      "sha256": "f34fb3f3c22a4dc8c44019caaf1be6de5c1307d7752914b0a2bd5dde1a160654",
+      "bytes": 484705,
+      "dimensions": [
+        640,
+        960
+      ],
+      "mode": "RGBA",
+      "role": "draw-begin",
+      "marker": null,
+      "sourceOperation": "independent premultiplied-alpha draw-and-release displacement from exact approved Neutral Master",
+      "motionParameters": {
+        "drawEnvelope": 0.45,
+        "leanEnvelope": 0.4,
+        "crouchEnvelope": 0.35,
+        "leanAmplitudePixels": 9.0,
+        "crouchAmplitudePixels": 7.0,
+        "armPullAmplitudePixels": 16.0,
+        "armDropRatio": 0.35,
+        "feetPinExclusiveY": 800
+      },
+      "alphaBounds": {
+        "origin": "top-left",
+        "x": 71,
+        "y": 127,
+        "width": 505,
+        "height": 728
+      },
+      "overallAlphaMaxY": 854,
+      "outerBorderNonTransparentPixels": 0,
+      "footContact": {
+        "characterRightViewerLeft": {
+          "region": [
+            120,
+            700,
+            195,
+            200
+          ],
+          "maxVisibleY": 828,
+          "baselinePixelCountY852to854": 0
+        },
+        "characterLeftViewerRight": {
+          "region": [
+            315,
+            700,
+            135,
+            200
+          ],
+          "maxVisibleY": 854,
+          "baselinePixelCountY852to854": 73
+        }
+      },
+      "alphaCentroid": [
+        313.990904,
+        483.160167
+      ],
+      "stringArmRegionCentroid": [
+        217.211582,
+        556.614646
+      ]
+    },
+    {
+      "frameIndex": 2,
+      "path": "assets/units/hero.archer/attack-chibi-v1/hero.archer_attack_002.png",
+      "sha256": "3fc48be14c04b05f23f9db1e6c742d6895df2d2ab4d074995a88baf8dcac585e",
+      "bytes": 489687,
+      "dimensions": [
+        640,
+        960
+      ],
+      "mode": "RGBA",
+      "role": "draw-mid",
+      "marker": null,
+      "sourceOperation": "independent premultiplied-alpha draw-and-release displacement from exact approved Neutral Master",
+      "motionParameters": {
+        "drawEnvelope": 0.75,
+        "leanEnvelope": 0.7,
+        "crouchEnvelope": 0.6,
+        "leanAmplitudePixels": 9.0,
+        "crouchAmplitudePixels": 7.0,
+        "armPullAmplitudePixels": 16.0,
+        "armDropRatio": 0.35,
+        "feetPinExclusiveY": 800
+      },
+      "alphaBounds": {
+        "origin": "top-left",
+        "x": 72,
+        "y": 129,
+        "width": 507,
+        "height": 726
+      },
+      "overallAlphaMaxY": 854,
+      "outerBorderNonTransparentPixels": 0,
+      "footContact": {
+        "characterRightViewerLeft": {
+          "region": [
+            120,
+            700,
+            195,
+            200
+          ],
+          "maxVisibleY": 828,
+          "baselinePixelCountY852to854": 0
+        },
+        "characterLeftViewerRight": {
+          "region": [
+            315,
+            700,
+            135,
+            200
+          ],
+          "maxVisibleY": 854,
+          "baselinePixelCountY852to854": 73
+        }
+      },
+      "alphaCentroid": [
+        315.473238,
+        484.233692
+      ],
+      "stringArmRegionCentroid": [
+        217.104216,
+        556.636209
+      ]
+    },
+    {
+      "frameIndex": 3,
+      "path": "assets/units/hero.archer/attack-chibi-v1/hero.archer_attack_003.png",
+      "sha256": "f3a1a1e67bfffee3507ef896ee3ab64526ced7b55dbb10e125b033f5a4d5eac0",
+      "bytes": 497895,
+      "dimensions": [
+        640,
+        960
+      ],
+      "mode": "RGBA",
+      "role": "draw-deep",
+      "marker": null,
+      "sourceOperation": "independent premultiplied-alpha draw-and-release displacement from exact approved Neutral Master",
+      "motionParameters": {
+        "drawEnvelope": 0.95,
+        "leanEnvelope": 0.9,
+        "crouchEnvelope": 0.85,
+        "leanAmplitudePixels": 9.0,
+        "crouchAmplitudePixels": 7.0,
+        "armPullAmplitudePixels": 16.0,
+        "armDropRatio": 0.35,
+        "feetPinExclusiveY": 800
+      },
+      "alphaBounds": {
+        "origin": "top-left",
+        "x": 73,
+        "y": 131,
+        "width": 508,
+        "height": 724
+      },
+      "overallAlphaMaxY": 854,
+      "outerBorderNonTransparentPixels": 0,
+      "footContact": {
+        "characterRightViewerLeft": {
+          "region": [
+            120,
+            700,
+            195,
+            200
+          ],
+          "maxVisibleY": 828,
+          "baselinePixelCountY852to854": 0
+        },
+        "characterLeftViewerRight": {
+          "region": [
+            315,
+            700,
+            135,
+            200
+          ],
+          "maxVisibleY": 854,
+          "baselinePixelCountY852to854": 73
+        }
+      },
+      "alphaCentroid": [
+        316.458681,
+        485.247999
+      ],
+      "stringArmRegionCentroid": [
+        217.004487,
+        556.614357
+      ]
+    },
+    {
+      "frameIndex": 4,
+      "path": "assets/units/hero.archer/attack-chibi-v1/hero.archer_attack_004.png",
+      "sha256": "1dc7e9a4a73d309dae9f854c8a0eda47ecb12c7efad5dcf23c8115d18cc3b72b",
+      "bytes": 491685,
+      "dimensions": [
+        640,
+        960
+      ],
+      "mode": "RGBA",
+      "role": "full-draw-hold",
+      "marker": null,
+      "sourceOperation": "independent premultiplied-alpha draw-and-release displacement from exact approved Neutral Master",
+      "motionParameters": {
+        "drawEnvelope": 1.0,
+        "leanEnvelope": 1.0,
+        "crouchEnvelope": 0.9,
+        "leanAmplitudePixels": 9.0,
+        "crouchAmplitudePixels": 7.0,
+        "armPullAmplitudePixels": 16.0,
+        "armDropRatio": 0.35,
+        "feetPinExclusiveY": 800
+      },
+      "alphaBounds": {
+        "origin": "top-left",
+        "x": 73,
+        "y": 131,
+        "width": 508,
+        "height": 724
+      },
+      "overallAlphaMaxY": 854,
+      "outerBorderNonTransparentPixels": 0,
+      "footContact": {
+        "characterRightViewerLeft": {
+          "region": [
+            120,
+            700,
+            195,
+            200
+          ],
+          "maxVisibleY": 828,
+          "baselinePixelCountY852to854": 0
+        },
+        "characterLeftViewerRight": {
+          "region": [
+            315,
+            700,
+            135,
+            200
+          ],
+          "maxVisibleY": 854,
+          "baselinePixelCountY852to854": 73
+        }
+      },
+      "alphaCentroid": [
+        317.041365,
+        485.455417
+      ],
+      "stringArmRegionCentroid": [
+        217.140862,
+        556.64173
+      ]
+    },
+    {
+      "frameIndex": 5,
+      "path": "assets/units/hero.archer/attack-chibi-v1/hero.archer_attack_005.png",
+      "sha256": "1d479de9c679346b54241d8076fd86cb9bc1364e3057468a99d1ba694da46d3f",
+      "bytes": 484794,
+      "dimensions": [
+        640,
+        960
+      ],
+      "mode": "RGBA",
+      "role": "release",
+      "marker": "projectileRelease",
+      "sourceOperation": "independent premultiplied-alpha draw-and-release displacement from exact approved Neutral Master",
+      "motionParameters": {
+        "drawEnvelope": 0.0,
+        "leanEnvelope": 0.25,
+        "crouchEnvelope": 0.35,
+        "leanAmplitudePixels": 9.0,
+        "crouchAmplitudePixels": 7.0,
+        "armPullAmplitudePixels": 16.0,
+        "armDropRatio": 0.35,
+        "feetPinExclusiveY": 800
+      },
+      "alphaBounds": {
+        "origin": "top-left",
+        "x": 73,
+        "y": 127,
+        "width": 502,
+        "height": 728
+      },
+      "overallAlphaMaxY": 854,
+      "outerBorderNonTransparentPixels": 0,
+      "footContact": {
+        "characterRightViewerLeft": {
+          "region": [
+            120,
+            700,
+            195,
+            200
+          ],
+          "maxVisibleY": 828,
+          "baselinePixelCountY852to854": 0
+        },
+        "characterLeftViewerRight": {
+          "region": [
+            315,
+            700,
+            135,
+            200
+          ],
+          "maxVisibleY": 854,
+          "baselinePixelCountY852to854": 73
+        }
+      },
+      "alphaCentroid": [
+        313.840345,
+        482.915286
+      ],
+      "stringArmRegionCentroid": [
+        218.267806,
+        556.669974
+      ]
+    },
+    {
+      "frameIndex": 6,
+      "path": "assets/units/hero.archer/attack-chibi-v1/hero.archer_attack_006.png",
+      "sha256": "6e8cd53abd3a3d0aba7cd1f6b02a979be4bc21bf9929e35e1ebfdaa407574fed",
+      "bytes": 490964,
+      "dimensions": [
+        640,
+        960
+      ],
+      "mode": "RGBA",
+      "role": "follow-through",
+      "marker": null,
+      "sourceOperation": "independent premultiplied-alpha draw-and-release displacement from exact approved Neutral Master",
+      "motionParameters": {
+        "drawEnvelope": -0.18,
+        "leanEnvelope": -0.3,
+        "crouchEnvelope": 0.15,
+        "leanAmplitudePixels": 9.0,
+        "crouchAmplitudePixels": 7.0,
+        "armPullAmplitudePixels": 16.0,
+        "armDropRatio": 0.35,
+        "feetPinExclusiveY": 800
+      },
+      "alphaBounds": {
+        "origin": "top-left",
+        "x": 69,
+        "y": 126,
+        "width": 501,
+        "height": 729
+      },
+      "overallAlphaMaxY": 854,
+      "outerBorderNonTransparentPixels": 0,
+      "footContact": {
+        "characterRightViewerLeft": {
+          "region": [
+            120,
+            700,
+            195,
+            200
+          ],
+          "maxVisibleY": 828,
+          "baselinePixelCountY852to854": 0
+        },
+        "characterLeftViewerRight": {
+          "region": [
+            315,
+            700,
+            135,
+            200
+          ],
+          "maxVisibleY": 854,
+          "baselinePixelCountY852to854": 73
+        }
+      },
+      "alphaCentroid": [
+        310.379196,
+        482.076106
+      ],
+      "stringArmRegionCentroid": [
+        217.067731,
+        556.383431
+      ]
+    },
+    {
+      "frameIndex": 7,
+      "path": "assets/units/hero.archer/attack-chibi-v1/hero.archer_attack_007.png",
+      "sha256": "5d5ebd9340e003fdefacdb4087bf722741a3da07f844f5533a0fd3162d078c99",
+      "bytes": 491021,
+      "dimensions": [
+        640,
+        960
+      ],
+      "mode": "RGBA",
+      "role": "recoil-settle",
+      "marker": null,
+      "sourceOperation": "independent premultiplied-alpha draw-and-release displacement from exact approved Neutral Master",
+      "motionParameters": {
+        "drawEnvelope": -0.08,
+        "leanEnvelope": -0.12,
+        "crouchEnvelope": 0.08,
+        "leanAmplitudePixels": 9.0,
+        "crouchAmplitudePixels": 7.0,
+        "armPullAmplitudePixels": 16.0,
+        "armDropRatio": 0.35,
+        "feetPinExclusiveY": 800
+      },
+      "alphaBounds": {
+        "origin": "top-left",
+        "x": 70,
+        "y": 125,
+        "width": 501,
+        "height": 730
+      },
+      "overallAlphaMaxY": 854,
+      "outerBorderNonTransparentPixels": 0,
+      "footContact": {
+        "characterRightViewerLeft": {
+          "region": [
+            120,
+            700,
+            195,
+            200
+          ],
+          "maxVisibleY": 828,
+          "baselinePixelCountY852to854": 0
+        },
+        "characterLeftViewerRight": {
+          "region": [
+            315,
+            700,
+            135,
+            200
+          ],
+          "maxVisibleY": 854,
+          "baselinePixelCountY852to854": 73
+        }
+      },
+      "alphaCentroid": [
+        311.426063,
+        481.873404
+      ],
+      "stringArmRegionCentroid": [
+        217.368342,
+        556.493028
+      ]
+    },
+    {
+      "frameIndex": 8,
+      "path": "assets/units/hero.archer/attack-chibi-v1/hero.archer_attack_008.png",
+      "sha256": "40bc3c341043536793d4176fe533349a6cb49630d80c580959906cff3a8fd6ee",
+      "bytes": 498950,
+      "dimensions": [
+        640,
+        960
+      ],
+      "mode": "RGBA",
+      "role": "recovery",
+      "marker": null,
+      "sourceOperation": "independent premultiplied-alpha draw-and-release displacement from exact approved Neutral Master",
+      "motionParameters": {
+        "drawEnvelope": 0.03,
+        "leanEnvelope": 0.02,
+        "crouchEnvelope": 0.03,
+        "leanAmplitudePixels": 9.0,
+        "crouchAmplitudePixels": 7.0,
+        "armPullAmplitudePixels": 16.0,
+        "armDropRatio": 0.35,
+        "feetPinExclusiveY": 800
+      },
+      "alphaBounds": {
+        "origin": "top-left",
+        "x": 71,
+        "y": 125,
+        "width": 502,
+        "height": 730
+      },
+      "overallAlphaMaxY": 854,
+      "outerBorderNonTransparentPixels": 0,
+      "footContact": {
+        "characterRightViewerLeft": {
+          "region": [
+            120,
+            700,
+            195,
+            200
+          ],
+          "maxVisibleY": 828,
+          "baselinePixelCountY852to854": 0
+        },
+        "characterLeftViewerRight": {
+          "region": [
+            315,
+            700,
+            135,
+            200
+          ],
+          "maxVisibleY": 854,
+          "baselinePixelCountY852to854": 73
+        }
+      },
+      "alphaCentroid": [
+        312.176747,
+        481.749367
+      ],
+      "stringArmRegionCentroid": [
+        217.484339,
+        556.566652
+      ]
+    },
+    {
+      "frameIndex": 9,
+      "path": "assets/units/hero.archer/attack-chibi-v1/hero.archer_attack_009.png",
+      "sha256": "4911e7e3ba59241ee011be3e62f1b64230dcf9b3c24c6aeb23dc939d83311013",
+      "bytes": 569259,
+      "dimensions": [
+        640,
+        960
+      ],
+      "mode": "RGBA",
+      "role": "return-to-neutral",
+      "marker": null,
+      "sourceOperation": "byte-identical copy of exact approved Neutral Master (neutral exit)",
+      "motionParameters": {
+        "drawEnvelope": 0.0,
+        "leanEnvelope": 0.0,
+        "crouchEnvelope": 0.0,
+        "leanAmplitudePixels": 9.0,
+        "crouchAmplitudePixels": 7.0,
+        "armPullAmplitudePixels": 16.0,
+        "armDropRatio": 0.35,
+        "feetPinExclusiveY": 800
+      },
+      "alphaBounds": {
+        "origin": "top-left",
+        "x": 71,
+        "y": 125,
+        "width": 501,
+        "height": 730
+      },
+      "overallAlphaMaxY": 854,
+      "outerBorderNonTransparentPixels": 0,
+      "footContact": {
+        "characterRightViewerLeft": {
+          "region": [
+            120,
+            700,
+            195,
+            200
+          ],
+          "maxVisibleY": 828,
+          "baselinePixelCountY852to854": 0
+        },
+        "characterLeftViewerRight": {
+          "region": [
+            315,
+            700,
+            135,
+            200
+          ],
+          "maxVisibleY": 854,
+          "baselinePixelCountY852to854": 73
+        }
+      },
+      "alphaCentroid": [
+        312.094979,
+        481.62314
+      ],
+      "stringArmRegionCentroid": [
+        217.530738,
+        556.567952
+      ]
+    }
+  ],
+  "sequenceContinuity": {
+    "metric": "mean absolute difference of premultiplied RGBA normalized to 0..1",
+    "adjacentFramePairs": [
+      {
+        "from": 0,
+        "to": 1,
+        "value": 0.02076211
+      },
+      {
+        "from": 1,
+        "to": 2,
+        "value": 0.020643504
+      },
+      {
+        "from": 2,
+        "to": 3,
+        "value": 0.017578743
+      },
+      {
+        "from": 3,
+        "to": 4,
+        "value": 0.008885697
+      },
+      {
+        "from": 4,
+        "to": 5,
+        "value": 0.037425932
+      },
+      {
+        "from": 5,
+        "to": 6,
+        "value": 0.029587768
+      },
+      {
+        "from": 6,
+        "to": 7,
+        "value": 0.013266054
+      },
+      {
+        "from": 7,
+        "to": 8,
+        "value": 0.010395281
+      },
+      {
+        "from": 8,
+        "to": 9,
+        "value": 0.003106928
+      }
+    ],
+    "releaseSnapPair4To5": 0.037425932,
+    "maximumAdjacent": 0.037425932,
+    "releaseSnapIsMaximumAdjacent": true,
+    "settlePair8To9": 0.003106928,
+    "entryDeltaFromNeutral": 0.011041382,
+    "exitFrameByteIdenticalToNeutral": true,
+    "sourceDeltaByFrame": [
+      0.011041382,
+      0.026638893,
+      0.037302852,
+      0.043719295,
+      0.04579141,
+      0.022640225,
+      0.02024807,
+      0.010860858,
+      0.003106928,
+      0.0
+    ]
+  },
+  "rootMotion": {
+    "alphaCentroids": [
+      [
+        312.498353,
+        482.076555
+      ],
+      [
+        313.990904,
+        483.160167
+      ],
+      [
+        315.473238,
+        484.233692
+      ],
+      [
+        316.458681,
+        485.247999
+      ],
+      [
+        317.041365,
+        485.455417
+      ],
+      [
+        313.840345,
+        482.915286
+      ],
+      [
+        310.379196,
+        482.076106
+      ],
+      [
+        311.426063,
+        481.873404
+      ],
+      [
+        312.176747,
+        481.749367
+      ],
+      [
+        312.094979,
+        481.62314
+      ]
+    ],
+    "horizontalCentroidRangePixels": 6.662169,
+    "verticalCentroidRangePixels": 3.832277,
+    "accumulatedTranslationPixels": 0,
+    "worldTravelBaked": false
+  },
+  "drawReleaseEvidence": {
+    "stringArmRegion": [
+      60,
+      430,
+      255,
+      260
+    ],
+    "stringArmRegionCentroidsByFrame": [
+      [
+        217.314979,
+        556.56952
+      ],
+      [
+        217.211582,
+        556.614646
+      ],
+      [
+        217.104216,
+        556.636209
+      ],
+      [
+        217.004487,
+        556.614357
+      ],
+      [
+        217.140862,
+        556.64173
+      ],
+      [
+        218.267806,
+        556.669974
+      ],
+      [
+        217.067731,
+        556.383431
+      ],
+      [
+        217.368342,
+        556.493028
+      ],
+      [
+        217.484339,
+        556.566652
+      ],
+      [
+        217.530738,
+        556.567952
+      ]
+    ],
+    "fullDrawFrame4CentroidXShiftFromNeutral": -0.389876,
+    "releaseSnapCentroidXShiftFrames4To5": 1.126944,
+    "releaseSnapMovesTowardBow": true
+  },
+  "anchorDecision": {
+    "value": [
+      0.5,
+      0.92
+    ],
+    "status": "retained-from-approved-idle-and-move-packages",
+    "feetPinExclusiveY": 800,
+    "reason": "Rows y>=800 are byte-identical to the Neutral Master in every frame, so both feet and the y=854 contact baseline are pinned exactly; the approved anchor remains correct with zero foot slide by construction."
+  },
+  "markerAlignment": {
+    "projectileRelease": {
+      "normalizedTime": 0.55,
+      "frameIndex": 5,
+      "displayedInterval": [
+        0.5,
+        0.6
+      ],
+      "runtimeContractMatch": true
+    },
+    "markersChangedFromBaseline": false
+  },
+  "reviewArtifacts": [
+    {
+      "id": "contact-sheet",
+      "path": "docs/assets/review/character-production/archer/attack-production-v1/archer-attack-production-v1-contact-sheet.png",
+      "sha256": "f884db7441f8f9f6477ed04693955f1dc8e2fbb05e50f582ea9e2cd2c4f26603",
+      "reviewOnly": true,
+      "runtimeEligible": false
+    },
+    {
+      "id": "sequence-preview",
+      "path": "docs/assets/review/character-production/archer/attack-production-v1/archer-attack-production-v1-sequence-preview.gif",
+      "sha256": "156cc6826eb688b890e9c7cd06b4eeb2798ca769863e583c7c1b5cf9b6bcc106",
+      "reviewOnly": true,
+      "runtimeEligible": false
+    },
+    {
+      "id": "board-scale-sample",
+      "path": "docs/assets/review/character-production/archer/attack-production-v1/archer-attack-production-v1-board-scale-sample.png",
+      "sha256": "67e95ce2dcdef0b538da7ce46b900e0617b88b2f0fa6bb461b01583c8aeec91a",
+      "method": {
+        "sourceFrame": 5,
+        "frameScale": [
+          98,
+          147
+        ],
+        "position": [
+          128,
+          240
+        ],
+        "comparisonTileRect": [
+          129,
+          338,
+          98,
+          67
+        ]
+      },
+      "reviewOnly": true,
+      "runtimeEligible": false
+    },
+    {
+      "id": "marker-release-diagnostic",
+      "path": "docs/assets/review/character-production/archer/attack-production-v1/archer-attack-production-v1-marker-release-diagnostic.png",
+      "sha256": "c8fb380e19f612fa1fb9c5a965139c9230dd84e5507a16305d472f306a874897",
+      "sourceFrames": [
+        4,
+        5
+      ],
+      "reviewOnly": true,
+      "runtimeEligible": false
+    }
+  ],
+  "status": {
+    "neutralMasterApproved": true,
+    "idlePackageApproved": true,
+    "movePackageApproved": true,
+    "attackGenerated": true,
+    "attackPackageApproved": false,
+    "canonicalApproved": false,
+    "runtimeEligible": false,
+    "runtimeIntegrated": false
+  }
+}
