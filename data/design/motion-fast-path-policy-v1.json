@@ -1,0 +1,101 @@
+{
+  "schemaVersion": 1,
+  "id": "motion-fast-path-policy-v1",
+  "status": "planning-only-activate-after-pilot-acceptance",
+  "repository": "phathompongsae-ops/Auto-Battler",
+  "principle": "Archer is a pilot used to prove standards. Do not copy pilot bureaucracy to every unit; reuse proven standards and escalate only exceptions.",
+  "fastPathEligibilityAllRequired": [
+    "the motion archetype pipeline has already passed at least one accepted pilot or representative package",
+    "the unit has an exact approved current source/neutral identity",
+    "the requested motion is part of the current production priority rather than optional polish",
+    "no unique marker complexity or ambiguous semantic event is present",
+    "no unusual anatomy requires a new motion method",
+    "the unit/package has no unresolved identity-drift, near-static, checker/background or repeated rejection pattern",
+    "a reusable common validator plus the correct motion-specific gate supports the package",
+    "standard automatic review artifacts can prove the package clearly at board/mobile scale",
+    "package paths, hashes, approval and rollback can remain isolated from batch siblings",
+    "no runtime/Core Logic/gameplay change is required to support this package"
+  ],
+  "fastPathWorkflow": [
+    "Batch Production",
+    "Common Technical Validation + Motion-Specific Gate",
+    "Batch Human Visual Review",
+    "Exact-File Approval Overlay for Passed Packages",
+    "Grouped Runtime Migration for Approved Packages"
+  ],
+  "fastPathSkipsByDefault": [
+    "per-unit planning PR",
+    "per-unit readiness PR",
+    "separate technical-handoff PR when the proven batch template already contains all required fields",
+    "one PR per simple motion package",
+    "re-proving the same runtime architecture already accepted by the pilot"
+  ],
+  "fastPathStillRequires": [
+    "source-of-truth verification at task start",
+    "exact source hashes/provenance",
+    "technical validation",
+    "motion-specific visual gate",
+    "explicit human visual approval",
+    "exact hashes locked per package",
+    "rollback isolation",
+    "runtime validation after integration"
+  ],
+  "slowPathTriggers": [
+    {"trigger":"identity drift or current master mismatch","action":"stop batch candidate and resolve source identity individually"},
+    {"trigger":"near-static or semantically unreadable motion","action":"individual motion redesign/review; do not let technical PASS override failure"},
+    {"trigger":"complex weapon articulation","action":"individual or very small biomechanics-specific batch"},
+    {"trigger":"boss/unique unit","action":"individual production/review by default"},
+    {"trigger":"multi-phase or signature skill","action":"individual motion contract and marker review"},
+    {"trigger":"special VFX timing coupled to a semantic pose","action":"individual marker/visual contract; keep VFX runtime-owned"},
+    {"trigger":"unusual anatomy or first member of a new locomotion archetype","action":"representative archetype pilot before wider batching"},
+    {"trigger":"marker ambiguity or legacy marker conflict","action":"derive timing from actual visual event and current gameplay contract"},
+    {"trigger":"repeated visual rejection","action":"isolate package and require dedicated diagnostics/review"},
+    {"trigger":"source/master changes after derivative production","action":"invalidate affected derivative fast-path assumptions and version/redo as needed"},
+    {"trigger":"runtime/gameplay modification required","action":"separate CC runtime scope; do not hide inside an asset batch"}
+  ],
+  "returnFromSlowPathToFastPath": [
+    "the root cause is resolved",
+    "a representative package passes technical + visual + exact approval",
+    "the new anatomy/weapon/motion rule is encoded as reusable config/gate",
+    "no unit-specific runtime change remains",
+    "at least one later sibling candidate can reuse the proven method without copying identity/pose blindly"
+  ],
+  "batchApprovalRules": {
+    "combinedHumanReviewAllowed": true,
+    "perPackageDecisionRequired": true,
+    "perPackageHashLockRequired": true,
+    "partialBatchApprovalAllowed": true,
+    "failedPackageBlocksSiblings": false,
+    "failedPackageAction": "Remove from approval set, create isolated redo/version, retain passed package bytes unchanged."
+  },
+  "prOptimization": {
+    "simpleFastPath": {
+      "production": "One batch production PR for several isolated compatible packages.",
+      "approval": "One batch approval overlay PR may lock several explicitly approved packages with separate package records/hashes.",
+      "runtime": "One grouped runtime migration PR may import several approved packages with per-unit/state rollback."
+    },
+    "slowPath": "Complex/unique/failed packages use individual PRs only where the risk justifies isolation.",
+    "auditRule": "PR grouping reduces coordination overhead but never merges package identities, hashes or rollback boundaries."
+  },
+  "reviewFailureIsolation": {
+    "example": "If 5 Idle packages are reviewed together and 1 fails, approve the 4 passed exact packages and redo only the failed one if ancestry/package paths remain independent.",
+    "forbidden": "Editing already-passed sibling package bytes merely to keep the batch visually uniform."
+  },
+  "ownership": {
+    "CC": [
+      "production/generation execution",
+      "implement reusable validator/artifact tooling when separately authorized",
+      "run technical validation",
+      "runtime integration/migration",
+      "x4 runtime/Combat testing"
+    ],
+    "Coco": [
+      "GitHub/source-of-truth verification",
+      "planning/data/config and batch candidate grouping",
+      "review coordination and result reconciliation",
+      "prepare exact-file approval records after explicit user decisions",
+      "scope/ancestry/changed-path audits"
+    ],
+    "noDuplication": "Coco does not generate production motion or modify runtime while CC owns execution."
+  }
+}
