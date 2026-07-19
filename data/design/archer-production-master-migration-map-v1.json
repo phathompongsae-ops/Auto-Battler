@@ -6,8 +6,9 @@
   "neutralMasterApproved": true,
   "idlePackageApproved": true,
   "movePackageGenerated": true,
-  "movePackageApproved": false,
+  "movePackageApproved": true,
   "moveProductionContract": "data/design/archer-move-production-v1.json",
+  "moveApprovalRecord": "data/design/archer-move-package-exact-file-approval-v1.json",
   "idleApprovalRecord": "data/design/archer-idle-package-exact-file-approval-v1.json",
   "approvedNeutralMasterSource": true,
   "userApprovalRecorded": true,
@@ -204,14 +205,14 @@
     {
       "step": 3,
       "deliverable": "Archer Move",
-      "currentStatus": "production-candidate-generated-approval-pending",
-      "gate": "user exact-package approval required before Attack production"
+      "currentStatus": "complete-exact-package-approved",
+      "gate": "passed-user-exact-package-approval; locked to PR #64 frame hashes"
     },
     {
       "step": 4,
       "deliverable": "Archer Attack",
-      "currentStatus": "deferred",
-      "gate": "Move package approved"
+      "currentStatus": "authorized-not-started",
+      "gate": "Move package approved; separate Attack production and approval required"
     },
     {
       "step": 5,
@@ -229,7 +230,7 @@
     "motionFramesModifiedByThisApprovalTask": false,
     "moveFramesGenerated": true,
     "moveFramesGeneratedByThisProductionTask": true,
-    "moveFramesApproved": false,
+    "moveFramesApproved": true,
     "attackFramesGenerated": false,
     "nonArcherCharactersModified": false
   }
