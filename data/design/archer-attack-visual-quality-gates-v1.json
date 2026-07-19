@@ -1,0 +1,134 @@
+{
+  "gateVersion": 1,
+  "id": "archer-attack-visual-quality-gates-v1",
+  "characterId": "hero.archer",
+  "state": "attack",
+  "purpose": "Prevent technically valid but visually near-static Archer Attack packages from passing review.",
+  "comparativeBaselines": {
+    "oldClearReference": {
+      "verdict": "CLEAR",
+      "sourcePRs": [30, 31],
+      "preferredReferencePR": 31,
+      "frameCount": 10,
+      "evidence": "Distinct source pose sequence with semantic roles raise_bow, nock_arrow, draw_mid, draw_full_tension, release, recoil_follow_through, follow_through_open_hand, return_to_ready.",
+      "poseExtentExamples": [
+        {"frameIndex": 0, "bboxX": [34, 287]},
+        {"frameIndex": 4, "bboxX": [25, 295]},
+        {"frameIndex": 6, "bboxX": [12, 309]}
+      ],
+      "interpretation": "Material silhouette and articulated-pose diversity is visible across the sequence."
+    },
+    "rejectedV1": {
+      "verdict": "NEAR_STATIC",
+      "sourcePR": 67,
+      "head": "390c288c90ee060bccba5f5a00aa673ed503d521",
+      "measuredEvidence": {
+        "fullDrawStringArmCentroidXShiftFromNeutralPixels": -0.389876,
+        "releaseSnapStringArmCentroidXShiftPixels": 1.126944,
+        "horizontalAlphaCentroidRangePixels": 6.662169,
+        "verticalAlphaCentroidRangePixels": 3.832277,
+        "alphaBoundsWidthObservedApproxPixels": [501, 508],
+        "sourceCanvas": [640, 960]
+      },
+      "interpretation": "Unique hashes and measurable pixel deltas existed, but pose articulation and board-scale attack readability were insufficient."
+    }
+  },
+  "gates": {
+    "A_poseDiversity": {
+      "required": true,
+      "rule": "Meaningful pose diversity must be demonstrated by silhouette and articulated limb geometry, not file-hash uniqueness or minor warps.",
+      "requiredKeyPoseDistinctions": [
+        "frame000 ready vs frame001 raise",
+        "frame001 raise vs frame003 draw-mid",
+        "frame003 draw-mid vs frame004 full-draw",
+        "frame004 full-draw vs frame005 release",
+        "frame005 release vs frame006 follow-through",
+        "frame006/007 follow-through vs frame009 neutral exit"
+      ],
+      "failure": "If key frames look like the same neutral pose with small displacement, FAIL."
+    },
+    "B_armArticulation": {
+      "required": true,
+      "mustShow": [
+        "shoulder rotation or clear shoulder-line change",
+        "upper-arm movement",
+        "elbow bend/position change",
+        "forearm displacement",
+        "drawing hand visibly travels backward during draw",
+        "bow arm visibly raises/stabilizes"
+      ],
+      "evidence": [
+        "annotated shoulder/elbow/hand landmarks for key frames",
+        "drawing-hand displacement measurement",
+        "arm-region geometry/centroid measurements as secondary evidence",
+        "key-frame overlay or diagnostic"
+      ],
+      "failure": "Centroid/subpixel movement without visible joint articulation is insufficient."
+    },
+    "C_bowDrawReadability": {
+      "required": true,
+      "fullDrawFrameTarget": 4,
+      "rule": "Full draw must be immediately distinguishable from ready/neutral and read as a bow under tension.",
+      "mustShow": [
+        "drawing hand pulled visibly backward",
+        "elbow/forearm geometry consistent with draw",
+        "bow-arm stabilization",
+        "hand/string/bow relation readable as draw",
+        "full-draw silhouette clearly distinct from neutral"
+      ],
+      "projectileVfxMayCarryGate": false
+    },
+    "D_releaseReadability": {
+      "required": true,
+      "rule": "Release must be a semantic pose change from full draw, not merely the largest pixel delta or a warp reset.",
+      "mustShow": [
+        "visible drawing-hand/arm release response",
+        "tension visibly resolves",
+        "release pose distinct from full-draw pose"
+      ],
+      "markerRule": "projectileRelease must map to the actual visual release frame after pose review."
+    },
+    "E_followThrough": {
+      "required": true,
+      "frames": [6, 7],
+      "rule": "At least one post-release frame must visibly read as recoil/follow-through and remain distinct from both release and neutral.",
+      "heldPoseAllowed": true
+    },
+    "F_boardScalePerceptual": {
+      "required": true,
+      "rule": "At gameplay scale, a viewer must identify the motion as 'Archer shoots a bow' from character motion alone, without relying on projectile, trail, impact VFX, labels, or marker overlays.",
+      "mobileFirst": true,
+      "requiredHumanQuestions": [
+        "เห็นยกธนูไหม",
+        "เห็นง้างสายไหม",
+        "เห็น full draw ชัดไหม",
+        "เห็นปล่อยลูกศรไหม",
+        "เห็น follow-through ไหม",
+        "ยังเป็น Archer ตัวเดิมไหม",
+        "ที่ board scale ยังอ่านออกไหม"
+      ],
+      "hardRule": "If questions 2 through 5 are not clearly YES, approval is forbidden."
+    }
+  },
+  "quantitativeReviewMetrics": {
+    "required": [
+      "silhouette width and shape change across key poses",
+      "changed-region bounding box between neutral/ready and full-draw",
+      "drawing-hand displacement across ready -> draw-mid -> full-draw -> release",
+      "shoulder/elbow/forearm landmark geometry change",
+      "arm-region centroid shift as secondary evidence",
+      "bow orientation or visible extent change where pose requires it",
+      "full-draw vs neutral perceptual difference",
+      "release vs full-draw perceptual difference"
+    ],
+    "thresholdPolicy": "Do not invent arbitrary absolute thresholds without a stable baseline. Report normalized values and compare against both old CLEAR reference and rejected PR #67 NEAR_STATIC reference.",
+    "comparativePassDirection": "v2 must be materially closer to the old CLEAR articulated readability than to PR #67 near-static behavior.",
+    "subpixelWobblePolicy": "A metric set dominated by sub-pixel or approximately one-pixel board-scale changes cannot satisfy the visual gate even if hashes differ."
+  },
+  "humanApproval": {
+    "required": true,
+    "technicalPassCannotOverride": true,
+    "autoApprovalForbidden": true,
+    "userVisualApprovalRequiredBeforeExactFileApproval": true
+  }
+}
