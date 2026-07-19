@@ -1,0 +1,84 @@
+{
+  "templateVersion": 1,
+  "id": "archer-attack-package-exact-file-approval-template-v1",
+  "title": "Archer Attack Package Exact-File Approval v1",
+  "templateStatus": "pending-user-approval-template-only",
+  "characterId": "hero.archer",
+  "state": "attack",
+  "activationRule": "Do not convert this template into an approval record until the user explicitly approves the exact CC-produced Attack candidate package.",
+  "source": {
+    "repository": "phathompongsae-ops/Auto-Battler",
+    "coordinationBasePR": 66,
+    "coordinationBaseSha": "b2bc48ca3b246f6c72879c2683a9b19e1cf5cd11",
+    "productionSourcePR": 65,
+    "productionSourceSha": "5305c84e80a7117c69a2f8048f9f5ca76e051d09",
+    "neutralMaster": {
+      "id": "hero.archer.production-master.candidate.v1",
+      "path": "docs/assets/review/character-production/archer/master-v1/archer-production-master-candidate-v1.png",
+      "sha256": "4911e7e3ba59241ee011be3e62f1b64230dcf9b3c24c6aeb23dc939d83311013"
+    }
+  },
+  "candidatePackageToFillAfterProduction": {
+    "packageId": null,
+    "productionPR": null,
+    "productionBranch": null,
+    "productionHeadSha": null,
+    "frameCount": null,
+    "fps": null,
+    "loop": null,
+    "rootMotion": null,
+    "runtimeFlipX": null,
+    "anchor": null,
+    "releaseCue": {
+      "frameIndex": null,
+      "normalizedTime": null,
+      "semanticMeaning": "future runtime projectile release timing"
+    },
+    "frames": [],
+    "sidecarPath": null,
+    "sourceMapPath": null,
+    "productionContractPath": null,
+    "validationReportPath": null,
+    "humanReviewPath": null
+  },
+  "requiredFrameRecordShape": {
+    "frameIndex": "integer",
+    "path": "string",
+    "sha256": "64-char lowercase hex",
+    "dimensions": [640, 960],
+    "mode": "RGBA",
+    "alphaBounds": "measured bounds"
+  },
+  "protectedByteBoundary": {
+    "neutralMasterMustRemainUnchanged": true,
+    "approvedIdleMustRemainUnchanged": true,
+    "approvedMoveMustRemainUnchanged": true,
+    "attackApprovalLocksExactCandidateBytes": true,
+    "anyLaterAttackPixelOrSemanticChangeRequiresNewVersionAndNewApproval": true
+  },
+  "userApprovalRecordToFillOnlyAfterExplicitApproval": {
+    "owner": "user",
+    "decision": null,
+    "recordedAt": null,
+    "explicitApprovalEvidence": null,
+    "approvedExactFrameHashes": [],
+    "approvedPackageSemantics": []
+  },
+  "currentState": {
+    "neutralMasterApproved": true,
+    "idlePackageApproved": true,
+    "movePackageApproved": true,
+    "attackGenerated": false,
+    "attackPackageApproved": false,
+    "canonicalApproved": false,
+    "runtimeEligible": false,
+    "runtimeIntegrated": false
+  },
+  "immutabilityRule": "Once an exact Attack package is explicitly approved by the user, its approved frame hashes, sidecar/source-map semantics, FPS, loop behavior, rootMotion, runtimeFlipX, anchor, and releaseCue become immutable for v1; changes require a new version and approval cycle.",
+  "forbiddenNow": [
+    "setting attackPackageApproved=true",
+    "recording a fake user approval",
+    "authorizing runtime integration",
+    "creating an Attack Exact-File Approval PR before explicit user approval"
+  ]
+}
