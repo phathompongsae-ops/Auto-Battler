@@ -3,13 +3,16 @@
   "id": "archer-neutral-master-approval-pack-v1",
   "characterId": "hero.archer",
   "candidateId": "hero.archer.production-master.candidate.v1",
-  "status": "review-complete-user-approval-pending",
+  "status": "review-complete-user-exact-file-approval-recorded",
   "styleDirectionApproved": true,
-  "neutralMasterApproved": false,
+  "neutralMasterApproved": true,
+  "approvedNeutralMasterSource": true,
   "canonicalApproved": false,
   "runtimeEligible": false,
   "reviewOnly": true,
-  "userApprovalRequired": true,
+  "userApprovalRequired": false,
+  "userApprovalRecorded": true,
+  "approvalRecord": "data/design/archer-neutral-master-exact-file-approval-v1.json",
   "candidateRegenerated": false,
   "candidateModified": false,
   "motionGenerated": false,
@@ -56,7 +59,8 @@
     "sourcePR": 59,
     "reviewOnly": true,
     "runtimeEligible": false,
-    "neutralMasterApproved": false,
+    "neutralMasterApproved": true,
+    "approvedNeutralMasterSource": true,
     "canonicalApproved": false,
     "immutabilityRule": "Every composite uses decoded pixels from this exact SHA. The source file is not cropped, retouched, repainted, redesigned, regenerated, or overwritten."
   },
@@ -123,14 +127,14 @@
         "characterPixelOperation": "native-size alpha composite only"
       },
       "technicalStatus": "pass",
-      "approvalStatus": "pending-user-approval",
+      "approvalStatus": "reviewed-user-approved-neutral-master",
       "observations": [
         "Face, large green eyes, hood, hair locks, pointed ears, bow, costume, and full silhouette are available for one-to-one inspection.",
         "The source margins remain visible: left 71 px, top 125 px, right 68 px, bottom 105 px.",
         "The bow tip, quiver, hair, cape, and both feet are uncropped; the outer canvas border remains transparent."
       ],
       "concerns": [
-        "Exact visual approval remains a user decision; this technical pass does not set neutralMasterApproved."
+        "The technical pass alone did not grant approval; the user's later exact-file approval is recorded in the dedicated approval record."
       ]
     },
     {
@@ -154,7 +158,7 @@
         "inspectionInset": "three-times point magnification of the 98x147 reduced result"
       },
       "technicalStatus": "pass-with-observation",
-      "approvalStatus": "pending-user-approval",
+      "approvalStatus": "reviewed-user-approved-neutral-master",
       "observations": [
         "The hood-and-ear head shape, green/gold palette, and oversized bow make the Ranger class read immediately against warm sand and stone.",
         "The all-alpha silhouette is approximately 82x118 px and remains within one 98 px tile width; feet are anchored inside the highlighted tile.",
@@ -187,7 +191,7 @@
         "inspectionInset": "four-times point magnification of the 80x120 reduced result"
       },
       "technicalStatus": "pass-with-concern",
-      "approvalStatus": "pending-user-approval",
+      "approvalStatus": "reviewed-user-approved-neutral-master",
       "observations": [
         "The all-alpha silhouette is approximately 68x97 px, leaving horizontal space inside a 98 px bench slot.",
         "The complete hood, ears, bow, quiver, cape, legs, and feet remain uncropped.",
@@ -227,7 +231,7 @@
         "background": "deterministic review-only card primitives; no production UI asset"
       },
       "technicalStatus": "pass-safe-layout-fail-tight-crop",
-      "approvalStatus": "pending-user-approval",
+      "approvalStatus": "reviewed-user-approved-neutral-master",
       "observations": [
         "The full-silhouette layout keeps face and eyes dominant while retaining the entire bow, hair, cape, legs, and feet.",
         "The Archer/Ranger identity is immediate through hood, ears, green/gold palette, bow, and quiver.",
@@ -242,14 +246,17 @@
   ],
   "approvalDecision": {
     "owner": "user",
-    "currentDecision": "pending",
+    "currentDecision": "approved-exact-file",
+    "recordedAt": "2026-07-19",
+    "approvedCandidateId": "hero.archer.production-master.candidate.v1",
+    "approvedSha256": "4911e7e3ba59241ee011be3e62f1b64230dcf9b3c24c6aeb23dc939d83311013",
     "technicalSummary": "Full-size and safe shop-card framing pass technical review. Board scale passes with expected fine-detail loss. Bench scale remains usable but has the highest face/hood-hair compression risk.",
-    "requiredForApproval": [
-      "user reviews the exact candidate and all four review contexts",
-      "user explicitly approves the candidate identified by SHA-256",
-      "a later approval-only change records neutralMasterApproved=true without modifying candidate bytes"
+    "completedApprovalEvidence": [
+      "user reviewed the exact candidate and all four review contexts",
+      "user explicitly approved the candidate identified by SHA-256",
+      "this approval-only change records neutralMasterApproved=true without modifying candidate bytes"
     ],
-    "forbiddenAutomaticDecision": "Coco does not set neutralMasterApproved, canonicalApproved, or runtimeEligible to true."
+    "approvalBoundary": "Approval comes from the explicit user decision. It approves only the exact Neutral Master source; canonicalApproved and runtimeEligible remain false, and no derivative or motion package is approved."
   },
   "futureSequence": [
     "Neutral Master user approval",
