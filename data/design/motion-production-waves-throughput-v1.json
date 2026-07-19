@@ -1,0 +1,150 @@
+{
+  "schemaVersion": 1,
+  "id": "motion-production-waves-throughput-v1",
+  "status": "capacity-planning-only-no-production-authorized",
+  "repository": "phathompongsae-ops/Auto-Battler",
+  "scopeRule": "Schedule only roster entries confirmed by current repository data. Future Map 2/3 or unconfirmed secret units require a later current-data pass before entering a wave.",
+  "prerequisites": [
+    "Archer Pilot Acceptance complete",
+    "Slime/Golem migration batch used to validate the batch workflow",
+    "reusable common validator/config/artifact conventions accepted",
+    "each unit entering production has an approved current source/neutral identity"
+  ],
+  "executionOrder": [
+    {"order":1,"step":"Slime/Golem migration batch","goal":"prove two-anatomy batch planning, common validation, combined review, partial approval and grouped migration without forcing one motion method"},
+    {"order":2,"step":"Validate batch workflow","goal":"measure real review/redo throughput and adjust batch-size guidelines"},
+    {"order":3,"step":"Lock reusable production template","goal":"freeze common validator config shape, artifact set, package isolation and approval overlay conventions"},
+    {"order":4,"step":"Start Wave 1","goal":"use a moderate 3-6 unit archetype-driven batch rather than another single-character pilot"},
+    {"order":5,"step":"Parallelize safe motion categories","goal":"run Idle/Move batch work across compatible units while smaller attack sub-batches proceed independently"},
+    {"order":6,"step":"Hold complex motions for dedicated passes","goal":"bosses, first-of-archetype quadruped, signature skills and failed packages stay out of fast-path batches"}
+  ],
+  "waves": [
+    {
+      "id":"WAVE_0_MIGRATION",
+      "units":["monster.slime","monster.golem"],
+      "purpose":"Pilot migration candidates immediately after Archer acceptance",
+      "batchPlan":"Shared source audit, common technical validation and combined review; anatomy-specific motion generation remains separate.",
+      "notes":"Slime conditional-reuse path; Golem replacement path."
+    },
+    {
+      "id":"WAVE_1_HUMANOID_MELEE_FOUNDATION",
+      "units":["hero.fighter","hero.swordman","monster.skeleton","monster.orc"],
+      "purpose":"Establish reusable biped melee Idle/Move and several basic-attack biomechanics subgroups",
+      "batchPlan":"Idle 4-unit batch; Move 4-unit batch; attacks split into fist/blade/heavy sub-batches instead of one generic attack."
+    },
+    {
+      "id":"WAVE_2_RANGED_CASTER_MAP1_CORE",
+      "units":["hero.mage","hero.summoner","hero.acolyte","hero.merchant","monster.spirit_archer"],
+      "purpose":"Reuse biped locomotion while proving small semantic attack groups for caster/ranged/support units",
+      "batchPlan":"Idle/Move may batch broadly; attacks split by cast/command/holy/gadget/bow semantics using existing Class 1 profiles and ranged-monster gates."
+    },
+    {
+      "id":"WAVE_3_ASSASSIN_FAST",
+      "units":["monster.shadow_assassin","hero.ninja","hero.trickster","hero.duelist"],
+      "purpose":"Fast-unit locomotion and sharp attack readability",
+      "batchPlan":"Idle/Move batch-with-review; attack sub-batches max 2-3 based on weapon/anatomy. Ninja enters only after exact source identity approval.",
+      "runtimeBoundary":"Warp/backline targeting remains runtime-owned, never baked into motion."
+    },
+    {
+      "id":"WAVE_4_CLASS2_MELEE",
+      "units":["hero.knight","hero.berserker","hero.blade_master","hero.spirit_blade"],
+      "purpose":"Scale proven humanoid melee pipelines into Class 2",
+      "batchPlan":"Idle/Move grouped; attacks split by shield/heavy/blade/hybrid semantics."
+    },
+    {
+      "id":"WAVE_5_CLASS2_RANGED_CASTER",
+      "units":["hero.sniper","hero.ranger","hero.archmage","hero.frost_weaver","hero.priest","hero.inquisitor"],
+      "purpose":"Scale ranged/caster pipelines with existing range/role data",
+      "batchPlan":"Idle batches up to 6; Move 3-6; attack/cast groups 2-3 only when semantics/weapon biomechanics match."
+    },
+    {
+      "id":"WAVE_6_SPECIALIST_HYBRID",
+      "units":["hero.beast_lord","hero.tycoon"],
+      "purpose":"Small deliberate batch for specialist/support identities that do not fit a large generic attack group",
+      "batchPlan":"Share biped technical pipeline; character-specific attack/skill review remains stricter.",
+      "whyOnlyTwo":"Avoid padding a batch with biomechanically unrelated units merely to hit a numeric target."
+    }
+  ],
+  "separateDedicatedPasses": [
+    {
+      "id":"QUADRUPED_ARCHETYPE_STARTER",
+      "units":["monster.stone_wolf"],
+      "reason":"First confirmed Map 1 quadruped; individual archetype pilot first, then future beasts can use fast-path if accepted."
+    },
+    {
+      "id":"BOSS_UNIQUE_PASSES",
+      "units":["monster.orc_warlord","monster.bone_dragon","monster.lich_king","monster.arena_overlord"],
+      "reason":"Scale/anatomy/telegraph/signature mechanics justify individual or very small dedicated production; common technical tooling still reused."
+    }
+  ],
+  "notScheduled": [
+    {"units":["monster.warden","monster.champion","monster.immortal_champion"],"reason":"obsolete in current Map 1 encounter policy"},
+    {"units":["hero.novice"],"reason":"require explicit current gameplay/runtime need before motion production"},
+    {"scope":"Map 2/Map 3 future-only or unconfirmed secret roster","reason":"do not manufacture production scope without current repository data/identity approval"}
+  ],
+  "throughputModel": {
+    "nature":"planning estimate, not a delivery promise and not measured historical throughput",
+    "assumptions":[
+      "exact source/neutral identities are already approved before motion batch starts",
+      "common validator/config/artifact tooling exists and is stable",
+      "no runtime/Core Logic change is needed per package",
+      "standard review artifacts are generated automatically",
+      "human review is performed in combined mobile-friendly batch views",
+      "packages remain path/hash isolated so partial batch approval is possible"
+    ],
+    "packagesPerDay": {
+      "simple": {
+        "idle":{"CONSERVATIVE":[3,4],"TARGET":[6,8],"FAST_PATH":[8,10]},
+        "move":{"CONSERVATIVE":[2,3],"TARGET":[4,6],"FAST_PATH":[6,8]},
+        "basicAttack":{"CONSERVATIVE":[1,2],"TARGET":[2,3],"FAST_PATH":[3,4]}
+      },
+      "medium": {
+        "idle":{"CONSERVATIVE":[2,3],"TARGET":[4,5],"FAST_PATH":[5,6]},
+        "move":{"CONSERVATIVE":[1,2],"TARGET":[3,4],"FAST_PATH":[4,5]},
+        "basicAttack":{"CONSERVATIVE":[1,1],"TARGET":[2,2],"FAST_PATH":[2,3]}
+      },
+      "complex": {
+        "idleOrMove":{"CONSERVATIVE":[1,1],"TARGET":[1,2],"FAST_PATH":[1,2]},
+        "attackOrSkill":{"CONSERVATIVE":[0.5,1],"TARGET":[1,1],"FAST_PATH":[1,2]}
+      }
+    },
+    "coreUnitsPerDayAfterIdentityReady": {
+      "definition":"Equivalent units with the three core packages Idle+Move+BasicAttack moving through production/technical validation capacity; approval may lag behind production.",
+      "CONSERVATIVE":[0.5,0.8],
+      "TARGET":[1.2,1.8],
+      "FAST_PATH_SIMPLE_PROVEN_ARCHETYPE":[2,2.5]
+    },
+    "humanReviewCapacity": {
+      "simplePackagesPerReviewSession":[6,10],
+      "mediumPackagesPerReviewSession":[3,6],
+      "complexPackagesPerReviewSession":[1,2],
+      "bottleneckRule":"Do not increase production batch size if the user cannot clearly compare motion at phone/board scale in one session."
+    },
+    "redoAllowance": {
+      "CONSERVATIVE":"25-35% of packages need at least one correction pass",
+      "TARGET":"15-25%",
+      "FAST_PATH_PROVEN_ARCHETYPE":"10-15%",
+      "COMPLEX_OR_NEW_ARCHETYPE":"30-50% possible; do not use fast-path estimate"
+    },
+    "technicalVsReviewBottleneck": {
+      "technical":"Common validators/artifacts should make simple technical checks mostly batch-linear and parallelizable.",
+      "human":"Visual review becomes the practical bottleneck; combined pages and partial approval prevent it from becoming all-or-nothing."
+    }
+  },
+  "timeSavingModel": {
+    "exampleScope":"30 simple-to-medium core motion packages with identities already approved",
+    "serialPilotStyle":"approximately 20-30 working days if each package repeats planning/handoff/PR/review cycles and effective throughput averages roughly 1-1.5 approved packages/day",
+    "targetBatchWorkflow":"approximately 8-13 working days including technical validation, review scheduling and normal redo allowance",
+    "fastPathProvenArchetypes":"approximately 6-9 working days when most packages are simple, validator/artifact tooling is stable and redo remains low",
+    "expectedProductionThroughputImprovement":"roughly 2.5x-4x for simple/medium repeated archetypes; unique bosses/skills improve less",
+    "expectedCoordinationPROverheadReduction":"roughly 60-80% versus repeating pilot-style planning/readiness PR layers per package",
+    "warning":"These are capacity-planning ranges, not promises. Source-identity generation/approval delays, complex visual failures or new archetypes can dominate elapsed time."
+  },
+  "parallelizationRules": [
+    "Parallelize Idle and Move production across units with approved identities and compatible archetype configs.",
+    "Allow Basic Attack sub-batches to proceed independently from broader Idle/Move batches.",
+    "Do not wait for one failed package to block sibling packages that passed and remain isolated.",
+    "Do not parallelize runtime changes with unapproved asset production.",
+    "Keep complex boss/skill work in dedicated passes so it cannot stall simple fast-path waves."
+  ]
+}

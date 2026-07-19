@@ -1,0 +1,200 @@
+{
+  "schemaVersion": 1,
+  "id": "motion-production-archetype-matrix-v1",
+  "status": "planning-only-no-production-authorized",
+  "repository": "phathompongsae-ops/Auto-Battler",
+  "purpose": "Group confirmed roster units by motion biomechanics so post-pilot production can batch safely without copying one animation pose across unrelated characters.",
+  "sourceReferences": [
+    {"type": "runtime", "pr": 23, "head": "5a3a8eec7991a98aad6f3acf0ce38687764dcb1a", "use": "six-state controller, fallback semantics, marker/runtime conventions"},
+    {"type": "class1AttackProfiles", "pr": 34, "head": "b20e4e349ca7627ca86f098c0be8d9edf9a54dde", "use": "distinct Class 1 attack concepts; batching must not erase class-specific attack identity"},
+    {"type": "class1IdleMoveProfiles", "pr": 36, "head": "292660b54ee01b5ab0df854c56ef849c15d730fc", "use": "Class 1 locomotion/idle differentiation and marker timing patterns"},
+    {"type": "styleMigration", "pr": 58, "head": "b3db907dfd33a181fae34859770c872319ab994e", "use": "approved chibi style anchors, migration boundaries, technical reuse policy"},
+    {"type": "map1EncounterData", "path": "data/design/map1-encounters-v1.json", "use": "active Map 1 enemy/miniboss/boss roster; obsolete Warden/Champion excluded"},
+    {"type": "heroBalance", "path": "data/design/hero-balance-v1.json", "use": "Class 1/Class 2 range, skill ownership and combat role evidence"},
+    {"type": "classEvolution", "path": "data/design/class-evolution-v1.json", "use": "Class 2 role/range categories"}
+  ],
+  "principles": [
+    "An archetype is a production/biomechanics grouping, not permission to clone poses or identity.",
+    "Units may have one primary archetype plus secondary tags.",
+    "Idle and Move can batch more broadly than Basic Attack because attacks depend on weapon/anatomy semantics.",
+    "Skill motion is never assumed required just because the runtime supports a skill state.",
+    "Boss/unique units default to individual review even when they borrow technical validators from an archetype.",
+    "Obsolete roster entries must not enter production waves unless separately reactivated by game-data scope."
+  ],
+  "archetypes": [
+    {
+      "id": "HUMANOID_RANGED",
+      "label": "Humanoid Ranged",
+      "confirmedUnits": ["hero.archer", "hero.sniper", "hero.ranger", "monster.spirit_archer"],
+      "secondaryRules": ["same locomotion family does not imply same weapon attack", "bow users may share draw/release review gates only when weapon biomechanics actually match"],
+      "typicalCore": ["idle", "move", "basicAttack"]
+    },
+    {
+      "id": "HUMANOID_MELEE",
+      "label": "Humanoid Melee",
+      "confirmedUnits": ["hero.fighter", "hero.swordman", "hero.knight", "hero.berserker", "hero.blade_master", "hero.duelist", "hero.spirit_blade", "monster.skeleton", "monster.orc", "monster.orc_warlord"],
+      "secondaryRules": ["split attacks by punch/blade/heavy-weapon biomechanics", "do not batch a fist strike and sword slash as one pose template"],
+      "typicalCore": ["idle", "move", "basicAttack"]
+    },
+    {
+      "id": "HUMANOID_CASTER",
+      "label": "Humanoid Caster / Support",
+      "confirmedUnits": ["hero.mage", "hero.archmage", "hero.frost_weaver", "hero.summoner", "hero.beast_lord", "hero.acolyte", "hero.priest", "hero.inquisitor", "monster.lich_king"],
+      "secondaryRules": ["generic biped idle/move may batch", "cast/command/heal/summon gestures remain semantically distinct"],
+      "typicalCore": ["idle", "move", "basicAttack"]
+    },
+    {
+      "id": "SMALL_CREATURE",
+      "label": "Small Creature / Deformable",
+      "confirmedUnits": ["monster.slime"],
+      "secondaryRules": ["squash/stretch pipelines may become reusable only for similarly deformable bodies", "do not apply slime deformation to skeletal or rigid monsters"],
+      "typicalCore": ["idle", "move", "basicAttack"]
+    },
+    {
+      "id": "QUADRUPED_BEAST",
+      "label": "Quadruped / Beast",
+      "confirmedUnits": ["monster.stone_wolf"],
+      "secondaryRules": ["Stone Wolf is the first confirmed Map 1 quadruped and should establish the locomotion archetype before future beasts fast-path"],
+      "typicalCore": ["idle", "move", "basicAttack"]
+    },
+    {
+      "id": "HEAVY_CONSTRUCT",
+      "label": "Heavy Humanoid / Construct",
+      "confirmedUnits": ["monster.golem"],
+      "secondaryRules": ["weight, anticipation and impact readability are primary", "Golem also appears in normal encounters and Stage 5 miniboss pool, so locomotion is required"],
+      "typicalCore": ["idle", "move", "basicAttack"]
+    },
+    {
+      "id": "RANGED_MONSTER",
+      "label": "Ranged Monster",
+      "confirmedUnits": ["monster.spirit_archer"],
+      "secondaryRules": ["secondary tag over HUMANOID_RANGED", "reuse ranged marker schema but preserve monster identity/material"],
+      "typicalCore": ["idle", "move", "basicAttack"]
+    },
+    {
+      "id": "ASSASSIN_FAST",
+      "label": "Assassin / Fast Unit",
+      "confirmedUnits": ["monster.shadow_assassin", "hero.ninja", "hero.trickster"],
+      "secondaryCandidates": ["hero.duelist"],
+      "secondaryRules": ["fast locomotion and sharp anticipation can share review language", "warp/backline logic remains runtime-owned and must not be baked into motion"],
+      "typicalCore": ["idle", "move", "basicAttack"]
+    },
+    {
+      "id": "BOSS_UNIQUE",
+      "label": "Boss / Unique",
+      "confirmedUnits": ["monster.orc_warlord", "monster.bone_dragon", "monster.lich_king", "monster.arena_overlord"],
+      "secondaryCandidates": ["monster.golem"],
+      "secondaryRules": ["unique scale/anatomy/multi-phase readability defaults to individual production", "shared validators and review artifact tooling may still be reused"],
+      "typicalCore": ["idle", "move", "basicAttack"]
+    },
+    {
+      "id": "HUMANOID_SPECIALIST_SUPPORT",
+      "label": "Humanoid Specialist / Support",
+      "confirmedUnits": ["hero.merchant", "hero.tycoon"],
+      "secondaryRules": ["biped locomotion can batch with humanoids", "gadget/economy/support attack and skill gestures require profile-specific review"],
+      "typicalCore": ["idle", "move", "basicAttack"]
+    }
+  ],
+  "excludedFromCurrentWaves": [
+    {"id": "monster.warden", "reason": "obsolete in Map 1 encounter data"},
+    {"id": "monster.champion", "reason": "obsolete in Map 1 encounter data"},
+    {"id": "monster.immortal_champion", "reason": "obsolete in Map 1 encounter data"},
+    {"id": "hero.novice", "reason": "exists in GDD/legacy art but is not in current hero-balance production roster; require explicit current-runtime need before motion production"}
+  ],
+  "motionByArchetype": {
+    "idle": {
+      "HUMANOID_RANGED": "SAFE_TO_BATCH",
+      "HUMANOID_MELEE": "SAFE_TO_BATCH",
+      "HUMANOID_CASTER": "SAFE_TO_BATCH",
+      "SMALL_CREATURE": "SAFE_TO_BATCH_WITHIN_SAME_DEFORMATION_FAMILY",
+      "QUADRUPED_BEAST": "BATCH_WITH_REVIEW",
+      "HEAVY_CONSTRUCT": "BATCH_WITH_REVIEW",
+      "RANGED_MONSTER": "BATCH_WITH_REVIEW",
+      "ASSASSIN_FAST": "BATCH_WITH_REVIEW",
+      "BOSS_UNIQUE": "INDIVIDUAL_ONLY",
+      "HUMANOID_SPECIALIST_SUPPORT": "SAFE_TO_BATCH"
+    },
+    "move": {
+      "HUMANOID_RANGED": "BATCH_WITH_REVIEW",
+      "HUMANOID_MELEE": "BATCH_WITH_REVIEW",
+      "HUMANOID_CASTER": "BATCH_WITH_REVIEW",
+      "SMALL_CREATURE": "SAFE_TO_BATCH_WITHIN_SAME_LOCOMOTION_FAMILY",
+      "QUADRUPED_BEAST": "BATCH_WITH_REVIEW_AFTER_ARCHETYPE_PILOT",
+      "HEAVY_CONSTRUCT": "BATCH_WITH_REVIEW",
+      "RANGED_MONSTER": "BATCH_WITH_REVIEW",
+      "ASSASSIN_FAST": "BATCH_WITH_REVIEW",
+      "BOSS_UNIQUE": "INDIVIDUAL_ONLY",
+      "HUMANOID_SPECIALIST_SUPPORT": "BATCH_WITH_REVIEW"
+    },
+    "basicAttack": {
+      "HUMANOID_RANGED": "BATCH_WITH_REVIEW_SAME_WEAPON_BIOMECHANICS_ONLY",
+      "HUMANOID_MELEE": "BATCH_WITH_REVIEW_SAME_WEAPON_FAMILY_ONLY",
+      "HUMANOID_CASTER": "BATCH_WITH_REVIEW_SMALL_SEMANTIC_GROUPS",
+      "SMALL_CREATURE": "BATCH_WITH_REVIEW",
+      "QUADRUPED_BEAST": "BATCH_WITH_REVIEW_AFTER_ARCHETYPE_PILOT",
+      "HEAVY_CONSTRUCT": "BATCH_WITH_REVIEW_MAX_1_TO_2",
+      "RANGED_MONSTER": "BATCH_WITH_REVIEW",
+      "ASSASSIN_FAST": "BATCH_WITH_REVIEW_MAX_2_TO_3",
+      "BOSS_UNIQUE": "INDIVIDUAL_ONLY",
+      "HUMANOID_SPECIALIST_SUPPORT": "INDIVIDUAL_OR_SMALL_BATCH_WITH_REVIEW"
+    },
+    "skill": {
+      "HUMANOID_RANGED": "INDIVIDUAL_BY_DEFAULT",
+      "HUMANOID_MELEE": "INDIVIDUAL_BY_DEFAULT",
+      "HUMANOID_CASTER": "BATCH_WITH_REVIEW_ONLY_FOR_PROVEN_SHARED_CAST_SKELETON",
+      "SMALL_CREATURE": "INDIVIDUAL_BY_DEFAULT",
+      "QUADRUPED_BEAST": "INDIVIDUAL_BY_DEFAULT",
+      "HEAVY_CONSTRUCT": "INDIVIDUAL_BY_DEFAULT",
+      "RANGED_MONSTER": "INDIVIDUAL_BY_DEFAULT",
+      "ASSASSIN_FAST": "INDIVIDUAL_BY_DEFAULT",
+      "BOSS_UNIQUE": "INDIVIDUAL_ONLY",
+      "HUMANOID_SPECIALIST_SUPPORT": "INDIVIDUAL_BY_DEFAULT"
+    },
+    "hit": {
+      "HUMANOID_RANGED": "SAFE_TO_BATCH",
+      "HUMANOID_MELEE": "SAFE_TO_BATCH",
+      "HUMANOID_CASTER": "SAFE_TO_BATCH",
+      "SMALL_CREATURE": "BATCH_WITH_REVIEW",
+      "QUADRUPED_BEAST": "BATCH_WITH_REVIEW",
+      "HEAVY_CONSTRUCT": "BATCH_WITH_REVIEW",
+      "RANGED_MONSTER": "SAFE_TO_BATCH",
+      "ASSASSIN_FAST": "SAFE_TO_BATCH",
+      "BOSS_UNIQUE": "BATCH_WITH_REVIEW",
+      "HUMANOID_SPECIALIST_SUPPORT": "SAFE_TO_BATCH"
+    },
+    "death": {
+      "HUMANOID_RANGED": "BATCH_WITH_REVIEW",
+      "HUMANOID_MELEE": "BATCH_WITH_REVIEW",
+      "HUMANOID_CASTER": "BATCH_WITH_REVIEW",
+      "SMALL_CREATURE": "BATCH_WITH_REVIEW",
+      "QUADRUPED_BEAST": "BATCH_WITH_REVIEW",
+      "HEAVY_CONSTRUCT": "BATCH_WITH_REVIEW",
+      "RANGED_MONSTER": "BATCH_WITH_REVIEW",
+      "ASSASSIN_FAST": "BATCH_WITH_REVIEW",
+      "BOSS_UNIQUE": "INDIVIDUAL_ONLY",
+      "HUMANOID_SPECIALIST_SUPPORT": "BATCH_WITH_REVIEW"
+    },
+    "spawnOrSummon": {
+      "default": "INDIVIDUAL_ONLY_WHEN_GAMEPLAY_REQUIRES_IT"
+    }
+  },
+  "minimumMotionPolicy": {
+    "REQUIRED_NOW": [
+      "idle for every active combat unit with approved production identity",
+      "move for every unit that changes grid position or approaches attack range",
+      "basicAttack for every unit that performs basic attacks"
+    ],
+    "REQUIRED_LATER": [
+      "skill when a distinct cast/telegraph/marker is needed beyond the existing attack fallback, especially bosses and signature mechanics",
+      "special summon/spawn motion when a gameplay feature actually exposes it",
+      "bespoke death for bosses/units whose death readability cannot rely on the existing death fade"
+    ],
+    "OPTIONAL_POLISH": [
+      "dedicated hit reaction while existing hit-flash remains sufficient",
+      "dedicated death animation for ordinary units while existing death-fade/fallback remains acceptable",
+      "victory/emote/showcase loops",
+      "non-gameplay spawn flourishes"
+    ],
+    "runtimeEvidence": "PR #23 supports idle/move/attack/skill/hit/death but has deterministic fallbacks: move->idle, skill->attack->idle, hit->idle, death->hit->idle; hit reuses existing hit-flash and death reuses existing death-fade. Therefore six-state support is not a six-state production requirement."
+  }
+}

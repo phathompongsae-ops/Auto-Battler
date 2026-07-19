@@ -1,0 +1,201 @@
+{
+  "schemaVersion": 1,
+  "id": "slime-golem-motion-migration-readiness-v1",
+  "status": "planning-only-wait-for-archer-pilot-acceptance",
+  "repository": "phathompongsae-ops/Auto-Battler",
+  "activationGate": "Do not start production until Archer Pilot Acceptance and an explicit later production task.",
+  "sharedTechnicalBaseline": {
+    "runtimeReferencePR": 56,
+    "runtimeReferenceHead": "bbe63518c42761f49a0aa068c78e0d07d3e88214",
+    "reusable": [
+      "asset-animation runtime seams",
+      "motion test harness and state switching",
+      "sidecar/source-map schema",
+      "marker vocabulary and delivery",
+      "x4 playback/transition/rollback test structure",
+      "texture cache/dispose and fallback behavior"
+    ],
+    "rule": "Technical reuse does not approve old visual frames."
+  },
+  "slime": {
+    "unitId": "monster.slime",
+    "archetype": "SMALL_CREATURE",
+    "activeGameEvidence": "Map 1 active normal enemy in stages 1-2; current encounter record has no skillIds.",
+    "styleReference": {
+      "status": "REFERENCE_ONLY",
+      "path": "docs/assets/reference/character-art-style-lock-v1/style-anchor-slime.jpg",
+      "sha256": "3965fafb200d6b3727bb67b3ec4255f146e8750e42a60805deb8b731a61ed1ed",
+      "runtimeEligible": false
+    },
+    "approvedProductionNeutralMaster": {
+      "status": "MISSING",
+      "requiredBeforeNewMotionProduction": true
+    },
+    "existingInventory": [
+      {
+        "state": "move",
+        "classification": ["REFERENCE_ONLY", "POSSIBLY_REUSABLE_WITH_EXACT_REVIEW", "NOT_PRODUCTION_APPROVED"],
+        "sourcePR": 32,
+        "sourceHead": "cc78057b4183776087c9756d1908f8ec3f735ea9",
+        "paths": [
+          "assets/units/monster.slime/move/monster.slime_move_000.png ... 007.png",
+          "assets/units/monster.slime/monster.slime_move_motiontest.json",
+          "assets/units/monster.slime/source-map.json",
+          "tools/validate-slime-move-frames-v1.mjs"
+        ],
+        "knownSemantics": "8 frames, 512x512 RGBA, 12 FPS, loop, anchor [0.5,0.9], in-place, footstepCue@0.7, canonicalApproved=false",
+        "migrationDecision": "Run exact reduced-size identity comparison against approved Slime style anchor/new neutral master. Reuse only with explicit exact-file approval and compatible provenance; otherwise redo from the new master."
+      },
+      {
+        "state": "idle",
+        "classification": ["REFERENCE_ONLY", "POSSIBLY_REUSABLE_WITH_EXACT_REVIEW", "NOT_PRODUCTION_APPROVED"],
+        "sourcePRs": [51,52],
+        "sourceHead": "f1391db31acd7ac6f6d6220a55f8278c80e9940f",
+        "paths": [
+          "assets/units/monster.slime/idle/monster.slime_idle_000.png ... 007.png",
+          "assets/units/monster.slime/monster.slime_idle_motiontest.json",
+          "assets/units/monster.slime/idle/source-map.json",
+          "tools/validate-slime-idle-frames-v1.mjs"
+        ],
+        "knownSemantics": "8 frames, 512x512 RGBA, 8 FPS, loop, anchor [0.5,0.9], in-place, no markers, runtimeFlipX=true, canonicalApproved=false",
+        "migrationDecision": "Same conditional reuse gate as Move; do not promote because old technical validation passed."
+      },
+      {
+        "state": "basicAttack",
+        "classification": ["MISSING", "NEEDS_PRODUCTION_AFTER_MASTER_APPROVAL"],
+        "migrationDecision": "Create a readable deformable-body attack after source identity lock; squash/stretch may be a core method when it reads as an attack rather than idle/move."
+      }
+    ],
+    "runtimeBindingState": {
+      "idle": "technically integrated on PR #56 read-only runtime line; canonicalApproved=false",
+      "move": "legacy/pilot motion-test path exists and was x4-tested earlier; not a new-style exact production approval",
+      "attack": "no approved production package"
+    },
+    "fastMigrationPotential": "HIGH_IF_EXISTING_IDLE_MOVE_PASS_EXACT_STYLE_REVIEW",
+    "skillMotionNow": "NOT_REQUIRED_NOW because current Map 1 encounter record has skillIds=[]; use core Idle+Move+BasicAttack first."
+  },
+  "golem": {
+    "unitId": "monster.golem",
+    "archetype": "HEAVY_CONSTRUCT",
+    "activeGameEvidence": "Current Map 1 data uses Golem as a normal enemy on stages 7-14 and as a Stage 5 miniboss-pool member, so movement and attack both matter.",
+    "styleReference": {
+      "status": "REFERENCE_ONLY",
+      "path": "docs/assets/reference/character-art-style-lock-v1/style-anchor-golem.jpg",
+      "sha256": "ea01ef39c21ae354872adc06af0687cb0f7581d36b4b216ca78cfc30c397fa92",
+      "runtimeEligible": false
+    },
+    "approvedProductionNeutralMaster": {
+      "status": "MISSING",
+      "requiredBeforeNewMotionProduction": true
+    },
+    "existingInventory": [
+      {
+        "state": "attack",
+        "classification": ["REFERENCE_ONLY", "STALE_VISUAL_IDENTITY", "NEEDS_REDO"],
+        "sourcePRs": [35,38],
+        "preferredReferenceHead": "6e60deb393bf33b38a67a8b91f3f2070d0194926",
+        "paths": [
+          "assets/units/monster.golem/attack/monster.golem_attack_000.png ... 007.png",
+          "assets/units/monster.golem/monster.golem_attack_motiontest.json",
+          "assets/units/monster.golem/source-map.json",
+          "tools/validate-golem-attack-frames-v1.mjs",
+          "assets/units/monster.golem/visual-fix-report-v2.json"
+        ],
+        "knownSemantics": "8 frames, 640x640 RGBA, 12 FPS, non-loop, anchor [0.5,0.94], in-place, impactCue@0.75, canonicalApproved=false",
+        "knownConflict": "Legacy motion test used 8 frames / impactCue@0.75 while earlier plan/contract targeted a different frame count/timing; new production must derive timing from actual heavy-impact pose and current gameplay contract, not blindly copy either value.",
+        "migrationDecision": "Redo from a newly approved compact/chunky Golem neutral master; old attack may be used as motion/readability reference only."
+      },
+      {
+        "state": "idle",
+        "classification": ["REFERENCE_ONLY", "STALE_VISUAL_IDENTITY", "NEEDS_REDO"],
+        "sourcePR": 52,
+        "sourceHead": "f1391db31acd7ac6f6d6220a55f8278c80e9940f",
+        "paths": [
+          "assets/units/monster.golem/idle/monster.golem_idle_000.png ... 007.png",
+          "assets/units/monster.golem/monster.golem_idle_motiontest.json",
+          "assets/units/monster.golem/idle/source-map.json",
+          "tools/validate-golem-idle-frames-v1.mjs"
+        ],
+        "knownSemantics": "8 frames, 640x640 RGBA, 8 FPS, loop, anchor [0.5,0.94], in-place, no markers, runtimeFlipX=true, canonicalApproved=false",
+        "migrationDecision": "Redo from new approved Golem master; preserve weight/readability lessons, not old pixels."
+      },
+      {
+        "state": "move",
+        "classification": ["MISSING", "NEEDS_PRODUCTION_AFTER_MASTER_APPROVAL"],
+        "migrationDecision": "Create weighted in-place locomotion because current Golem appears in normal encounters and must approach targets."
+      }
+    ],
+    "runtimeBindingState": {
+      "idle": "technically integrated on PR #56 read-only runtime line; visual is replacement-planned",
+      "attack": "legacy motion-test state was x4-tested; visual is replacement-planned and marker/timing needs reconciliation",
+      "move": "no dedicated approved production package found"
+    },
+    "fastMigrationPotential": "MEDIUM_AFTER_NEW_MASTER; core packages need new production",
+    "skillMotionNow": "REQUIRED_LATER by default; current Golem has skill.monster_stone_guard, but a distinct skill animation should only be produced when gameplay/readability requires a separate visual beyond fallback."
+  },
+  "classificationLegend": {
+    "REUSABLE": "Technical schema/tool/runtime behavior may be reused without approving visual bytes.",
+    "STALE": "Superseded by later style/source/contract decisions.",
+    "PLACEHOLDER": "Technical or legacy fallback; not final visual.",
+    "REFERENCE_ONLY": "Useful for pose/readability/provenance, never automatically promotable.",
+    "PRODUCTION_READY": "Would require current exact identity + technical + visual approval; neither pilot is marked production-ready here.",
+    "NEEDS_REDO": "New visual package required from an approved current master."
+  },
+  "postArcherMigrationSequence": [
+    {
+      "phase": "A",
+      "name": "Source / Identity Lock",
+      "parallelWork": [
+        "Slime: exact compare existing Idle/Move against current style anchor and candidate neutral master; approve one exact neutral master",
+        "Golem: create/review/approve one new compact chunky neutral master in a later production task"
+      ],
+      "noMotionProductionBeforeGate": true
+    },
+    {
+      "phase": "B",
+      "name": "Idle + Move Batch",
+      "parallelWork": [
+        "Slime: reuse/repackage approved-compatible Idle/Move only if exact style gate passes; otherwise redo both",
+        "Golem: redo Idle and create missing Move from new master in one CC batch task as two isolated packages"
+      ],
+      "shared": "common technical validation and combined review presentation",
+      "doNotForceSameMotionMethod": true
+    },
+    {
+      "phase": "C",
+      "name": "Basic Attack Production",
+      "parallelWork": [
+        "Slime: create readable deformable/squash-stretch attack",
+        "Golem: redo heavy attack with strong anticipation, impact and recovery"
+      ],
+      "markerRule": "Use semantic marker only when needed and map to actual visual event; do not blindly inherit legacy normalized times."
+    },
+    {
+      "phase": "D",
+      "name": "Batch Technical Validation",
+      "work": "Run common validator plus SMALL_CREATURE and HEAVY_CONSTRUCT motion-specific gates; packages remain isolated."
+    },
+    {
+      "phase": "E",
+      "name": "User Review",
+      "work": "One combined mobile-friendly review page; approve/reject each package independently."
+    },
+    {
+      "phase": "F",
+      "name": "Exact Approval",
+      "work": "Lock hashes/semantics per approved package; failed packages branch to isolated redo without blocking passed packages."
+    },
+    {
+      "phase": "G",
+      "name": "Runtime Migration",
+      "work": "CC imports only approved packages through PR #56-style seams, with per-unit/state rollback and exactly 3 targeted x4 checkpoints."
+    }
+  ],
+  "explicitNonGoalsNow": [
+    "generate Slime or Golem PNGs",
+    "promote old motion tests to production",
+    "modify PR #56 runtime",
+    "change Combat/gameplay",
+    "approve any Slime/Golem exact file"
+  ]
+}
