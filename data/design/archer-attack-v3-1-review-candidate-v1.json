@@ -1,0 +1,156 @@
+{
+  "packageId": "archer-attack-v3-1-review-candidate-v1",
+  "packageVersion": 1,
+  "characterId": "hero.archer",
+  "state": "attack",
+  "variant": "v3.1-12frame-smoothing-pass",
+  "date": "2026-07-19",
+  "lineage": {
+    "baseBranch": "cc/archer-attack-v3-pose-guided-handoff-v1",
+    "baseSha": "d949bbec0ae61891e9794e28d0c1a3b49b719a56",
+    "reviewCandidateBranch": "cc/archer-attack-v3-1-review-candidate-v1",
+    "upstreamPRs": {
+      "pr72": "Attack v2 — rejected (torn-bow defect, no real draw motion beneath)",
+      "pr76": "Attack v3 pose-guided handoff package (this candidate's identity/pose spec source)"
+    }
+  },
+  "approvedMaster": {
+    "logicalId": "hero.archer.production-master.candidate.v1",
+    "path": "docs/assets/review/character-production/archer/master-v1/archer-production-master-candidate-v1.png",
+    "measuredSha256": "4911e7e3ba59241ee011be3e62f1b64230dcf9b3c24c6aeb23dc939d83311013",
+    "measuredFormat": "PNG",
+    "measuredMode": "RGBA",
+    "measuredSize": [640, 960],
+    "verificationMethod": "sha256sum on repository binary at import time, cross-checked against manifest claim (match)"
+  },
+  "sourcePackage": {
+    "uploadedFilename": "e147f262-archer_attack_v3_1_12frame_human_review_package.zip",
+    "logicalFilename": "archer_attack_v3_1_12frame_human_review_package.zip",
+    "measuredSha256": "fee685d6202f00955503bda24b8c9952bb1adfe5a71f4b1af39037577993192d",
+    "expectedSha256": "fee685d6202f00955503bda24b8c9952bb1adfe5a71f4b1af39037577993192d",
+    "shaMatch": true,
+    "zipIntegrity": "PASS (Python zipfile.testzip() returned None; 31 entries, no CRC errors)",
+    "pathTraversalCheck": "PASS (all 31 entries are relative paths under the package root directory; no absolute paths, no ../)",
+    "sourceV3Provenance": {
+      "note": "The ZIP does not include the original v3 ZIP itself; it includes the extracted frames-v3-original/ directory (10 PNGs), which serves as the byte-identity proof required by the task ('exact per-frame hashes ที่พิสูจน์ byte identity ได้'). Manifest additionally cites an external source v3 ZIP SHA-256 (8852ffaa9c631d3fd107c6ea98c93cf1f499d87b47dee4cadbb36abea33d9825) that was not independently verifiable in this environment (that ZIP was not uploaded); reliance is placed on the included frames-v3-original/ binaries instead, which were hashed directly.",
+      "frames_v3_original_hashes": {
+        "000": "6cbaf2ee52334539355837e294126c429edf4f65355581f8a1cc596c54e704ef",
+        "001": "b937db7fd7eb3ae8e4d40fa05e4b98e375f39ac4a210973bbaea1cf06d251051",
+        "002": "67c3a401c4845ce2dc85153b215bcdbd4f31d3a8a7c00ddb86ecaed74c1ae487",
+        "003": "cfdf8b7256597e1c303402e0bbf416fcff44df28a5f96338329971e441059ebc",
+        "004": "c59180e3109ad93b07b64d95b0d1c81aca2bd7055cfdac838f8010e614a7249f",
+        "005": "c4e9214835d7881adff48786e4a19c59464f6292947c25aa125e4f7256727c0b",
+        "006": "a7906c0fb0ad1fb19e51162680f35c697cc45bda4519c4d40fbce1e506a1f659",
+        "007": "2922bbd79dcec9f070a6b144b056287ba11d87feb4fb708589dfb362c5cc874e",
+        "008": "fe7e873572a220c4f05f26ae8248dacd9c8630b8b556345d619d0df22bb8cd36",
+        "009": "4911e7e3ba59241ee011be3e62f1b64230dcf9b3c24c6aeb23dc939d83311013"
+      }
+    }
+  },
+  "finalV31FrameHashes": {
+    "000": "6cbaf2ee52334539355837e294126c429edf4f65355581f8a1cc596c54e704ef",
+    "001": "b937db7fd7eb3ae8e4d40fa05e4b98e375f39ac4a210973bbaea1cf06d251051",
+    "002": "67c3a401c4845ce2dc85153b215bcdbd4f31d3a8a7c00ddb86ecaed74c1ae487",
+    "003": "cfdf8b7256597e1c303402e0bbf416fcff44df28a5f96338329971e441059ebc",
+    "004": "44742b13c127b88980e1b39422d2438881ccdcda591721d9a0e6cd30cce1519c",
+    "005": "c59180e3109ad93b07b64d95b0d1c81aca2bd7055cfdac838f8010e614a7249f",
+    "006": "13b6ba0862e776ac28d46fd75e0516053953d6e239cc1a1c8e0eb36443cc5f91",
+    "007": "c4e9214835d7881adff48786e4a19c59464f6292947c25aa125e4f7256727c0b",
+    "008": "a7906c0fb0ad1fb19e51162680f35c697cc45bda4519c4d40fbce1e506a1f659",
+    "009": "2922bbd79dcec9f070a6b144b056287ba11d87feb4fb708589dfb362c5cc874e",
+    "010": "fe7e873572a220c4f05f26ae8248dacd9c8630b8b556345d619d0df22bb8cd36",
+    "011": "4911e7e3ba59241ee011be3e62f1b64230dcf9b3c24c6aeb23dc939d83311013"
+  },
+  "oldToNewMapping": [
+    {"newIndex": "000", "oldIndex": "000", "kind": "reused-byte-identical", "verified": true, "pose": "Ready"},
+    {"newIndex": "001", "oldIndex": "001", "kind": "reused-byte-identical", "verified": true, "pose": "Nock/Raise"},
+    {"newIndex": "002", "oldIndex": "002", "kind": "reused-byte-identical", "verified": true, "pose": "Early draw"},
+    {"newIndex": "003", "oldIndex": "003", "kind": "reused-byte-identical", "verified": true, "pose": "Mid draw"},
+    {"newIndex": "004", "oldIndex": null, "kind": "new-inserted-inbetween", "verified": true, "pose": "In-between: old 003->004", "distinctFromNeighbors": true},
+    {"newIndex": "005", "oldIndex": "004", "kind": "reused-byte-identical", "verified": true, "pose": "Deep draw"},
+    {"newIndex": "006", "oldIndex": null, "kind": "new-inserted-inbetween", "verified": true, "pose": "In-between: old 004->005", "distinctFromNeighbors": true},
+    {"newIndex": "007", "oldIndex": "005", "kind": "reused-byte-identical", "verified": true, "pose": "Full Draw (arrow still nocked, string at cheek, bow flexed)"},
+    {"newIndex": "008", "oldIndex": "006", "kind": "reused-byte-identical", "verified": true, "pose": "Release (arrow detached and in flight, string relaxed) — see releaseFrameDetermination"},
+    {"newIndex": "009", "oldIndex": "007", "kind": "reused-byte-identical", "verified": true, "pose": "Follow-through"},
+    {"newIndex": "010", "oldIndex": "008", "kind": "reused-byte-identical", "verified": true, "pose": "Recovery"},
+    {"newIndex": "011", "oldIndex": "009", "kind": "reused-byte-identical", "verified": true, "pose": "Neutral exit (byte-identical to Approved Master)"}
+  ],
+  "immutabilityVerification": {
+    "originalFramesUnchanged": "All 10 mapped original frames confirmed byte-identical (SHA-256 match) between frames-v3-original/ and their corresponding frames-v3-1-12frame/ position. Zero re-encoding, resize, or metadata rewrite detected.",
+    "newFramesUniqueness": "Frame 004 (44742b13...) and frame 006 (13b6ba08...) do not match any of the other 12 frame hashes, each other, or any of the 10 original frame hashes — confirmed genuinely new, non-duplicate content.",
+    "frame011ExactMaster": "Frame 011 SHA-256 (4911e7e3ba59241ee011be3e62f1b64230dcf9b3c24c6aeb23dc939d83311013) is byte-identical to the Approved Neutral Master.",
+    "noDuplicateHashesAcrossAll12": true
+  },
+  "technicalIntegrity": {
+    "frameCount": 12,
+    "allPngFormat": true,
+    "allRgbaMode": true,
+    "allDimensions640x960": true,
+    "allTransparentBorders": true,
+    "footBaseline": {
+      "manifestClaims": 855,
+      "measuredValue": 854,
+      "measuredConsistency": "uniform across all 12 frames, including frame 011 which is byte-identical to the Approved Master",
+      "note": "Measured value (854) matches the previously-established repository baseline convention recorded in the Idle package approval (footBaselineY: 854) and Move package approval (supportFootBaselineY: 854). The manifest's stated 855 is treated as a documentation discrepancy, not a binary defect; measured binary truth (854) is authoritative per this task's own instruction to measure from binaries, not trust JSON/MD claims."
+    },
+    "alphaBoundsAllWithinCanvas": true,
+    "gifIntegrity": [
+      {"file": "archer-attack-v3-original-preview.gif", "decodedFrames": 10, "expectedFrames": 10, "sizePx": [480, 720], "totalDurationCs": 127.0},
+      {"file": "archer-attack-v3-1-preview.gif", "decodedFrames": 12, "expectedFrames": 12, "sizePx": [480, 720], "totalDurationCs": 127.0},
+      {"file": "archer-attack-v3-1-preview-slow-qa.gif", "decodedFrames": 12, "expectedFrames": 12, "sizePx": [480, 720], "totalDurationCs": 236.0},
+      {"file": "archer-attack-v3-vs-v3-1-comparison.gif", "decodedFrames": 12, "expectedFrames": 12, "sizePx": [680, 540], "totalDurationCs": 127.0}
+    ]
+  },
+  "timing": {
+    "loop": false,
+    "rootMotion": "in-place",
+    "runtimeFlipX": true,
+    "anchor": [0.5, 0.92],
+    "anchorProvenance": "carried forward from Attack v3 handoff spec contract; package did not supply a differing value",
+    "originalV3PerFrameDurationCs": [16, 12, 10, 10, 10, 14, 7, 10, 14, 24],
+    "originalV3TotalCs": 127,
+    "v31PerFrameDurationCs": [16, 12, 10, 7, 6, 6, 6, 9, 7, 10, 14, 24],
+    "v31TotalCs": 127,
+    "v31SlowQaPerFrameDurationCs": [28, 22, 20, 14, 12, 12, 12, 18, 12, 20, 26, 40],
+    "v31SlowQaTotalCs": 236,
+    "totalTimingPreserved": true,
+    "durationSource": "measured directly from GIF frame delay metadata via PIL ImageSequence, cross-checked against manifest table (exact match)"
+  },
+  "releaseFrameDetermination": {
+    "taskPromptStatedFrame": "007 (Section 5 prose: 'old 005 -> new 007 is Release pose')",
+    "resolvedActualFrame": "008",
+    "resolutionMethod": "Direct visual inspection of the source binaries plus independent timing cross-check, per task instruction to record the actual visual frame rather than blindly copy a stated marker.",
+    "evidence": [
+      "Pixel inspection of frames-v3-original/archer-attack-v3-frame-005.png: arrow still nocked on the string, string pulled to cheek, bow fully flexed — this is Full Draw, not Release.",
+      "Pixel inspection of frames-v3-original/archer-attack-v3-frame-006.png: arrow detached from the bow and shown mid-flight to the right of the character, string relaxed/snapped forward, drawing hand in follow-through position — this is Release.",
+      "Manifest's own mapping table independently labels v3.1 frame 007 as 'Full draw' and frame 008 as 'Release', consistent with the pixel evidence.",
+      "Task's own stated requirement 'Release duration: 7 centiseconds เท่าเดิม' matches the measured v3.1 duration of frame index 8 (7cs); frame index 7 measures 9cs, which does not match."
+    ],
+    "conclusion": "Frame 008 (byte-identical to original v3 frame 006) is the actual visual Release frame. The task prompt's Section 5 reference to 'new 007' as the Release frame appears to be an off-by-one description error (007 is Full Draw, the pose immediately preceding Release). This record uses frame 008 as the release frame for review-candidate purposes; no runtime marker was modified, per task instruction (Section 5: 'ยังไม่ต้องแก้ Runtime marker')."
+  },
+  "reviewArtifacts": {
+    "framesDirectory": "docs/assets/review/character-production/archer/attack-v3-1/frames/",
+    "normalPreviewGif": "docs/assets/review/character-production/archer/attack-v3-1/review/archer-attack-v3-1-preview.gif",
+    "slowQaGif": "docs/assets/review/character-production/archer/attack-v3-1/review/archer-attack-v3-1-preview-slow-qa.gif",
+    "comparisonGif": "docs/assets/review/character-production/archer/attack-v3-1/review/archer-attack-v3-vs-v3-1-comparison.gif",
+    "originalV3PreviewGif": "docs/assets/review/character-production/archer/attack-v3-1/review/archer-attack-v3-original-preview.gif",
+    "contactSheet": "docs/assets/review/character-production/archer/attack-v3-1/review/archer-attack-v3-1-contact-sheet.png"
+  },
+  "validation": {
+    "validatorPath": "tools/validate-archer-attack-v3-1-review-candidate-v1.mjs",
+    "lastRunResult": "PASS (exit 0) — 12 RGBA 640x960 frames verified, old->new mapping verified byte-for-byte, frame 011 == Approved Master, foot baseline uniform, review artifacts present, approval-state invariants hold, timing totals preserved, release-frame duration (index 8) == 7cs"
+  },
+  "approvalState": {
+    "sourceVerified": true,
+    "technicalIntegrityPass": true,
+    "internalPackageQaReported": true,
+    "humanVisualApproval": false,
+    "attackV3_1PackageApproved": false,
+    "animationQualityBenchmarkV1Approved": false,
+    "canonicalApproved": false,
+    "runtimeEligible": false,
+    "runtimeIntegrated": false,
+    "status": "READY_FOR_HUMAN_REVIEW",
+    "note": "This status reflects a technical/integration verdict only. It is not, and must not be interpreted as, user/human visual approval. attackV3_1PackageApproved remains false until an explicit user verdict is recorded."
+  }
+}
