@@ -1,0 +1,94 @@
+{
+  "packVersion": 1,
+  "id": "archer-attack-v2-review-readiness-pack-v1",
+  "characterId": "hero.archer",
+  "state": "attack",
+  "repository": "phathompongsae-ops/Auto-Battler",
+  "status": "pre-return-readiness-no-v2-candidate-yet",
+  "executionOwner": "CC",
+  "coordinationOwner": "Coco",
+  "verifiedGitHubState": {
+    "attackV1": {
+      "pr": 67,
+      "branch": "cc/archer-attack-production-v1",
+      "head": "390c288c90ee060bccba5f5a00aa673ed503d521",
+      "state": "open-draft-unmerged",
+      "generated": true,
+      "userVisualApproval": false,
+      "packageApproved": false,
+      "visualVerdict": "NEAR_STATIC",
+      "status": "rejected-superseded-candidate-only"
+    },
+    "v2PlanningSourceOfTruth": {
+      "pr": 69,
+      "branch": "coco/archer-attack-v1-rejection-v2-redo-contract-v1",
+      "head": "2abbe77235e6ed78f0953770dc6d8ade5f21bf76",
+      "state": "open-draft-unmerged"
+    },
+    "attackV2ProductionPR": null,
+    "attackV2Generated": false,
+    "attackV2PackageApproved": false
+  },
+  "authoritativeInputs": {
+    "redoContract": "data/design/archer-attack-v2-redo-contract-v1.json",
+    "visualQualityGates": "data/design/archer-attack-visual-quality-gates-v1.json",
+    "validatorUpgradePlan": "data/design/archer-attack-v2-validator-upgrade-plan-v1.json",
+    "stateModel": "data/design/archer-complete-motion-approval-state-model-v2.json",
+    "humanRubric": "docs/reviews/archer-attack-v2-human-review-rubric-v1.md",
+    "ccExecutionHandoff": "docs/reviews/archer-attack-v2-cc-execution-handoff-v1.md"
+  },
+  "sourceOfTruthRules": [
+    "PR #69 supersedes stale Attack-not-generated planning state from PR #68.",
+    "PR #67 remains immutable forensic evidence for the rejected v1 candidate and must not be treated as approved.",
+    "No Attack v2 candidate exists until CC returns a new production PR with exact package paths and hashes.",
+    "Technical validation cannot set userVisualApproval or attackV2PackageApproved.",
+    "The old PR #30/#31 Attack is motion/pose reference only and its pixels are forbidden as final v2 identity art."
+  ],
+  "reviewEntryGateAfterCCReturn": {
+    "allRequired": [
+      "new Attack v2 production PR exists and is open/draft/unmerged",
+      "production branch/HEAD/base/ancestry are reported",
+      "exact approved Neutral Master SHA matches 4911e7e3ba59241ee011be3e62f1b64230dcf9b3c24c6aeb23dc939d83311013",
+      "approved Idle and Move protected-byte verification passes",
+      "v2 package is versioned separately and does not overwrite rejected v1",
+      "10 timing frames and 12 FPS/non-loop/in-place/runtimeFlipX semantics are reported",
+      "actual projectileRelease frame and normalizedTime are derived from visible release timing",
+      "all required visual-quality evidence and mobile-readable review artifacts exist",
+      "technical validation reports attackV2PackageApproved=false"
+    ],
+    "failureAction": "STOP review/approval sequencing and report missing or drifted evidence; never infer exact package facts."
+  },
+  "approvalSequence": [
+    "CC Attack v2 Production",
+    "CC technical + visual-evidence validation",
+    "Coco exact return-package verification",
+    "User visual review using seven-question rubric",
+    "Only if explicit user approval: separate Attack v2 Exact-File Approval record/PR",
+    "Complete Archer Motion approval state update",
+    "Separate CC runtime authorization",
+    "Runtime validation at x4 with exactly 3 targeted checkpoints"
+  ],
+  "currentEffectiveState": {
+    "neutralMasterApproved": true,
+    "idlePackageApproved": true,
+    "movePackageApproved": true,
+    "attackV1Generated": true,
+    "attackV1Rejected": true,
+    "attackV1PackageApproved": false,
+    "attackV2AuthorizedForProduction": true,
+    "attackV2Generated": false,
+    "attackV2PackageApproved": false,
+    "completeArcherMotionApproved": false,
+    "canonicalApproved": false,
+    "runtimeEligible": false,
+    "runtimeIntegrated": false
+  },
+  "forbiddenNow": [
+    "Attack v2 binary generation by Coco",
+    "setting attackV2PackageApproved=true",
+    "recording user visual approval before an exact v2 candidate is reviewed",
+    "runtime integration",
+    "src/ or gameplay changes",
+    "PR merge"
+  ]
+}
