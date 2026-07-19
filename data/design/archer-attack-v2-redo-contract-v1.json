@@ -1,0 +1,168 @@
+{
+  "contractVersion": 1,
+  "id": "archer-attack-v2-redo-contract-v1",
+  "characterId": "hero.archer",
+  "state": "attack",
+  "status": "authorized-for-cc-production-not-generated",
+  "executionOwner": "CC",
+  "strategy": "approved new Archer identity + old CLEAR articulated attack readability",
+  "visualIdentitySource": {
+    "id": "hero.archer.production-master.candidate.v1",
+    "path": "docs/assets/review/character-production/archer/master-v1/archer-production-master-candidate-v1.png",
+    "sha256": "4911e7e3ba59241ee011be3e62f1b64230dcf9b3c24c6aeb23dc939d83311013",
+    "expected": "640x960 RGBA PNG",
+    "approved": true
+  },
+  "motionPoseReference": {
+    "verdict": "CLEAR",
+    "purpose": "read-only pose and motion reference only; old pixels are forbidden as final v2 art source",
+    "sourcePRs": [
+      {
+        "pr": 30,
+        "branch": "cc/archer-motion-test-user-poses-integration-v1",
+        "head": "42b967844f185a4fc00cb818595309ff64627aab",
+        "role": "first real user-supplied ten-pose Archer Attack motion-test integration"
+      },
+      {
+        "pr": 31,
+        "branch": "cc/archer-motion-test-visual-fix-v2",
+        "head": "6ab6a1f485d9e17badc56a671b5f105d049d8fe2",
+        "role": "preferred old visual-reference revision after checkerboard and release-arrow fixes"
+      }
+    ],
+    "paths": {
+      "frames": "assets/units/hero.archer/attack/hero.archer_attack_000.png ... hero.archer_attack_009.png",
+      "sidecar": "assets/units/hero.archer/hero.archer_attack_motiontest.json",
+      "sourceMap": "assets/units/hero.archer/source-map.json",
+      "visualFixReport": "assets/units/hero.archer/visual-fix-report.json"
+    },
+    "frameCount": 10,
+    "poseMapping": [
+      {"frameIndex": 0, "intent": "combat ready / anticipation start", "oldPoseLabel": "combat_idle_start"},
+      {"frameIndex": 1, "intent": "raise bow", "oldPoseLabel": "raise_bow"},
+      {"frameIndex": 2, "intent": "nock / prep", "oldPoseLabel": "nock_arrow"},
+      {"frameIndex": 3, "intent": "draw mid", "oldPoseLabel": "draw_mid"},
+      {"frameIndex": 4, "intent": "full draw / high tension", "oldPoseLabel": "draw_full_tension"},
+      {"frameIndex": 5, "intent": "release", "oldPoseLabel": "release"},
+      {"frameIndex": 6, "intent": "recoil / follow-through", "oldPoseLabel": "recoil_follow_through"},
+      {"frameIndex": 7, "intent": "open-hand / follow-through hold", "oldPoseLabel": "follow_through_open_hand"},
+      {"frameIndex": 8, "intent": "recovery toward ready", "oldPoseLabel": "return_to_ready"},
+      {"frameIndex": 9, "intent": "return / neutral exit", "oldPoseLabel": "combat_idle_end"}
+    ],
+    "copyOldPixelsIntoFinalOutput": false
+  },
+  "rejectedV1Reference": {
+    "pr": 67,
+    "head": "390c288c90ee060bccba5f5a00aa673ed503d521",
+    "verdict": "NEAR_STATIC",
+    "userVisualApproval": false,
+    "redoRequired": true,
+    "rejectionReasonCode": "near_static_visual_motion",
+    "forbiddenCoreMethodForV2": "Neutral pose + subtle displacement/warp as the primary motion method"
+  },
+  "timingContract": {
+    "frameCount": 10,
+    "fps": 12,
+    "loop": false,
+    "rootMotion": "in-place",
+    "runtimeFlipX": true,
+    "preferredAnchor": [0.5, 0.92],
+    "anchorRule": "revalidate from actual v2 support/bounds evidence; do not change runtime or board geometry to compensate",
+    "eventMarker": {
+      "name": "projectileRelease",
+      "targetNormalizedTime": 0.55,
+      "targetFrame": 5,
+      "rule": "confirm from the actual visual release frame; do not blindly force 0.55/frame005 if articulated pose timing changes materially"
+    }
+  },
+  "coreMotionMethod": {
+    "required": "true articulated pose change",
+    "mustVisiblyChange": [
+      "shoulder rotation",
+      "upper-arm position",
+      "elbow bend and geometry",
+      "forearm position",
+      "drawing-hand position pulled visibly backward",
+      "bow-arm stabilization/raise",
+      "torso anticipation/rotation",
+      "full-draw silhouette",
+      "release silhouette",
+      "follow-through silhouette"
+    ],
+    "secondaryMethodsAllowed": ["minor warp", "small cleanup displacement", "subpixel alignment refinement"],
+    "secondaryMethodsMayBeCoreMotion": false,
+    "forbiddenAsPrimaryMethod": [
+      "subtle whole-body displacement field",
+      "tiny local region shift",
+      "neutral-pose-only deformation",
+      "unique hashes produced by imperceptible pixel movement"
+    ]
+  },
+  "identityLock": {
+    "preserve": [
+      "face identity",
+      "green hood",
+      "green hair",
+      "pointed elf-like ears",
+      "large green eyes",
+      "ornate oversized green/gold bow identity",
+      "green/gold costume design",
+      "approved chibi proportions",
+      "stylized polished mobile-game rendering language"
+    ],
+    "poseFreedom": [
+      "arms",
+      "shoulders",
+      "elbows",
+      "forearms",
+      "hands",
+      "torso",
+      "bow orientation",
+      "stance within in-place root-motion constraints"
+    ],
+    "rule": "Identity preservation must not be interpreted as body-pose preservation. Preserve who the Archer is, not the neutral body pose."
+  },
+  "poseProgression": [
+    {"frameIndex": 0, "intent": "combat ready / anticipation start", "mustRead": "readying to shoot"},
+    {"frameIndex": 1, "intent": "raise bow", "mustRead": "bow visibly raised from ready"},
+    {"frameIndex": 2, "intent": "nock / prep", "mustRead": "hands prepare arrow/string relation"},
+    {"frameIndex": 3, "intent": "draw mid", "mustRead": "drawing hand and elbow visibly move backward"},
+    {"frameIndex": 4, "intent": "full draw / high tension", "mustRead": "maximum readable draw; silhouette clearly distinct from neutral and frame003"},
+    {"frameIndex": 5, "intent": "release", "mustRead": "semantic release snap; marker candidate"},
+    {"frameIndex": 6, "intent": "recoil / follow-through", "mustRead": "visible post-release body/arm response"},
+    {"frameIndex": 7, "intent": "open-hand / follow-through hold", "mustRead": "follow-through remains readable, held pose allowed"},
+    {"frameIndex": 8, "intent": "recovery toward ready", "mustRead": "controlled return without popping"},
+    {"frameIndex": 9, "intent": "return / neutral exit", "mustRead": "clean exit toward approved neutral identity"}
+  ],
+  "meaningfulPoseDiversityRule": "Key poses must be semantically distinguishable by silhouette and articulated limb geometry. Ten unique file hashes are not evidence of ten meaningful poses. Held timing frames are allowed when intentional and documented.",
+  "reviewArtifactsRequired": [
+    "10-frame contact sheet",
+    "12 FPS sequence preview GIF",
+    "board-scale preview GIF or board-scale sample sequence",
+    "full-draw diagnostic comparing neutral/ready vs frame004",
+    "projectileRelease diagnostic comparing full-draw vs actual release frame",
+    "old-vs-v1-vs-v2 comparison contact sheet or GIF when feasible"
+  ],
+  "mobileReviewGoal": "A user viewing on a phone should immediately see raise -> draw -> full draw -> release -> follow-through without needing projectile VFX.",
+  "versioning": {
+    "expectedNewPackage": "assets/units/hero.archer/attack-chibi-v2/",
+    "overwriteV1": false,
+    "preserveRejectedV1ForForensics": true
+  },
+  "requiredEndStateAfterProductionBeforeApproval": {
+    "attackV2Generated": true,
+    "attackV2PackageApproved": false,
+    "canonicalApproved": false,
+    "runtimeEligible": false,
+    "runtimeIntegrated": false
+  },
+  "scopeExclusions": [
+    "runtime integration",
+    "src/",
+    "Combat/gameplay changes",
+    "projectile runtime changes",
+    "Slime/Golem production",
+    "other-character production",
+    "PR merge"
+  ]
+}
