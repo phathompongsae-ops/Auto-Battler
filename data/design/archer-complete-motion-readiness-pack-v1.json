@@ -1,0 +1,341 @@
+{
+  "packId": "archer-complete-motion-readiness-pack-v1",
+  "packVersion": 1,
+  "characterId": "hero.archer",
+  "repository": "phathompongsae-ops/Auto-Battler",
+  "baseLineage": {
+    "baseBranch": "cc/archer-attack-v2-production-v1",
+    "baseSha": "26ea251386199720138ea3c3b32d308acbdeaed9",
+    "ancestryVerified": {
+      "pr65MoveApprovalHead": "5305c84e80a7117c69a2f8048f9f5ca76e051d09",
+      "pr69AttackV2HandoffHead": "2abbe77",
+      "bothAreAncestorsOfBase": true
+    },
+    "referencePRs": {
+      "pr65": "Archer Move Package Exact-File Approval v1 (open/draft/unmerged)",
+      "pr67": "Attack v1 NEAR_STATIC (rejected/superseded, untouched)",
+      "pr69": "Attack v2 redo contract/handoff",
+      "pr72": "Attack v2 production candidate (open/draft/unmerged, pending user visual approval)"
+    }
+  },
+  "sourceNeutralMaster": {
+    "candidateId": "hero.archer.production-master.candidate.v1",
+    "path": "docs/assets/review/character-production/archer/master-v1/archer-production-master-candidate-v1.png",
+    "sha256": "4911e7e3ba59241ee011be3e62f1b64230dcf9b3c24c6aeb23dc939d83311013",
+    "approved": true
+  },
+  "states": {
+    "idle": {
+      "status": "exact-package-approved",
+      "packageId": "hero.archer.idle.chibi-production-candidate.v1",
+      "approvalRecord": "data/design/archer-idle-package-exact-file-approval-v1.json",
+      "sidecar": "assets/units/hero.archer/hero.archer_idle_chibi_v1.json",
+      "sidecarContract": {
+        "assetId": "hero.archer.idle.chibi-production-candidate.v1",
+        "unitId": "hero.archer",
+        "state": "idle",
+        "fps": 8,
+        "frameCount": 8,
+        "loop": true,
+        "anchor": [
+          0.5,
+          0.92
+        ],
+        "canvas": [
+          640,
+          960
+        ],
+        "rootMotion": "in-place",
+        "runtimeFlipX": true,
+        "eventMarkers": []
+      },
+      "frameCount": 8,
+      "frames": [
+        {
+          "frameIndex": 0,
+          "path": "assets/units/hero.archer/idle-chibi-v1/hero.archer_idle_000.png",
+          "sha256": "4911e7e3ba59241ee011be3e62f1b64230dcf9b3c24c6aeb23dc939d83311013"
+        },
+        {
+          "frameIndex": 1,
+          "path": "assets/units/hero.archer/idle-chibi-v1/hero.archer_idle_001.png",
+          "sha256": "1996f524359331c22ce7950c0494a4bb803d466b772794fffeeee18e49d681fc"
+        },
+        {
+          "frameIndex": 2,
+          "path": "assets/units/hero.archer/idle-chibi-v1/hero.archer_idle_002.png",
+          "sha256": "ce9e92977f6fe1f128d941f9c8309892a9fe3391e51f68bf98c3e7534b375924"
+        },
+        {
+          "frameIndex": 3,
+          "path": "assets/units/hero.archer/idle-chibi-v1/hero.archer_idle_003.png",
+          "sha256": "57d29515f980b5e9c6ec04b087dc89ed8c5a57d4f06896b46cdb0fe65188e2c0"
+        },
+        {
+          "frameIndex": 4,
+          "path": "assets/units/hero.archer/idle-chibi-v1/hero.archer_idle_004.png",
+          "sha256": "30bf88ec7006a0ddbb8b69a6a5585588582b2208c7c92bef72b5cc974fc5b761"
+        },
+        {
+          "frameIndex": 5,
+          "path": "assets/units/hero.archer/idle-chibi-v1/hero.archer_idle_005.png",
+          "sha256": "ecb10ad466cc36ebf05957211ea79e59150d470a51df1a8f451dc952f2edb4ff"
+        },
+        {
+          "frameIndex": 6,
+          "path": "assets/units/hero.archer/idle-chibi-v1/hero.archer_idle_006.png",
+          "sha256": "a0d284b73d007f4bd78251cc1b9492545da97582dbca6b31851242b328f0ec29"
+        },
+        {
+          "frameIndex": 7,
+          "path": "assets/units/hero.archer/idle-chibi-v1/hero.archer_idle_007.png",
+          "sha256": "815717f5dc733fcc3ba0275ac086fc7a5a11847ae627ddd6f49c9f8174327985"
+        }
+      ],
+      "validator": "tools/validate-archer-idle-production-v1.mjs",
+      "lastValidatorResult": "PASS (exit 0)"
+    },
+    "move": {
+      "status": "exact-package-approved",
+      "packageId": "hero.archer.move.chibi-production-candidate.v1",
+      "approvalRecord": "data/design/archer-move-package-exact-file-approval-v1.json",
+      "sidecar": "assets/units/hero.archer/hero.archer_move_chibi_v1.json",
+      "sidecarContract": {
+        "assetId": "hero.archer.move.chibi-production-candidate.v1",
+        "unitId": "hero.archer",
+        "state": "move",
+        "fps": 12,
+        "frameCount": 8,
+        "loop": true,
+        "anchor": [
+          0.5,
+          0.92
+        ],
+        "canvas": [
+          640,
+          960
+        ],
+        "rootMotion": "in-place",
+        "runtimeFlipX": true,
+        "eventMarkers": [
+          {
+            "name": "leftFootstepCue",
+            "normalizedTime": 0.25
+          },
+          {
+            "name": "rightFootstepCue",
+            "normalizedTime": 0.75
+          }
+        ]
+      },
+      "frameCount": 8,
+      "frames": [
+        {
+          "frameIndex": 0,
+          "path": "assets/units/hero.archer/move-chibi-v1/hero.archer_move_000.png",
+          "sha256": "a9142fb9aff23110822e2eae491fd10a483aaec21f0ce44616108c3d5e797d79"
+        },
+        {
+          "frameIndex": 1,
+          "path": "assets/units/hero.archer/move-chibi-v1/hero.archer_move_001.png",
+          "sha256": "91ccd270ed2796d6a6d0d11a95582537af95cbfe0334c701022522f4e3def1fc"
+        },
+        {
+          "frameIndex": 2,
+          "path": "assets/units/hero.archer/move-chibi-v1/hero.archer_move_002.png",
+          "sha256": "1b92c2c694f03866798c5c0d67e7a1a2f929b2d4181c172fa493c0f583f146d9"
+        },
+        {
+          "frameIndex": 3,
+          "path": "assets/units/hero.archer/move-chibi-v1/hero.archer_move_003.png",
+          "sha256": "904eff4bf047861d6e4da257ecd733471a2de73c36ca5333b0c7ec18b181e70c"
+        },
+        {
+          "frameIndex": 4,
+          "path": "assets/units/hero.archer/move-chibi-v1/hero.archer_move_004.png",
+          "sha256": "8890f16ab7a903d7638a35e8fcc3456cb82ad49a67f0d4ff85371e55bbc3c2d9"
+        },
+        {
+          "frameIndex": 5,
+          "path": "assets/units/hero.archer/move-chibi-v1/hero.archer_move_005.png",
+          "sha256": "2d6f9200366e3056a8309e249f6fd2ddf31b32fea7538ae35860878126446d03"
+        },
+        {
+          "frameIndex": 6,
+          "path": "assets/units/hero.archer/move-chibi-v1/hero.archer_move_006.png",
+          "sha256": "444f4b9833c3e5bd3be41c2873673b881e0ef7d40b1092ed1894cd4a33f3927c"
+        },
+        {
+          "frameIndex": 7,
+          "path": "assets/units/hero.archer/move-chibi-v1/hero.archer_move_007.png",
+          "sha256": "383adfadbeba4314ecade83b6080c753ed2a976fc80b03d4820b0546bdb035b1"
+        }
+      ],
+      "validator": "tools/validate-archer-move-production-v1.mjs",
+      "lastValidatorResult": "PASS (exit 0)"
+    },
+    "attack": {
+      "status": "v2-candidate-pending-user-visual-approval",
+      "packageId": "hero.archer.attack.chibi-production-candidate-v2",
+      "candidatePR": 72,
+      "approvalTemplate": "data/design/archer-attack-package-exact-file-approval-template-v1.json",
+      "sidecar": "assets/units/hero.archer/hero.archer_attack_chibi_v2.json",
+      "sidecarContract": {
+        "assetId": "hero.archer.attack.chibi-production-candidate-v2",
+        "unitId": "hero.archer",
+        "state": "attack",
+        "fps": 12,
+        "frameCount": 10,
+        "loop": false,
+        "anchor": [
+          0.5,
+          0.92
+        ],
+        "canvas": [
+          640,
+          960
+        ],
+        "rootMotion": "in-place",
+        "runtimeFlipX": true,
+        "eventMarkers": [
+          {
+            "name": "projectileRelease",
+            "normalizedTime": 0.55,
+            "frameIndex": 5
+          }
+        ]
+      },
+      "sourceMap": "assets/units/hero.archer/attack-chibi-v2/source-map.json",
+      "frameCount": 10,
+      "frames": [
+        {
+          "frameIndex": 0,
+          "path": "assets/units/hero.archer/attack-chibi-v2/hero.archer_attack_000.png",
+          "sha256": "48d909894efa1e24f386d1e2917deb53a9bc688798d18784eb98d9b0fbe19b4e"
+        },
+        {
+          "frameIndex": 1,
+          "path": "assets/units/hero.archer/attack-chibi-v2/hero.archer_attack_001.png",
+          "sha256": "a15f1927dc5a6d04963b20b654c9bfc563725420d3e56d7c3ca45e84eee47582"
+        },
+        {
+          "frameIndex": 2,
+          "path": "assets/units/hero.archer/attack-chibi-v2/hero.archer_attack_002.png",
+          "sha256": "ae500391e5d15510714f89a552d2bd8b3d895a4487807dcc1c7774bb7628dc9d"
+        },
+        {
+          "frameIndex": 3,
+          "path": "assets/units/hero.archer/attack-chibi-v2/hero.archer_attack_003.png",
+          "sha256": "368a8b3fa9e1d6ad2a6d0a37397f6d8f2194573c15358fae35e5313a29f637a1"
+        },
+        {
+          "frameIndex": 4,
+          "path": "assets/units/hero.archer/attack-chibi-v2/hero.archer_attack_004.png",
+          "sha256": "617141c21394ad847ab048b5b2ee9e8ad7193323d7a227aad7456f166f2475a6"
+        },
+        {
+          "frameIndex": 5,
+          "path": "assets/units/hero.archer/attack-chibi-v2/hero.archer_attack_005.png",
+          "sha256": "b591bd90ad48c401d2de5655c91f606210d95b91997f243ffaebc1e5439e24c2"
+        },
+        {
+          "frameIndex": 6,
+          "path": "assets/units/hero.archer/attack-chibi-v2/hero.archer_attack_006.png",
+          "sha256": "a15f1927dc5a6d04963b20b654c9bfc563725420d3e56d7c3ca45e84eee47582"
+        },
+        {
+          "frameIndex": 7,
+          "path": "assets/units/hero.archer/attack-chibi-v2/hero.archer_attack_007.png",
+          "sha256": "6c63bedf4cf0486392dcb699fc9208eab13f5a7623c597d3dda410c5f124b1e1"
+        },
+        {
+          "frameIndex": 8,
+          "path": "assets/units/hero.archer/attack-chibi-v2/hero.archer_attack_008.png",
+          "sha256": "48d909894efa1e24f386d1e2917deb53a9bc688798d18784eb98d9b0fbe19b4e"
+        },
+        {
+          "frameIndex": 9,
+          "path": "assets/units/hero.archer/attack-chibi-v2/hero.archer_attack_009.png",
+          "sha256": "4911e7e3ba59241ee011be3e62f1b64230dcf9b3c24c6aeb23dc939d83311013"
+        }
+      ],
+      "frame9ByteIdenticalToNeutralMaster": true,
+      "validator": "tools/validate-archer-attack-v2-production-v1.mjs",
+      "lastValidatorResult": "FAIL (exit 1) \u2014 articulation metric gates: nock\u2192draw-mid 0.0154<0.020, draw-mid\u2192full-draw 0.0148<0.025, full-draw\u2192release 0.0265<0.030; plus frame 6/8 duplicate-hash findings. Technical integrity gates (dimensions, RGBA, bounds, feet pin y>=800, neutral exit) pass.",
+      "humanVisualAssessment": "MARGINAL 5/7 gates \u2014 see docs/reviews/archer-v2-final-visual-review.json",
+      "v1Reference": {
+        "pr": 67,
+        "result": "rejected NEAR_STATIC",
+        "immutable": true
+      }
+    }
+  },
+  "consistencyMatrix": {
+    "namingPattern": "hero.archer_<state>_%03d.png",
+    "canvas": [
+      640,
+      960
+    ],
+    "mode": "RGBA PNG (8-bit, non-interlaced)",
+    "fps": 12,
+    "anchor": [
+      0.5,
+      0.92
+    ],
+    "rootMotion": "in-place",
+    "runtimeFlipX": true,
+    "loopByState": {
+      "idle": true,
+      "move": true,
+      "attack": false
+    },
+    "eventMarkersByState": {
+      "idle": [],
+      "move": [
+        {
+          "name": "leftFootstepCue",
+          "normalizedTime": 0.25
+        },
+        {
+          "name": "rightFootstepCue",
+          "normalizedTime": 0.75
+        }
+      ],
+      "attack": [
+        {
+          "name": "projectileRelease",
+          "normalizedTime": 0.55,
+          "frameIndex": 5
+        }
+      ]
+    },
+    "sharedApprovedSource": "4911e7e3ba59241ee011be3e62f1b64230dcf9b3c24c6aeb23dc939d83311013"
+  },
+  "effectiveStatus": {
+    "neutralMasterApproved": true,
+    "idlePackageApproved": true,
+    "movePackageApproved": true,
+    "attackV1Rejected": true,
+    "attackV2Generated": true,
+    "attackV2PackageApproved": false,
+    "completeArcherMotionApproved": false,
+    "canonicalApproved": false,
+    "runtimeEligible": false,
+    "runtimeIntegrated": false
+  },
+  "blockers": [
+    {
+      "id": "attack-v2-user-visual-approval",
+      "blocking": [
+        "attackV2PackageApproved",
+        "completeArcherMotionApproved",
+        "canonicalApproved",
+        "runtimeEligible"
+      ],
+      "description": "Attack v2 candidate (PR #72) awaits explicit user PASS/FAIL visual verdict. No self-approval permitted.",
+      "owner": "user"
+    }
+  ],
+  "readinessRule": "completeArcherMotionApproved may become true only when Neutral + Idle + Move + Attack all hold exact-file approvals. Runtime integration remains gated by data/design/archer-post-approval-runtime-authorization-gate-v1.json.",
+  "validator": "tools/validate-archer-complete-motion-readiness-pack-v1.mjs"
+}
