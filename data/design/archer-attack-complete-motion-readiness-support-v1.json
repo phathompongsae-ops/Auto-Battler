@@ -1,0 +1,123 @@
+{
+  "contractVersion": 1,
+  "id": "archer-attack-complete-motion-readiness-support-v1",
+  "extends": "data/design/archer-complete-motion-readiness-pack-v1.json",
+  "characterId": "hero.archer",
+  "repository": "phathompongsae-ops/Auto-Battler",
+  "sourceOfTruth": {
+    "basePR": 74,
+    "baseBranch": "cc/archer-complete-motion-readiness-pack-v1",
+    "baseHead": "09079cd9923964008d63d59277f3cab5f1224152",
+    "attackCandidatePR": 72,
+    "attackCandidateBranch": "cc/archer-attack-v2-production-v1",
+    "attackCandidateHead": "26ea251386199720138ea3c3b32d308acbdeaed9",
+    "moveApprovalPR": 65,
+    "moveApprovalHead": "5305c84e80a7117c69a2f8048f9f5ca76e051d09"
+  },
+  "requiredMotions": ["idle", "move", "attack"],
+  "motionIds": {
+    "idle": "hero.archer/idle",
+    "move": "hero.archer/move",
+    "attack": "hero.archer/attack"
+  },
+  "shared": {
+    "canvas": [640, 960],
+    "anchor": [0.5, 0.92],
+    "rootMotion": "in-place",
+    "runtimeFlipX": true,
+    "fpsByState": {"idle": 8, "move": 12, "attack": 12},
+    "loopByState": {"idle": true, "move": true, "attack": false},
+    "sourceNeutralMasterSha256": "4911e7e3ba59241ee011be3e62f1b64230dcf9b3c24c6aeb23dc939d83311013"
+  },
+  "states": {
+    "idle": {
+      "packageId": "hero.archer.idle.chibi-production-candidate.v1",
+      "sidecar": "assets/units/hero.archer/hero.archer_idle_chibi_v1.json",
+      "sourceMap": "assets/units/hero.archer/idle-chibi-v1/source-map.json",
+      "approvalRecord": "data/design/archer-idle-package-exact-file-approval-v1.json",
+      "assetAvailability": "PRESENT",
+      "sourceVerified": true,
+      "technicalIntegrityValidated": true,
+      "technicallyValidated": true,
+      "exactPackageApproved": true,
+      "productionReady": true,
+      "canonicalApproved": false,
+      "runtimeReady": false
+    },
+    "move": {
+      "packageId": "hero.archer.move.chibi-production-candidate.v1",
+      "sidecar": "assets/units/hero.archer/hero.archer_move_chibi_v1.json",
+      "sourceMap": "assets/units/hero.archer/move-chibi-v1/source-map.json",
+      "approvalRecord": "data/design/archer-move-package-exact-file-approval-v1.json",
+      "assetAvailability": "PRESENT",
+      "sourceVerified": true,
+      "technicalIntegrityValidated": true,
+      "technicallyValidated": true,
+      "exactPackageApproved": true,
+      "productionReady": true,
+      "canonicalApproved": false,
+      "runtimeReady": false
+    },
+    "attack": {
+      "packageId": "hero.archer.attack.chibi-production-candidate-v2",
+      "productionContract": "data/design/archer-attack-v2-redo-contract-v1.json",
+      "sidecar": "assets/units/hero.archer/hero.archer_attack_chibi_v2.json",
+      "sourceMap": "assets/units/hero.archer/attack-chibi-v2/source-map.json",
+      "validationReport": "docs/reviews/archer-attack-v2-production-status-v1.json",
+      "approvalRecord": null,
+      "assetAvailability": "PRESENT",
+      "sourceVerified": true,
+      "technicalIntegrityValidated": true,
+      "technicallyValidated": false,
+      "exactPackageApproved": false,
+      "productionReady": false,
+      "canonicalApproved": false,
+      "runtimeReady": false,
+      "pendingReason": "Attack v2 dedicated validator exits 1 on articulation gates and explicit user visual approval is still pending."
+    }
+  },
+  "approvalEvidencePolicy": {
+    "canonicalApprovedRequires": [
+      "explicit human approval evidence",
+      "exact package/hash lock",
+      "source/provenance verification",
+      "technical validation required by the motion contract"
+    ],
+    "humanApprovalOwner": "user",
+    "noTechnicalPassSubstitution": true
+  },
+  "pendingBlockedPolicy": {
+    "assetAvailabilityEnum": ["PRESENT", "PENDING_PRODUCTION", "BLOCKED_MISSING_ASSET"],
+    "missingAssetRule": "A missing production asset must be PENDING_PRODUCTION or BLOCKED_MISSING_ASSET, must remain not technically validated/not production ready/not canonical approved, and must carry an explicit blocker. The validator returns exit 2 rather than PASS.",
+    "noFabricatedSha": true
+  },
+  "knownBasePackCorrections": [
+    {
+      "path": "consistencyMatrix.fps",
+      "issue": "PR #74 base pack records a shared fps=12 even though approved Idle is 8 FPS.",
+      "authoritativeReplacement": "shared.fpsByState"
+    },
+    {
+      "path": "states.attack.approvalTemplate",
+      "issue": "PR #74 lineage contains the older generic Attack approval template; no v2 exact approval record exists on this lineage yet.",
+      "authoritativeReplacement": "states.attack.approvalRecord=null until an explicit human-approved exact-file record is created; do not fabricate or infer approval."
+    }
+  ],
+  "completeReadiness": {
+    "sourceVerified": true,
+    "technicallyValidated": false,
+    "productionReady": false,
+    "completeArcherMotionApproved": false,
+    "canonicalApproved": false,
+    "runtimeEligible": false,
+    "runtimeIntegrated": false,
+    "blockers": [
+      {
+        "id": "attack-v2-technical-and-human-approval",
+        "status": "PENDING",
+        "owner": "CC+user",
+        "reason": "Attack v2 exists and source/provenance are recorded, but its dedicated validator is not fully green and exact human approval is absent."
+      }
+    ]
+  }
+}
