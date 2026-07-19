@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "allowedTransitions": {
+    "READY_FOR_COCO": ["COCO_WORKING", "BLOCKED"],
+    "COCO_WORKING": ["READY_FOR_CC", "READY_FOR_HUMAN_REVIEW", "REWORK_REQUIRED", "BLOCKED"],
+    "READY_FOR_CC": ["CC_WORKING", "BLOCKED"],
+    "CC_WORKING": ["READY_FOR_HUMAN_REVIEW", "READY_FOR_COCO", "REWORK_REQUIRED", "BLOCKED"],
+    "READY_FOR_HUMAN_REVIEW": ["APPROVED", "REWORK_REQUIRED", "BLOCKED"],
+    "REWORK_REQUIRED": ["READY_FOR_COCO", "READY_FOR_CC", "BLOCKED"],
+    "APPROVED": ["READY_FOR_CC", "DONE"],
+    "BLOCKED": ["READY_FOR_COCO", "READY_FOR_CC", "READY_FOR_HUMAN_REVIEW"],
+    "DONE": []
+  },
+  "ownerByStatus": {
+    "READY_FOR_COCO": "coco",
+    "COCO_WORKING": "coco",
+    "READY_FOR_CC": "cc",
+    "CC_WORKING": "cc",
+    "READY_FOR_HUMAN_REVIEW": "user",
+    "APPROVED": "user",
+    "REWORK_REQUIRED": "coco|cc",
+    "BLOCKED": "coco|cc|user",
+    "DONE": "user"
+  },
+  "hardRules": [
+    "No transition may imply human approval without an explicit user verdict.",
+    "canonicalApproved/runtimeEligible/runtimeIntegrated must remain false unless an explicit task contract authorizes the transition after human approval.",
+    "READY_FOR_CC requires concrete handoff artifacts or exact repository paths; prose-only claims are insufficient.",
+    "READY_FOR_HUMAN_REVIEW requires reviewable artifacts or direct links/paths to them.",
+    "BLOCKED requires blocker.code, blocker.resolver, and blocker.resolution.",
+    "DONE requires requiredOutputs complete and validation results recorded from actual runs where required."
+  ]
+}
