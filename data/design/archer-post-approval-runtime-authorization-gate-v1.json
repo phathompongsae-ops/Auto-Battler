@@ -1,0 +1,82 @@
+{
+  "gateVersion": 1,
+  "id": "archer-post-approval-runtime-authorization-gate-v1",
+  "characterId": "hero.archer",
+  "owner": "CC",
+  "authorizedNow": false,
+  "purpose": "Future runtime authorization gate after exact Archer Attack approval. This record does not authorize runtime work now.",
+  "preconditionsAllRequired": [
+    "Neutral Master approved and exact SHA locked",
+    "Idle exact package approved and hashes locked",
+    "Move exact package approved and hashes locked",
+    "Attack exact package approved by explicit user decision and hashes locked",
+    "no source drift across all approved inputs",
+    "complete Archer motion handoff contains exact paths, hashes, FPS, loop semantics, rootMotion, anchors, markers, runtimeFlipX, transition notes, review concerns, and rollback plan"
+  ],
+  "currentPreconditionState": {
+    "neutralApproved": true,
+    "idleApproved": true,
+    "moveApproved": true,
+    "attackGenerated": false,
+    "attackApproved": false,
+    "exactAttackHashesLocked": false,
+    "runtimeAuthorization": false
+  },
+  "runtimeExecutionRules": [
+    "reuse technical motion pipeline from PR #56 as a read-only technical baseline",
+    "avoid framework rewrite unless a demonstrated blocker requires separately reviewed scope",
+    "integrate only exact approved Idle/Move/Attack package bytes",
+    "preserve FPS and loop semantics",
+    "preserve anchors and rootMotion semantics",
+    "preserve Move footstep markers",
+    "preserve runtimeFlipX",
+    "map approved Attack releaseCue to projectile timing without altering approved Attack art",
+    "validate Idle -> Attack -> Idle and Move -> Attack transitions",
+    "maintain a reversible rollback path"
+  ],
+  "testing": {
+    "speed": "x4",
+    "targetedCheckpointCount": 3,
+    "mustBeExactly": true,
+    "checkpoints": [
+      {
+        "index": 1,
+        "name": "Asset Load + State Registration",
+        "checks": [
+          "exact Idle/Move/Attack packages load under correct hero.archer states",
+          "FPS/loop/rootMotion/anchor/runtimeFlipX metadata register correctly",
+          "no stale or legacy texture binding",
+          "no asset-load errors"
+        ]
+      },
+      {
+        "index": 2,
+        "name": "Playback + Transition + Anchor Stability",
+        "checks": [
+          "Idle loops at approved 8 FPS",
+          "Move loops at approved 12 FPS",
+          "Attack plays once at approved 12 FPS/non-loop semantics",
+          "Idle -> Attack -> Idle transitions cleanly",
+          "Move -> Attack transitions cleanly",
+          "no root drift, crop, scale pop, anchor jump, stale frame, or obvious transition pop"
+        ]
+      },
+      {
+        "index": 3,
+        "name": "Marker + Projectile Timing + Regression",
+        "checks": [
+          "Move footsteps remain isolated to approved frames 002 and 006",
+          "Attack releaseCue fires exactly once at the approved frame per playback",
+          "projectile release timing consumes releaseCue without changing approved Attack art",
+          "targeted Combat/gameplay regression remains functional at x4",
+          "no marker leakage across states"
+        ]
+      }
+    ]
+  },
+  "rollback": {
+    "required": true,
+    "rule": "Runtime integration must be reversible to the immediately prior approved runtime mapping without modifying approved Neutral/Idle/Move/Attack bytes."
+  },
+  "authorizationRule": "Set authorizedNow=true only in a later scoped record after explicit Attack exact-file approval and all preconditions pass."
+}

@@ -1,0 +1,168 @@
+{
+  "contractVersion": 1,
+  "id": "archer-move-production-v1",
+  "packageId": "hero.archer.move.chibi-production-candidate.v1",
+  "characterId": "hero.archer",
+  "state": "move",
+  "status": "production-candidate-pending-user-approval",
+  "styleDirectionApproved": true,
+  "neutralMasterApproved": true,
+  "idlePackageApproved": true,
+  "movePackageApproved": false,
+  "canonicalApproved": false,
+  "runtimeEligible": false,
+  "runtimeIntegrated": false,
+  "attackGenerated": false,
+  "source": {
+    "repository": "phathompongsae-ops/Auto-Battler",
+    "basePR": {
+      "pr": 63,
+      "branch": "coco/archer-idle-package-exact-file-approval-v1",
+      "sha": "40b334937f394f54c1d1e97b729e37778644ee1e",
+      "verifiedState": "open-draft-unmerged",
+      "ancestryRole": "exact base, approved Idle overlay, and approved Neutral Master linkage"
+    },
+    "technicalBaselinePR": {
+      "pr": 56,
+      "branch": "cc/pilot-idle-motion-runtime-integration-v1",
+      "sha": "bbe63518c42761f49a0aa068c78e0d07d3e88214",
+      "usage": "read-only Move FPS, frame-count, loop, root-motion, marker, runtimeFlipX, and anchor semantics",
+      "ancestryIncluded": false
+    },
+    "ccRuntimeAncestryIncluded": false
+  },
+  "sourceNeutralMaster": {
+    "candidateId": "hero.archer.production-master.candidate.v1",
+    "path": "docs/assets/review/character-production/archer/master-v1/archer-production-master-candidate-v1.png",
+    "sha256": "4911e7e3ba59241ee011be3e62f1b64230dcf9b3c24c6aeb23dc939d83311013",
+    "dimensions": [640, 960],
+    "format": "PNG",
+    "mode": "RGBA",
+    "neutralMasterApproved": true,
+    "approvedNeutralMasterSource": true,
+    "bytesChangedByThisPackage": false
+  },
+  "approvedIdleSource": {
+    "packageId": "hero.archer.idle.chibi-production-candidate.v1",
+    "approvalRecord": "data/design/archer-idle-package-exact-file-approval-v1.json",
+    "approvalRecordSha256": "894c7724c2935fafb1b35e1f943de95de11a3e68494444bc8bb00c9753cc6c45",
+    "sourcePR": 63,
+    "sourceSha": "40b334937f394f54c1d1e97b729e37778644ee1e",
+    "idlePackageApproved": true,
+    "usage": "identity, silhouette, readability, anchor, and no-foot-slide constraints; Move pixels derive from the Neutral Master, not cumulatively from Idle frames"
+  },
+  "motionContract": {
+    "fps": 12,
+    "frameCount": 8,
+    "durationSeconds": 0.666667,
+    "loop": true,
+    "rootMotion": "in-place",
+    "runtimeFlipX": true,
+    "eventMarkers": [
+      {
+        "name": "leftFootstepCue",
+        "normalizedTime": 0.25,
+        "frameIndex": 2,
+        "visualContact": "character-left/viewer-right foot at y=854; opposite foot lifted"
+      },
+      {
+        "name": "rightFootstepCue",
+        "normalizedTime": 0.75,
+        "frameIndex": 6,
+        "visualContact": "character-right/viewer-left foot at y=854; opposite foot lifted"
+      }
+    ],
+    "markersChangedFromBaseline": false,
+    "canvas": [640, 960],
+    "anchor": [0.5, 0.92],
+    "anchorDecision": "retained-after-frame-bounds-and-contact-measurement",
+    "anchorEvidence": {
+      "markerContactBaselineY": 854,
+      "transitionalSupportBaselineRangeY": [852, 854],
+      "anchorPixel": [320, 883.2],
+      "markerContactAnchorOffsetPixels": 29.2,
+      "maximumTransitionalVariationPixels": 2,
+      "boardScaleEquivalentVariationPixels": 0.31,
+      "reason": "Both marker contacts land exactly at the approved y=854 baseline. Transitional variation is at most two package pixels, with no accumulated translation, crop, or world travel; changing anchor or runtime geometry would add risk without improving gameplay-scale placement."
+    }
+  },
+  "productionMethod": {
+    "type": "identity-preserving deterministic articulated lower-body motion",
+    "aiRegeneration": false,
+    "pixelSource": "every frame independently samples the exact approved Neutral Master",
+    "upperIdentityZone": "rows y<610 remain byte-identical to the Neutral Master in all frames",
+    "lowerBodyMotion": {
+      "primaryStrideAmplitudePixels": 18,
+      "passingBiasAmplitudePixels": 3,
+      "maximumOppositeFootLiftPixels": 14,
+      "characterRightViewerLeftGroundNormalizationPixels": 31,
+      "filter": "bilinear in premultiplied RGBA"
+    },
+    "worldTravelBaked": false,
+    "accumulatedFrameEdits": false,
+    "generator": "tools/generate-archer-move-production-v1.py",
+    "identityPreservation": [
+      "face, green eyes, hood, green hair, and pointed ears are pixel-identical",
+      "upper costume, torso, upper bow, palette, and lighting are pixel-identical",
+      "only a smooth lower-body locomotion field changes",
+      "no repaint, retouch, AI regeneration, weapon morph, or costume morph"
+    ]
+  },
+  "frameInventory": [
+    {"frameIndex": 0, "path": "assets/units/hero.archer/move-chibi-v1/hero.archer_move_000.png", "sha256": "a9142fb9aff23110822e2eae491fd10a483aaec21f0ce44616108c3d5e797d79", "role": "double-support-passing-a"},
+    {"frameIndex": 1, "path": "assets/units/hero.archer/move-chibi-v1/hero.archer_move_001.png", "sha256": "91ccd270ed2796d6a6d0d11a95582537af95cbfe0334c701022522f4e3def1fc", "role": "left-leg-forward-down"},
+    {"frameIndex": 2, "path": "assets/units/hero.archer/move-chibi-v1/hero.archer_move_002.png", "sha256": "1b92c2c694f03866798c5c0d67e7a1a2f929b2d4181c172fa493c0f583f146d9", "role": "left-foot-contact"},
+    {"frameIndex": 3, "path": "assets/units/hero.archer/move-chibi-v1/hero.archer_move_003.png", "sha256": "904eff4bf047861d6e4da257ecd733471a2de73c36ca5333b0c7ec18b181e70c", "role": "left-support-recovery"},
+    {"frameIndex": 4, "path": "assets/units/hero.archer/move-chibi-v1/hero.archer_move_004.png", "sha256": "8890f16ab7a903d7638a35e8fcc3456cb82ad49a67f0d4ff85371e55bbc3c2d9", "role": "double-support-passing-b"},
+    {"frameIndex": 5, "path": "assets/units/hero.archer/move-chibi-v1/hero.archer_move_005.png", "sha256": "2d6f9200366e3056a8309e249f6fd2ddf31b32fea7538ae35860878126446d03", "role": "right-leg-forward-down"},
+    {"frameIndex": 6, "path": "assets/units/hero.archer/move-chibi-v1/hero.archer_move_006.png", "sha256": "444f4b9833c3e5bd3be41c2873673b881e0ef7d40b1092ed1894cd4a33f3927c", "role": "right-foot-contact"},
+    {"frameIndex": 7, "path": "assets/units/hero.archer/move-chibi-v1/hero.archer_move_007.png", "sha256": "383adfadbeba4314ecade83b6080c753ed2a976fc80b03d4820b0546bdb035b1", "role": "right-support-return"}
+  ],
+  "validationSummary": {
+    "loopSeamPremultipliedRgbaMae": 0.009958632,
+    "maximumAdjacentPremultipliedRgbaMae": 0.010189156,
+    "seamNotGreaterThanMaximumAdjacent": true,
+    "horizontalAlphaCentroidRangePixels": 1.836978,
+    "verticalAlphaCentroidRangePixels": 3.723126,
+    "accumulatedTranslationPixels": 0,
+    "markerAlignment": "pass",
+    "identityContinuity": "pass-with-user-visual-approval-pending"
+  },
+  "packagePaths": {
+    "frames": "assets/units/hero.archer/move-chibi-v1/hero.archer_move_000.png through hero.archer_move_007.png",
+    "sidecar": "assets/units/hero.archer/hero.archer_move_chibi_v1.json",
+    "sourceMap": "assets/units/hero.archer/move-chibi-v1/source-map.json",
+    "validationReport": "docs/reviews/archer-move-production-v1-validation.json",
+    "humanReview": "docs/reviews/archer-move-production-v1.md"
+  },
+  "review": {
+    "directory": "docs/assets/review/character-production/archer/move-production-v1",
+    "contactSheet": "archer-move-production-v1-contact-sheet.png",
+    "loopPreview": "archer-move-production-v1-loop-preview.gif",
+    "boardScaleSample": "archer-move-production-v1-board-scale-sample.png",
+    "markerContactDiagnostic": "archer-move-production-v1-marker-contact-diagnostic.png",
+    "reviewOnly": true,
+    "runtimeEligible": false,
+    "boardObservation": "The green/gold block, hood/ear silhouette, and bow remain readable; the leg alternation survives as a compact locomotion cue without enlarging the unit.",
+    "smallScaleRisk": "Fine leg separation is intentionally secondary to the bow and head silhouette. User review should confirm that the restrained gait is sufficiently readable at board scale.",
+    "userApprovalRequired": true
+  },
+  "protectedScope": {
+    "existingMoveAssetsOverwritten": false,
+    "approvedIdleChanged": false,
+    "neutralMasterChanged": false,
+    "attackCreatedOrModified": false,
+    "runtimeChanged": false,
+    "srcChanged": false,
+    "coreLogicChanged": false,
+    "combatChanged": false,
+    "gameplayChanged": false,
+    "cameraOrBoardChanged": false,
+    "prMerged": false
+  },
+  "approvalGate": {
+    "current": "Move package user review required",
+    "attackProductionAuthorized": false,
+    "runtimeIntegrationAuthorized": false
+  }
+}

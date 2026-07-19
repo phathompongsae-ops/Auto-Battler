@@ -1,0 +1,205 @@
+{
+  "recordVersion": 1,
+  "id": "archer-idle-package-exact-file-approval-v1",
+  "characterId": "hero.archer",
+  "state": "idle",
+  "packageId": "hero.archer.idle.chibi-production-candidate.v1",
+  "status": "user-exact-package-approval-recorded",
+  "styleDirectionApproved": true,
+  "neutralMasterApproved": true,
+  "idlePackageApproved": true,
+  "canonicalApproved": false,
+  "runtimeEligible": false,
+  "runtimeIntegrated": false,
+  "moveGenerated": false,
+  "attackGenerated": false,
+  "userApprovalRecorded": true,
+  "approval": {
+    "owner": "user",
+    "source": "Explicit user instruction in the Archer Idle Package Exact-File Approval v1 task.",
+    "recordedAt": "2026-07-19",
+    "decision": "approved-exact-package",
+    "scope": [
+      "the eight exact Idle PNG frame files and their ordered sequence",
+      "the 8 FPS looping behavior",
+      "identity continuity with the approved Neutral Master",
+      "the measured anchor, alpha bounds, and locked foot baseline result",
+      "the exact source provenance",
+      "use as the approved visual source for a separately scoped Archer Move production task and eventual separately scoped runtime integration"
+    ],
+    "exclusions": [
+      "canonical runtime production approval",
+      "runtime eligibility or integration",
+      "permission to overwrite or silently revise Idle v1",
+      "Move or Attack package production or approval",
+      "runtime, Core Logic, Combat, gameplay, camera, board, or map changes"
+    ]
+  },
+  "sourcePR": {
+    "repository": "phathompongsae-ops/Auto-Battler",
+    "pr": 62,
+    "branch": "coco/archer-idle-production-v1",
+    "sha": "8d5ee65a760b123569713fb989867c08a2816fbd",
+    "basePR": 61,
+    "baseSha": "7e1f0639b577b6f8c1d5f6ba43c8160f1c4115e2",
+    "stateVerifiedAtApprovalStart": "open-draft-unmerged",
+    "headDriftDetected": false
+  },
+  "sourceNeutralMaster": {
+    "candidateId": "hero.archer.production-master.candidate.v1",
+    "path": "docs/assets/review/character-production/archer/master-v1/archer-production-master-candidate-v1.png",
+    "sha256": "4911e7e3ba59241ee011be3e62f1b64230dcf9b3c24c6aeb23dc939d83311013",
+    "dimensions": [640, 960],
+    "format": "PNG",
+    "mode": "RGBA",
+    "neutralMasterApproved": true,
+    "approvedNeutralMasterSource": true
+  },
+  "exactPackageLock": {
+    "frameDirectory": "assets/units/hero.archer/idle-chibi-v1/",
+    "frameCount": 8,
+    "fps": 8,
+    "loop": true,
+    "rootMotion": "in-place",
+    "eventMarkers": [],
+    "runtimeFlipX": true,
+    "anchor": [0.5, 0.92],
+    "canvas": [640, 960],
+    "format": "PNG",
+    "mode": "RGBA",
+    "frames": [
+      {
+        "frameIndex": 0,
+        "path": "assets/units/hero.archer/idle-chibi-v1/hero.archer_idle_000.png",
+        "sha256": "4911e7e3ba59241ee011be3e62f1b64230dcf9b3c24c6aeb23dc939d83311013",
+        "bytes": 569259,
+        "alphaBounds": [71, 125, 501, 730],
+        "footBaselineY": 854
+      },
+      {
+        "frameIndex": 1,
+        "path": "assets/units/hero.archer/idle-chibi-v1/hero.archer_idle_001.png",
+        "sha256": "1996f524359331c22ce7950c0494a4bb803d466b772794fffeeee18e49d681fc",
+        "bytes": 484644,
+        "alphaBounds": [71, 124, 502, 731],
+        "footBaselineY": 854
+      },
+      {
+        "frameIndex": 2,
+        "path": "assets/units/hero.archer/idle-chibi-v1/hero.archer_idle_002.png",
+        "sha256": "ce9e92977f6fe1f128d941f9c8309892a9fe3391e51f68bf98c3e7534b375924",
+        "bytes": 492841,
+        "alphaBounds": [71, 124, 502, 731],
+        "footBaselineY": 854
+      },
+      {
+        "frameIndex": 3,
+        "path": "assets/units/hero.archer/idle-chibi-v1/hero.archer_idle_003.png",
+        "sha256": "57d29515f980b5e9c6ec04b087dc89ed8c5a57d4f06896b46cdb0fe65188e2c0",
+        "bytes": 482752,
+        "alphaBounds": [71, 123, 502, 732],
+        "footBaselineY": 854
+      },
+      {
+        "frameIndex": 4,
+        "path": "assets/units/hero.archer/idle-chibi-v1/hero.archer_idle_004.png",
+        "sha256": "30bf88ec7006a0ddbb8b69a6a5585588582b2208c7c92bef72b5cc974fc5b761",
+        "bytes": 508499,
+        "alphaBounds": [71, 123, 501, 732],
+        "footBaselineY": 854
+      },
+      {
+        "frameIndex": 5,
+        "path": "assets/units/hero.archer/idle-chibi-v1/hero.archer_idle_005.png",
+        "sha256": "ecb10ad466cc36ebf05957211ea79e59150d470a51df1a8f451dc952f2edb4ff",
+        "bytes": 482721,
+        "alphaBounds": [70, 123, 502, 732],
+        "footBaselineY": 854
+      },
+      {
+        "frameIndex": 6,
+        "path": "assets/units/hero.archer/idle-chibi-v1/hero.archer_idle_006.png",
+        "sha256": "a0d284b73d007f4bd78251cc1b9492545da97582dbca6b31851242b328f0ec29",
+        "bytes": 492666,
+        "alphaBounds": [70, 124, 502, 731],
+        "footBaselineY": 854
+      },
+      {
+        "frameIndex": 7,
+        "path": "assets/units/hero.archer/idle-chibi-v1/hero.archer_idle_007.png",
+        "sha256": "815717f5dc733fcc3ba0275ac086fc7a5a11847ae627ddd6f49c9f8174327985",
+        "bytes": 484735,
+        "alphaBounds": [70, 124, 502, 731],
+        "footBaselineY": 854
+      }
+    ],
+    "loopEvidence": {
+      "seamFrame7To0PremultipliedRgbaMae": 0.00630028,
+      "maximumAdjacentPremultipliedRgbaMae": 0.006577154,
+      "seamNotGreaterThanMaximumAdjacent": true,
+      "contactZonePinnedFromY": 800,
+      "footBaselineYAllFrames": 854,
+      "anchorToFootBaselinePixelsAllFrames": 29.2
+    },
+    "immutabilityRule": "These eight SHA-256 values and package semantics define approved Idle v1. Any later visual or semantic change requires a new version and a new explicit approval; v1 must not be overwritten."
+  },
+  "packageSnapshotBoundary": {
+    "productionContract": "data/design/archer-idle-production-v1.json",
+    "sidecar": "assets/units/hero.archer/hero.archer_idle_chibi_v1.json",
+    "sourceMap": "assets/units/hero.archer/idle-chibi-v1/source-map.json",
+    "validationReport": "docs/reviews/archer-idle-production-v1-validation.json",
+    "snapshotStatusAtPR62": "pending-user-approval",
+    "effectiveApprovalStatus": "approved-by-this-overlay-record",
+    "reasonNotMutated": "PR #62 package metadata, generator, validator, PNGs, and review artifacts are retained byte-for-byte as the exact production snapshot being approved. This record is the current approval source of truth."
+  },
+  "carriedForwardConstraints": {
+    "board": [
+      "board review passed",
+      "preserve the bow silhouette",
+      "preserve hood and pointed-ear readability",
+      "preserve green-and-gold foreground contrast"
+    ],
+    "bench": [
+      "bench remains the highest-risk context",
+      "preserve gold hood trim",
+      "preserve the face opening",
+      "preserve eye contrast",
+      "prevent hood and hair from collapsing into one green mass"
+    ],
+    "loop": [
+      "preserve the approved low-amplitude subtle motion",
+      "preserve no-foot-slide behavior",
+      "preserve the locked lower-body baseline"
+    ]
+  },
+  "futureProductionGate": {
+    "completed": [
+      "Approved Neutral Master",
+      "Approved Archer Idle v1"
+    ],
+    "nextAuthorizedTask": "Archer Move Production v1",
+    "startedByThisRecord": false,
+    "orderedSequence": [
+      "Approved Neutral Master",
+      "Approved Archer Idle",
+      "Archer Move Production v1 and separate approval",
+      "Archer Attack Production v1 and separate approval",
+      "separate CC runtime integration"
+    ]
+  },
+  "invariants": {
+    "frameBytesChanged": false,
+    "frameRegenerated": false,
+    "reviewArtifactsChanged": false,
+    "sidecarChanged": false,
+    "sourceMapChanged": false,
+    "generatorChanged": false,
+    "validatorChanged": false,
+    "moveGenerated": false,
+    "attackGenerated": false,
+    "runtimeChanged": false,
+    "coreLogicChanged": false,
+    "gameplayChanged": false,
+    "prMerged": false
+  }
+}

@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "reviewId": "replace-me",
+  "logicalId": "replace-me",
+  "sourceFile": {
+    "path": null,
+    "sha256": null,
+    "width": null,
+    "height": null,
+    "format": "png",
+    "hasAlpha": null,
+    "embeddedBackground": null,
+    "provenance": {
+      "type": null,
+      "source": null,
+      "license": null,
+      "commercialUseCleared": null
+    }
+  },
+  "plannedCanonicalPath": null,
+  "visualChecks": {
+    "matchesApprovedDirection": null,
+    "fullBodyCropValid": null,
+    "silhouetteReadableAtShopSize": null,
+    "silhouetteReadableAtBenchSize": null,
+    "silhouetteReadableAtBoardSize": null,
+    "classWeaponRulesPass": null,
+    "genderIdentityReadableAtShopSize": null,
+    "paletteDistinctFromRelatedClasses": null,
+    "enemyLookalikeRiskCleared": null,
+    "maleFaceDiversityRulePass": null,
+    "notes": []
+  },
+  "technicalChecks": {
+    "alphaVerifiedFromPixelData": null,
+    "noCheckerboardBakedIn": null,
+    "noSolidBackground": null,
+    "noWhiteFringe": null,
+    "dimensionsAccepted": null,
+    "filenameAccepted": null,
+    "notes": []
+  },
+  "approval": {
+    "currentStatus": "candidate-present",
+    "recommendedStatus": null,
+    "exactFileApprovedByUser": false,
+    "approvedBy": null,
+    "approvedAt": null
+  },
+  "runtime": {
+    "cardReady": false,
+    "runtimeLinked": false,
+    "runtimeIntegrationPr": null,
+    "temporaryFallbackAllowed": true,
+    "fallbackIsCanonical": false
+  }
+}

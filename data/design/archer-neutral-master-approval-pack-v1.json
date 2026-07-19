@@ -1,0 +1,279 @@
+{
+  "contractVersion": 1,
+  "id": "archer-neutral-master-approval-pack-v1",
+  "characterId": "hero.archer",
+  "candidateId": "hero.archer.production-master.candidate.v1",
+  "status": "review-complete-user-exact-file-approval-recorded",
+  "styleDirectionApproved": true,
+  "neutralMasterApproved": true,
+  "approvedNeutralMasterSource": true,
+  "canonicalApproved": false,
+  "runtimeEligible": false,
+  "reviewOnly": true,
+  "userApprovalRequired": false,
+  "userApprovalRecorded": true,
+  "approvalRecord": "data/design/archer-neutral-master-exact-file-approval-v1.json",
+  "candidateRegenerated": false,
+  "candidateModified": false,
+  "motionGenerated": false,
+  "runtimeIntegrated": false,
+  "source": {
+    "repository": "phathompongsae-ops/Auto-Battler",
+    "productionMasterPR": {
+      "pr": 59,
+      "branch": "coco/archer-production-master-v1",
+      "sha": "47a60378af16920aea75f9c8e2192e52518459e9",
+      "state": "open-draft-unmerged",
+      "role": "exact candidate and Production Master contract source"
+    },
+    "styleLockPR": {
+      "pr": 58,
+      "branch": "coco/character-art-style-lock-and-migration-contract-v1",
+      "sha": "b3db907dfd33a181fae34859770c872319ab994e",
+      "state": "open-draft-unmerged",
+      "role": "authoritative style and reference source"
+    },
+    "ancestry": {
+      "baseSha": "47a60378af16920aea75f9c8e2192e52518459e9",
+      "styleMergeBase": "b3db907dfd33a181fae34859770c872319ab994e",
+      "rule": "This review pack descends directly from exact PR #59. PR #55 is a read-only board-focused screenshot source and contributes no ancestry or runtime code."
+    }
+  },
+  "candidate": {
+    "path": "docs/assets/review/character-production/archer/master-v1/archer-production-master-candidate-v1.png",
+    "sha256": "4911e7e3ba59241ee011be3e62f1b64230dcf9b3c24c6aeb23dc939d83311013",
+    "bytes": 569259,
+    "dimensions": [640, 960],
+    "format": "PNG",
+    "mode": "RGBA",
+    "transparentBackground": true,
+    "alphaBounds": {
+      "origin": "top-left",
+      "x": 71,
+      "y": 125,
+      "width": 501,
+      "height": 730
+    },
+    "outerBorderNonTransparentPixels": 0,
+    "provenanceContract": "data/design/archer-production-master-v1.json",
+    "sourcePR": 59,
+    "reviewOnly": true,
+    "runtimeEligible": false,
+    "neutralMasterApproved": true,
+    "approvedNeutralMasterSource": true,
+    "canonicalApproved": false,
+    "immutabilityRule": "Every composite uses decoded pixels from this exact SHA. The source file is not cropped, retouched, repainted, redesigned, regenerated, or overwritten."
+  },
+  "readOnlyContextSources": [
+    {
+      "id": "arena-ruins-pr55-board-focused-view",
+      "sourcePR": 55,
+      "sourceSha": "08744faad0df8ce5fe1e43461ba59687fd0aebe8",
+      "pathAtSource": "docs/assets/review/arena-ruins/runtime-integration-v1/board-focused-view.png",
+      "sha256": "a37f70609b036b7ce997ec71375e47a73898123795d4ebea21e4da5721e349f8",
+      "dimensions": [842, 584],
+      "format": "PNG",
+      "mode": "RGB",
+      "usage": [
+        "board-scale review background",
+        "bench-scale review background"
+      ],
+      "importedAsStandaloneFile": false,
+      "runtimeModified": false,
+      "ancestryImported": false
+    }
+  ],
+  "derivationPolicy": {
+    "allowedOperations": [
+      "decode exact candidate",
+      "uniform scale",
+      "position",
+      "crop for shop-card risk review",
+      "alpha composite over a review-only background",
+      "add review labels, slot rectangles, and metadata outside the candidate pixels"
+    ],
+    "forbiddenOperations": [
+      "AI generation or regeneration",
+      "redraw or stylization",
+      "pose, identity, face, eye, hair, hood, ear, costume, bow, color, or proportion change",
+      "candidate source crop, retouch, repaint, or overwrite",
+      "runtime, portrait, icon, static fallback, or motion replacement"
+    ],
+    "resampling": {
+      "downscaleFilter": "Lanczos",
+      "inspectionInsetFilter": "point",
+      "note": "Point-filter insets magnify the already reduced review result; they do not create an alternate candidate."
+    },
+    "productionTool": "ImageMagick convert",
+    "generatedCharacterPixels": false
+  },
+  "reviewContexts": [
+    {
+      "id": "full-size-exact-file",
+      "outputPath": "docs/assets/review/character-production/archer/approval-pack-v1/full-size-review.png",
+      "sha256": "a20dd2f2d49ad7af7c76f08b72d6316257a195cbdd94ec932ced8ed5611f82a0",
+      "bytes": 515339,
+      "dimensions": [1280, 1080],
+      "format": "PNG",
+      "mode": "RGB",
+      "reviewOnly": true,
+      "runtimeEligible": false,
+      "method": {
+        "candidateScale": [640, 960],
+        "scaleRatio": 1.0,
+        "candidatePositionInOutput": [40, 80],
+        "candidateCrop": null,
+        "background": "32-pixel review checkerboard",
+        "characterPixelOperation": "native-size alpha composite only"
+      },
+      "technicalStatus": "pass",
+      "approvalStatus": "reviewed-user-approved-neutral-master",
+      "observations": [
+        "Face, large green eyes, hood, hair locks, pointed ears, bow, costume, and full silhouette are available for one-to-one inspection.",
+        "The source margins remain visible: left 71 px, top 125 px, right 68 px, bottom 105 px.",
+        "The bow tip, quiver, hair, cape, and both feet are uncropped; the outer canvas border remains transparent."
+      ],
+      "concerns": [
+        "The technical pass alone did not grant approval; the user's later exact-file approval is recorded in the dedicated approval record."
+      ]
+    },
+    {
+      "id": "board-scale-readability",
+      "outputPath": "docs/assets/review/character-production/archer/approval-pack-v1/board-scale-review.png",
+      "sha256": "123ae34b680d3be6136f8470a6154445e1d85e4ec908436985dbeab0fd2ad0ba",
+      "bytes": 735425,
+      "dimensions": [1400, 780],
+      "format": "PNG",
+      "mode": "RGB",
+      "reviewOnly": true,
+      "runtimeEligible": false,
+      "method": {
+        "candidateScale": [98, 147],
+        "scaleRatio": 0.153125,
+        "candidatePositionInSourceScreenshot": [128, 240],
+        "candidateCrop": null,
+        "allAlphaPixelBoundsOnScaledCanvas": [8, 16, 90, 134],
+        "comparisonTileRectInSourceScreenshot": [129, 338, 98, 67],
+        "sourceBackgroundId": "arena-ruins-pr55-board-focused-view",
+        "inspectionInset": "three-times point magnification of the 98x147 reduced result"
+      },
+      "technicalStatus": "pass-with-observation",
+      "approvalStatus": "reviewed-user-approved-neutral-master",
+      "observations": [
+        "The hood-and-ear head shape, green/gold palette, and oversized bow make the Ranger class read immediately against warm sand and stone.",
+        "The all-alpha silhouette is approximately 82x118 px and remains within one 98 px tile width; feet are anchored inside the highlighted tile.",
+        "The bow remains a separate readable arc and does not merge into the body.",
+        "The face and two-eye pattern remain locatable at context scale; fine iris, leather, and gold micro-detail intentionally collapse."
+      ],
+      "concerns": [
+        "Green hood and hair become one dominant mass at native board scale; gold hood trim and skin/eye contrast currently preserve separation.",
+        "This is a screenshot composite, not a browser/runtime validation and not permission to change tile, camera, or unit geometry."
+      ]
+    },
+    {
+      "id": "bench-scale-readability",
+      "outputPath": "docs/assets/review/character-production/archer/approval-pack-v1/bench-scale-review.png",
+      "sha256": "5c9a6db44d27530fbc5241c3b9b8b1d68d002398c391c72eca1dbe6e002edb2e",
+      "bytes": 726451,
+      "dimensions": [1400, 780],
+      "format": "PNG",
+      "mode": "RGB",
+      "reviewOnly": true,
+      "runtimeEligible": false,
+      "method": {
+        "candidateScale": [80, 120],
+        "scaleRatio": 0.125,
+        "candidatePositionInSourceScreenshot": [235, 420],
+        "candidateCrop": null,
+        "allAlphaPixelBoundsOnScaledCanvas": [6, 13, 74, 110],
+        "comparisonBenchSlotRectInSourceScreenshot": [227, 472, 98, 67],
+        "sourceBackgroundId": "arena-ruins-pr55-board-focused-view",
+        "inspectionInset": "four-times point magnification of the 80x120 reduced result"
+      },
+      "technicalStatus": "pass-with-concern",
+      "approvalStatus": "reviewed-user-approved-neutral-master",
+      "observations": [
+        "The all-alpha silhouette is approximately 68x97 px, leaving horizontal space inside a 98 px bench slot.",
+        "The complete hood, ears, bow, quiver, cape, legs, and feet remain uncropped.",
+        "The bow and green/gold block remain the strongest readable class cues."
+      ],
+      "concerns": [
+        "Face and individual eye detail are marginal at native bench scale; the four-times inset is diagnostic and must not be mistaken for the native read.",
+        "Hair and hood compress further than at board scale. Gold trim and the face opening must remain intact in any future export.",
+        "No slot size, anchor, or gameplay geometry change is authorized to solve a visual concern."
+      ]
+    },
+    {
+      "id": "shop-card-presentation",
+      "outputPath": "docs/assets/review/character-production/archer/approval-pack-v1/shop-card-review.png",
+      "sha256": "704ec28c8cdbfad27449425bdbdff71915cddf9f8763a40e50a5cde8e1b2b4ab",
+      "bytes": 529315,
+      "dimensions": [1600, 900],
+      "format": "PNG",
+      "mode": "RGB",
+      "reviewOnly": true,
+      "runtimeEligible": false,
+      "method": {
+        "safeLayout": {
+          "candidateScale": [400, 600],
+          "scaleRatio": 0.625,
+          "candidatePositionInOutput": [120, 135],
+          "candidateCrop": null,
+          "allAlphaPixelBoundsOnScaledCanvas": [42, 75, 360, 537]
+        },
+        "tightCropRiskLayout": {
+          "candidateScaleBeforeCrop": [480, 720],
+          "scaleRatio": 0.75,
+          "cropRect": [20, 30, 440, 600],
+          "viewportPositionInOutput": [720, 135],
+          "allAlphaPixelBoundsInViewport": [31, 61, 412, 600]
+        },
+        "background": "deterministic review-only card primitives; no production UI asset"
+      },
+      "technicalStatus": "pass-safe-layout-fail-tight-crop",
+      "approvalStatus": "reviewed-user-approved-neutral-master",
+      "observations": [
+        "The full-silhouette layout keeps face and eyes dominant while retaining the entire bow, hair, cape, legs, and feet.",
+        "The Archer/Ranger identity is immediate through hood, ears, green/gold palette, bow, and quiver.",
+        "The bow sits beside the face rather than covering it."
+      ],
+      "concerns": [
+        "The demonstrated tight crop touches the viewport bottom and clips the feet/lower bow silhouette; it is explicitly not recommended.",
+        "Card frame, title, rarity, cost, and UI remain separate presentation ownership and must not be baked into the approved character master."
+      ],
+      "recommendedLayout": "full-silhouette-safe"
+    }
+  ],
+  "approvalDecision": {
+    "owner": "user",
+    "currentDecision": "approved-exact-file",
+    "recordedAt": "2026-07-19",
+    "approvedCandidateId": "hero.archer.production-master.candidate.v1",
+    "approvedSha256": "4911e7e3ba59241ee011be3e62f1b64230dcf9b3c24c6aeb23dc939d83311013",
+    "technicalSummary": "Full-size and safe shop-card framing pass technical review. Board scale passes with expected fine-detail loss. Bench scale remains usable but has the highest face/hood-hair compression risk.",
+    "completedApprovalEvidence": [
+      "user reviewed the exact candidate and all four review contexts",
+      "user explicitly approved the candidate identified by SHA-256",
+      "this approval-only change records neutralMasterApproved=true without modifying candidate bytes"
+    ],
+    "approvalBoundary": "Approval comes from the explicit user decision. It approves only the exact Neutral Master source; canonicalApproved and runtimeEligible remain false, and no derivative or motion package is approved."
+  },
+  "futureSequence": [
+    "Neutral Master user approval",
+    "Archer Idle production and approval",
+    "Archer Move production and approval",
+    "Archer Attack production and approval",
+    "separate CC runtime integration"
+  ],
+  "protectedAreas": [
+    "candidate source bytes",
+    "assets/archer.png",
+    "assets/units/hero.archer/idle/",
+    "assets/units/hero.archer/move/",
+    "assets/units/hero.archer/attack/",
+    "portraits and class icons",
+    "src/ and runtime",
+    "Core Logic and gameplay",
+    "camera, board, bench, and map geometry"
+  ]
+}

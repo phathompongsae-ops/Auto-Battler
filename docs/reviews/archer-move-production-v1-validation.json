@@ -1,0 +1,716 @@
+{
+  "reportVersion": 1,
+  "packageId": "hero.archer.move.chibi-production-candidate.v1",
+  "generatedAt": "2026-07-19",
+  "generator": "tools/generate-archer-move-production-v1.py",
+  "sourceNeutralMaster": {
+    "candidateId": "hero.archer.production-master.candidate.v1",
+    "path": "docs/assets/review/character-production/archer/master-v1/archer-production-master-candidate-v1.png",
+    "sha256": "4911e7e3ba59241ee011be3e62f1b64230dcf9b3c24c6aeb23dc939d83311013",
+    "dimensions": [
+      640,
+      960
+    ],
+    "mode": "RGBA"
+  },
+  "approvedIdle": {
+    "approvalRecord": "data/design/archer-idle-package-exact-file-approval-v1.json",
+    "approvalRecordSha256": "894c7724c2935fafb1b35e1f943de95de11a3e68494444bc8bb00c9753cc6c45",
+    "sourcePR": 63,
+    "idlePackageApproved": true
+  },
+  "motion": {
+    "fps": 12,
+    "frameCount": 8,
+    "loop": true,
+    "rootMotion": "in-place",
+    "anchor": [
+      0.5,
+      0.92
+    ],
+    "runtimeFlipX": true,
+    "eventMarkers": [
+      {
+        "name": "leftFootstepCue",
+        "normalizedTime": 0.25,
+        "frameIndex": 2
+      },
+      {
+        "name": "rightFootstepCue",
+        "normalizedTime": 0.75,
+        "frameIndex": 6
+      }
+    ]
+  },
+  "frames": [
+    {
+      "frameIndex": 0,
+      "path": "assets/units/hero.archer/move-chibi-v1/hero.archer_move_000.png",
+      "sha256": "a9142fb9aff23110822e2eae491fd10a483aaec21f0ce44616108c3d5e797d79",
+      "bytes": 550548,
+      "dimensions": [
+        640,
+        960
+      ],
+      "mode": "RGBA",
+      "role": "double-support-passing-a",
+      "marker": null,
+      "sourceOperation": "independent premultiplied-alpha lower-body displacement from exact approved Neutral Master",
+      "motionParameters": {
+        "phaseRadians": 0.0,
+        "viewerRightCharacterLeftHorizontalPixels": 3.0,
+        "viewerLeftCharacterRightHorizontalPixels": -3.0,
+        "characterLeftLiftPixels": 0.0,
+        "characterRightLiftPixels": 0.0,
+        "characterRightViewerLeftGroundNormalizationPixels": 31.0,
+        "upperIdentityLockExclusiveY": 610
+      },
+      "alphaBounds": {
+        "origin": "top-left",
+        "x": 71,
+        "y": 125,
+        "width": 501,
+        "height": 730
+      },
+      "overallAlphaMaxY": 854,
+      "supportFootBaselineY": 854,
+      "anchorToSupportFootBaselinePixels": 29.2,
+      "outerBorderNonTransparentPixels": 0,
+      "footContact": {
+        "characterRightViewerLeft": {
+          "region": [
+            120,
+            700,
+            195,
+            200
+          ],
+          "maxVisibleY": 849,
+          "baselinePixelCountY852to854": 0
+        },
+        "characterLeftViewerRight": {
+          "region": [
+            315,
+            700,
+            135,
+            200
+          ],
+          "maxVisibleY": 854,
+          "baselinePixelCountY852to854": 78
+        }
+      },
+      "alphaCentroid": [
+        310.764293,
+        486.402223
+      ]
+    },
+    {
+      "frameIndex": 1,
+      "path": "assets/units/hero.archer/move-chibi-v1/hero.archer_move_001.png",
+      "sha256": "91ccd270ed2796d6a6d0d11a95582537af95cbfe0334c701022522f4e3def1fc",
+      "bytes": 547492,
+      "dimensions": [
+        640,
+        960
+      ],
+      "mode": "RGBA",
+      "role": "left-leg-forward-down",
+      "marker": null,
+      "sourceOperation": "independent premultiplied-alpha lower-body displacement from exact approved Neutral Master",
+      "motionParameters": {
+        "phaseRadians": 0.785398163,
+        "viewerRightCharacterLeftHorizontalPixels": 14.849242,
+        "viewerLeftCharacterRightHorizontalPixels": -14.849242,
+        "characterLeftLiftPixels": 0.0,
+        "characterRightLiftPixels": 9.899495,
+        "characterRightViewerLeftGroundNormalizationPixels": 31.0,
+        "upperIdentityLockExclusiveY": 610
+      },
+      "alphaBounds": {
+        "origin": "top-left",
+        "x": 71,
+        "y": 125,
+        "width": 501,
+        "height": 730
+      },
+      "overallAlphaMaxY": 854,
+      "supportFootBaselineY": 854,
+      "anchorToSupportFootBaselinePixels": 29.2,
+      "outerBorderNonTransparentPixels": 0,
+      "footContact": {
+        "characterRightViewerLeft": {
+          "region": [
+            120,
+            700,
+            195,
+            200
+          ],
+          "maxVisibleY": 840,
+          "baselinePixelCountY852to854": 0
+        },
+        "characterLeftViewerRight": {
+          "region": [
+            315,
+            700,
+            135,
+            200
+          ],
+          "maxVisibleY": 854,
+          "baselinePixelCountY852to854": 74
+        }
+      },
+      "alphaCentroid": [
+        311.511086,
+        483.801458
+      ]
+    },
+    {
+      "frameIndex": 2,
+      "path": "assets/units/hero.archer/move-chibi-v1/hero.archer_move_002.png",
+      "sha256": "1b92c2c694f03866798c5c0d67e7a1a2f929b2d4181c172fa493c0f583f146d9",
+      "bytes": 546452,
+      "dimensions": [
+        640,
+        960
+      ],
+      "mode": "RGBA",
+      "role": "left-foot-contact",
+      "marker": "leftFootstepCue",
+      "sourceOperation": "independent premultiplied-alpha lower-body displacement from exact approved Neutral Master",
+      "motionParameters": {
+        "phaseRadians": 1.570796327,
+        "viewerRightCharacterLeftHorizontalPixels": 18.0,
+        "viewerLeftCharacterRightHorizontalPixels": -18.0,
+        "characterLeftLiftPixels": 0.0,
+        "characterRightLiftPixels": 14.0,
+        "characterRightViewerLeftGroundNormalizationPixels": 31.0,
+        "upperIdentityLockExclusiveY": 610
+      },
+      "alphaBounds": {
+        "origin": "top-left",
+        "x": 71,
+        "y": 125,
+        "width": 501,
+        "height": 730
+      },
+      "overallAlphaMaxY": 854,
+      "supportFootBaselineY": 854,
+      "anchorToSupportFootBaselinePixels": 29.2,
+      "outerBorderNonTransparentPixels": 0,
+      "footContact": {
+        "characterRightViewerLeft": {
+          "region": [
+            120,
+            700,
+            195,
+            200
+          ],
+          "maxVisibleY": 837,
+          "baselinePixelCountY852to854": 0
+        },
+        "characterLeftViewerRight": {
+          "region": [
+            315,
+            700,
+            135,
+            200
+          ],
+          "maxVisibleY": 854,
+          "baselinePixelCountY852to854": 74
+        }
+      },
+      "alphaCentroid": [
+        311.763,
+        482.825881
+      ]
+    },
+    {
+      "frameIndex": 3,
+      "path": "assets/units/hero.archer/move-chibi-v1/hero.archer_move_003.png",
+      "sha256": "904eff4bf047861d6e4da257ecd733471a2de73c36ca5333b0c7ec18b181e70c",
+      "bytes": 547870,
+      "dimensions": [
+        640,
+        960
+      ],
+      "mode": "RGBA",
+      "role": "left-support-recovery",
+      "marker": null,
+      "sourceOperation": "independent premultiplied-alpha lower-body displacement from exact approved Neutral Master",
+      "motionParameters": {
+        "phaseRadians": 2.35619449,
+        "viewerRightCharacterLeftHorizontalPixels": 10.606602,
+        "viewerLeftCharacterRightHorizontalPixels": -10.606602,
+        "characterLeftLiftPixels": 0.0,
+        "characterRightLiftPixels": 9.899495,
+        "characterRightViewerLeftGroundNormalizationPixels": 31.0,
+        "upperIdentityLockExclusiveY": 610
+      },
+      "alphaBounds": {
+        "origin": "top-left",
+        "x": 71,
+        "y": 125,
+        "width": 501,
+        "height": 730
+      },
+      "overallAlphaMaxY": 854,
+      "supportFootBaselineY": 854,
+      "anchorToSupportFootBaselinePixels": 29.2,
+      "outerBorderNonTransparentPixels": 0,
+      "footContact": {
+        "characterRightViewerLeft": {
+          "region": [
+            120,
+            700,
+            195,
+            200
+          ],
+          "maxVisibleY": 841,
+          "baselinePixelCountY852to854": 0
+        },
+        "characterLeftViewerRight": {
+          "region": [
+            315,
+            700,
+            135,
+            200
+          ],
+          "maxVisibleY": 854,
+          "baselinePixelCountY852to854": 75
+        }
+      },
+      "alphaCentroid": [
+        311.417276,
+        484.231438
+      ]
+    },
+    {
+      "frameIndex": 4,
+      "path": "assets/units/hero.archer/move-chibi-v1/hero.archer_move_004.png",
+      "sha256": "8890f16ab7a903d7638a35e8fcc3456cb82ad49a67f0d4ff85371e55bbc3c2d9",
+      "bytes": 550199,
+      "dimensions": [
+        640,
+        960
+      ],
+      "mode": "RGBA",
+      "role": "double-support-passing-b",
+      "marker": null,
+      "sourceOperation": "independent premultiplied-alpha lower-body displacement from exact approved Neutral Master",
+      "motionParameters": {
+        "phaseRadians": 3.141592654,
+        "viewerRightCharacterLeftHorizontalPixels": -3.0,
+        "viewerLeftCharacterRightHorizontalPixels": 3.0,
+        "characterLeftLiftPixels": 0.0,
+        "characterRightLiftPixels": 0.0,
+        "characterRightViewerLeftGroundNormalizationPixels": 31.0,
+        "upperIdentityLockExclusiveY": 610
+      },
+      "alphaBounds": {
+        "origin": "top-left",
+        "x": 71,
+        "y": 125,
+        "width": 501,
+        "height": 731
+      },
+      "overallAlphaMaxY": 855,
+      "supportFootBaselineY": 854,
+      "anchorToSupportFootBaselinePixels": 29.2,
+      "outerBorderNonTransparentPixels": 0,
+      "footContact": {
+        "characterRightViewerLeft": {
+          "region": [
+            120,
+            700,
+            195,
+            200
+          ],
+          "maxVisibleY": 851,
+          "baselinePixelCountY852to854": 0
+        },
+        "characterLeftViewerRight": {
+          "region": [
+            315,
+            700,
+            135,
+            200
+          ],
+          "maxVisibleY": 854,
+          "baselinePixelCountY852to854": 78
+        }
+      },
+      "alphaCentroid": [
+        310.621728,
+        486.549007
+      ]
+    },
+    {
+      "frameIndex": 5,
+      "path": "assets/units/hero.archer/move-chibi-v1/hero.archer_move_005.png",
+      "sha256": "2d6f9200366e3056a8309e249f6fd2ddf31b32fea7538ae35860878126446d03",
+      "bytes": 546381,
+      "dimensions": [
+        640,
+        960
+      ],
+      "mode": "RGBA",
+      "role": "right-leg-forward-down",
+      "marker": null,
+      "sourceOperation": "independent premultiplied-alpha lower-body displacement from exact approved Neutral Master",
+      "motionParameters": {
+        "phaseRadians": 3.926990817,
+        "viewerRightCharacterLeftHorizontalPixels": -14.849242,
+        "viewerLeftCharacterRightHorizontalPixels": 14.849242,
+        "characterLeftLiftPixels": 9.899495,
+        "characterRightLiftPixels": 0.0,
+        "characterRightViewerLeftGroundNormalizationPixels": 31.0,
+        "upperIdentityLockExclusiveY": 610
+      },
+      "alphaBounds": {
+        "origin": "top-left",
+        "x": 71,
+        "y": 125,
+        "width": 501,
+        "height": 730
+      },
+      "overallAlphaMaxY": 854,
+      "supportFootBaselineY": 853,
+      "anchorToSupportFootBaselinePixels": 30.2,
+      "outerBorderNonTransparentPixels": 0,
+      "footContact": {
+        "characterRightViewerLeft": {
+          "region": [
+            120,
+            700,
+            195,
+            200
+          ],
+          "maxVisibleY": 853,
+          "baselinePixelCountY852to854": 38
+        },
+        "characterLeftViewerRight": {
+          "region": [
+            315,
+            700,
+            135,
+            200
+          ],
+          "maxVisibleY": 847,
+          "baselinePixelCountY852to854": 0
+        }
+      },
+      "alphaCentroid": [
+        310.085291,
+        484.674352
+      ]
+    },
+    {
+      "frameIndex": 6,
+      "path": "assets/units/hero.archer/move-chibi-v1/hero.archer_move_006.png",
+      "sha256": "444f4b9833c3e5bd3be41c2873673b881e0ef7d40b1092ed1894cd4a33f3927c",
+      "bytes": 545346,
+      "dimensions": [
+        640,
+        960
+      ],
+      "mode": "RGBA",
+      "role": "right-foot-contact",
+      "marker": "rightFootstepCue",
+      "sourceOperation": "independent premultiplied-alpha lower-body displacement from exact approved Neutral Master",
+      "motionParameters": {
+        "phaseRadians": 4.71238898,
+        "viewerRightCharacterLeftHorizontalPixels": -18.0,
+        "viewerLeftCharacterRightHorizontalPixels": 18.0,
+        "characterLeftLiftPixels": 14.0,
+        "characterRightLiftPixels": 0.0,
+        "characterRightViewerLeftGroundNormalizationPixels": 31.0,
+        "upperIdentityLockExclusiveY": 610
+      },
+      "alphaBounds": {
+        "origin": "top-left",
+        "x": 71,
+        "y": 125,
+        "width": 501,
+        "height": 730
+      },
+      "overallAlphaMaxY": 854,
+      "supportFootBaselineY": 854,
+      "anchorToSupportFootBaselinePixels": 29.2,
+      "outerBorderNonTransparentPixels": 0,
+      "footContact": {
+        "characterRightViewerLeft": {
+          "region": [
+            120,
+            700,
+            195,
+            200
+          ],
+          "maxVisibleY": 854,
+          "baselinePixelCountY852to854": 61
+        },
+        "characterLeftViewerRight": {
+          "region": [
+            315,
+            700,
+            135,
+            200
+          ],
+          "maxVisibleY": 845,
+          "baselinePixelCountY852to854": 0
+        }
+      },
+      "alphaCentroid": [
+        309.926022,
+        483.856483
+      ]
+    },
+    {
+      "frameIndex": 7,
+      "path": "assets/units/hero.archer/move-chibi-v1/hero.archer_move_007.png",
+      "sha256": "383adfadbeba4314ecade83b6080c753ed2a976fc80b03d4820b0546bdb035b1",
+      "bytes": 546234,
+      "dimensions": [
+        640,
+        960
+      ],
+      "mode": "RGBA",
+      "role": "right-support-return",
+      "marker": null,
+      "sourceOperation": "independent premultiplied-alpha lower-body displacement from exact approved Neutral Master",
+      "motionParameters": {
+        "phaseRadians": 5.497787144,
+        "viewerRightCharacterLeftHorizontalPixels": -10.606602,
+        "viewerLeftCharacterRightHorizontalPixels": 10.606602,
+        "characterLeftLiftPixels": 9.899495,
+        "characterRightLiftPixels": 0.0,
+        "characterRightViewerLeftGroundNormalizationPixels": 31.0,
+        "upperIdentityLockExclusiveY": 610
+      },
+      "alphaBounds": {
+        "origin": "top-left",
+        "x": 71,
+        "y": 125,
+        "width": 501,
+        "height": 729
+      },
+      "overallAlphaMaxY": 853,
+      "supportFootBaselineY": 852,
+      "anchorToSupportFootBaselinePixels": 31.2,
+      "outerBorderNonTransparentPixels": 0,
+      "footContact": {
+        "characterRightViewerLeft": {
+          "region": [
+            120,
+            700,
+            195,
+            200
+          ],
+          "maxVisibleY": 852,
+          "baselinePixelCountY852to854": 14
+        },
+        "characterLeftViewerRight": {
+          "region": [
+            315,
+            700,
+            135,
+            200
+          ],
+          "maxVisibleY": 847,
+          "baselinePixelCountY852to854": 0
+        }
+      },
+      "alphaCentroid": [
+        310.129306,
+        484.88279
+      ]
+    }
+  ],
+  "loopContinuity": {
+    "metric": "mean absolute difference of premultiplied RGBA normalized to 0..1",
+    "adjacentFramePairs": [
+      {
+        "from": 0,
+        "to": 1,
+        "value": 0.009426495
+      },
+      {
+        "from": 1,
+        "to": 2,
+        "value": 0.003719589
+      },
+      {
+        "from": 2,
+        "to": 3,
+        "value": 0.006370775
+      },
+      {
+        "from": 3,
+        "to": 4,
+        "value": 0.010189156
+      },
+      {
+        "from": 4,
+        "to": 5,
+        "value": 0.009244206
+      },
+      {
+        "from": 5,
+        "to": 6,
+        "value": 0.003735178
+      },
+      {
+        "from": 6,
+        "to": 7,
+        "value": 0.006259147
+      },
+      {
+        "from": 7,
+        "to": 0,
+        "value": 0.009958632
+      }
+    ],
+    "seamFrame7To0": 0.009958632,
+    "maximumAdjacent": 0.010189156,
+    "seamNotGreaterThanMaximumAdjacent": true,
+    "sourceDeltaByFrame": [
+      0.006775966,
+      0.010342473,
+      0.011122721,
+      0.00881077,
+      0.007417214,
+      0.013157165,
+      0.014442163,
+      0.011646206
+    ]
+  },
+  "rootMotion": {
+    "alphaCentroids": [
+      [
+        310.764293,
+        486.402223
+      ],
+      [
+        311.511086,
+        483.801458
+      ],
+      [
+        311.763,
+        482.825881
+      ],
+      [
+        311.417276,
+        484.231438
+      ],
+      [
+        310.621728,
+        486.549007
+      ],
+      [
+        310.085291,
+        484.674352
+      ],
+      [
+        309.926022,
+        483.856483
+      ],
+      [
+        310.129306,
+        484.88279
+      ]
+    ],
+    "horizontalCentroidRangePixels": 1.836978,
+    "verticalCentroidRangePixels": 3.723126,
+    "accumulatedTranslationPixels": 0,
+    "worldTravelBaked": false
+  },
+  "anchorDecision": {
+    "value": [
+      0.5,
+      0.92
+    ],
+    "status": "retained-after-frame-bounds-and-contact-measurement",
+    "supportFootBaselineRangeY": [
+      852,
+      854
+    ],
+    "markerContactBaselineY": {
+      "frame2CharacterLeft": 854,
+      "frame6CharacterRight": 854
+    },
+    "reason": "Both marker contact feet measure exactly y=854. Transitional support silhouettes remain within y=852..854, a maximum 2 px package-space variation (0.31 px at the 98x147 board review scale), with no accumulated translation or crop; the established anchor therefore remains the smallest safe choice."
+  },
+  "markerAlignment": {
+    "leftFootstepCue": {
+      "normalizedTime": 0.25,
+      "frameIndex": 2,
+      "contactFoot": "character-left/viewer-right",
+      "oppositeFoot": "lifted"
+    },
+    "rightFootstepCue": {
+      "normalizedTime": 0.75,
+      "frameIndex": 6,
+      "contactFoot": "character-right/viewer-left",
+      "oppositeFoot": "lifted"
+    },
+    "markersChangedFromBaseline": false
+  },
+  "reviewArtifacts": [
+    {
+      "id": "contact-sheet",
+      "path": "docs/assets/review/character-production/archer/move-production-v1/archer-move-production-v1-contact-sheet.png",
+      "sha256": "0fb24364ada9a9c978519de91160baaf30af45f8944c9c9a803cf187b8a932f0",
+      "reviewOnly": true,
+      "runtimeEligible": false
+    },
+    {
+      "id": "loop-preview",
+      "path": "docs/assets/review/character-production/archer/move-production-v1/archer-move-production-v1-loop-preview.gif",
+      "sha256": "47b3747da5dc02454bb221fb0697f758e29d0757cb77cd3f15fabb67c36d3d43",
+      "reviewOnly": true,
+      "runtimeEligible": false
+    },
+    {
+      "id": "board-scale-sample",
+      "path": "docs/assets/review/character-production/archer/move-production-v1/archer-move-production-v1-board-scale-sample.png",
+      "sha256": "66069af8620c64baaf9acc36e94b5f8070a350f5fbfc9da1fbf00f5667d5b13e",
+      "method": {
+        "sourceFrame": 2,
+        "frameScale": [
+          98,
+          147
+        ],
+        "position": [
+          128,
+          240
+        ],
+        "comparisonTileRect": [
+          129,
+          338,
+          98,
+          67
+        ]
+      },
+      "reviewOnly": true,
+      "runtimeEligible": false
+    },
+    {
+      "id": "marker-contact-diagnostic",
+      "path": "docs/assets/review/character-production/archer/move-production-v1/archer-move-production-v1-marker-contact-diagnostic.png",
+      "sha256": "be64e6a9f9ea168a71241820e58299b522630bd189b4cb0077c618669baecbe7",
+      "sourceFrames": [
+        2,
+        6
+      ],
+      "reviewOnly": true,
+      "runtimeEligible": false
+    }
+  ],
+  "status": {
+    "neutralMasterApproved": true,
+    "idlePackageApproved": true,
+    "movePackageApproved": false,
+    "canonicalApproved": false,
+    "runtimeEligible": false,
+    "runtimeIntegrated": false,
+    "attackGenerated": false
+  }
+}
