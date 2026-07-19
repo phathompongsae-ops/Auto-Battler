@@ -1,0 +1,42 @@
+{
+  "result": "READY_FOR_HUMAN_REVIEW",
+  "rootCauseReproduced": true,
+  "metrics": {
+    "003_004_005": {"parent": 0.175901, "before": 0.137640, "after": 0.144181, "balance": 0.006541, "pass": true},
+    "005_006_007": {"parent": 0.0947987, "before": 0.0661639, "after": 0.0645182, "balance": 0.0016457, "pass": true}
+  },
+  "frames": [
+    {"index":0,"sha256":"6cbaf2ee52334539355837e294126c429edf4f65355581f8a1cc596c54e704ef","bounds":"496x737+75+118","bottomY":855},
+    {"index":1,"sha256":"b937db7fd7eb3ae8e4d40fa05e4b98e375f39ac4a210973bbaea1cf06d251051","bounds":"480x718+80+137","bottomY":855},
+    {"index":2,"sha256":"67c3a401c4845ce2dc85153b215bcdbd4f31d3a8a7c00ddb86ecaed74c1ae487","bounds":"512x782+63+73","bottomY":855},
+    {"index":3,"sha256":"cfdf8b7256597e1c303402e0bbf416fcff44df28a5f96338329971e441059ebc","bounds":"534x776+71+79","bottomY":855},
+    {"index":4,"sha256":"69af0c5088492db38fc81a365e1295264057ffe62f1141f173b86d815da5b277","bounds":"528x772+68+83","bottomY":855},
+    {"index":5,"sha256":"c59180e3109ad93b07b64d95b0d1c81aca2bd7055cfdac838f8010e614a7249f","bounds":"542x772+70+83","bottomY":855},
+    {"index":6,"sha256":"7a63d3f0b357e7559c84c75650baa75c1865c8ced75a6abe618d1893d42e2787","bounds":"540x781+67+74","bottomY":855},
+    {"index":7,"sha256":"c4e9214835d7881adff48786e4a19c59464f6292947c25aa125e4f7256727c0b","bounds":"535x780+66+75","bottomY":855},
+    {"index":8,"sha256":"a7906c0fb0ad1fb19e51162680f35c697cc45bda4519c4d40fbce1e506a1f659","bounds":"569x780+62+75","bottomY":855},
+    {"index":9,"sha256":"2922bbd79dcec9f070a6b144b056287ba11d87feb4fb708589dfb362c5cc874e","bounds":"472x775+51+80","bottomY":855},
+    {"index":10,"sha256":"fe7e873572a220c4f05f26ae8248dacd9c8630b8b556345d619d0df22bb8cd36","bounds":"503x733+69+122","bottomY":855},
+    {"index":11,"sha256":"4911e7e3ba59241ee011be3e62f1b64230dcf9b3c24c6aeb23dc939d83311013","bounds":"501x730+71+125","bottomY":855}
+  ],
+  "checks": {
+    "sourceGate": true,
+    "pngRgbaDimensions12of12": true,
+    "baseline12of12": true,
+    "canvasContainment12of12": true,
+    "duplicatesAbsent": true,
+    "mappedOriginals10of10": true,
+    "frame011ExactMaster": true,
+    "frame008ExactRelease": true,
+    "gifOrderAndTiming": true,
+    "normalTotalCs": 127,
+    "releaseFrame": 8,
+    "releaseDurationCs": 7,
+    "visualContinuity": true
+  },
+  "gifHashes": {
+    "normal": "e221d158cadc42f5a0ea21c543a544edb65de02dda19c828c8be41d86b6fe181",
+    "slow": "3004beb5c1d74b380077459d3e2977c7ed6103f4993aa297ae7e8566c42474f2",
+    "comparison": "34f4edaf20510f67d41e40ae616dad198704876eca142f99ec9044c20a690236"
+  }
+}
