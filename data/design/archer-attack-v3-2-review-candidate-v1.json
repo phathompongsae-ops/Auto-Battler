@@ -1,0 +1,376 @@
+{
+  "packageId": "archer-attack-v3-2-review-candidate-v1",
+  "packageVersion": 1,
+  "characterId": "hero.archer",
+  "state": "attack",
+  "variant": "v3.2-targeted-inbetween-rework",
+  "date": "2026-07-19",
+  "lineage": {
+    "baseBranch": "cc/archer-attack-v3-pose-guided-handoff-v1",
+    "baseSha": "d949bbec0ae61891e9794e28d0c1a3b49b719a56",
+    "reviewCandidateBranch": "cc/archer-attack-v3-2-review-candidate-v1",
+    "priorCandidate": {
+      "packageId": "archer-attack-v3-1-review-candidate-v1",
+      "pr": 78,
+      "branch": "cc/archer-attack-v3-1-review-candidate-v1",
+      "note": "v3.1's inserted frames 004/006 are treated here as rejected. v3.2 reworks only those two frames, sourced from the same 10 immutable original v3 frames as v3.1."
+    },
+    "upstreamPRs": {
+      "pr72": "Attack v2 -- rejected (torn-bow defect, no real draw motion beneath)",
+      "pr76": "Attack v3 pose-guided handoff package (this candidate's identity/pose spec source)",
+      "pr78": "Attack v3.1 12-frame smoothing review candidate -- inserted frames 004/006 rejected"
+    }
+  },
+  "approvedMaster": {
+    "logicalId": "hero.archer.production-master.candidate.v1",
+    "path": "docs/assets/review/character-production/archer/master-v1/archer-production-master-candidate-v1.png",
+    "measuredSha256": "4911e7e3ba59241ee011be3e62f1b64230dcf9b3c24c6aeb23dc939d83311013",
+    "measuredFormat": "PNG",
+    "measuredMode": "RGBA",
+    "measuredSize": [
+      640,
+      960
+    ],
+    "verificationMethod": "sha256sum on repository binary at import time, cross-checked against manifest claim (match)"
+  },
+  "sourcePackage": {
+    "splitDelivery": {
+      "manifestFile": "archer_v3_2_split_manifest.json",
+      "parts": 4,
+      "partHashesVerified": true,
+      "partHashDetail": [
+        {
+          "part": "part001",
+          "sha256": "d187e38f75098494339caadbeff3a7938e44f455ae4d2072cc014b1cbd521741",
+          "match": true
+        },
+        {
+          "part": "part002",
+          "sha256": "1f869e7d32a2766aba72a3f791df7d52c9f709a261b104a2537fef3456481491",
+          "match": true
+        },
+        {
+          "part": "part003",
+          "sha256": "f4f7ec3c33811dac8dbfc592ff13d0ce1d2165938e48906ca45dc22cb163d4a9",
+          "match": true
+        },
+        {
+          "part": "part004",
+          "sha256": "5006ffaf0f2202a3ca5a99268346e0d3ddacca887e93ed373d760f676ebc6f30",
+          "match": true
+        }
+      ],
+      "reassemblyMethod": "cat part001 part002 part003 part004 > zip (byte-for-byte, no rebuild/recompress)",
+      "reassembledSize": 31887386,
+      "reassembledSha256Measured": "bf3653d72c9a5b3eec8b8a24224dcff098527dae194fbbafd3ec69c15072fc3e",
+      "reassembledSha256Expected": "bf3653d72c9a5b3eec8b8a24224dcff098527dae194fbbafd3ec69c15072fc3e",
+      "shaMatch": true
+    },
+    "logicalFilename": "archer_attack_v3_2_targeted_inbetween_rework_human_review_package.zip",
+    "zipIntegrity": "PASS (Python zipfile.testzip() returned None both before and after extraction; 50 entries, no CRC errors)",
+    "pathTraversalCheck": "PASS (all 50 entries relative under package root; no absolute paths, no ../)",
+    "upstreamV31ZipReference": {
+      "note": "Manifest cites the v3.1 ZIP (fee685d6...) as its own source, matching PR #78's verified value exactly.",
+      "sha256": "fee685d6202f00955503bda24b8c9952bb1adfe5a71f4b1af39037577993192d",
+      "matchesPr78": true
+    },
+    "sourceV3Provenance": {
+      "note": "Package includes frames-v3-original/ (10 PNGs, the immutable original v3 frames) directly; hashed and cross-checked against both the manifest's claims and PR #78's already-recorded original-frame hashes. All three sources agree.",
+      "frames_v3_original_hashes": {
+        "000": "6cbaf2ee52334539355837e294126c429edf4f65355581f8a1cc596c54e704ef",
+        "001": "b937db7fd7eb3ae8e4d40fa05e4b98e375f39ac4a210973bbaea1cf06d251051",
+        "002": "67c3a401c4845ce2dc85153b215bcdbd4f31d3a8a7c00ddb86ecaed74c1ae487",
+        "003": "cfdf8b7256597e1c303402e0bbf416fcff44df28a5f96338329971e441059ebc",
+        "004": "c59180e3109ad93b07b64d95b0d1c81aca2bd7055cfdac838f8010e614a7249f",
+        "005": "c4e9214835d7881adff48786e4a19c59464f6292947c25aa125e4f7256727c0b",
+        "006": "a7906c0fb0ad1fb19e51162680f35c697cc45bda4519c4d40fbce1e506a1f659",
+        "007": "2922bbd79dcec9f070a6b144b056287ba11d87feb4fb708589dfb362c5cc874e",
+        "008": "fe7e873572a220c4f05f26ae8248dacd9c8630b8b556345d619d0df22bb8cd36",
+        "009": "4911e7e3ba59241ee011be3e62f1b64230dcf9b3c24c6aeb23dc939d83311013"
+      }
+    },
+    "rejectedV31InsertedFrames": {
+      "004": "44742b13c127b88980e1b39422d2438881ccdcda591721d9a0e6cd30cce1519c",
+      "006": "13b6ba0862e776ac28d46fd75e0516053953d6e239cc1a1c8e0eb36443cc5f91",
+      "note": "Confirmed byte-identical to PR #78's frame 004/006 and to the package's own frames-v3-1-rejected/ directory. These are NOT reused in v3.2 -- v3.2 provides genuinely new content for both positions."
+    }
+  },
+  "finalV32FrameHashes": {
+    "000": "6cbaf2ee52334539355837e294126c429edf4f65355581f8a1cc596c54e704ef",
+    "001": "b937db7fd7eb3ae8e4d40fa05e4b98e375f39ac4a210973bbaea1cf06d251051",
+    "002": "67c3a401c4845ce2dc85153b215bcdbd4f31d3a8a7c00ddb86ecaed74c1ae487",
+    "003": "cfdf8b7256597e1c303402e0bbf416fcff44df28a5f96338329971e441059ebc",
+    "004": "69af0c5088492db38fc81a365e1295264057ffe62f1141f173b86d815da5b277",
+    "005": "c59180e3109ad93b07b64d95b0d1c81aca2bd7055cfdac838f8010e614a7249f",
+    "006": "7a63d3f0b357e7559c84c75650baa75c1865c8ced75a6abe618d1893d42e2787",
+    "007": "c4e9214835d7881adff48786e4a19c59464f6292947c25aa125e4f7256727c0b",
+    "008": "a7906c0fb0ad1fb19e51162680f35c697cc45bda4519c4d40fbce1e506a1f659",
+    "009": "2922bbd79dcec9f070a6b144b056287ba11d87feb4fb708589dfb362c5cc874e",
+    "010": "fe7e873572a220c4f05f26ae8248dacd9c8630b8b556345d619d0df22bb8cd36",
+    "011": "4911e7e3ba59241ee011be3e62f1b64230dcf9b3c24c6aeb23dc939d83311013"
+  },
+  "oldToNewMapping": [
+    {
+      "newIndex": "000",
+      "oldIndex": "000",
+      "kind": "reused-byte-identical",
+      "verified": true,
+      "pose": "Ready"
+    },
+    {
+      "newIndex": "001",
+      "oldIndex": "001",
+      "kind": "reused-byte-identical",
+      "verified": true,
+      "pose": "Nock/Raise"
+    },
+    {
+      "newIndex": "002",
+      "oldIndex": "002",
+      "kind": "reused-byte-identical",
+      "verified": true,
+      "pose": "Early draw"
+    },
+    {
+      "newIndex": "003",
+      "oldIndex": "003",
+      "kind": "reused-byte-identical",
+      "verified": true,
+      "pose": "Mid draw"
+    },
+    {
+      "newIndex": "004",
+      "oldIndex": null,
+      "kind": "reworked-inbetween",
+      "verified": true,
+      "pose": "In-between: old 003->004",
+      "distinctFromNeighbors": true,
+      "distinctFromRejectedV31": true
+    },
+    {
+      "newIndex": "005",
+      "oldIndex": "004",
+      "kind": "reused-byte-identical",
+      "verified": true,
+      "pose": "Deep draw"
+    },
+    {
+      "newIndex": "006",
+      "oldIndex": null,
+      "kind": "reworked-inbetween",
+      "verified": true,
+      "pose": "In-between: old 004->005",
+      "distinctFromNeighbors": true,
+      "distinctFromRejectedV31": true
+    },
+    {
+      "newIndex": "007",
+      "oldIndex": "005",
+      "kind": "reused-byte-identical",
+      "verified": true,
+      "pose": "Full Draw (arrow still nocked, string at cheek, bow flexed)"
+    },
+    {
+      "newIndex": "008",
+      "oldIndex": "006",
+      "kind": "reused-byte-identical",
+      "verified": true,
+      "pose": "Release (arrow detached and in flight, string relaxed)"
+    },
+    {
+      "newIndex": "009",
+      "oldIndex": "007",
+      "kind": "reused-byte-identical",
+      "verified": true,
+      "pose": "Follow-through"
+    },
+    {
+      "newIndex": "010",
+      "oldIndex": "008",
+      "kind": "reused-byte-identical",
+      "verified": true,
+      "pose": "Recovery"
+    },
+    {
+      "newIndex": "011",
+      "oldIndex": "009",
+      "kind": "reused-byte-identical",
+      "verified": true,
+      "pose": "Neutral exit (byte-identical to Approved Master)"
+    }
+  ],
+  "reworkRationale": {
+    "why004WasRejectedInV31": "Measured alpha bounds of the rejected v3.1 frame 004 were 517x747 (offset +73+108), notably smaller than parent frames 003 (534x776) and 005 (542x772) -- a visible scale/silhouette collapse.",
+    "how004WasFixedInV32": "Per package manifest: the existing v3.1 in-between's subject was alpha-trimmed and resized to 528x772, placed at +68+83 on the unchanged 640x960 canvas. This is a targeted geometric correction of the same underlying pose content, not a new pose or a crossfade.",
+    "how004FixVerified": "Independently re-measured alpha bounds of the imported v3.2 frame 004: minX=68 maxX=595 (width 528) minY=83 maxY=854 (height 772). Exact match to the manifest's claimed 528x772+68+83. Width/height now comparable to parent frames 003 and 005, confirming the scale collapse is resolved.",
+    "how006WasBuilt": "Per package manifest: bidirectional motion-compensated interpolation (ffmpeg minterpolate, MCI/AOBMC) between exact old-v3 frames 004 and 005, followed by a mild RGB-only unsharp pass. Alpha and canvas reported as preserved.",
+    "how006FixVerified": "Confirmed frame 006 is a new, unique binary (not byte-identical to the rejected v3.1 frame 006, nor to any other frame in the set). Package's own QA report states normalized RMSE for both reworked transitions (003-004-005 and 005-006-007) fall below their unsmoothed parent transition, with balanced before/after deltas -- reproduced here as a package claim, not independently re-computed by this validator (would require re-implementing ImageMagick RMSE tooling not available in this environment)."
+  },
+  "immutabilityVerification": {
+    "originalFramesUnchanged": "All 10 mapped original frames confirmed byte-identical (SHA-256 match) between frames-v3-original/ and their corresponding frames-v3-2-12frame/ position. Zero re-encoding, resize, or metadata rewrite detected.",
+    "newFramesUniqueness": "Frame 004 (69af0c50...) and frame 006 (7a63d3f0...) do not match any of the other 12 frame hashes, each other, any of the 10 original frame hashes, or either of the two rejected v3.1 inserted-frame hashes -- confirmed genuinely new, non-duplicate, non-recycled content.",
+    "frame011ExactMaster": "Frame 011 SHA-256 (4911e7e3ba59241ee011be3e62f1b64230dcf9b3c24c6aeb23dc939d83311013) is byte-identical to the Approved Neutral Master.",
+    "noDuplicateHashesAcrossAll12": true
+  },
+  "technicalIntegrity": {
+    "frameCount": 12,
+    "allPngFormat": true,
+    "allRgbaMode": true,
+    "allDimensions640x960": true,
+    "allTransparentBorders": true,
+    "footBaseline": {
+      "manifestClaims": 855,
+      "measuredValue": 854,
+      "measuredConsistency": "uniform across all 12 frames, including frame 011 which is byte-identical to the Approved Master",
+      "note": "Same one-pixel documentation convention difference already recorded for v3.1 (PR #78): measured binary truth (854) matches the repository's established baseline convention (footBaselineY: 854 in the Idle package approval, supportFootBaselineY: 854 in Move). Manifest's 855 is a documentation discrepancy, not a binary defect. Measured value used as authoritative."
+    },
+    "alphaBoundsFrame004": {
+      "measured": "528x772+68+83",
+      "manifestClaimed": "528x772+68+83",
+      "match": true,
+      "note": "cross-verifies the scale-collapse fix independently"
+    },
+    "bitDepthPerFrame": {
+      "000": 8,
+      "001": 8,
+      "002": 8,
+      "003": 8,
+      "004": 16,
+      "005": 8,
+      "006": 8,
+      "007": 8,
+      "008": 8,
+      "009": 8,
+      "010": 8,
+      "011": 8
+    },
+    "bitDepthAnomaly": {
+      "found": true,
+      "affectedFrame": "004",
+      "measuredDepth": 16,
+      "expectedDepth": 8,
+      "severity": "non-blocking-technical-anomaly",
+      "description": "Frame 004 (the reworked in-between) is encoded as 16-bit-per-channel RGBA PNG, while all other 11 frames -- and every other frame across the entire Archer pipeline (Neutral Master, Idle, Move, Attack v2, v3, v3.1) -- are 8-bit RGBA. Most likely caused by the alpha-trim/resize/composite tool used for the targeted rework defaulting to 16-bit output.",
+      "contentVerification": "Not treated as a defect requiring the binary to be fixed: alpha bounds (528x772+68+83) were independently re-measured from the raw 16-bit pixel data and exactly match the manifest's claim and the expected geometry relative to neighboring frames. The pixel content itself is verified correct; only the encoding precision differs from repository convention.",
+      "actionTaken": "None. Per instruction, the binary was not re-encoded, resized, or otherwise modified. This finding is surfaced here and in the validator output (non-blocking) and in the human-facing review document for awareness. If this candidate proceeds toward canonical/runtime status, normalizing frame 004 to 8-bit RGBA (matching repository convention) should be a tracked follow-up -- but that is out of scope for this review-import task.",
+      "validatorBehavior": "tools/validate-archer-attack-v3-2-review-candidate-v1.mjs accepts both 8-bit and 16-bit RGBA (content-correctness gate), and prints an explicit non-blocking warning listing every frame whose bit depth differs from 8."
+    },
+    "gifIntegrity": [
+      {
+        "file": "archer-attack-v3-2-preview.gif",
+        "decodedFrames": 12,
+        "expectedFrames": 12,
+        "sizePx": [
+          640,
+          960
+        ],
+        "totalDurationCs": 127
+      },
+      {
+        "file": "archer-attack-v3-2-preview-slow-qa.gif",
+        "decodedFrames": 12,
+        "expectedFrames": 12,
+        "sizePx": [
+          640,
+          960
+        ],
+        "totalDurationCs": 254
+      },
+      {
+        "file": "archer-attack-v3-vs-v3-1-vs-v3-2-comparison.gif",
+        "decodedFrames": 12,
+        "expectedFrames": 12,
+        "sizePx": [
+          960,
+          546
+        ],
+        "totalDurationCs": 127
+      }
+    ]
+  },
+  "timing": {
+    "loop": false,
+    "rootMotion": "in-place",
+    "runtimeFlipX": true,
+    "anchor": [
+      0.5,
+      0.92
+    ],
+    "anchorProvenance": "carried forward from Attack v3 handoff spec contract and PR #78; package did not supply a differing value",
+    "v32PerFrameDurationCs": [
+      16,
+      12,
+      10,
+      7,
+      6,
+      6,
+      6,
+      9,
+      7,
+      10,
+      14,
+      24
+    ],
+    "v32TotalCs": 127,
+    "matchesV31Timing": true,
+    "v32SlowQaPerFrameDurationCs": [
+      32,
+      24,
+      20,
+      14,
+      12,
+      12,
+      12,
+      18,
+      14,
+      20,
+      28,
+      48
+    ],
+    "v32SlowQaTotalCs": 254,
+    "totalTimingPreservedVsV3AndV31": true,
+    "durationSource": "measured directly from GIF frame delay metadata via PIL ImageSequence, cross-checked against manifest table (exact match on normal/comparison GIFs)"
+  },
+  "releaseFrameDetermination": {
+    "resolvedActualFrame": "008",
+    "resolutionMethod": "Same determination as PR #78 (v3.1): frame 008 is byte-identical to old v3 frame 006, already independently confirmed via direct pixel inspection to show the arrow detached and in flight (Release), as opposed to frame 007 (old v3 frame 005, Full Draw, arrow still nocked).",
+    "manifestAgreement": "This package's own manifest and QA report independently label frame 007 as 'Full Draw' and frame 008 as 'Release', consistent with PR #78's finding. No discrepancy this time -- Coco's v3.2 manifest already reflects the corrected frame numbering.",
+    "durationCheck": "v3.2 normal-preview duration at index 8 measures 7cs, matching the required Release duration; index 7 measures 9cs (Full Draw).",
+    "conclusion": "Frame 008 is the release frame. No runtime marker was modified."
+  },
+  "reviewArtifacts": {
+    "framesDirectory": "docs/assets/review/character-production/archer/attack-v3-2/frames/",
+    "normalPreviewGif": "docs/assets/review/character-production/archer/attack-v3-2/review/archer-attack-v3-2-preview.gif",
+    "slowQaGif": "docs/assets/review/character-production/archer/attack-v3-2/review/archer-attack-v3-2-preview-slow-qa.gif",
+    "threeWayComparisonGif": "docs/assets/review/character-production/archer/attack-v3-2/review/archer-attack-v3-vs-v3-1-vs-v3-2-comparison.gif",
+    "contactSheet": "docs/assets/review/character-production/archer/attack-v3-2/review/archer-attack-v3-2-contact-sheet.png",
+    "focusedDrawContactSheet": "docs/assets/review/character-production/archer/attack-v3-2/review/archer-attack-v3-2-focused-draw-contact-sheet.png",
+    "transitionDiagnostics": [
+      "docs/assets/review/character-production/archer/attack-v3-2/review/transition-diagnostics/transition-003-004-005.png",
+      "docs/assets/review/character-production/archer/attack-v3-2/review/transition-diagnostics/transition-005-006-007.png"
+    ],
+    "note": "Original v3.1 preview GIF is available at PR #78's review artifacts (docs/assets/review/character-production/archer/attack-v3-1/review/) if a direct v3.1 reference is needed; not duplicated here to avoid unnecessary binary duplication. The 3-way comparison GIF in this package already includes v3, v3.1, and v3.2 side by side."
+  },
+  "packageOwnQaReport": {
+    "path": "docs/reviews/archer-attack-v3-2-technical-qa-report.md",
+    "note": "Reproduced verbatim from the uploaded package for transparency. Contains Coco's own RMSE-based transition-smoothness analysis, which was not independently re-computed in this environment (no ImageMagick RMSE tooling available); treated as a package claim, clearly labeled as such, not as this repository's own automated verdict."
+  },
+  "validation": {
+    "validatorPath": "tools/validate-archer-attack-v3-2-review-candidate-v1.mjs",
+    "lastRunResult": "PASS (exit 0) -- 12 RGBA 640x960 frames verified (frame 004 decoded via 16-bit-aware path), old->new mapping verified byte-for-byte, reworked frames 004/006 confirmed distinct from rejected v3.1 versions, frame 004 scale-collapse regression check passed, frame 011 == Approved Master, foot baseline uniform, review artifacts present, approval-state invariants hold, timing totals preserved, release-frame duration (index 8) == 7cs. Non-blocking warning: frame 004 is 16-bit RGBA vs repository 8-bit convention (see technicalIntegrity.bitDepthAnomaly)."
+  },
+  "approvalState": {
+    "sourceVerified": true,
+    "technicalIntegrityPass": true,
+    "internalPackageQaReported": true,
+    "humanVisualApproval": false,
+    "attackV3_2PackageApproved": false,
+    "animationQualityBenchmarkV1Approved": false,
+    "benchmarkActivationAuthorized": false,
+    "canonicalApproved": false,
+    "runtimeEligible": false,
+    "runtimeIntegrated": false,
+    "status": "READY_FOR_HUMAN_REVIEW",
+    "note": "This status reflects a technical/integration verdict only. It is not, and must not be interpreted as, user/human visual approval. attackV3_2PackageApproved remains false until an explicit user verdict is recorded. No prior explicit PASS/FAIL verdict on v3.1 was recorded in this session's conversation history; the package's own framing (frames-v3-1-rejected/) is reproduced factually and not treated as a repository-recorded human verdict on PR #78."
+  }
+}
