@@ -4,6 +4,8 @@
   "characterId": "hero.archer",
   "styleDirectionApproved": true,
   "neutralMasterApproved": true,
+  "idlePackageApproved": true,
+  "idleApprovalRecord": "data/design/archer-idle-package-exact-file-approval-v1.json",
   "approvedNeutralMasterSource": true,
   "userApprovalRecorded": true,
   "approvalRecord": "data/design/archer-neutral-master-exact-file-approval-v1.json",
@@ -193,14 +195,14 @@
     {
       "step": 2,
       "deliverable": "Archer Idle",
-      "currentStatus": "authorized-next-task-not-started",
-      "gate": "Neutral Master approved; separate Archer Idle Production v1 task required"
+      "currentStatus": "complete-exact-package-approved",
+      "gate": "passed-user-exact-package-approval; locked to PR #62 frame hashes"
     },
     {
       "step": 3,
       "deliverable": "Archer Move",
-      "currentStatus": "deferred",
-      "gate": "Idle package approved"
+      "currentStatus": "authorized-next-task-not-started",
+      "gate": "Idle package approved; separate Archer Move Production v1 task required"
     },
     {
       "step": 4,
@@ -219,8 +221,11 @@
     "oldAssetsDeleted": false,
     "oldAssetsModified": false,
     "runtimeModified": false,
-    "motionFramesGenerated": false,
-    "motionFramesModified": false,
+    "idleFramesGeneratedBeforeThisApprovalRecord": true,
+    "motionFramesGeneratedByThisApprovalTask": false,
+    "motionFramesModifiedByThisApprovalTask": false,
+    "moveFramesGenerated": false,
+    "attackFramesGenerated": false,
     "nonArcherCharactersModified": false
   }
 }
