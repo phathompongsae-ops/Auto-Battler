@@ -1,0 +1,168 @@
+{
+  "record": "archer-pilot-runtime-acceptance-candidate-v1",
+  "status": "RUNTIME_INTEGRATION_READY_FOR_PILOT_REVIEW",
+  "createdBy": "autonomous-agent",
+  "scope": "hero.archer runtime integration (Neutral/Idle/Move/Attack v3.2) into the actual game runtime, actual-board evidence, x1 + x4 validation",
+
+  "lineage": {
+    "sourceZipSha256": "bf3653d72c9a5b3eec8b8a24224dcff098527dae194fbbafd3ec69c15072fc3e",
+    "pullRequests": {
+      "PR78": { "role": "v3.1 rejected (preserved, untouched)", "head": "6332f4aca92b45f8b9e67ddce1d41a454c09f67d", "merged": false },
+      "PR79": { "role": "v3.2 exact review candidate (preserved, untouched)", "head": "ddd0b655f867d0b01106a9e1d274234e1e9b71e9", "merged": false },
+      "PR80": { "role": "exact-package approval (preserved, untouched)", "head": "4566fc192bb38a10f6653be7d9657afcc196231f", "merged": false },
+      "PR81": { "role": "16-bit compatibility check, base of this runtime-integration branch", "head": "5a42b921f3371bfdaf1c5f22e5bbf750b296818d", "merged": false }
+    },
+    "runtimeIntegrationBranch": "cc/archer-v3-2-runtime-integration-v1",
+    "baseBranch": "cc/archer-attack-v3-2-16bit-compatibility-check-v1",
+    "baseCommitSha": "5a42b921f3371bfdaf1c5f22e5bbf750b296818d"
+  },
+
+  "assetHashPreservation": {
+    "method": "SHA-256 re-hash of every protected binary, before and after all runtime code changes",
+    "result": "ALL_BYTE_IDENTICAL_NO_DRIFT",
+    "neutralMaster": {
+      "path": "docs/assets/review/character-production/archer/master-v1/archer-production-master-candidate-v1.png",
+      "sha256": "4911e7e3ba59241ee011be3e62f1b64230dcf9b3c24c6aeb23dc939d83311013"
+    },
+    "attackV3_2Frame004": {
+      "path": "docs/assets/review/character-production/archer/attack-v3-2/frames/hero.archer_attack_v3_2_004.png",
+      "sha256": "69af0c5088492db38fc81a365e1295264057ffe62f1141f173b86d815da5b277",
+      "note": "16-bit RGBA, not re-encoded, not touched"
+    },
+    "attackV3_2Frame006": {
+      "path": "docs/assets/review/character-production/archer/attack-v3-2/frames/hero.archer_attack_v3_2_006.png",
+      "sha256": "7a63d3f0b357e7559c84c75650baa75c1865c8ced75a6abe618d1893d42e2787"
+    },
+    "attackV3_2Frame011ExactNeutralMasterMatch": {
+      "path": "docs/assets/review/character-production/archer/attack-v3-2/frames/hero.archer_attack_v3_2_011.png",
+      "sha256": "4911e7e3ba59241ee011be3e62f1b64230dcf9b3c24c6aeb23dc939d83311013",
+      "note": "exact match to Neutral Master, as approved"
+    },
+    "attackV3_2AllTwelveFrames": "all 12 frames (000-011) re-hashed and confirmed byte-identical to the approved package on record",
+    "idlePackageEightFrames": "all 8 frames re-hashed and confirmed byte-identical against data/design/archer-idle-package-exact-file-approval-v1.json",
+    "movePackageEightFrames": "all 8 frames re-hashed and confirmed byte-identical against data/design/archer-move-package-exact-file-approval-v1.json",
+    "existingValidatorsReRun": {
+      "validate-archer-attack-v3-2-review-candidate-v1.mjs": "exit 0, PASS",
+      "validate-archer-attack-v3-2-exact-package-approval-v1.mjs": "exit 0, PASS"
+    }
+  },
+
+  "attackV3_2ExactTiming": {
+    "unit": "centiseconds",
+    "perFrame": [16, 12, 10, 7, 6, 6, 6, 9, 7, 10, 14, 24],
+    "totalCs": 127,
+    "fullDrawFrameIndex": 7,
+    "releaseFrameIndex": 8,
+    "releaseFrameDurationCs": 7,
+    "anchor": [0.5, 0.92],
+    "canvas": [640, 960],
+    "rootMotion": "in-place",
+    "runtimeFlipX": true,
+    "fixed12FrameRule": false
+  },
+
+  "changedRuntimePaths": [
+    "src/game.js"
+  ],
+  "newDocPaths": [
+    "docs/reviews/archer-runtime-integration-v1/runtime-test-report.md",
+    "docs/reviews/archer-runtime-integration-v1/release-marker-diagnostic.md",
+    "docs/reviews/archer-runtime-integration-v1/runtime-test-raw-results.json",
+    "docs/reviews/archer-runtime-integration-v1/actual-board-idle.png",
+    "docs/reviews/archer-runtime-integration-v1/actual-board-idle-midcycle.png",
+    "docs/reviews/archer-runtime-integration-v1/actual-board-move.png",
+    "docs/reviews/archer-runtime-integration-v1/actual-board-attack-full-draw.png",
+    "docs/reviews/archer-runtime-integration-v1/actual-board-attack-release.png",
+    "docs/reviews/archer-runtime-integration-v1/actual-board-recovery-neutral.png",
+    "docs/reviews/archer-runtime-integration-v1/actual-board-left-facing.png",
+    "docs/reviews/archer-runtime-integration-v1/actual-board-right-facing.png",
+    "docs/reviews/archer-runtime-integration-v1/actual-board-x4-combat-engage.png",
+    "docs/reviews/archer-runtime-integration-v1/actual-board-x4-combat-inprogress.png",
+    "docs/reviews/archer-runtime-integration-v1/normal-speed-attack-preview.webm",
+    "data/design/archer-pilot-runtime-acceptance-candidate-v1.json",
+    "docs/reviews/archer-pilot-runtime-acceptance-candidate-v1.md"
+  ],
+
+  "implementationSummary": {
+    "approach": "additive, backward-compatible extension -- new per-file variable-duration animation code path (ARCHER_FRAME_SEQS / updateArcherAnim / loadArcherFrames), triggered only for cfg.sprite==='ArcherReal'. The pre-existing single-sheet fixed-duration UV-offset animation system (ASSET_META / updateAnim's WALK_SEQ/ATTACK_SEQ path) is completely untouched and used unmodified by all other 19 registered sprites.",
+    "heroRosterChange": "HERO_DEFS.archer.sprite changed from 'Sniper' (placeholder) to 'ArcherReal' -- the only HERO_DEFS edit in this task.",
+    "testHook": "window.__archerRuntimeTestHook (bottom of src/game.js) -- additive, not referenced by any gameplay code path, exposes existing internals (placeTestUnit/getUnits/setSpeedMul/setPhase/archerLoaded/startTestBattle/stepUnit/renderFrame) for automated Playwright evidence capture.",
+    "facingFlipCorrection": "An existing generic attack-time facing-flip mechanism (updateUnit()'s body.scale.x = target-relative -1/1) already applies to the Archer automatically -- no new code needed to satisfy the approved runtimeFlipX=true convention during Attack. This does not extend to Idle/Move (pre-existing characteristic shared by all sprite units, out of scope to change here).",
+    "noProjectileSystemBuilt": "No projectile/VFX spawn system was built for Release-frame synchronization -- none exists for any unit in this codebase, and building one is judged a new Core Combat feature, out of the smallest-safe-method scope for this task. Disclosed honestly, not fabricated."
+  },
+
+  "actualTestsRun": {
+    "toolchain": "Playwright + headless Chromium, local static HTTP server serving the real worktree files, vendored THREE.js r128 (CDN network-blocked, same limitation as PR #81)",
+    "checkpoint1_assetLoadAndStateRegistration": "PASS",
+    "idleLoopDeterministic": "PASS (all 8 frames reached in order, loop wraps correctly)",
+    "moveLoopDeterministic": "PASS (archerSeqKey transitions to 'move', multiple distinct frames, anchor stays grounded)",
+    "attackFullDrawDeterministic": "PASS (frame idx 7 at 633ms observed vs 630ms model)",
+    "attackReleaseDeterministic": "PASS (frame idx 8 at 733ms observed vs 720ms model)",
+    "recoveryToNeutral": "PASS (animState/archerFrameTimer correctly reset after full 127cs)",
+    "checkpoint2_playbackTransitionAnchorX4": "PASS (groundedAnchorExact=true, noMapMissing=true, 240 real-rendered rAF samples, zero errors)",
+    "checkpoint3_releaseMarkerProjectileTimingRegression": "PASS (logical timing confirmed via deterministic trace; regression check confirmed Sniper/original sheet path unaffected; x4 real-rendered display-sampling result reported as a disclosed non-gating characteristic, see runtime-test-report.md)",
+    "protectedAssetReHash": "PASS (before and after, all byte-identical)",
+    "syntaxCheck": "node --check src/game.js -- PASS",
+    "gitDiffCheck": "git diff --check -- clean"
+  },
+
+  "x1VisualResult": "PASS -- Idle/Move/Attack-Full-Draw/Attack-Release/Recovery/left-facing/right-facing all captured as real board screenshots, character identity clearly verifiable (green hood/hair, green-and-gold costume, elf ears, ornate bow), anchor/pivot correct with no feet/ground gap in any capture.",
+
+  "x4CheckpointResults": {
+    "checkpoint2": "PASS",
+    "checkpoint3": "PASS (with disclosed x4 display-sampling characteristic, not a functional defect -- see runtime-test-report.md)"
+  },
+
+  "markerProjectileEvidence": {
+    "status": "N/A_HONEST_DISCLOSURE",
+    "reason": "No projectile/VFX spawn system exists for any unit in this codebase; release-frame timing verified directly instead (see release-marker-diagnostic.md)"
+  },
+
+  "limitations": [
+    "THREE.js r128 itself could not be loaded from the real CDN in this environment (network-blocked); a vendored r128 copy was substituted, same mitigation as PR #81's compatibility check.",
+    "No projectile/VFX system exists for any unit; Release-frame synchronization is verified via direct frame-timing rather than a projectile-spawn event.",
+    "At real x4-speed rendering, the narrow Release-frame (idx 8, 70ms window) can be stepped over by the display's fixed 60fps refresh without being visually sampled in a given short window -- a disclosed, non-blocking characteristic of high-speed frame-based rendering, not a combat-correctness defect (damage timing is on an independent cooldown, unaffected).",
+    "Facing/flip is satisfied automatically during Attack via a pre-existing generic mechanism, but not during Idle/Move for any sprite-based unit (pre-existing, not Archer-specific).",
+    "Wave 1's 'Slime' enemy type has no ASSET_META sprite entry (pre-existing, unrelated to Archer) and renders as a placeholder box in both this test and real production; visible in one secondary evidence screenshot, disclosed in its caption.",
+    "Only Chromium/Blink was exercised; WebKit/Gecko were not tested in this environment (same disclosed limitation as PR #81)."
+  ],
+
+  "regressionResults": {
+    "nonArcherUnitTested": "sniper (heroKey), sprite='Sniper', original ASSET_META/UV-offset sheet system",
+    "archerSeqsNull": true,
+    "framesEqualsEight": true,
+    "usesTexOffset": true,
+    "conclusion": "the pre-existing sheet-based animation path for all other units is completely unaffected by this Archer-specific additive extension"
+  },
+
+  "rollbackInstructions": "Revert the single commit on cc/archer-v3-2-runtime-integration-v1 that modifies src/game.js (HERO_DEFS.archer.sprite back to 'Sniper', remove ARCHER_FRAME_SEQS/updateArcherAnim/loadArcherFrames/__archerRuntimeTestHook additions and the makeUnit/updateAnim branch extensions). No asset binaries need any rollback action since none were modified. No other file outside src/game.js and the new docs/data-record paths listed above was touched.",
+
+  "nextHumanDecision": "Human Pilot Acceptance Review of this Draft PR: inspect the actual-board screenshots and video, review runtime-test-report.md and release-marker-diagnostic.md, and decide whether to set pilotAccepted/canonicalApproved/finalRuntimeApproved/merged to true. This record intentionally does not self-approve.",
+
+  "approvalFlags": {
+    "runtimeIntegrationImplemented": true,
+    "runtimeValidationPassed": true,
+    "combatX4ValidationPassed": true,
+    "actualBoardEvidenceReady": true,
+    "pilotAcceptanceCandidateReady": true,
+    "pilotAccepted": false,
+    "canonicalApproved": false,
+    "finalRuntimeApproved": false,
+    "merged": false
+  },
+
+  "prohibitionsConfirmedHeld": {
+    "prMerged": false,
+    "autoMergeSet": false,
+    "approvedAssetBinariesChanged": false,
+    "frame004ReEncoded": false,
+    "combatBalanceChanged": false,
+    "damageStatsTargetingManaEconomyChanged": false,
+    "broadCoreRuntimeRefactor": false,
+    "otherCharactersStarted": false,
+    "survivalModeStarted": false,
+    "threeStarHeroSystemStarted": false,
+    "passReportedForTestsNotRun": false,
+    "testsLoweredOrSkippedToForcePass": false
+  }
+}

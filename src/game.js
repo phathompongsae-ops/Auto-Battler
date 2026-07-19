@@ -381,6 +381,66 @@ function loadAllSprites(onDone) {
   });
 }
 
+// hero.archer approved motion package (Neutral/Idle/Move/Attack v3.2) — exact per-file frame
+// sequences with variable per-frame timing, loaded and rendered separately from the ASSET_META
+// single-sheet system above. The sheet system assumes one shared texture with a UV offset per
+// frame and a single fixed per-frame duration (ATTACK_FRAME_DUR); Attack v3.2's approved
+// schedule is non-uniform per frame ([16,12,10,7,6,6,6,9,7,10,14,24]cs), which the sheet system
+// cannot express without changing ATTACK_FRAME_DUR for every other unit. This registry instead
+// holds one THREE.Texture per approved PNG file and swaps material.map directly. Idle/Move use a
+// uniform per-frame interval only because that happens to be their own approved fps (8/12) — the
+// loader itself makes no uniformity assumption.
+const ARCHER_ANCHOR = [0.5, 0.92]; // approved anchor, carried from the source package contracts
+const ARCHER_CANVAS = [640, 960];  // approved canvas, all frames across Idle/Move/Attack v3.2
+function archerSeq(paths, durationsCs, loop, extra) {
+  const durationsSec = durationsCs.map((cs) => cs / 100);
+  const cumulative = []; let acc = 0;
+  for (const d of durationsSec) { acc += d; cumulative.push(acc); }
+  return Object.assign({ paths, durationsSec, cumulative, total: acc, loop, textures: null }, extra || {});
+}
+const ARCHER_FRAME_SEQS = {
+  idle: archerSeq(
+    Array.from({ length: 8 }, (_, i) => `assets/units/hero.archer/idle-chibi-v1/hero.archer_idle_${String(i).padStart(3, '0')}.png`),
+    Array(8).fill(100 / 8), // 8 fps approved
+    true
+  ),
+  move: archerSeq(
+    Array.from({ length: 8 }, (_, i) => `assets/units/hero.archer/move-chibi-v1/hero.archer_move_${String(i).padStart(3, '0')}.png`),
+    Array(8).fill(100 / 12), // 12 fps approved
+    true
+  ),
+  attack: archerSeq(
+    Array.from({ length: 12 }, (_, i) => `docs/assets/review/character-production/archer/attack-v3-2/frames/hero.archer_attack_v3_2_${String(i).padStart(3, '0')}.png`),
+    [16, 12, 10, 7, 6, 6, 6, 9, 7, 10, 14, 24], // approved exact schedule, total 127cs
+    false,
+    { fullDrawFrame: 7, releaseFrame: 8 }
+  ),
+};
+let archerLoaded = false;
+function loadArcherFrames(onDone) {
+  const loader = new THREE.TextureLoader();
+  const seqList = Object.values(ARCHER_FRAME_SEQS);
+  const allPaths = seqList.flatMap((s) => s.paths);
+  let settled = 0, failed = false;
+  allPaths.forEach((path) => {
+    loader.load(path, (tex) => {
+      tex.magFilter = THREE.NearestFilter; tex.minFilter = THREE.NearestFilter;
+      for (const seq of seqList) {
+        const idx = seq.paths.indexOf(path);
+        if (idx !== -1) { if (!seq.textures) seq.textures = new Array(seq.paths.length); seq.textures[idx] = tex; }
+      }
+      settle();
+    }, undefined, (err) => {
+      console.error('โหลด hero.archer frame ไม่สำเร็จ:', path, err);
+      failed = true; settle();
+    });
+  });
+  function settle() {
+    settled++;
+    if (settled === allPaths.length) { archerLoaded = !failed; onDone(); }
+  }
+}
+
 // ============================================================
 // ข้อมูลฮีโร่ (ร้านค้า) + คลื่นศัตรู
 // ============================================================
@@ -414,7 +474,7 @@ const HERO_DEFS = {
   duelist:      { name:'Duelist',      class_tier:2, evolves_from:'swordman', cost:3, sprite:'Duelist', synergy:['Swordsman','Duelist','Executioner'], attack_type:'physical',
     stats:{ hp:610, p_atk:62, m_atk:0, p_def:27, m_def:24, move_speed:3.0, attack_speed:1.55, attack_range:1 },
     active_skill:{ name:"Duelist's Verdict", description:'โจมตีศัตรูที่มี Max HP สูงที่สุด สร้างความเสียหายกายภาพ 190% ของ P.Atk และเพิ่มอีก 30% หากเป้าหมายมี HP มากกว่าผู้ใช้' } },
-  archer:       { name:'Archer',       class_tier:1, cost:2, sprite:'Sniper', synergy:['Archer'], attack_type:'physical',
+  archer:       { name:'Archer',       class_tier:1, cost:2, sprite:'ArcherReal', synergy:['Archer'], attack_type:'physical',
     stats:{ hp:330, p_atk:29, m_atk:0, p_def:12, m_def:15, move_speed:2.6, attack_speed:1.4, attack_range:4 },
     active_skill:{ name:'Piercing Arrow', description:'ยิงลูกธนูเป็นเส้นตรง สร้างความเสียหายกายภาพ 145% ของ P.Atk แก่ศัตรูทุกตัวในแนว โดยดาเมจลดลง 15% ต่อเป้าหมายที่ทะลุผ่าน' } },
   sniper:       { name:'Sniper',       class_tier:2, evolves_from:'archer', cost:3, sprite:'Sniper', synergy:['Archer','Sniper','Longshot'], attack_type:'physical',
@@ -1433,7 +1493,21 @@ function makeUnit(cfg) {
   const group = new THREE.Group();
   const meta = ASSET_META[cfg.sprite];
   let frames = 1, tex = null, w, h, body, shadowRefW = 1.1;
-  if (meta && !failedSpriteKeys.has(cfg.sprite)) {
+  if (cfg.sprite === 'ArcherReal' && archerLoaded) {
+    // Approved hero.archer motion package: same bottom-anchored PlaneGeometry convention as
+    // every other sprite unit below (body.position.y = h/2 puts the plane's bottom edge at
+    // group-local y=0, matching the ground/shadow plane) -- only the texture-swap animation
+    // mechanism differs (see updateArcherAnim). w/h preserve the approved 640x960 canvas aspect
+    // ratio exactly, scaled to match the existing "frames>1" hero world-height convention (1.4).
+    frames = 1; // not used by the sheet UV-offset path; archerSeqs drives playback instead
+    const defaultH = 1.4, defaultW = defaultH * (ARCHER_CANVAS[0] / ARCHER_CANVAS[1]);
+    w = cfg.frameSize ? cfg.frameSize.w : defaultW;
+    h = cfg.frameSize ? cfg.frameSize.h : defaultH;
+    shadowRefW = defaultW;
+    tex = ARCHER_FRAME_SEQS.idle.textures[0];
+    body = new THREE.Mesh(new THREE.PlaneGeometry(w, h),
+      new THREE.MeshBasicMaterial({ map: tex, side: THREE.DoubleSide, transparent: true, alphaTest: 0.5 }));
+  } else if (meta && !failedSpriteKeys.has(cfg.sprite)) {
     frames = meta.frames;
     tex = SPRITES[cfg.sprite];
     if (frames > 1) { tex = tex.clone(); tex.needsUpdate = true; tex.repeat.set(1/frames, 1); tex.offset.set(0, 0); }
@@ -1515,7 +1589,9 @@ function makeUnit(cfg) {
     linkRing, linkBadge,
     maxHp: cfg.hp, alive: true, atkCooldown: 0,
     moving: false, moveFrom: null, moveTo: null, moveT: 0,
-    animState: 'idle', animTimer: 0, animFrame: 0 };
+    animState: 'idle', animTimer: 0, animFrame: 0,
+    archerSeqs: (cfg.sprite === 'ArcherReal' && archerLoaded) ? ARCHER_FRAME_SEQS : null,
+    archerSeqKey: null, archerFrameTimer: 0, archerFrameIdx: 0 };
   body.userData.unit = u;
   units.push(u);
   return u;
@@ -2089,6 +2165,7 @@ function resetForWave(u) {
 
 const WALK_SEQ = [1,2,3,4], ATTACK_SEQ = [5,6,7], ATTACK_FRAME_DUR = 0.12;
 function updateAnim(u, dt) {
+  if (u.archerSeqs) { updateArcherAnim(u, dt); return; }
   if (u.frames <= 1) return;
   if (u.animState === 'attack') {
     u.animTimer += dt;
@@ -2100,6 +2177,32 @@ function updateAnim(u, dt) {
     u.animFrame = WALK_SEQ[Math.floor(u.animTimer)%WALK_SEQ.length];
   } else { u.animState = 'idle'; u.animFrame = 0; }
   u.tex.offset.x = u.animFrame / u.frames;
+}
+// hero.archer variable-per-frame-duration playback (see ARCHER_FRAME_SEQS above). Same dt/
+// speedMul input as updateAnim's sheet path above, so x1/x4 speed scaling is inherited for free
+// -- no Archer-specific speed handling needed. Swaps material.map to the exact approved texture
+// per frame instead of offsetting a shared sheet's UV.
+function updateArcherAnim(u, dt) {
+  const seqKey = u.animState === 'attack' ? 'attack' : (u.moving ? 'move' : 'idle');
+  if (u.archerSeqKey !== seqKey) { u.archerSeqKey = seqKey; u.archerFrameTimer = 0; u.archerFrameIdx = 0; }
+  const seq = u.archerSeqs[seqKey];
+  u.archerFrameTimer += dt;
+
+  let t = u.archerFrameTimer;
+  let attackJustFinished = false;
+  if (t >= seq.total) {
+    if (seq.loop) { t = seq.total > 0 ? (t % seq.total) : 0; u.archerFrameTimer = t; }
+    else { t = seq.total; attackJustFinished = (seqKey === 'attack'); }
+  }
+  let idx = seq.cumulative.findIndex((c) => t < c);
+  if (idx === -1) idx = seq.durationsSec.length - 1;
+  u.archerFrameIdx = idx;
+
+  if (u.body.material.map !== seq.textures[idx]) {
+    u.body.material.map = seq.textures[idx];
+    u.body.material.needsUpdate = true;
+  }
+  if (attackJustFinished) { u.animState = u.moving ? 'walk' : 'idle'; u.animTimer = 0; u.archerFrameTimer = 0; }
 }
 // Physical/Magic damage split (HERO_DEFS attack_type): picks the attacker's raw attack value
 // by attack_type, then mitigates it against the target's matching defense stat. Monsters/bosses
@@ -4152,13 +4255,50 @@ function animate(now) {
 }
 
 // ============================================================
+// TEST/REVIEW HOOK (Archer Runtime Integration v1)
+// ============================================================
+// Read-only-ish debug surface for automated actual-board evidence capture (Playwright).
+// Reuses the real production placement path (createUnitFromInstance) and real per-frame
+// animation code (updateAnim/updateArcherAnim via the normal animate() loop) -- adds no new
+// gameplay behavior, just exposes already-existing internals that this classic script (no
+// modules/exports) otherwise keeps closure-private. Not referenced by any gameplay code path.
+window.__archerRuntimeTestHook = {
+  placeTestUnit: (heroKey, c, r) => createUnitFromInstance({ heroKey, instanceId: 'test-' + heroKey + '-' + c + '-' + r, starLevel: 1, equipment: [] }, c, r),
+  getUnits: () => units,
+  setSpeedMul: (m) => { speedMul = m; },
+  getSpeedMul: () => speedMul,
+  setPhase: (p) => { phase = p; },
+  getPhase: () => phase,
+  archerLoaded: () => archerLoaded,
+  // Enters real Combat via the same spawnWave() production path startBattleBtn.onclick uses,
+  // so the animate() loop's `phase==='battle' && eAlive>0` condition holds across frames like
+  // it would in an actual playthrough -- without this, a test unit placed with no real enemies
+  // on the board triggers onWaveCleared() (eAlive===0) on the very first frame and phase flips
+  // back to 'result', silently starving updateUnit() of any further per-frame calls.
+  startTestBattle: () => { phase = 'battle'; waveTimer = 0; spawnWave(wave); },
+  // Deterministic single-unit time-step: calls the exact same updateUnit(u,dt) the real
+  // animate() loop calls every rAF frame, just decoupled from wall-clock/rAF timing so
+  // Idle-loop and exact-frame (Full Draw/Release) evidence capture doesn't depend on
+  // guessing real-time delays against a headless browser's actual frame rate.
+  stepUnit: (heroKey, dt) => { const u = units.find((x) => x.heroKey === heroKey); if (u) updateUnit(u, dt); },
+  renderFrame: () => { for (const u of units) u.group.quaternion.copy(camera.quaternion); renderer.render(scene, camera); },
+};
+
+// ============================================================
 // START
 // ============================================================
-loadAllSprites(() => {
+// Both loaders must finish before gameplay starts (shop offers reference sprite/frame state);
+// order between the two doesn't matter, so they run in parallel and the second to finish
+// triggers init -- same "wait for everything, then go" shape as loadAllSprites' own settle().
+let coreSpritesReady = false, archerFramesReady = false;
+function tryStartGame() {
+  if (!coreSpritesReady || !archerFramesReady) return;
   document.getElementById('loading').style.display = 'none';
   pickShopOffers();
   renderUI();
   requestAnimationFrame(animate);
-});
+}
+loadAllSprites(() => { coreSpritesReady = true; tryStartGame(); });
+loadArcherFrames(() => { archerFramesReady = true; tryStartGame(); });
 
 window.addEventListener('resize', layoutBoard);
