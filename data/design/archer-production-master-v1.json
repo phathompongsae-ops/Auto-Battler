@@ -1,0 +1,369 @@
+{
+  "contractVersion": 1,
+  "id": "archer-production-master-v1",
+  "characterId": "hero.archer",
+  "status": "review-candidate-generated-exact-file-approval-pending",
+  "styleDirectionApproved": true,
+  "productionMasterCandidatePending": false,
+  "neutralMasterApproved": false,
+  "canonicalApproved": false,
+  "runtimeEligible": false,
+  "motionGenerated": false,
+  "runtimeIntegrated": false,
+  "styleContractVersion": 1,
+  "styleSourcePR": {
+    "repository": "phathompongsae-ops/Auto-Battler",
+    "pr": 58,
+    "branch": "coco/character-art-style-lock-and-migration-contract-v1",
+    "sha": "b3db907dfd33a181fae34859770c872319ab994e",
+    "state": "open-draft-unmerged",
+    "usage": "authoritative style, reference, approval, and migration source"
+  },
+  "readOnlyRuntimeBaselines": [
+    {
+      "pr": 55,
+      "branch": "cc/arena-ruins-static-board-runtime-integration-v1",
+      "sha": "08744faad0df8ce5fe1e43461ba59687fd0aebe8",
+      "state": "open-draft-unmerged",
+      "usage": "Arena Ruins warm-stone readability context only"
+    },
+    {
+      "pr": 56,
+      "branch": "cc/pilot-idle-motion-runtime-integration-v1",
+      "sha": "bbe63518c42761f49a0aa068c78e0d07d3e88214",
+      "state": "open-draft-unmerged",
+      "usage": "motion/runtime technical semantics only"
+    }
+  ],
+  "sourceBoundary": {
+    "base": "exact PR #58 head",
+    "ccRuntimeAncestryIncluded": false,
+    "rule": "Do not merge, rebase, or blind-cherry-pick PR #55 or #56 into this Coco production-source line. Consume approved assets path-limited in a later CC integration task."
+  },
+  "styleInputs": {
+    "styleContract": "data/design/character-art-style-lock-and-migration-contract-v1.json",
+    "referenceManifest": "data/design/character-art-reference-manifest-v1.json",
+    "humanContract": "docs/reviews/character-art-style-lock-and-migration-contract-v1.md",
+    "primaryReferenceId": "gameplay_character_style_context_reference",
+    "archerReferenceId": "style_anchor_archer",
+    "archerStandaloneBinaryAvailable": false,
+    "archerReferenceResolution": "style_anchor_archer intentionally shares the archived gameplay context binary; the shop-card and on-board green Archer regions plus the locked textual traits are the evidence source.",
+    "sharedReferencePath": "docs/assets/reference/character-art-style-lock-v1/gameplay-character-style-context-reference.jpg",
+    "sharedReferenceSha256": "f65408331cf5fbf2b28fcf8f2522d9698f6108a21e84714592fb012620089aec",
+    "sharedReferenceDimensions": [1536, 864]
+  },
+  "productionMasterCandidate": {
+    "candidateId": "hero.archer.production-master.candidate.v1",
+    "path": "docs/assets/review/character-production/archer/master-v1/archer-production-master-candidate-v1.png",
+    "sha256": "4911e7e3ba59241ee011be3e62f1b64230dcf9b3c24c6aeb23dc939d83311013",
+    "bytes": 569259,
+    "format": "PNG",
+    "mode": "RGBA",
+    "dimensions": [640, 960],
+    "aspectRatio": "2:3",
+    "alpha": {
+      "required": true,
+      "verified": true,
+      "visiblePixelBounds": {
+        "origin": "top-left",
+        "x": 71,
+        "y": 125,
+        "width": 501,
+        "height": 730
+      },
+      "transparentPixels": 405248,
+      "partiallyTransparentPixels": 11718,
+      "opaquePixels": 197434,
+      "outerBorderNonTransparentPixels": 0
+    },
+    "approvalStatus": "awaiting-user-exact-file-approval",
+    "runtimeEligible": false,
+    "canonicalApproved": false,
+    "neutralMasterApproved": false,
+    "usage": [
+      "exact-file visual review",
+      "full-size identity review",
+      "future board, bench, and shop-card review composites"
+    ],
+    "forbiddenUsage": [
+      "runtime texture",
+      "motion source before exact-file approval",
+      "replacement for any existing Archer asset",
+      "canonical production asset"
+    ],
+    "provenance": {
+      "createdAt": "2026-07-19",
+      "method": "OpenAI image generation from the archived PR #58 gameplay context reference and the PR #58 Archer style lock; flat chroma background was removed to real alpha and the review candidate was normalized to the existing 2:3 working-canvas recommendation.",
+      "inputReferenceIds": [
+        "gameplay_character_style_context_reference",
+        "style_anchor_archer"
+      ],
+      "promptIntent": [
+        "single full-body female fantasy Archer/Ranger",
+        "green hood and green hair with pointed elf-like ears",
+        "large expressive green eyes",
+        "ornate oversized green-and-gold bow",
+        "green-and-gold Ranger outfit",
+        "approximately 2.5 to 3 heads tall",
+        "centered three-quarter combat-ready neutral stance",
+        "polished stylized 3D mobile-game rendering",
+        "no crop, action pose, UI, card, environment, floor, text, or baked shadow"
+      ],
+      "processing": [
+        "generated at 1024x1536 on a solid magenta chroma field",
+        "converted to RGBA with a dominance-aware soft matte and color despill",
+        "resampled with Lanczos to 640x960",
+        "removed alpha noise at or below 3 percent",
+        "visually checked over a warm-stone surrogate background"
+      ],
+      "generatedBinaryIsUserSuppliedReference": false,
+      "approvalBoundary": "Generation and technical inspection do not constitute user approval of this exact file."
+    }
+  },
+  "identityLock": {
+    "archetype": "female Archer/Ranger youthful fantasy hero",
+    "tone": "cute, approachable, heroic, and combat-ready",
+    "face": [
+      "large expressive green eyes",
+      "simplified readable facial anatomy",
+      "recognizable at reduced scale",
+      "no material face drift across future derivatives or motion"
+    ],
+    "hair": [
+      "green",
+      "readable swept front and side silhouette",
+      "shape and parting remain stable across frames"
+    ],
+    "hood": [
+      "green Ranger hood",
+      "gold trim supports the head silhouette",
+      "does not obscure eyes or primary facial read"
+    ],
+    "ears": [
+      "pointed elf-like ears",
+      "consistent size, angle, and placement"
+    ],
+    "outfit": [
+      "green dominant Ranger fantasy outfit",
+      "gold edge and armor accents",
+      "quiver and readable arrow group",
+      "detail simplified below silhouette, face, and weapon priority"
+    ]
+  },
+  "proportionLock": {
+    "targetHeadsTall": [2.5, 3.0],
+    "required": [
+      "large head",
+      "compact torso",
+      "short readable limbs",
+      "hands remain readable around the bow grip"
+    ],
+    "forbidden": [
+      "realistic adult proportions",
+      "long fashion-illustration limbs",
+      "baby-style super deformation"
+    ]
+  },
+  "silhouetteLock": {
+    "priority": [
+      "large hood, hair, and pointed-ear head shape",
+      "ornate bow silhouette",
+      "compact chibi body",
+      "green cloak and quiver mass",
+      "secondary gold costume details"
+    ],
+    "recognitionTarget": "female Ranger identity should read within approximately one second at board, bench, shop-card, and portrait-like scales",
+    "noCrop": true
+  },
+  "weaponLock": {
+    "weapon": "ornate fantasy bow",
+    "palette": "green and gold",
+    "scale": "slightly oversized for immediate class readability",
+    "continuity": "bow curvature, gold blade-like tips, green inset, grip, and string relationship remain stable across future motion",
+    "mustNot": [
+      "shrink behind the body",
+      "change handedness except through documented runtimeFlipX",
+      "change identity between master, card, and animation derivatives"
+    ]
+  },
+  "paletteLock": {
+    "dominant": "ranger green",
+    "secondary": "warm gold",
+    "support": [
+      "green hair",
+      "natural skin tone",
+      "dark brown leather"
+    ],
+    "arenaRuinsReadability": "Use value separation, gold rim accents, skin/eye focal contrast, and a crisp outer silhouette so green does not collapse into foliage accents or warm stone.",
+    "forbidden": [
+      "low-contrast same-value costume block",
+      "baked environment color spill",
+      "board-specific outline or floor pixels"
+    ]
+  },
+  "neutralMasterSpecification": {
+    "role": "identity source for later approved Idle, Move, Attack, shop-card, bench, board-unit, and portrait/icon derivatives",
+    "canvasDecision": {
+      "recommendedWorkingCanvas": [640, 960],
+      "aspectRatio": "2:3",
+      "rationale": "The existing Archer motion contract uses a 2:3 frame shape and recommends a 640x960 working canvas with a 1024 maximum source dimension before smaller runtime exports. This minimizes migration cost while retaining enough detail for the new style.",
+      "runtimeExportDecision": "deferred until exact-file approval and the future motion/integration task",
+      "doNotInferRuntimeSizeFromMaster": true
+    },
+    "composition": [
+      "full body from hood tip and bow tip through both feet",
+      "centered with transparent margin on every side",
+      "consistent three-quarter gameplay-compatible view",
+      "combat-ready neutral stance",
+      "not attack, walk, run, or exaggerated idle extreme"
+    ],
+    "export": {
+      "format": "PNG",
+      "mode": "RGBA",
+      "transparentBackground": true,
+      "forbidden": [
+        "UI",
+        "text",
+        "card frame",
+        "environment",
+        "baked floor",
+        "baked shadow",
+        "Arena Ruins pixels"
+      ]
+    },
+    "provisionalAnchor": [0.5, 0.92],
+    "anchorPolicy": "Preserve the existing technical baseline provisionally. Revalidate against approved feet placement before any frames are generated; record a migration requirement rather than changing runtime here."
+  },
+  "generationRequirements": {
+    "style": "Cute stylized fantasy chibi, gameplay-first readability",
+    "detailPriority": [
+      "silhouette",
+      "face and head",
+      "bow and Ranger cue",
+      "dominant green",
+      "secondary costume detail"
+    ],
+    "continuityKeys": [
+      "face and green-eye shape",
+      "hair silhouette",
+      "hood silhouette and gold trim",
+      "ear placement",
+      "bow construction",
+      "green/gold palette",
+      "head-to-body proportion"
+    ],
+    "forbidden": [
+      "photorealism",
+      "realistic PBR-heavy rendering",
+      "flat 2D anime",
+      "realistic adult proportions",
+      "baby-style super deformation",
+      "costume micro-detail that reduces readability",
+      "baked background, floor, card, UI, text, or environmental shadow"
+    ]
+  },
+  "approvalContexts": [
+    {
+      "id": "full-size-master",
+      "status": "pending-user-review",
+      "checks": [
+        "identity and expression match the Archer lock",
+        "full body and bow are uncropped",
+        "real alpha and margins are clean",
+        "face, hood, ears, hair, outfit, and bow are internally consistent"
+      ]
+    },
+    {
+      "id": "board-scale-readability",
+      "status": "pending-review-composite",
+      "checks": [
+        "face remains readable",
+        "bow reads immediately",
+        "silhouette separates from Arena Ruins warm stone",
+        "no board geometry or camera change is required"
+      ]
+    },
+    {
+      "id": "bench-scale-readability",
+      "status": "pending-review-composite",
+      "checks": [
+        "hood and hair do not merge into one blob",
+        "Ranger identity remains recognizable",
+        "feet and bow stay within the visual slot"
+      ]
+    },
+    {
+      "id": "shop-card-presentation",
+      "status": "pending-review-composite",
+      "checks": [
+        "face and eyes carry the focal read",
+        "bow and green/gold class cues remain visible",
+        "crop derivative does not alter master identity",
+        "card frame and rarity treatment remain separate UI ownership"
+      ]
+    }
+  ],
+  "futureMotionStates": [
+    {
+      "state": "idle",
+      "status": "deferred-until-neutral-master-approved",
+      "baseline": {
+        "fps": 8,
+        "frameCount": 8,
+        "loop": true,
+        "rootMotion": "in-place",
+        "eventMarkers": [],
+        "anchor": [0.5, 0.92]
+      }
+    },
+    {
+      "state": "move",
+      "status": "deferred-until-idle-approved",
+      "baseline": {
+        "fps": 12,
+        "frameCount": 8,
+        "loop": true,
+        "rootMotion": "in-place",
+        "runtimeFlipX": true,
+        "eventMarkers": [
+          {"name": "leftFootstepCue", "normalizedTime": 0.25},
+          {"name": "rightFootstepCue", "normalizedTime": 0.75}
+        ],
+        "anchor": [0.5, 0.92]
+      }
+    },
+    {
+      "state": "attack",
+      "status": "deferred-until-move-approved",
+      "baseline": {
+        "fps": 12,
+        "frameCount": 10,
+        "loop": false,
+        "rootMotion": "in-place",
+        "eventMarkers": [
+          {"name": "projectileRelease", "normalizedTime": 0.55}
+        ],
+        "anchor": [0.5, 0.92]
+      }
+    }
+  ],
+  "productionSequence": [
+    "user approves the exact Neutral Master candidate",
+    "produce and approve Archer Idle",
+    "produce and approve Archer Move",
+    "produce and approve Archer Attack",
+    "CC performs a separate path-limited runtime integration"
+  ],
+  "migrationMap": "data/design/archer-production-master-migration-map-v1.json",
+  "protectedAreas": [
+    "src/",
+    "Core Logic",
+    "Combat",
+    "targeting and pathfinding",
+    "economy, stage logic, and main loop",
+    "camera and board geometry",
+    "map runtime",
+    "existing motion runtime and motion frames",
+    "non-Archer characters"
+  ]
+}
