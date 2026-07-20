@@ -150,3 +150,23 @@ Branch `cc/archer-v3-2-runtime-integration-v1`, based on `cc/archer-attack-v3-2-
 ## 19. Recommendation
 
 **APPROVE ARCHER PILOT** (for human review — this record does not self-approve). Rationale: all in-scope runtime integration work is implemented additively with zero regression to existing sprites or Combat balance; all protected assets are verified byte-identical before and after; x1 and x4 validation both pass on real actual-board evidence with real screenshots and a real recorded video; the one test-harness defect found during this task was fixed and re-verified within scope; the two honestly-disclosed limitations (no projectile system, x4 display-sampling characteristic on the Release frame) do not affect combat correctness and are clearly documented for human judgment rather than hidden or fabricated around.
+
+## 20. Targeted Timing Rework v1 (additive follow-up, same Draft PR)
+
+An independent audit surfaced a repeated-attack timing defect not caught by the checks above:
+Archer's base cooldown (71.43cs) is faster than Attack v3.2's full visual cycle (127cs), so
+repeated attacks during sustained combat got **no visual acknowledgment** while one long cycle
+played through underneath them (damage/cooldown were never affected — this was purely a visual
+gap). Fixed with a minimal, Archer-gated, capped (cap=1) natural-boundary replay queue. Full
+defect analysis, root cause, rejected alternatives, implementation, and new deterministic x1/x4/
+regression evidence are in
+`docs/reviews/archer-runtime-integration-v1/repeated-attack-timing-rework-v1.md`.
+
+New known limitation added (see also `limitations` in the JSON record): under sustained
+attack-speed buffs pushing the cooldown/cycle ratio well past base, the cap=1 queue means not
+every individual attack gets its own unique visual replay — damage/cooldown still apply exactly
+on schedule for every event. Base-stat cadence never exceeds the cap.
+
+Result: **TARGETED_RUNTIME_REWORK_READY_FOR_INDEPENDENT_REAUDIT**. `pilotAccepted`,
+`canonicalApproved`, `finalRuntimeApproved`, and `merged` remain `false`, unchanged by this
+rework.

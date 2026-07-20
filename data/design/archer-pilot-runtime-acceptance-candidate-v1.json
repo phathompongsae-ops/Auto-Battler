@@ -124,7 +124,8 @@
     "At real x4-speed rendering, the narrow Release-frame (idx 8, 70ms window) can be stepped over by the display's fixed 60fps refresh without being visually sampled in a given short window -- a disclosed, non-blocking characteristic of high-speed frame-based rendering, not a combat-correctness defect (damage timing is on an independent cooldown, unaffected).",
     "Facing/flip is satisfied automatically during Attack via a pre-existing generic mechanism, but not during Idle/Move for any sprite-based unit (pre-existing, not Archer-specific).",
     "Wave 1's 'Slime' enemy type has no ASSET_META sprite entry (pre-existing, unrelated to Archer) and renders as a placeholder box in both this test and real production; visible in one secondary evidence screenshot, disclosed in its caption.",
-    "Only Chromium/Blink was exercised; WebKit/Gecko were not tested in this environment (same disclosed limitation as PR #81)."
+    "Only Chromium/Blink was exercised; WebKit/Gecko were not tested in this environment (same disclosed limitation as PR #81).",
+    "(Added by repeatedAttackTimingReworkV1) Under sustained attack-speed buffs pushing the cooldown/cycle ratio well past the base ~1.78x, the cap=1 replay queue means not every individual attack event gets its own unique visual Full-Draw/Release acknowledgment -- damage and cooldown still apply exactly on schedule for every event regardless. This is an intentional, disclosed bound (chosen over an unbounded queue, which was calculated to cause up to ~23s of extra post-combat visual attacking after ~30s of continuous fire). Base-stat cadence never exceeds the cap in practice."
   ],
 
   "regressionResults": {
@@ -164,5 +165,38 @@
     "threeStarHeroSystemStarted": false,
     "passReportedForTestsNotRun": false,
     "testsLoweredOrSkippedToForcePass": false
+  },
+
+  "repeatedAttackTimingReworkV1": {
+    "status": "TARGETED_RUNTIME_REWORK_READY_FOR_INDEPENDENT_REAUDIT",
+    "fullRecord": "docs/reviews/archer-runtime-integration-v1/repeated-attack-timing-rework-v1.md",
+    "auditSourceDefect": "hero.archer basic-attack cooldown (71.43cs at base attack_speed 1.4) is faster than Attack v3.2's approved 127cs visual cycle; repeated attacks during sustained combat got no visual acknowledgment while one long cycle played through underneath them. Damage/cooldown/targeting/mana/lifesteal were never affected -- purely a visual gap.",
+    "rootCause": "updateArcherAnim() never read u.animTimer, only u.archerFrameTimer/archerSeqKey; the original per-attack `u.animTimer=0` reset was inert for Archer because updateArcherAnim's reset-guard only trips on an archerSeqKey transition, which never re-fires while animState stays 'attack' across repeated triggers. No mid-cycle restart was actually happening prior to this fix.",
+    "fixSelected": "capped (cap=1) natural-boundary replay queue -- archerPendingAcks, gated strictly on u.archerSeqs truthiness",
+    "alternativesRejectedAndWhy": {
+      "doNothing": "fails the requirement that repeated attacks get visual acknowledgment",
+      "restartOnEveryEvent": "cooldown (71.43cs) lands ~1cs before Release begins (63cs); unconditional restart would suppress Release from ever being shown under sustained fire",
+      "unboundedQueue": "calculated ~0.78 net extra attacks queued per cycle at base stats -> ~18 backed-up replay-cycles after ~30s of continuous combat -> ~23 extra seconds of visible post-combat attacking; rejected as unacceptable runtime risk"
+    },
+    "changedRuntimePaths": ["src/game.js"],
+    "assetBinariesChanged": false,
+    "protectedAssetReHashBeforeAfter": "ALL_29_BYTE_IDENTICAL_NO_DRIFT",
+    "newEvidenceFiles": [
+      "docs/reviews/archer-runtime-integration-v1/repeated-attack-timing-rework-v1.md",
+      "docs/reviews/archer-runtime-integration-v1/repeated-attack-timing-trace-raw-x1.json",
+      "docs/reviews/archer-runtime-integration-v1/combat-x4-timing-trace-raw.json",
+      "docs/reviews/archer-runtime-integration-v1/non-archer-regression-raw.json"
+    ],
+    "validationRun": {
+      "nodeCheckSrcGameJs": "PASS",
+      "gitDiffCheck": "clean",
+      "validateArcherAttackV3_2ReviewCandidate": "exit 0, PASS",
+      "validateArcherAttackV3_2ExactPackageApproval": "exit 1, FAIL -- expected historical-validator commit-scope mismatch (its changed-path allowlist is scoped to PR #80's own commit range), not weakened/rewritten, not a regression",
+      "repeatedAttackTimingTraceX1": { "attackEventCount": 6, "damageEventCountProxy": 6, "attackEventsEqualDamageEvents": true, "fullDrawHits": 3, "releaseHits": 3, "restartOrAckEvents": 4, "recoveryReachedIdle": true, "noErrors": true },
+      "combatX4EquivalentTrace": { "attackEventCount": 6, "damageEventCountProxy": 6, "fullDrawHits": 3, "releaseHits": 3, "restartOrAckEvents": 4, "identicalToX1OverSameSimulatedWindow": true },
+      "nonArcherRegression": { "unitTested": "swordman", "archerSeqsNull": true, "attackEventsEqualDamageEvents": true, "sawFullOriginalAttackSeq": true, "returnsToIdleCleanly": true, "noErrors": true }
+    },
+    "testHarnessDefectFoundAndFixedDuringThisRework": "A synthetic partial-shape 'dummy' target object (first approach) crashed when the game's own concurrently-running animate() rAF loop tried to move/render it (missing .body etc.) -- fixed by using a real spawned enemy instead. A second contamination source was then found: real wall-clock time between separate page.evaluate() round trips let the concurrent animate() loop's dt-independent atkCooldown<=0 check fire before the deterministic loop's own first step -- fixed by running setup+trace+recovery inside one synchronous page.evaluate() call plus forcing speedMul=0. Both were test-harness issues, not src/game.js defects; disclosed here rather than silently discarding the first (wrong) result.",
+    "approvalFlagsUnchanged": { "pilotAccepted": false, "canonicalApproved": false, "finalRuntimeApproved": false, "merged": false }
   }
 }

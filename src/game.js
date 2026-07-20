@@ -1591,7 +1591,7 @@ function makeUnit(cfg) {
     moving: false, moveFrom: null, moveTo: null, moveT: 0,
     animState: 'idle', animTimer: 0, animFrame: 0,
     archerSeqs: (cfg.sprite === 'ArcherReal' && archerLoaded) ? ARCHER_FRAME_SEQS : null,
-    archerSeqKey: null, archerFrameTimer: 0, archerFrameIdx: 0 };
+    archerSeqKey: null, archerFrameTimer: 0, archerFrameIdx: 0, archerPendingAcks: 0 };
   body.userData.unit = u;
   units.push(u);
   return u;
@@ -2202,7 +2202,19 @@ function updateArcherAnim(u, dt) {
     u.body.material.map = seq.textures[idx];
     u.body.material.needsUpdate = true;
   }
-  if (attackJustFinished) { u.animState = u.moving ? 'walk' : 'idle'; u.animTimer = 0; u.archerFrameTimer = 0; }
+  if (attackJustFinished) {
+    if (u.archerPendingAcks > 0) {
+      // one or more attack events fired while this cycle was playing (see updateUnit's
+      // Basic Attack block) -- replay the exact approved sequence once more from frame 0 so
+      // the queued hit gets its own full Full-Draw/Release/Recovery acknowledgment. Restart
+      // only ever happens here, at a clean cycle boundary, never mid-frame.
+      u.archerPendingAcks--;
+      u.archerFrameTimer = 0;
+      u.archerFrameIdx = 0;
+    } else {
+      u.animState = u.moving ? 'walk' : 'idle'; u.animTimer = 0; u.archerFrameTimer = 0;
+    }
+  }
 }
 // Physical/Magic damage split (HERO_DEFS attack_type): picks the attacker's raw attack value
 // by attack_type, then mitigates it against the target's matching defense stat. Monsters/bosses
@@ -3143,7 +3155,21 @@ function updateUnit(u, dt) {
       // buildCombatStats() (heroes only) — getEffectiveAttackSpeed() covers enemies/summons too.
       const baseAtkSpeed = getEffectiveAttackSpeed(u);
       u.atkCooldown = 1/baseAtkSpeed;
-      u.animState='attack'; u.animTimer=0;
+      // Archer-only visual acknowledgment: hero.archer's approved 127cs Attack v3.2 sequence
+      // outlasts its own base cooldown (71.43cs at attack_speed 1.4), so a second valid attack
+      // can fire while the first is still visually mid-cycle. Damage/cooldown below are always
+      // applied exactly as before, on schedule, for every event -- only the VISUAL restart is
+      // deferred: instead of resetting archerFrameTimer immediately (which would land inside the
+      // Full Draw window ~1cs before Release and could suppress Release from ever being shown
+      // under sustained fire), the extra hit is queued and replays the exact same approved
+      // sequence once more from its own natural completion boundary, so every played cycle still
+      // shows Full Draw (007) and Release (008) in full. Queue is capped at 1 to bound worst-case
+      // post-combat visual drift (see docs/reviews/archer-runtime-integration-v1/ for detail).
+      if (u.archerSeqs && u.animState === 'attack') {
+        u.archerPendingAcks = Math.min(1, (u.archerPendingAcks || 0) + 1);
+      } else {
+        u.animState='attack'; u.animTimer=0;
+      }
       let dmg = applyTrait(u, target, attackerRawAtk(u));
       dmg = applySynergyDamageModifiers(dmg, u, target);
       dmg = (target.statuses || []).some((s) => s.invulnerable) ? 0 : absorbWithShield(target, dmg);

@@ -1,0 +1,56 @@
+{
+ "regression": {
+  "preEdit": {
+   "archerSeqsIsNull": true,
+   "framesGt1": true,
+   "usesTexOffset": true
+  },
+  "attackEventCount": 3,
+  "damageEventCountProxy": 3,
+  "attackEventsEqualDamageEvents": true,
+  "sawFullAttackSeq": true,
+  "archerPendingAcksAlwaysUndefined": false,
+  "finalAnimState": "idle",
+  "rowsTail": [
+   {
+    "animState": "attack",
+    "animFrame": 7,
+    "animTimer": 0.3333,
+    "archerSeqs": null,
+    "archerPendingAcks": 0
+   },
+   {
+    "animState": "attack",
+    "animFrame": 7,
+    "animTimer": 0.35,
+    "archerSeqs": null,
+    "archerPendingAcks": 0
+   },
+   {
+    "animState": "idle",
+    "animFrame": 7,
+    "animTimer": 0,
+    "archerSeqs": null,
+    "archerPendingAcks": 0
+   },
+   {
+    "animState": "idle",
+    "animFrame": 0,
+    "animTimer": 0,
+    "archerSeqs": null,
+    "archerPendingAcks": 0
+   },
+   {
+    "animState": "idle",
+    "animFrame": 0,
+    "animTimer": 0,
+    "archerSeqs": null,
+    "archerPendingAcks": 0
+   }
+  ]
+ },
+ "errors": {
+  "consoleErrors": [],
+  "pageErrors": []
+ }
+}
