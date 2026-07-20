@@ -68,9 +68,13 @@ const SHOP_ECONOMY = {
 // ดังนั้น yaw=90° (cos=0, sin=1) จึงวางกล้องไว้บนแกน Z ล้วน (x=0) แบบเดียวกับ (0,11,11) เป๊ะ — ถ้าใช้
 // yaw=0 ผิดแบบที่เคยลองมา แถวคอลัมน์ (c/r) จะสลับแกนซ้าย-ขวา/ลึกกันหมด (บั๊กที่เพิ่งเจอตอนกระดานไม่
 // เป็นจัตุรัส 8x7 — ตอนยังเป็น 8x8 จัตุรัสสลับแล้วดูไม่ออกเพราะมันสมมาตร)
-const CAMERA_ANGLE_DEG = 45, CAMERA_YAW_DEG = 90;
+// Board/Camera polish v1: 45° -> 56° (ชันขึ้น เป็น top-down เชิงแทคติกมากขึ้นตามทิศทางภาพอ้างอิง
+// ของผู้ใช้ แต่ยังเหลือ tilt ให้เห็น volume ของตัวละคร sprite) — yaw 90 คงเดิม (ดูเหตุผลด้านบน)
+const CAMERA_ANGLE_DEG = 56, CAMERA_YAW_DEG = 90;
 // เลื่อนจุดที่กล้องมองไปทาง "แถวผู้เล่น" เล็กน้อยให้อยู่กลางพื้นที่ 3D ที่เหลือพอดี
-const LOOK_TARGET = new THREE.Vector3(0, 0, 1.3);
+// (0.9 หลังปรับมุม 56°: ค่า 1.3 เดิมถูกจูนไว้กับมุม 45° + กระดานชิดขอบล่าง — องค์ประกอบใหม่จัดกระดาน
+// กลางจอมากขึ้น จุดมองจึงขยับกลับเข้าหากึ่งกลางสนามรบจริง)
+const LOOK_TARGET = new THREE.Vector3(0, 0, 0.9);
 // #boardContainer เป็นพื้นหลังเต็มจอ (100vw/100vh) เสมอ — UI ทั้งหมดลอยทับด้านบนแทน
 const boardContainerEl = document.getElementById('boardContainer');
 // ----- Contain-fit frustum (เทคนิคเดียวกับ Clean V5 เดิม) -----
@@ -87,8 +91,11 @@ const boardContainerEl = document.getElementById('boardContainer');
 // ทดลองทำ "contain-fit หักความกว้างแผงจริงจาก DOM" มาก่อน แต่พบว่าขัดกับพฤติกรรมเดิมที่แผงลอยทับขอบ
 // กระดานอยู่แล้วโดยตั้งใจ (ดูคอมเมนต์ CSS `.floatPanel` เดิม) และทำให้กระดานที่ tablet เล็กลงกว่าเดิม
 // จึงตัดออก ใช้ FILL_RATIO เดี่ยวเหมือนเดิมแต่ปรับค่าขึ้น ง่ายกว่าและตรงกับ baseline ที่ทดสอบจริง
-const BOARD_FILL_RATIO = 0.97;
-const BOARD_DOWN_BIAS = 0.97;  // 0 = ชิดขอบบน, 0.5 = กึ่งกลางจอ, 1 = ชิดขอบล่างสุด
+// Board/Camera polish v1: 0.97/0.97 -> 0.80/0.62 — กระดานกินราว 2 ใน 3 ถึง 3 ใน 4 ของ viewport
+// แทนที่จะยืดเต็มจอ (แก้ความรู้สึก "กว้าง/แบน/ล้นจอ") และจัดกึ่งกลางค่อนล่างอย่างมั่นใจแทนการดันชิด
+// ขอบล่างสุด — ตรงเป้าหมาย "compact tactical board composition, board centered clearly"
+const BOARD_FILL_RATIO = 0.80;
+const BOARD_DOWN_BIAS = 0.62;  // 0 = ชิดขอบบน, 0.5 = กึ่งกลางจอ, 1 = ชิดขอบล่างสุด
 const TOPBAR_CLEAR_PAD = 6;    // px เว้นระหว่างขอบบนกระดานกับขอบล่าง topbar จริง
 const boardHalfW = GRID_COLS / 2 * TILE + 0.25;
 const boardHalfD = GRID_ROWS / 2 * TILE + 0.25;
@@ -146,8 +153,10 @@ renderer.setSize(window.innerWidth || 1, window.innerHeight || 1);
 boardContainerEl.appendChild(renderer.domElement);
 
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x1c1510);
-scene.fog = new THREE.Fog(0x1c1510, 18, 34);
+// Polish v1: พื้นหลัง/หมอกเข้มลงเป็น charcoal-brown (0x1c1510 -> 0x131009) และดึงหมอกเข้าใกล้ขึ้น
+// เล็กน้อย — ขอบสนามกลืนเข้ากับความมืดรอบๆ แบบ dark fantasy แทนที่จะเห็นลานหินสว่างตัดกับฉากหลัง
+scene.background = new THREE.Color(0x131009);
+scene.fog = new THREE.Fog(0x131009, 15, 30);
 
 // กรอบ frustum ชั่วคราว — layoutBoard() (เรียกด้านล่างหลังตั้งตำแหน่งกล้อง) จะคำนวณค่าจริงทับให้ทันที
 const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 1000);
@@ -158,10 +167,17 @@ camera.position.add(LOOK_TARGET);
 camera.lookAt(LOOK_TARGET);
 layoutBoard(); // ตั้ง frustum จริงตามเทคนิค contain-fit (ต้องเรียกหลัง position/lookAt เสมอ)
 
-scene.add(new THREE.AmbientLight(0x8a7a68, 0.9));
-const torch = new THREE.DirectionalLight(0xffb060, 0.7);
+// Polish v1 lighting: 3 จุดเบาๆ แทน 2 จุดเดิม — (1) ambient เดิม 0x8a7a68@0.9 เหลืองจัดจนภาพแบน
+// ลดเป็นโทนอุ่นกลางๆ เข้มลง (2) key warm เดิม 0xffb060 ส้มจัด เปลี่ยนเป็นทองอ่อนสว่างขึ้นให้มีทิศแสง
+// ชัดเจน (3) เพิ่ม cool fill สวนทิศจางๆ ช่วยแยก volume ด้านมืดไม่ให้จมดำ — DirectionalLight ล้วน
+// (ไม่มี shadow map, ไม่มี PointLight เพิ่ม) cost การเรนเดอร์แทบเท่าเดิม
+scene.add(new THREE.AmbientLight(0x767069, 0.72));
+const torch = new THREE.DirectionalLight(0xffcd92, 0.85);
 torch.position.set(6, 10, 3);
 scene.add(torch);
+const coolFill = new THREE.DirectionalLight(0x5f6d8c, 0.3);
+coolFill.position.set(-7, 8, -5);
+scene.add(coolFill);
 
 function gridToWorld(c, r) { return new THREE.Vector3((c - GRID_COLS/2)*TILE + TILE/2, 0, (r - GRID_ROWS/2)*TILE + TILE/2); }
 
@@ -178,8 +194,10 @@ function stoneTileTexture(base, seed) {
   g.strokeStyle='rgba(0,0,0,0.28)'; g.lineWidth=1; g.strokeRect(0.5,0.5,31,31);
   return toTexture(cv);
 }
-const texA = stoneTileTexture('#6e6552', 41);
-const texB = stoneTileTexture('#5d5645', 977);
+// Polish v1: หินไทล์เข้มลง-เหลืองน้อยลง (#6e6552/#5d5645 -> warm dark stone) — แก้ "กระดานเหลืองแบน
+// แบบ dev board" โดยยังคง checker A/B ให้อ่านแถว-คอลัมน์ได้ชัด
+const texA = stoneTileTexture('#5c5344', 41);
+const texB = stoneTileTexture('#4c453a', 977);
 const tileGeo = new THREE.PlaneGeometry(TILE*0.98, TILE*0.98);
 const tileMeshes = [];
 for (let r=0;r<GRID_ROWS;r++) for (let c=0;c<GRID_COLS;c++) {
@@ -187,7 +205,9 @@ for (let r=0;r<GRID_ROWS;r++) for (let c=0;c<GRID_COLS;c++) {
   const isBench = r === BENCH_ROW; // แถวล่างสุด: โซนม้านั่งสำรอง — เข้มกว่าโซนอื่นให้แยกออก
   // โทนปกติจางลงมากจากเดิม (เส้น/โซนแทบกลืนเป็นพื้นเวทีเดียว) — สีเขียว/แดงชัดๆ ใช้เฉพาะตอน
   // เลือก/ลากวางผ่าน updateTileHighlights() เท่านั้น
-  const baseTint = isBench ? 0x7d6f58 : (isPlayerZone ? 0xb7c9b4 : 0xbfc4cf);
+  // Polish v1: เลิกใช้เขียวซีด/ฟ้าซีดโทน dev-grid — โซนผู้เล่นอุ่นจางๆ / โซนศัตรูเทากลางจางๆ ยังแยก
+  // ฝั่งออกด้วยตา แต่กลืนเป็นพื้นหินเวทีเดียวกัน (ไฮไลต์เขียว/แดงตอนเลือก/ลากยังชัดเท่าเดิม)
+  const baseTint = isBench ? 0x6e6353 : (isPlayerZone ? 0xb2ab98 : 0xa4a4ab);
   // MeshStandardMaterial (แทน MeshBasicMaterial เดิม) ให้ไทล์รับแสง/เงาจาก DirectionalLight จริง —
   // ดูเป็นพื้นเวที ไม่ใช่กริด UI แบนๆ — ยังคง .color/.opacity ที่ updateTileHighlights() แก้ได้เหมือนเดิม
   const mat = new THREE.MeshStandardMaterial({ map: (c+r)%2===0?texA:texB, color: baseTint, side: THREE.DoubleSide, transparent: true, roughness: 1, metalness: 0 });
@@ -231,13 +251,15 @@ function updateTileHighlights() {
 // พื้นเวทีรอบนอก (arena floor): แทนที่พื้นสีล้วนเดิมด้วยลายหินโมเสกแบบ procedural (ตาม asset
 // policy — วาดด้วย canvas ล้วน ไม่ใช้ asset ภายนอก) ปูซ้ำ (RepeatWrapping) ให้ดูเป็นลานหินจริง
 function arenaFloorTexture() {
+  // Polish v1: ลานหินรอบนอกจากโทนน้ำเงินหม่น (#23283a) -> charcoal อุ่นเข้ม กลืนเนื้อเดียวกับหิน
+  // ไทล์บนกระดานและหมอก dark-fantasy — จุดประกายทองเดิมคงไว้ (เพิ่มความ premium จางๆ)
   const cv = makeCanvas(128,128), g = cv.getContext('2d');
-  g.fillStyle = '#23283a'; g.fillRect(0,0,128,128);
+  g.fillStyle = '#211c14'; g.fillRect(0,0,128,128);
   let s = 731; const rnd = () => (s=(s*16807)%2147483647)/2147483647;
   for (let gy=0; gy<128; gy+=16) for (let gx=0; gx<128; gx+=16) {
-    g.strokeStyle = 'rgba(10,12,20,0.55)'; g.lineWidth = 1;
+    g.strokeStyle = 'rgba(12,9,5,0.55)'; g.lineWidth = 1;
     g.strokeRect(gx+0.5, gy+0.5, 16-1, 16-1);
-    g.fillStyle = rnd() < 0.5 ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.05)';
+    g.fillStyle = rnd() < 0.5 ? 'rgba(255,244,220,0.03)' : 'rgba(0,0,0,0.05)';
     g.fillRect(gx+2, gy+2, 12, 12);
   }
   for (let i=0;i<200;i++){ g.fillStyle = rnd()<0.5?'rgba(0,0,0,0.12)':'rgba(216,173,77,0.05)'; g.fillRect((rnd()*128)|0,(rnd()*128)|0,1,1); }
@@ -247,8 +269,23 @@ const arenaFloorTex = arenaFloorTexture();
 arenaFloorTex.wrapS = arenaFloorTex.wrapT = THREE.RepeatWrapping;
 arenaFloorTex.repeat.set(10, 10);
 const ground = new THREE.Mesh(new THREE.PlaneGeometry(60,60),
-  new THREE.MeshStandardMaterial({ map: arenaFloorTex, color: 0x9aa0b8, roughness: 1, metalness: 0 }));
+  new THREE.MeshStandardMaterial({ map: arenaFloorTex, color: 0x8f877a, roughness: 1, metalness: 0 }));
 ground.rotation.x = -Math.PI/2; ground.position.y = -0.02; scene.add(ground);
+
+// Polish v1: วงแสงอุ่นจางๆ ใต้กระดาน (radial gradient canvas ล้วนตาม asset policy) — ลดรอยต่อแข็งๆ
+// ระหว่างกระดานสว่างกับลานหินมืด ให้เวทีกับสนามรบรู้สึกเป็นสเปซเดียวกัน — depthWrite:false และอยู่ใต้
+// ระดับไทล์ (y=-0.012) จึงไม่ชนกับ raycast/ไฮไลต์/ยูนิตใดๆ
+{
+  const cv = makeCanvas(128, 128), g = cv.getContext('2d');
+  const grd = g.createRadialGradient(64, 64, 8, 64, 64, 64);
+  grd.addColorStop(0, 'rgba(255,214,150,0.20)');
+  grd.addColorStop(0.55, 'rgba(214,170,105,0.10)');
+  grd.addColorStop(1, 'rgba(214,170,105,0)');
+  g.fillStyle = grd; g.fillRect(0, 0, 128, 128);
+  const glow = new THREE.Mesh(new THREE.PlaneGeometry(14, 12.5),
+    new THREE.MeshBasicMaterial({ map: toTexture(cv), transparent: true, depthWrite: false }));
+  glow.rotation.x = -Math.PI/2; glow.position.y = -0.012; scene.add(glow);
+}
 
 // ----- กรอบเวทีแฟนตาซี (stage frame) รอบกระดาน 8x7: ขอบหินโทนน้ำเงินเทา + เสาหัวมุมยอดทอง +
 // ธงมุมเวที + คบเพลิงฝั่งม้านั่ง — geometry/canvas-texture ล้วนตาม asset policy (ไม่มี asset ใหม่)
@@ -262,7 +299,8 @@ function clothBannerTexture(colorA, colorB) {
   g.beginPath(); g.moveTo(16,22); g.lineTo(24,32); g.lineTo(16,42); g.lineTo(8,32); g.closePath(); g.fill();
   return toTexture(cv);
 }
-const bannerTex = clothBannerTexture('#2c3448', '#1b3a63');
+// Polish v1: ธงจากน้ำเงินราชนาวี -> แดงเลือดหมูเข้มแบบ dark fantasy (เพชรทองกลางธงคงเดิม)
+const bannerTex = clothBannerTexture('#47201a', '#2a1310');
 function glowFlareTexture() {
   const cv = makeCanvas(32,32), g = cv.getContext('2d');
   const grd = g.createRadialGradient(16,16,0,16,16,16);
@@ -274,7 +312,8 @@ function glowFlareTexture() {
 }
 const flareTex = glowFlareTexture();
 {
-  const rimMat = new THREE.MeshStandardMaterial({ color: 0x2c3448, roughness: 0.95, metalness: 0.05 });
+  // Polish v1: กรอบเวทีจากหินน้ำเงินเทา -> หินน้ำตาลเข้มอุ่น เข้าชุดไทล์/ลานหิน (ขอบทอง trim คงเดิม)
+  const rimMat = new THREE.MeshStandardMaterial({ color: 0x38302a, roughness: 0.95, metalness: 0.05 });
   const trimMat = new THREE.MeshStandardMaterial({ color: 0xd8ad4d, roughness: 0.6, metalness: 0.3 });
   const rimH = 0.1, rimT = 0.24;
   const halfW = GRID_COLS / 2 * TILE, halfD = GRID_ROWS / 2 * TILE;
@@ -1504,6 +1543,10 @@ const LINK_BADGE_TEX = (() => {
   ctx.fillText('🔗', 16, 17);
   return new THREE.CanvasTexture(c);
 })();
+// Polish v1 grounding: sprite architecture ไม่เหมาะกับ dynamic shadow map จริง (ดู docs/reviews/
+// board-camera-art-lighting-polish-v1.md) — ใช้ contact blob เดิมแต่เข้มขึ้น 0.35 -> 0.46 ให้ตัวละคร
+// เกาะพื้นชัดขึ้นภายใต้แสง key ใหม่ โดย cost การเรนเดอร์เท่าเดิมทุกประการ
+const UNIT_SHADOW_OPACITY = 0.46;
 function makeUnit(cfg) {
   const group = new THREE.Group();
   const meta = ASSET_META[cfg.sprite];
@@ -1544,7 +1587,7 @@ function makeUnit(cfg) {
   body.position.y = h/2;
   body.userData = { isUnit: true };
   group.add(body);
-  const shadow = new THREE.Mesh(new THREE.CircleGeometry(0.26 * (w/shadowRefW), 12), new THREE.MeshBasicMaterial({ color:0x000000, transparent:true, opacity:0.35 }));
+  const shadow = new THREE.Mesh(new THREE.CircleGeometry(0.26 * (w/shadowRefW), 12), new THREE.MeshBasicMaterial({ color:0x000000, transparent:true, opacity:UNIT_SHADOW_OPACITY }));
   shadow.rotation.x = -Math.PI/2; shadow.position.y = 0.01; group.add(shadow);
   const barY = h + 0.14;
   const hpBg = new THREE.Mesh(new THREE.PlaneGeometry(0.72,0.08), new THREE.MeshBasicMaterial({ color:0x2a1410, side:THREE.DoubleSide }));
@@ -2174,7 +2217,7 @@ function resetForWave(u) {
   u.body.rotation.z = 0; u.body.material.opacity = 1; u.body.material.color.set(u.placeholderColor || 0xffffff);
   u.hpBar.visible = true; u.hpBar.scale.x = 1; u.hpBar.position.x = 0;
   u.group.children[2].visible = true;
-  u.shadow.material.opacity = 0.35;
+  u.shadow.material.opacity = UNIT_SHADOW_OPACITY;
   u.group.visible = true;
   u.deathT = undefined;
   u.animState = 'idle'; u.animFrame = 0;
@@ -2832,7 +2875,7 @@ function applyRevivePayload(caster, skillDef, deadUnit) {
   deadUnit.hpBar.position.x = -0.36*(1-deadUnit.hpBar.scale.x);
   deadUnit.body.material.opacity = 1; deadUnit.body.rotation.z = 0;
   deadUnit.group.visible = true; deadUnit.group.children[2].visible = true;
-  deadUnit.shadow.material.opacity = 0.35;
+  deadUnit.shadow.material.opacity = UNIT_SHADOW_OPACITY;
   deadUnit.deathT = undefined;
   occupied.add(key(deadUnit.c, deadUnit.r));
   deadUnit.statuses = deadUnit.statuses || [];
@@ -4278,7 +4321,7 @@ function animate(now) {
       u.body.material.opacity = 1 - u.deathT;
       u.hpBar.visible = false;
       u.group.children[2].visible = false;
-      u.shadow.material.opacity = 0.35*(1-u.deathT);
+      u.shadow.material.opacity = UNIT_SHADOW_OPACITY*(1-u.deathT);
       if (u.deathT >= 1) u.group.visible = false;
     }
   }
@@ -4311,6 +4354,15 @@ window.__casterRuntimeTestHook = {
   stepUnit: (heroKey, dt) => { const u = units.find((x) => x.heroKey === heroKey && !x.isBench); if (u) updateUnit(u, dt); },
   stepUnitRef: (u, dt) => updateUnit(u, dt),
   renderFrame: () => { for (const u of units) u.group.quaternion.copy(camera.quaternion); renderer.render(scene, camera); },
+  // Polish v1 evidence helper: world -> screen px ผ่านกล้อง/renderer จริง — ใช้โดย harness ทดสอบ
+  // pointer-to-grid mapping หลังเปลี่ยนมุมกล้อง (ยิง pointer event จริงที่พิกัดที่คำนวณได้) เท่านั้น
+  // ไม่มี gameplay path ไหนเรียกใช้
+  projectToScreen: (x, y, z) => {
+    camera.updateMatrixWorld(true);
+    const v = new THREE.Vector3(x, y, z).project(camera);
+    const rect = renderer.domElement.getBoundingClientRect();
+    return { x: rect.left + (v.x + 1) / 2 * rect.width, y: rect.top + (1 - v.y) / 2 * rect.height };
+  },
 };
 
 // ============================================================

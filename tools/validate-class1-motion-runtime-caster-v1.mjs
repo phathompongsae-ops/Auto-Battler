@@ -199,7 +199,12 @@ try {
   const { execSync } = await import('node:child_process');
   const base = execSync('git merge-base HEAD origin/cc/class1-motion-batch-2-caster-production-v1 2>/dev/null || git rev-list --max-parents=0 HEAD', { encoding: 'utf8' }).trim();
   const changed = execSync(`git diff --name-only ${base} HEAD`, { encoding: 'utf8' }).trim().split('\n').filter(Boolean);
-  const allowlist = [GAME_JS_PATH, RECORD_PATH, 'docs/reviews/class1-motion-runtime-caster-v1.md', 'docs/reviews/class1-motion-runtime-caster-v1/', 'tools/validate-class1-motion-runtime-caster-v1.mjs', HUMAN_REVIEW_RECORD_PATH, HUMAN_REVIEW_MD_PATH];
+  const allowlist = [GAME_JS_PATH, RECORD_PATH, 'docs/reviews/class1-motion-runtime-caster-v1.md', 'docs/reviews/class1-motion-runtime-caster-v1/', 'tools/validate-class1-motion-runtime-caster-v1.mjs', HUMAN_REVIEW_RECORD_PATH, HUMAN_REVIEW_MD_PATH,
+    // Board/Camera/Art/Lighting Polish v1 (branch cc/board-camera-art-lighting-polish-v1): additional
+    // authorized visual-presentation-only paths — src/game.js visual constants + autochess.html theme
+    // are separately guarded by tools/validate-board-camera-art-lighting-polish-v1.mjs (topology/
+    // gameplay-literal/motion-binary checks)
+    'autochess.html', 'data/design/board-camera-art-lighting-polish-v1.json', 'docs/reviews/board-camera-art-lighting-polish-v1.md', 'docs/reviews/board-camera-art-lighting-polish-v1/', 'tools/validate-board-camera-art-lighting-polish-v1.mjs'];
   const disallowed = changed.filter((cf) => !allowlist.some((prefix) => cf === prefix || cf.startsWith(prefix)));
   assert(disallowed.length === 0, `changed-path allowlist violated: ${JSON.stringify(disallowed)}`);
   assert(!changed.includes(APPROVAL_RECORD_PATH), 'PR #87 approval record must not appear in the changed-path list');

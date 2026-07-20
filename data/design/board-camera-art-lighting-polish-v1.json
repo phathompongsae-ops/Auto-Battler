@@ -1,0 +1,121 @@
+{
+  "record": "board-camera-art-lighting-polish-v1",
+  "schemaVersion": 1,
+  "project": "phathompongsae-ops/Auto-Battler",
+  "status": "READY_FOR_VISUAL_HUMAN_REVIEW",
+  "scope": "Visual-presentation-only polish of the demo Runtime: camera calibration, board framing/palette, environment cohesion, lighting/grounding, and UI tone. No gameplay, Combat ordering, balance, board topology, motion timing, motion binary, Skill/Cast, projectile, or VFX change.",
+
+  "sourceLineage": {
+    "repository": "phathompongsae-ops/Auto-Battler",
+    "sourceBranch": "cc/class1-motion-runtime-caster-v1",
+    "sourcePr": 88,
+    "sourceHeadExpected": "75e735d9777845b42c85d5884262611a909e7f91",
+    "sourceHeadVerifiedLive": "75e735d9777845b42c85d5884262611a909e7f91",
+    "match": true,
+    "sourcePr88StateVerifiedLive": "open, draft, unmerged, mergeable_state=clean",
+    "sourceWorktreeClean": true
+  },
+
+  "userVisualDirection": {
+    "rejectedAsCurrentEndOfDemoLook": ["boardAppearance", "boardLayoutAndFraming", "cameraViewpoint", "artDirection", "lighting", "shadows", "overallColorGrading", "uiToneAndComposition"],
+    "targetDirection": ["darkFantasyMood", "warmStoneBrownGoldPalette", "darkUiRestrainedGoldAccents", "compactTacticalBoardComposition", "slightlyTopDownTiltedCamera", "boardCenteredClearly", "boardNotWideFlatOrStretched", "cohesiveLightingUnitsBoardEnvironmentUi", "polishedPremiumTacticalPresentation"],
+    "referenceUsage": "Mood/color/camera-feel/framing/composition-density/UI-tone reference only -- an original Auto-Battler interpretation; no external UI frames, icons, card designs, artwork, logos, motifs, branded assets, or exact layout measurements were copied. No external asset of any kind was imported; every visual change is a parameter/palette/procedural-canvas change to content already in this repository."
+  },
+
+  "preImplementationAudit": {
+    "boardMesh": "8x7 tile grid (GRID_COLS=8, GRID_ROWS=7, TILE=1, row 6 = merged bench row, MAX_BENCH=5) of per-tile PlaneGeometry(0.98) + procedural 32x32 canvas stone textures, checker A/B, MeshStandardMaterial with per-zone baseTint.",
+    "boardWorldScale": "half-extent ~4.25 x 3.75 world units incl. 0.25 margin.",
+    "cameraType": "THREE.OrthographicCamera with contain-fit frustum recomputed by layoutBoard() on every resize (board corners projected via camera.worldToLocal).",
+    "cameraBefore": { "pitchDeg": 45, "yawDeg": 90, "distance": 20, "lookTarget": [0, 0, 1.3], "boardFillRatio": 0.97, "boardDownBias": 0.97 },
+    "responsiveBehavior": "layoutBoard() on window resize; narrow-viewport width-fit fallback; topbar-overlap deficit correction from live DOM measurement.",
+    "environment": "60x60 procedural mosaic ground (navy-charcoal #23283a tinted 0x9aa0b8), navy stage rim 0x2c3448 + gold trim, 4 corner posts with navy banners, 2 additive torch flare sprites, broken pillars/rubble props.",
+    "lightingBefore": "AmbientLight 0x8a7a68 @0.9 + DirectionalLight 0xffb060 @0.7 from (6,10,3); no fill light; scene.background/fog 0x1c1510 (18..34).",
+    "shadowSupport": "renderer.shadowMap NOT enabled (antialias:false, pixelRatio 1). Units are camera-billboarded alpha-tested sprite planes -- true dynamic shadow maps would project the flat card, not the character silhouette. Per-unit contact blob (CircleGeometry, opacity 0.35) is the existing grounding treatment.",
+    "unitScale": "hero height 1.4 world units vs TILE=1 (approved 640x960 aspect preserved).",
+    "hudStructure": "full-viewport canvas background; floating overlays -- topbar (HP/wave/gold/level/speed/pause), left Link panel, right column (enemy wave + field team), bottom shop bar + toggles; CSS vars in autochess.html :root drive the theme (was navy-dark + gold).",
+    "placeholders": "non-caster heroes render shared placeholder spritesheets; monsters are static PNGs -- untouched by this task.",
+    "safelyTunable": "camera constants, FILL/BIAS composition ratios, light colors/intensities, tile/ground/rim/banner tints, fog, blob-shadow opacity, CSS theme vars -- all recomputed-through paths (layoutBoard + raycaster read the live camera), so no gameplay coordinate is affected.",
+    "whyItLookedWrong": {
+      "tooWide": "BOARD_FILL_RATIO 0.97 stretched the board to ~97% of viewport height, and at 45 deg the projected footprint spanned nearly the full landscape width.",
+      "tooFlat": "45 deg pitch + heavy foreshortening compressed depth; single warm light with strong warm ambient killed volume.",
+      "tooYellow": "yellow ambient 0x8a7a68 + orange key 0xffb060 over yellow-brown tile stone (#6e6552/#5d5645).",
+      "tooDevLike": "pale green/blue zone tints (0xb7c9b4/0xbfc4cf) read as a debug grid overlay.",
+      "disconnected": "bright warm board vs navy-dark surround (rim/ground/banners/UI all navy) split the scene into two unrelated color worlds; board crammed at the bottom edge (DOWN_BIAS 0.97)."
+    }
+  },
+
+  "changes": {
+    "camera": { "before": { "pitchDeg": 45, "lookTargetZ": 1.3, "fillRatio": 0.97, "downBias": 0.97 }, "after": { "pitchDeg": 56, "lookTargetZ": 0.9, "fillRatio": 0.8, "downBias": 0.62 }, "note": "More top-down tactical view with retained tilt; board compact (~65-75% of useful combat viewport between the floating panels) and confidently centered slightly below screen middle instead of stretched edge-to-edge at the bottom." },
+    "board": { "tileTextures": { "before": ["#6e6552", "#5d5645"], "after": ["#5c5344", "#4c453a"] }, "zoneTints": { "before": { "player": "0xb7c9b4", "enemy": "0xbfc4cf", "bench": "0x7d6f58" }, "after": { "player": "0xb2ab98", "enemy": "0xa4a4ab", "bench": "0x6e6353" } }, "note": "Warm dark stone, dev-grid green/blue zone cast removed; faint warm-vs-neutral zone distinction kept; select/drag highlight colors untouched." },
+    "environment": { "groundTexture": { "before": "#23283a base, navy grout", "after": "#211c14 base, warm grout" }, "groundTint": { "before": "0x9aa0b8", "after": "0x8f877a" }, "stageRim": { "before": "0x2c3448", "after": "0x38302a" }, "banners": { "before": ["#2c3448", "#1b3a63"], "after": ["#47201a", "#2a1310"] }, "boardUnderglow": "NEW: procedural radial warm glow plane under the board (depthWrite:false, below tile level, outside all raycast sets) blending board into floor", "note": "One coherent warm dark-stone space instead of warm board vs navy surround." },
+    "lighting": { "before": { "ambient": "0x8a7a68 @0.9", "key": "0xffb060 @0.7 (6,10,3)", "fill": "none" }, "after": { "ambient": "0x767069 @0.72", "key": "0xffcd92 @0.85 (6,10,3)", "fill": "0x5f6d8c @0.3 (-7,8,-5) NEW cool fill" }, "backgroundFog": { "before": "0x1c1510 fog 18..34", "after": "0x131009 fog 15..30" }, "note": "Coherent warm key direction shared by units/board/environment, cool fill for volume/readability; all DirectionalLight -- render cost effectively unchanged, no shadow maps added." },
+    "grounding": { "before": "unit contact blob opacity 0.35", "after": "UNIT_SHADOW_OPACITY = 0.46 (named constant, 4 call sites: creation/wave-reset/revive/death-fade)", "trueDynamicShadowsDecision": "unsuitable for billboarded alpha-tested sprite planes (a shadow map would cast the rectangular card, not the character silhouette) -- documented limitation; smallest original grounding treatment applied instead. No baked shadow was added to any approved motion frame." },
+    "ui": { "themeVars": { "before": "navy (--bg #0b0d13, --panel-bg #151a26, --card-bg #1c2231, borders #2b3347/#363f56)", "after": "warm dark stone (--bg #0d0b08, --panel-bg #1a1510, --card-bg #221b12, borders #3d3322/#4a3d27); text warmed (#ece7dc/#a0968a); gold/green/red accents unchanged" }, "hardcodedNavySites": "topbar gradient, pill background, HUD buttons, shop-bar/bag/evolution gradient (3 shared sites) moved to matching warm charcoal", "note": "Dark panels with restrained gold accents matching the scene; no layout/flow/control change, no reference UI copied." },
+    "evidenceHarness": "projectToScreen(x,y,z) helper added to the existing window.__casterRuntimeTestHook (test-only; no gameplay path references it) to drive real pointer events for pointer-to-grid mapping verification under the new camera."
+  },
+
+  "gameplayPreservation": {
+    "boardTopologyUnchanged": "GRID_COLS=8, GRID_ROWS=7, TILE=1, BENCH_ROW=6, MAX_BENCH=5, PLAYER_ROWS=[3,4,5] all untouched (repo board is 8 cols x 7 rows with the bottom row as the merged bench, per established repo history -- the task's '8x8' phrasing is honored as 'do not change topology').",
+    "noGameplayValueChanged": true,
+    "noCombatOrderingChanged": true,
+    "noMotionTimingOrBinaryChanged": true,
+    "noSkillCastProjectileVfxWork": true,
+    "pointerToGridMappingVerified": "real pointer events at projected coordinates: shop buy -> bench unit; bench tap-select -> tile tap placed at exactly (2,4); post-resize field-unit DRAG landed at exactly (5,4) -- both desktop and narrow viewports (field units reposition by drag only; tap toggles Link -- pre-existing intended behavior, unchanged)."
+  },
+
+  "validationRun": {
+    "viewportsTested": { "desktop": "1280x800", "narrow": "900x440", "postResize": "1080x740 / 700x380" },
+    "screenshotMatrix": "before/after x desktop/narrow x {empty, 3 units, 5 units, 7 units (Mage/Summoner/Acolyte incl. duplicates, opposing facing), Basic Attack in progress} = 20 shots, all HUD areas visible",
+    "clips": ["after-battle-x1.webm (real spawnWave battle, x1)", "after-battle-x4.webm (real spawnWave battle, x4)"],
+    "contactSheets": ["contact-board-camera.png", "contact-lighting-color.png", "contact-ui-composition.png"],
+    "interactionSmoke": { "desktop": { "shopBuyAddsBenchUnit": true, "tapPlaceLandedAt24": true, "postResizeDragMoveLandedAt54": true, "consoleErrors": 0 }, "narrow": { "shopBuyAddsBenchUnit": true, "tapPlaceLandedAt24": true, "postResizeDragMoveLandedAt54": true, "consoleErrors": 0 } },
+    "casterMotionRegression": "full deterministic suite re-run against the polish build (state transitions, character isolation, facing, repeated Basic Attack x1+x4, multi-unit, lifecycle/disposal, non-caster regression) -- ALL ASSERTIONS PASSED, 0 console errors",
+    "consoleErrorsAcrossAllCaptures": 0,
+    "assetLoadFailures": 0,
+    "evidenceRoot": "docs/reviews/board-camera-art-lighting-polish-v1/evidence/"
+  },
+
+  "boardPreviewStatus": "DEFERRED_UNTIL_AFTER_DEMO previously; this task adds an IN-RUNTIME visual-polish candidate that is PENDING Human Review -- it is NOT marked final or canonical, and the full game art direction is NOT claimed final.",
+
+  "humanDecisionSheet": {
+    "boardFramingAcceptable": "pending",
+    "cameraAngleAcceptable": "pending",
+    "boardProportionAcceptable": "pending",
+    "environmentCohesionAcceptable": "pending",
+    "lightingAcceptable": "pending",
+    "shadowGroundingAcceptable": "pending",
+    "colorGradingAcceptable": "pending",
+    "uiToneAcceptable": "pending",
+    "desktopLayoutAcceptable": "pending",
+    "narrowMobileLayoutAcceptable": "pending",
+    "overallVisualDirectionAcceptable": "pending"
+  },
+
+  "knownLimitations": [
+    "True dynamic shadow maps remain unimplemented -- unsuitable for the billboarded sprite architecture (would cast the card rectangle, not the silhouette); contact-blob grounding was strengthened instead.",
+    "Correction rounds used: 0 of the allowed 2 per area (first calibration pass landed within the target composition band at both tested viewports).",
+    "Non-caster heroes and monsters still use placeholder art -- out of scope; they inherit the new lighting only.",
+    "Torch flames, banners, pillars and rubble remain simple procedural props -- premium set-dressing beyond palette/lighting is future art-direction work.",
+    "Evidence captured in headless Chromium at 2 viewport sizes; physical-device confirmation remains for the user's own review.",
+    "The board is 8 cols x 7 rows with a merged bench row in this repository (not literally 8x8); topology untouched per the task's non-goal."
+  ],
+
+  "changedPaths": [
+    "src/game.js (camera/lighting/palette/grounding constants + underglow + test-hook projection helper -- additive/parameter-only)",
+    "autochess.html (CSS theme vars + 6 hardcoded navy color sites -> warm charcoal)",
+    "tools/validate-class1-motion-runtime-caster-v1.mjs (changed-path allowlist extended for this branch's authorized polish paths only)",
+    "data/design/board-camera-art-lighting-polish-v1.json",
+    "docs/reviews/board-camera-art-lighting-polish-v1.md",
+    "docs/reviews/board-camera-art-lighting-polish-v1/evidence/** (26 files)",
+    "tools/validate-board-camera-art-lighting-polish-v1.mjs"
+  ],
+
+  "approvalFlags": {
+    "visualHumanApproval": "pending",
+    "canonicalApproved": false,
+    "merged": false
+  },
+
+  "validator": "tools/validate-board-camera-art-lighting-polish-v1.mjs",
+  "nextStep": "User's visual decision on this Draft PR's evidence package. Not performed by this record: Melee Runtime, Monster Runtime, Skill/Cast, canonical art-direction approval, merge."
+}

@@ -1,0 +1,44 @@
+{
+  "capturedAt": "2026-07-20T14:29:11.729Z",
+  "shots": [
+    "before-desktop-empty.png",
+    "before-desktop-3units.png",
+    "before-desktop-5units.png",
+    "before-desktop-7units.png",
+    "before-desktop-attack.png",
+    "before-narrow-empty.png",
+    "before-narrow-3units.png",
+    "before-narrow-5units.png",
+    "before-narrow-7units.png",
+    "before-narrow-attack.png",
+    "after-desktop-empty.png",
+    "after-desktop-3units.png",
+    "after-desktop-5units.png",
+    "after-desktop-7units.png",
+    "after-desktop-attack.png",
+    "after-narrow-empty.png",
+    "after-narrow-3units.png",
+    "after-narrow-5units.png",
+    "after-narrow-7units.png",
+    "after-narrow-attack.png"
+  ],
+  "clips": [
+    "after-battle-x1.webm",
+    "after-battle-x4.webm"
+  ],
+  "interaction": {
+    "desktop": {
+      "shopBuyAddsBenchUnit": true,
+      "tapPlaceLandedAt24": true,
+      "postResizeDragMoveLandedAt54": true,
+      "consoleErrors": 0
+    },
+    "narrow": {
+      "shopBuyAddsBenchUnit": true,
+      "tapPlaceLandedAt24": true,
+      "postResizeDragMoveLandedAt54": true,
+      "consoleErrors": 0
+    }
+  },
+  "errors": []
+}
