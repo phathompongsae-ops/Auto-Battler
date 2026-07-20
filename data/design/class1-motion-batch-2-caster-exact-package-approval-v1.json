@@ -2,8 +2,21 @@
   "record": "class1-motion-batch-2-caster-exact-package-approval-v1",
   "schemaVersion": 1,
   "project": "phathompongsae-ops/Auto-Battler",
-  "status": "READY_FOR_HUMAN_REVIEW",
-  "scope": "Independent verification and byte-for-byte import of the Class 1 Motion Production Batch 2 (Caster Family: Mage, Summoner, Acolyte) human-review package. This is NOT Exact Package Approval -- that remains a later, separate, user-authorized gate after the human visual decision. Every field below is independently measured from the imported binaries, not copied from the package's own claims without re-derivation.",
+  "status": "CLASS1_MOTION_BATCH2_CASTER_EXACT_PACKAGE_APPROVED",
+  "scope": "Independent verification and byte-for-byte import of the Class 1 Motion Production Batch 2 (Caster Family: Mage, Summoner, Acolyte) human-review package, plus the user's explicit Human Visual Approval and Exact Package Approval recorded below. Every technical field is independently measured from the imported binaries, not copied from the package's own claims without re-derivation. Exact Package Approval applies only to the exact package identified by packageHandoff.sha256Measured -- it does not authorize Runtime Integration, canonical promotion, or any Combat/gameplay/balance/Skill/Cast/projectile/VFX/Board-Preview work.",
+
+  "humanDecision": {
+    "verdict": "HUMAN_VISUAL_APPROVED",
+    "approvedBy": "user (explicit instruction, authoritative)",
+    "userStatementVerbatim": "ผมโอเคแล้ว (Thai: \"I'm OK now\" / \"I've approved now\")",
+    "approvedCharacters": ["mage", "summoner", "acolyte"],
+    "approvedMotionsPerCharacter": ["neutral", "idle", "move", "attack"],
+    "approvedPackage": { "sha256": "2a7e074388f0ce93f9182a841d91ff45477af6ed6c52015bee1a29531d7016af", "reassembledFileName": "class_1_motion_production_batch_2_caster_family_v1_human_review_package_FINAL.zip" },
+    "recordUpdatedAtUtc": "2026-07-20T11:25:28Z",
+    "recordUpdatedAtNote": "This timestamp is the record creation/update time for this approval entry, not a claimed timestamp of the user's original spoken decision.",
+    "explicitlyNotApproved": ["runtimeIntegration", "runtimeSynchronization", "combatTimingBehavior", "attackSpeedHandling", "skillCast", "hit", "death", "victory", "fusion", "class2", "secretClass", "survival", "threeStarMotion", "boardPreview", "projectile", "vfx", "gameplay", "balance"],
+    "note": "The package's own docs/human-decision-sheet-v1.md and every sidecar's approval block record humanVisualApproval as 'pending' as shipped -- this record is what turns that pending state into true, per the user's explicit decision in this task. This is Human Visual Approval and Exact Package Approval only -- not canonical approval, not Runtime Integration authorization, not a merge."
+  },
 
   "referencePipeline": {
     "archerPilotAcceptance": { "role": "quality-pipeline reference only, not modified", "record": "data/design/archer-pilot-acceptance-record-v1.json" },
@@ -115,12 +128,12 @@
   },
 
   "knownLimitations": [
-    "Human Visual Review remains pending.",
+    "Human Visual Approval and Exact Package Approval are now recorded (see humanDecision); Runtime Integration authorization is NOT included and remains a separate, later, user-authorized gate.",
     "Attack-speed validation is ATTACK_SPEED_RUNTIME_VALIDATION_PENDING.",
     "Runtime synchronization is PENDING_SEPARATE_RUNTIME_INTEGRATION_VALIDATION.",
     "Board Preview replacement remains DEFERRED_UNTIL_AFTER_DEMO; the included board artifact is a readability proxy only.",
     "No projectile, VFX, Skill, Cast, summon, or healing implementation is included.",
-    "Runtime, Combat, balance, and gameplay checks were intentionally not performed (out of scope for this import/verification task).",
+    "Runtime, Combat, balance, and gameplay checks were intentionally not performed (out of scope for this task).",
     "Checkpoint-to-checkpoint byte comparison against the two prior (obsolete) package hashes could not be independently reproduced in this session -- see checkpointByteComparison above."
   ],
 
@@ -139,7 +152,8 @@
     "Visual spot-check of all 3 release frames + 1 representative recovery-to-neutral frame",
     "node --check on the updated validator",
     "node run of the updated validator",
-    "git diff --check"
+    "git diff --check",
+    "Pre-approval re-confirmation (this task): git HEAD/branch/clean-tree check, live PR #87 state check, imported-file count re-count (134/134), fresh re-hash of all 3 Neutral Masters against both this record and data/design/class1-neutral-master-batch-exact-package-approval-v1.json, full validator re-run before any record edit"
   ],
 
   "prohibitionsHeld": {
@@ -163,9 +177,9 @@
   },
 
   "approvalFlags": {
-    "humanVisualApproval": "pending",
-    "motionProductionApproved": false,
-    "exactPackageApproved": false,
+    "humanVisualApproval": true,
+    "motionProductionApproved": true,
+    "exactPackageApproved": true,
     "canonicalApproved": false,
     "runtimeIntegrationAuthorized": false,
     "runtimeIntegrated": false,
@@ -173,5 +187,5 @@
   },
 
   "validator": "tools/validate-class1-motion-batch-2-caster-exact-package-approval-v1.mjs",
-  "nextStep": "Human visual review and decision (per docs/assets/review/character-production/class-1-motion-batch-2-caster-v1/docs/human-decision-sheet-v1.md), followed by a separate, later Exact Package Approval task if approved -- not performed by this record."
+  "nextStep": "Human Visual Approval and Exact Package Approval are recorded. The next authorized gate is a separate, later, user-authorized decision on canonical promotion and/or Runtime Integration -- not started by this record."
 }

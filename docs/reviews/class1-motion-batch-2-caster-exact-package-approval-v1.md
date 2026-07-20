@@ -1,11 +1,36 @@
-# Class 1 Motion Production Batch 2 — Caster Family — Import and Independent Verification
+# Class 1 Motion Production Batch 2 — Caster Family — Exact Package Approval
 
-**Status: READY_FOR_HUMAN_REVIEW**
+**Status: CLASS1_MOTION_BATCH2_CASTER_EXACT_PACKAGE_APPROVED**
 
-This is **not approval**. This record documents the byte-for-byte import and independent
-technical verification of the Class 1 Motion Production Batch 2 (Caster Family: Mage, Summoner,
-Acolyte) human-review package. Exact Package Approval remains a later, separate, user-authorized
-gate after the human visual decision.
+This record documents the byte-for-byte import, independent technical verification, and the
+user's explicit **Human Visual Approval** of the Class 1 Motion Production Batch 2 (Caster
+Family: Mage, Summoner, Acolyte) human-review package. Runtime Integration, canonical asset
+promotion, Board Preview, and Runtime synchronization remain separate, later, user-authorized
+gates and are **not** authorized by this record.
+
+## Human Visual Approval (user decision)
+
+The user reviewed the Human Review Candidate package and explicitly stated:
+
+> ผมโอเคแล้ว
+> (Thai: "I'm OK now" / "I've approved now")
+
+This is recorded as explicit **Human Visual Approval** for the complete reviewed motion set:
+
+- **Characters**: Mage, Summoner, Acolyte
+- **Approved actions**: Neutral reference, Idle, Move, Basic Attack
+- **Approved object**: the exact package identified by ZIP SHA-256
+  `2a7e074388f0ce93f9182a841d91ff45477af6ed6c52015bee1a29531d7016af`
+  (`class_1_motion_production_batch_2_caster_family_v1_human_review_package_FINAL.zip`)
+- **Record updated (UTC)**: `2026-07-20T11:25:28Z` — this is the record creation/update time for
+  this approval entry, not a claimed timestamp of the user's original spoken decision.
+
+This approval is **Human Visual Approved**, **Motion Production Approved**, and **Exact Package
+Approved** only. It does **not** extend to: Runtime Integration, Runtime synchronization, Combat
+timing behavior, attack-speed handling, Skill/Cast, Hit, Death, Victory, Fusion, Class 2, Secret
+Class, Survival, 3-star motion, Board Preview, projectile, VFX, gameplay, or balance. The package
+is **Exact Package Approved for motion production records only** — it is explicitly **not**
+described as "Runtime-ready," and **Runtime Integration Not Authorized**.
 
 ## Package handoff (measured, not trusted)
 
@@ -132,9 +157,9 @@ approval.** The user's visual decision remains pending.
 ## Approval flags
 
 ```
-humanVisualApproval: pending
-motionProductionApproved: false
-exactPackageApproved: false
+humanVisualApproval: true
+motionProductionApproved: true
+exactPackageApproved: true
 canonicalApproved: false
 runtimeIntegrationAuthorized: false
 runtimeIntegrated: false
@@ -160,10 +185,29 @@ merged: false
 - `git diff --check` — clean
 - Combat/Runtime x4: **NOT APPLICABLE** — no Runtime or Combat change
 
+## Human Visual Approval and Exact Package Approval (this update)
+
+Before recording approval, the existing PR #87 branch was independently re-confirmed to still
+contain the exact already-validated imported package and matching records:
+
+- `git` HEAD/branch/clean-tree check in the PR #87 worktree — unchanged, clean
+- Live PR #87 state re-checked — open, Draft, unmerged, `mergeable_state=clean`
+- Imported-file count re-counted under the import root — 134/134, unchanged
+- All 3 Neutral Masters re-hashed and cross-checked against both this record's own
+  `exactNeutralMasters[]` and PR #83's own `data/design/class1-neutral-master-batch-exact-package-approval-v1.json`
+  candidates — exact match, no drift
+- Full validator re-run before any record edit — all checks passed
+
+No inconsistency was found, so no rebuild/re-import was performed. Only the approval flags,
+status, and this record's narrative fields were updated to record the user's explicit Human
+Visual Approval (`"ผมโอเคแล้ว"`) and Exact Package Approval. `canonicalApproved`,
+`runtimeIntegrationAuthorized`, `runtimeIntegrated`, and `merged` all remain `false` — Runtime
+Integration is **not authorized** by this record.
+
 ## Scope
 
-Changed paths limited to: the byte-for-byte package import (134 files) under the reserved
-import root, this record, the approval JSON, and the validator. Scaffold-only `README.md`
-removed (replaced by real package content). No other existing repository file modified. No
-`src/`, gameplay, Combat, balance, Skill/Cast, projectile, or VFX code touched. No PR merged.
-PR #82, #83, #84, #86 untouched.
+Changed paths limited to: this record, the approval JSON, and the validator. The 134 already-
+imported package files under the reserved import root were **not** touched in this update (no
+inconsistency was found that would require re-import). No other existing repository file
+modified. No `src/`, gameplay, Combat, balance, Skill/Cast, projectile, or VFX code touched. No
+PR merged, no auto-merge enabled. PR #82, #83, #84, #86 untouched.

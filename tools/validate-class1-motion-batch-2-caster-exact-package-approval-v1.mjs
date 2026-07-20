@@ -96,10 +96,12 @@ const record = JSON.parse(fs.readFileSync(RECORD_PATH, 'utf8'));
 
 // 1) record status / handoff consistency (no "expected ZIP hash" constant here -- the package's
 //    own measured hash IS the authoritative value per this task; just check internal consistency)
-assert(record.status === 'READY_FOR_HUMAN_REVIEW', 'record.status must be READY_FOR_HUMAN_REVIEW (not an approval status)');
+assert(record.status === 'CLASS1_MOTION_BATCH2_CASTER_EXACT_PACKAGE_APPROVED', 'record.status must be CLASS1_MOTION_BATCH2_CASTER_EXACT_PACKAGE_APPROVED');
 assert(/^[0-9a-f]{64}$/.test(record.packageHandoff.sha256Measured), 'packageHandoff.sha256Measured must be a well-formed 64-hex SHA-256');
 assert(record.packageHandoff.zipCrcCheck === 'PASS', 'packageHandoff.zipCrcCheck must be PASS');
-if (!errors.length) ok(`record status READY_FOR_HUMAN_REVIEW (not approval); ZIP sha ${record.packageHandoff.sha256Measured.slice(0, 16)}… recorded, CRC PASS`);
+assert(record.humanDecision && record.humanDecision.verdict === 'HUMAN_VISUAL_APPROVED', 'record.humanDecision.verdict must be HUMAN_VISUAL_APPROVED');
+assert(record.humanDecision && record.humanDecision.approvedPackage && record.humanDecision.approvedPackage.sha256 === record.packageHandoff.sha256Measured, 'humanDecision.approvedPackage.sha256 must match packageHandoff.sha256Measured');
+if (!errors.length) ok(`record status CLASS1_MOTION_BATCH2_CASTER_EXACT_PACKAGE_APPROVED; ZIP sha ${record.packageHandoff.sha256Measured.slice(0, 16)}… recorded, CRC PASS; human decision HUMAN_VISUAL_APPROVED for exactly this package`);
 
 // 2) imported-file inventory
 assert(fs.existsSync(IMPORT_ROOT), 'import root missing');
@@ -211,12 +213,13 @@ if (!errors.length) ok(`${totalFramesChecked}/${record.totalAnimatedMotionFrames
 assert(ROSTER.length === 3 && ACTIONS.length === 3, 'roster/action constant tampering');
 if (!errors.length) ok('roster completeness: 3 classes (Mage, Summoner, Acolyte) x 3 animated actions (Idle, Move, Attack) + 3 Neutral Masters');
 
-// 6) approval flags -- exact required values (pending, not approved)
+// 6) approval flags -- exact required values (exact-package approved, Runtime not authorized)
 const f = record.approvalFlags;
-assert(f.humanVisualApproval === 'pending', `approvalFlags.humanVisualApproval must be 'pending', got ${f.humanVisualApproval}`);
-const expectFalseFlags = { motionProductionApproved: false, exactPackageApproved: false, canonicalApproved: false, runtimeIntegrationAuthorized: false, runtimeIntegrated: false, merged: false };
+const expectTrueFlags = { humanVisualApproval: true, motionProductionApproved: true, exactPackageApproved: true };
+for (const [k, v] of Object.entries(expectTrueFlags)) assert(f[k] === v, `approvalFlags.${k} must be ${v}, got ${f[k]}`);
+const expectFalseFlags = { canonicalApproved: false, runtimeIntegrationAuthorized: false, runtimeIntegrated: false, merged: false };
 for (const [k, v] of Object.entries(expectFalseFlags)) assert(f[k] === v, `approvalFlags.${k} must be ${v}, got ${f[k]}`);
-if (!errors.length) ok("approval flags exact: humanVisualApproval='pending'; motionProductionApproved/exactPackageApproved/canonicalApproved/runtimeIntegrationAuthorized/runtimeIntegrated/merged=false");
+if (!errors.length) ok("approval flags exact: humanVisualApproval/motionProductionApproved/exactPackageApproved=true; canonicalApproved/runtimeIntegrationAuthorized/runtimeIntegrated/merged=false");
 
 // 7) Board Preview deferred record
 assert(record.boardPreview.status === 'DEFERRED_UNTIL_AFTER_DEMO', 'boardPreview.status wrong');
@@ -244,4 +247,4 @@ if (errors.length) {
   for (const e of errors) console.error('  ✗ ' + e);
   process.exit(1);
 }
-console.log('\nALL CHECKS PASSED — class1-motion-batch-2-caster-exact-package-approval-v1 record is consistent with measured binaries. READY_FOR_HUMAN_REVIEW (not approval).');
+console.log('\nALL CHECKS PASSED — class1-motion-batch-2-caster-exact-package-approval-v1 record is consistent with measured binaries. CLASS1_MOTION_BATCH2_CASTER_EXACT_PACKAGE_APPROVED (Runtime Integration NOT authorized).');
