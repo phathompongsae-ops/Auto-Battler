@@ -1,0 +1,458 @@
+{
+  "startedAt": "2026-07-20T12:11:27.738Z",
+  "sections": {
+    "assetValidation": {
+      "registryCheck": {
+        "ok": true
+      }
+    },
+    "placement": {
+      "mage": true,
+      "summoner": true,
+      "acolyte": true,
+      "mage2": true,
+      "mageCasterCls": "mage",
+      "summonerCasterCls": "summoner",
+      "acolyteCasterCls": "acolyte",
+      "unitCount": 4
+    },
+    "isolationSpotCheck": [
+      {
+        "heroKey": "mage",
+        "casterCls": "mage",
+        "hasMap": true
+      },
+      {
+        "heroKey": "summoner",
+        "casterCls": "summoner",
+        "hasMap": true
+      },
+      {
+        "heroKey": "acolyte",
+        "casterCls": "acolyte",
+        "hasMap": true
+      },
+      {
+        "heroKey": "mage",
+        "casterCls": "mage",
+        "hasMap": true
+      }
+    ],
+    "idleLoop": {
+      "animStateAfter": "idle",
+      "frames": [
+        {
+          "idx": 0,
+          "seqKey": "idle",
+          "map": true
+        },
+        {
+          "idx": 1,
+          "seqKey": "idle",
+          "map": true
+        },
+        {
+          "idx": 3,
+          "seqKey": "idle",
+          "map": true
+        },
+        {
+          "idx": 4,
+          "seqKey": "idle",
+          "map": true
+        },
+        {
+          "idx": 5,
+          "seqKey": "idle",
+          "map": true
+        },
+        {
+          "idx": 5,
+          "seqKey": "idle",
+          "map": true
+        },
+        {
+          "idx": 0,
+          "seqKey": "idle",
+          "map": true
+        },
+        {
+          "idx": 1,
+          "seqKey": "idle",
+          "map": true
+        },
+        {
+          "idx": 2,
+          "seqKey": "idle",
+          "map": true
+        },
+        {
+          "idx": 4,
+          "seqKey": "idle",
+          "map": true
+        },
+        {
+          "idx": 5,
+          "seqKey": "idle",
+          "map": true
+        },
+        {
+          "idx": 5,
+          "seqKey": "idle",
+          "map": true
+        }
+      ]
+    },
+    "moveTransition": {
+      "during": [
+        "move",
+        "move",
+        "move",
+        "move",
+        "move"
+      ],
+      "after": [
+        "idle",
+        "idle",
+        "idle",
+        "idle",
+        "idle"
+      ]
+    },
+    "mageAttackSequence": {
+      "finalAnimState": "idle",
+      "frameTrace": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7
+      ],
+      "totalTSec": 0.8900000000000007
+    },
+    "summonerAttackSequence": {
+      "finalAnimState": "idle",
+      "uniqueFrames": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ]
+    },
+    "acolyteAttackSequence": {
+      "finalAnimState": "idle",
+      "uniqueFrames": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ]
+    },
+    "mageIdleFrameSet": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "summonerIdleFrameSet": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "acolyteIdleFrameSet": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "facing": {
+      "before": 1,
+      "after": -1,
+      "restored": 1
+    },
+    "repeatedAttackNormalSpeed": {
+      "attacksFired": 10,
+      "finalAnimState": "idle",
+      "sampleTail": [
+        {
+          "t": 9.916666666666666,
+          "animState": "idle",
+          "frameIdx": 0,
+          "hp": 999999
+        },
+        {
+          "t": 9.933333333333334,
+          "animState": "idle",
+          "frameIdx": 0,
+          "hp": 999999
+        },
+        {
+          "t": 9.95,
+          "animState": "idle",
+          "frameIdx": 0,
+          "hp": 999999
+        },
+        {
+          "t": 9.966666666666667,
+          "animState": "idle",
+          "frameIdx": 0,
+          "hp": 999999
+        },
+        {
+          "t": 9.983333333333333,
+          "animState": "idle",
+          "frameIdx": 0,
+          "hp": 999999
+        }
+      ],
+      "totalSeconds": 10,
+      "enemyHpLost": 0
+    },
+    "repeatedAttackX4Speed": {
+      "attacksFired": 53,
+      "attacksEnded": 53,
+      "finalAnimState": "idle",
+      "maxFrameIdxSeenDuringAttack": 7,
+      "totalGameSeconds": 60,
+      "tailEvents": [
+        {
+          "t": 56.666666666666664,
+          "type": "start"
+        },
+        {
+          "t": 57.53333333333333,
+          "type": "end"
+        },
+        {
+          "t": 57.8,
+          "type": "start"
+        },
+        {
+          "t": 58.666666666666664,
+          "type": "end"
+        },
+        {
+          "t": 58.93333333333333,
+          "type": "start"
+        },
+        {
+          "t": 59.8,
+          "type": "end"
+        }
+      ]
+    },
+    "multiUnitIndependence": {
+      "u1SeqKey": "attack",
+      "u1FrameIdx": 0,
+      "u2SeqKey": "idle",
+      "u2FrameIdx": 0
+    },
+    "lifecycleSharedTexture": {
+      "removedFromUnitsArray": true,
+      "bStillHasSameTextureRef": true,
+      "bTextureImagePresentBefore": true,
+      "bTextureImagePresentAfter": true
+    },
+    "regressionNonCaster": {
+      "casterCls": null,
+      "frames": 8,
+      "hasTexOffset": true
+    },
+    "realBattleSpawn": {
+      "unitCountAfterSpawn": 7,
+      "phase": "battle"
+    },
+    "realBattlePostRunConsoleErrorCount": 0
+  },
+  "casterLoaded": true,
+  "consoleErrors": [],
+  "finishedAt": "2026-07-20T12:11:39.035Z"
+}
