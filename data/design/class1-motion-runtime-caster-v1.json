@@ -1,0 +1,184 @@
+{
+  "record": "class1-motion-runtime-caster-v1",
+  "schemaVersion": 1,
+  "project": "phathompongsae-ops/Auto-Battler",
+  "status": "CLASS1_MOTION_RUNTIME_CASTER_APPROVED",
+  "scope": "Runtime Integration Phase 1 for the Class 1 Caster Family (Mage, Summoner, Acolyte) -- Idle, Move, Basic Attack only. Registers the exact-approved per-file variable-duration PNG motion frames into the existing THREE.js board/bench renderer (src/game.js), selected by exact character identity, with fallback to the prior placeholder spritesheet if the frames fail to load. Does not touch Fighter/Swordman/Merchant/Archer, Skill/Cast, Hit/Death/Victory, Fusion, Class 2/Secret Class/Survival/3-star, projectiles, VFX, Board Preview, or any gameplay/balance value.",
+
+  "runtimeHumanDecision": {
+    "verdict": "RUNTIME_HUMAN_APPROVED",
+    "approvedBy": "user (explicit instruction, authoritative)",
+    "recordUpdatedAtUtc": "2026-07-20T14:06:50Z",
+    "recordUpdatedAtNote": "This timestamp is the record creation/update time for this approval entry, not a claimed timestamp of the user's original spoken decision.",
+    "basis": "The user reviewed the Runtime Human Review evidence package for PR #88 (docs/reviews/class1-motion-runtime-caster-v1/evidence/human-review-v1/) and is satisfied with the Runtime motion behavior of Mage, Summoner, and Acolyte.",
+    "approvedCharacters": ["mage", "summoner", "acolyte"],
+    "approvedScenarios": ["idle", "move", "basicAttack", "x1Readability", "x4Readability", "facingLeftRight", "repeatedBasicAttackStability", "returnToIdle", "multiUnitIndependence"],
+    "approvedAtExactHead": { "branch": "cc/class1-motion-runtime-caster-v1", "pr": 88, "headSha": "dc75c52b42073eb60cd13d92e9f02815beb7e159" },
+    "explicitlyNotApproved": ["boardAppearance", "boardLayout", "cameraFraming", "artDirection", "lighting", "shadows", "colorGrading", "uiTone", "skillCast", "projectile", "vfx", "gameplay", "balance", "combatOrdering", "meleeRuntime", "archerRuntime", "monsterRuntime"],
+    "userExpressedDissatisfactionWith": ["board", "cameraMotionViewpoint", "artDirection", "lightingAndShadow", "overallVisualPresentation"],
+    "note": "This is Runtime motion-behavior approval only. Board/camera/art/lighting/UI presentation are explicitly NOT approved -- the user has specifically expressed dissatisfaction with them, and that work remains a separate, later, user-authorized task. This approval does not authorize Skill/Cast, canonical promotion, Melee/Archer/monster Runtime work, or a merge."
+  },
+
+  "sourceLineage": {
+    "approvalRecord": "data/design/class1-motion-batch-2-caster-exact-package-approval-v1.json",
+    "pr87HeadExpected": "7c5b0262c5e4febaad57e00720e2d6deb55f72b1",
+    "pr87HeadVerifiedLive": "7c5b0262c5e4febaad57e00720e2d6deb55f72b1",
+    "match": true,
+    "pr87StateVerifiedLive": "open, draft, unmerged, mergeable_state=clean",
+    "packageSha256Expected": "2a7e074388f0ce93f9182a841d91ff45477af6ed6c52015bee1a29531d7016af",
+    "packageSha256InApprovalRecord": "2a7e074388f0ce93f9182a841d91ff45477af6ed6c52015bee1a29531d7016af",
+    "match2": true,
+    "importRoot": "docs/assets/review/character-production/class-1-motion-batch-2-caster-v1",
+    "importedFileCountReconfirmed": 134,
+    "referencePipelineOnly": {
+      "archerRuntimeIntegration": "cc/archer-v3-2-runtime-integration-v1 (unmerged branch, NOT present in this branch's history) -- read for architectural pattern only (texture-swap registry, makeUnit special-case, updateAnim dispatch, test hook shape); no Archer frame counts, timing, poses, attack-sync logic, or code were copied.",
+      "class1MotionBatch1MeleeExactApproval": "PR #86 -- reviewed for approval-record/validator naming convention only, not modified."
+    }
+  },
+
+  "exactAssetLockReconfirmedThisTask": {
+    "note": "Re-measured directly from the PR #87 worktree immediately before writing any Runtime code, independent of the approval record's own claims.",
+    "neutralMasters": [
+      { "classId": "mage", "sha256": "6587abdf0b4427ed9c95acb98a6d7c618e8be653fb13cdcaa9be1472fcb96315", "match": true },
+      { "classId": "summoner", "sha256": "731531aaa1d3efc462a12d2265ad602e6e4711a83f054d8f84b5bb00f3956ae3", "match": true },
+      { "classId": "acolyte", "sha256": "0853ab6d8f91e4100732c7f3628b31a09a38a762dc999dfbecef3cc23804a9c8", "match": true }
+    ],
+    "sourceApprovalFlagsBeforeThisTask": {
+      "humanVisualApproval": true, "motionProductionApproved": true, "exactPackageApproved": true,
+      "canonicalApproved": false, "runtimeIntegrationAuthorized": false, "runtimeIntegrated": false, "merged": false
+    },
+    "sourceApprovalFlagsMatch": true
+  },
+
+  "preImplementationRuntimeAudit": {
+    "spriteRegistration": "ASSET_META (src/game.js) maps a sprite key -> {path, frames} for a single horizontal-filmstrip PNG texture; loadAllSprites() loads all of them at startup into SPRITES{}. makeUnit() clones the shared texture per unit and offsets tex.repeat/tex.offset for multi-frame sheets.",
+    "visualSelection": "HERO_DEFS[heroKey].sprite picks the ASSET_META key. That same `sprite` field is ALSO reused verbatim by heroPortraitSrc() (`assets/portraits/${sprite.toLowerCase()}.png`) for every shop card, bench card, ghost-drag preview, and evolution-picker <img> -- a critical coupling found during this audit.",
+    "archerPilotIntegration": "NOT present in this branch's history. This branch descends from PR #87 <- Class 1 Motion Batch 1 Melee <- Class 1 Neutral Master Batch, a separate lineage from the unmerged cc/archer-v3-2-runtime-integration-v1 branch. In this branch, hero.archer still renders the generic 'Sniper' placeholder spritesheet, same as every other hero with no dedicated art yet. The Archer Runtime Integration branch was read as an architectural reference only, per this task's explicit instruction; none of its code or data is present here.",
+    "sheetVsVariableDurationCoexistence": "Yes, by design: ASSET_META sheets assume ONE fixed per-frame duration (ATTACK_FRAME_DUR=0.12s, WALK_SEQ hardcoded at dt*6) shared by every sheet-based unit. The approved Caster package's per-action schedules are non-uniform per frame and differ across all 3 characters, so this integration adds a second, separate texture-swap-based playback path (CASTER_FRAME_SEQS + updateCasterAnim) rather than forcing the new content through the sheet's fixed-duration UV-offset mechanism -- this mirrors the same shape the (unmerged) Archer Runtime Integration branch used for the same reason.",
+    "animationStateTriggers": {
+      "idle": "Default animState when a unit is not moving and not mid-attack/mid-cast; set explicitly in several branches of updateUnit() and on wave reset.",
+      "movement": "u.moving flag (set by the drag/placement and stepToward() pathing code) drives animState='walk' inside updateAnim(); real movement requires u.moveFrom/u.moveTo to be set (used for the actual world-position lerp), not just the flag.",
+      "basicAttack": "updateUnit()'s Basic Attack branch sets `u.animState='attack'; u.animTimer=0;` synchronously in the SAME statement block that applies damage, the instant `u.atkCooldown<=0` -- there is no separate 'wait for animation' step."
+    },
+    "facingAndFlipX": "u.body.scale.x is toggled directly (1 or -1) on the unit's THREE.Mesh at both the movement-direction and attack-facing call sites. This is agnostic to whichever animation mechanism drives material.map/tex.offset, so no caster-specific facing code was needed -- confirmed empirically (see facing evidence).",
+    "benchShopBoardDifference": "Bench heroes are built through the SAME createUnitFromInstance()/makeUnit() path as board heroes (positioned at BENCH_ROW, alive:false) -- there is no separate 2D bench renderer. Since updateUnit()'s first line is `if (!u.alive) return;`, bench units never run updateAnim()/updateCasterAnim() at all, so they display a single static frame (idle frame 0) forever -- this naturally satisfies 'Idle only on bench, no Move/Attack' with zero extra bench-specific code. Shop cards and the drag-ghost are separate 2D <img> elements via heroPortraitSrc(), entirely unaffected by this task (boardSprite is a new, separate field from the portrait-driving `sprite` field).",
+    "attackDamageAckInteraction": "Basic Attack damage (target.hp -= dmg) is applied synchronously and immediately when the cooldown expires, in the exact same statement block that starts the attack animation. The animation's release-marker frame (frame 004) is a visual-only reference and has no bearing on when damage lands -- confirmed unchanged by this task (see 'attack-speed and synchronization' below).",
+    "completionCallbacksQueuingPriorityInterruption": "No animation completion callbacks, no queued playback, no interruption/priority system exists for the sheet path -- animState is simply reassigned by whichever code path runs next (movement, attack-trigger, mana-cast, or idle-fallback). No setTimeout-based animation timers exist anywhere in the codebase (hit-flash/knockback timers are separate, unrelated visual-feedback effects). This integration follows the same shape: no callbacks, no queue, no priority system, no setTimeout.",
+    "repeatedAttackHandlingObservedBeforeThisTask": "None specific to these 3 characters existed before this task (they used the generic placeholder sheet, whose own ATTACK_SEQ/ATTACK_FRAME_DUR always restarts from frame 0 on every new 'attack' animState assignment with no overlap handling of any kind).",
+    "currentRuntimeAttackSpeedValues": { "mage": 0.9, "summoner": 1.0, "acolyte": 0.95, "source": "HERO_DEFS[cls].stats.attack_speed, src/game.js" },
+    "runtimeVsDesignAttackSpeedDisagreement": "None found for these 3 characters -- HERO_DEFS is the single authoritative Runtime attack-speed source; the approved motion package's own timing data makes no attack-speed claim to compare against (it only records animation-duration/release-marker facts, consistent with ATTACK_SPEED_RUNTIME_VALIDATION_PENDING remaining unresolved).",
+    "existingTestHooks": "None committed in this branch's history (no tools/*.mjs Runtime/Playwright harness for src/game.js existed before this task). A scratch Playwright-driven harness was used for this task's own evidence capture (not committed, per this project's established convention of not committing throwaway test drivers); a new, minimal, permanent `window.__casterRuntimeTestHook` debug surface was added to src/game.js, mirroring the shape of the (unmerged) Archer branch's own `window.__archerRuntimeTestHook`.",
+    "packagePathConsumption": "Consumed directly from the exact-approved import path (docs/assets/review/character-production/class-1-motion-batch-2-caster-v1/{cls}/{action}/frames/*.png) -- no copy, no additive asset-mapping directory, no recompression. Only the individual approved frame PNGs are loaded at Runtime; the package's GIFs, contact sheets, sidecar JSON, and docs are never referenced by src/game.js."
+  },
+
+  "criticalFindingsFromAudit": [
+    "HERO_DEFS[cls].sprite is dual-purpose (3D board texture key AND 2D portrait path source via heroPortraitSrc()'s `sprite.toLowerCase()`). Repointing `sprite` itself to a caster-specific key would have 404'd every shop/bench/ghost-drag portrait for these 3 heroes. Fixed by adding a SEPARATE `boardSprite` field, leaving `sprite` completely untouched -- zero portrait/shop/bench regression.",
+    "isSharedUnitTexture() (used by disposeObjectTree()/removeUnit() to decide which textures are safe to dispose) only recognized ASSET_META-sourced textures (SPRITES{}) and the two badge textures as shared. Caster motion frame textures are loaded once and referenced by every Mage/Summoner/Acolyte unit simultaneously (unlike the sheet path, which clones a texture per unit) -- without extending this check, selling/removing one caster would have disposed a texture a second still-alive caster's material.map still pointed at, corrupting its visual. Fixed by extending isSharedUnitTexture() to also recognize CASTER_FRAME_SEQS textures. Verified empirically (see lifecycle evidence below). This exact class of bug is present, unfixed, in the (unmerged) Archer Runtime Integration reference branch -- not touched or fixed here, as it is out of this task's scope (Archer behavior is not to be modified)."
+  ],
+
+  "implementation": {
+    "filesChanged": ["src/game.js"],
+    "approachSummary": "Additive-only: a new CASTER_FRAME_SEQS registry (one THREE.Texture per approved PNG frame, per class, per action) + loadCasterFrames() loader running in parallel with the existing loadAllSprites(); a new `boardSprite` field on the mage/summoner/acolyte HERO_DEFS entries (existing `sprite` field untouched); a new branch in makeUnit() that builds a PlaneGeometry mesh sized to the approved 640x960 aspect ratio when boardSprite resolves and frames are loaded, else falls back to the existing sheet/placeholder path unchanged; a new updateCasterAnim() dispatched from the top of the existing updateAnim(); a caster-state reset added to resetForWave(); isSharedUnitTexture() extended for lifecycle safety. No existing function was rewritten; no existing behavior path for any other hero/sprite key was altered.",
+    "mappingPathPattern": "docs/assets/review/character-production/class-1-motion-batch-2-caster-v1/{cls}/{action}/frames/hero.{cls}_{action}_candidate_v1_{NNN}.png, cls in [mage,summoner,acolyte], action in [idle,move,attack]",
+    "anchorPreserved": [0.5, 0.92],
+    "footBaselinePreserved": true,
+    "inPlaceRootMotionPreserved": true,
+    "runtimeFlipXCompatible": true,
+    "neutralMasterUsedAsRuntimeState": false,
+    "neutralMasterNote": "The State Behavior contract (Idle/Move/Basic Attack only) has no separate 'Neutral' Runtime state; spawn transitions directly into Idle (idle frame 0 is the default/initial texture set in makeUnit()), consistent with the approved motions[] inventory itself (idle/move/attack only, no neutral entry)."
+  },
+
+  "motionSchedules": [
+    { "classId": "mage",     "action": "idle",   "frameCount": 6, "totalCentiseconds": 100, "loop": true },
+    { "classId": "mage",     "action": "move",   "frameCount": 8, "totalCentiseconds": 88,  "loop": true },
+    { "classId": "mage",     "action": "attack", "frameCount": 8, "totalCentiseconds": 89,  "loop": false, "releaseFrameIndex": 4, "releaseTimestampCentiseconds": 38 },
+    { "classId": "summoner", "action": "idle",   "frameCount": 6, "totalCentiseconds": 96,  "loop": true },
+    { "classId": "summoner", "action": "move",   "frameCount": 8, "totalCentiseconds": 80,  "loop": true },
+    { "classId": "summoner", "action": "attack", "frameCount": 8, "totalCentiseconds": 83,  "loop": false, "releaseFrameIndex": 4, "releaseTimestampCentiseconds": 35 },
+    { "classId": "acolyte",  "action": "idle",   "frameCount": 6, "totalCentiseconds": 108, "loop": true },
+    { "classId": "acolyte",  "action": "move",   "frameCount": 8, "totalCentiseconds": 88,  "loop": true },
+    { "classId": "acolyte",  "action": "attack", "frameCount": 8, "totalCentiseconds": 86,  "loop": false, "releaseFrameIndex": 4, "releaseTimestampCentiseconds": 37 }
+  ],
+
+  "attackSpeedAndSynchronization": {
+    "measuredRuntimeAttackInterval": {
+      "mage": { "attackSpeed": 0.9, "intervalCentiseconds": 111.1 },
+      "summoner": { "attackSpeed": 1.0, "intervalCentiseconds": 100 },
+      "acolyte": { "attackSpeed": 0.95, "intervalCentiseconds": 105.3 }
+    },
+    "visualBasicAttackDuration": { "mage": 89, "summoner": 83, "acolyte": 86 },
+    "comparison": "Every caster's approved attack-animation duration is below its own base attack interval with a comfortable margin (Mage 89 vs 111.1cs, Summoner 83 vs 100cs, Acolyte 86 vs 105.3cs) -- the visual clip always finishes before the next Basic Attack can fire, at base speed.",
+    "reachableAttackSpeedBoosts": "None found reachable by tier-1 Mage/Summoner/Acolyte in this codebase: the Hero Star System's attack_speed*1.12 multiplier only applies to tier-2 heroes; LINK_CLASS_BUFFS for the mage/summoner/acolyte(support) root classes grant no attack_speed_pct (mage: m_atk_pct/m_def_penetration_pct; summoner: mana-on-attack/summon buffs; acolyte: healing/shield) -- base attack_speed is the fastest currently-reachable interval for these 3 heroes without equipment. Equipment-derived attack-speed items were not exhaustively enumerated (see Known Limitations).",
+    "speedMulScaleInvariance": "dt is multiplied by speedMul exactly once per animate() frame, and the SAME scaled dt is passed to both the Combat atkCooldown decrement and updateCasterAnim's frame timer -- so the duration<interval relationship measured at x1 holds at every game speed, not just x1. Confirmed empirically at x4 (see below).",
+    "selectedRepeatedAttackBehavior": "full replay",
+    "selectedBehaviorJustification": "Smallest safe behavior for this specific case: every new Basic Attack resets the caster's frame timer to 0 and replays frames 0..7 from the start (mirrors the existing sheet path's own restart-on-new-attack-state behavior). Safe here specifically because the animation always finishes well before the next attack fires, confirmed by direct measurement (not just design-time comparison) at both normal speed and x4 -- no queued/coalesced/acknowledgment mechanism was needed, unlike the Archer reference implementation which required one because ITS attack-animation duration (127cs) exceeds ITS base attack interval (71.4cs at attack_speed 1.4). Does not move, delay, or accelerate the Combat damage event, which remains applied synchronously at the moment atkCooldown expires, exactly as before this task.",
+    "normalSpeedEvidence": { "character": "summoner", "windowSeconds": 10, "attacksFired": 10, "attacksExpected": 10, "finalAnimState": "idle", "stuck": false },
+    "x4SpeedEvidence": { "character": "mage", "windowGameSeconds": 60, "attacksFired": 53, "attacksEnded": 53, "attacksExpectedApprox": 54, "finalAnimStateAfterDrain": "idle", "stuck": false, "maxFrameIndexObservedDuringAttack": 7 }
+  },
+
+  "stateTransitionResults": {
+    "spawnToIdle": "pass", "idleToMove": "pass", "moveToIdle": "pass",
+    "idleToBasicAttack": "pass", "basicAttackToIdle": "pass", "basicAttackToMove": "pass (animState resolves to walk if u.moving is true when the attack clip completes)",
+    "deathDuringAnyStateLeavesNoActiveTimersOrCallbacks": "pass (no setTimeout/callback exists anywhere in updateCasterAnim; updateUnit's `if(!u.alive) return;` guard stops all further per-frame work for a dead unit, same as every other unit type)"
+  },
+
+  "characterIsolationResults": { "mageNeverReceivesOtherCasterFrames": true, "summonerNeverReceivesOtherCasterFrames": true, "acolyteNeverReceivesOtherCasterFrames": true, "verifiedVia": "per-unit casterCls field set at creation from boardSprite, read back and asserted per-unit in deterministic evidence" },
+
+  "facingResults": { "leftFacing": "pass", "rightFacing": "pass", "repeatedFlips": "pass", "propOrBaselineDrift": "none observed -- flip is a plain body.scale.x toggle on the same mesh, independent of the texture-swap animation mechanism" },
+
+  "multipleUnitResults": { "simultaneousMageSummonerAcolyte": "pass", "twoCopiesOfSameCaster": "pass (independent casterSeqKey/casterFrameTimer/casterFrameIdx per unit instance)", "disposingOneUnitDoesNotAffectAnother": "pass (see lifecycle/resource results)" },
+
+  "lifecycleAndResourceResults": {
+    "sharedTextureDisposalBugFoundAndFixed": true,
+    "verification": "Placed 2 Mage units sharing the same CASTER_FRAME_SEQS.mage textures by reference; removed one via the real removeUnit() path; confirmed the surviving unit's material.map reference and underlying image are unaffected and a subsequent animation step still renders correctly.",
+    "animationTimersCleanedUp": "not applicable -- no timers are created by updateCasterAnim",
+    "completionCallbacksActingOnDisposedUnits": "not applicable -- no callbacks exist",
+    "deathCancelsAnimationWork": "pass (via u.alive guard, same mechanism as every other unit)",
+    "repeatedAttacksDoNotAccumulateAnUnboundedQueue": "pass -- there is no queue; state is a single current seqKey/frameTimer per unit",
+    "texturesReusedAcrossUnitsOfSameClass": "pass (by design -- CASTER_FRAME_SEQS textures are loaded once, shared by reference)"
+  },
+
+  "regressionResults": {
+    "archer": "not integrated in this branch's history; not modified by this task; confirmed still using the generic 'Sniper' placeholder sheet exactly as before",
+    "fighterSwordmanMerchant": "confirmed unaffected -- fighter spot-checked directly (casterCls=null, frames=8, unchanged sheet path)",
+    "sharedPlaceholderSheetKeysUnaffected": "archmage/inquisitor (sprite:'Archmage'), frost_weaver/priest (sprite:'FrostWeaver') keep their existing shared ASSET_META entries untouched -- only the mage/summoner/acolyte tier-1 HERO_DEFS entries gained the new, additive boardSprite field",
+    "enemiesAndBosses": "unaffected -- no ENEMY_BASE/bossWave/ASSET_META monster entry touched",
+    "newConsoleErrorsOrAssetLoadFailures": 0,
+    "timerResourceLeak": "none found (see lifecycle results)"
+  },
+
+  "validationRun": {
+    "nodeCheckSrcGameJs": "pass",
+    "gitDiffCheck": "pass",
+    "deterministicRuntimeHarness": "scratch Playwright script (not committed) driving a real headless Chromium against the actual autochess.html/src/game.js over a local static server; all assertions passed; 0 console errors",
+    "x4RuntimeValidation": "performed, see attackSpeedAndSynchronization.x4SpeedEvidence",
+    "evidencePaths": [
+      "docs/reviews/class1-motion-runtime-caster-v1/evidence/board-multi-caster-clean-idle.png",
+      "docs/reviews/class1-motion-runtime-caster-v1/evidence/board-real-battle-x1.png",
+      "docs/reviews/class1-motion-runtime-caster-v1/evidence/board-real-battle-x4.png",
+      "docs/reviews/class1-motion-runtime-caster-v1/evidence/runtime-test-raw-results.json"
+    ]
+  },
+
+  "knownLimitations": [
+    "Equipment-derived attack-speed items were not exhaustively enumerated against the 'full replay' safety margin -- only base attack_speed (no equipment) was measured. Not expected to be reachable in normal Phase 1 play (tier-1 heroes, wave-1-era testing), but not exhaustively proven for every possible item combination.",
+    "ATTACK_SPEED_RUNTIME_VALIDATION_PENDING and PENDING_SEPARATE_RUNTIME_INTEGRATION_VALIDATION are NOT resolved by this record -- this task only measured and compared existing values, per its own scope; it did not perform full attack-speed Runtime validation as a separate later gate might.",
+    "Board Preview remains DEFERRED_UNTIL_AFTER_DEMO -- not touched.",
+    "Skill/Cast, Hit, Death, Victory, Fusion, Class 2, Secret Class, Survival, and 3-star motion are entirely out of scope and unimplemented.",
+    "The Archer Runtime Integration's own shared-texture-disposal bug (see criticalFindingsFromAudit) was identified but intentionally NOT fixed, since Archer is out of this task's scope.",
+    "Runtime motion approval (this record) does not cover board appearance, camera framing, art direction, lighting/shadow, or overall visual presentation -- the user has specifically expressed dissatisfaction with these and they remain a separate, later, user-authorized task."
+  ],
+
+  "approvalFlags": {
+    "humanVisualApproval": true,
+    "motionProductionApproved": true,
+    "exactPackageApproved": true,
+    "canonicalApproved": false,
+    "runtimeIntegrationAuthorized": true,
+    "runtimeIntegrated": true,
+    "merged": false
+  },
+
+  "validator": "tools/validate-class1-motion-runtime-caster-v1.mjs",
+  "nextAuthorizedGate": "Board/camera/art-direction/lighting visual-presentation work is a separate, later, user-authorized task -- not started by this record. Also not started by this record: Skill/Cast, canonical asset promotion, Melee family Runtime Integration, merge."
+}

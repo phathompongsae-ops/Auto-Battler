@@ -376,9 +376,84 @@ function loadAllSprites(onDone) {
       SPRITES[name] = tex; settle();
     }, undefined, (err) => {
       console.error('โหลดสไปรท์ไม่สำเร็จ:', name, ASSET_META[name].path, err);
-      failedSpriteKeys.add(name); settle(); // นับว่า "จบแล้ว" (ล้มเหลว) เพื่อให้ loader ไปต่อได้ ไม่ค้าง
+      failedSpriteKeys.add(name); settle(); // นับว่า "จบแล้ว" (ล้มเหลว) เพื่อให้ loader ไปต่อได้ไม่ค้าง
     });
   });
+}
+
+// ============================================================
+// CLASS 1 MOTION RUNTIME INTEGRATION — CASTER FAMILY (Mage/Summoner/Acolyte), Phase 1
+// ============================================================
+// Exact-approved source: PR #87 (data/design/class1-motion-batch-2-caster-exact-package-approval-v1.json),
+// head 7c5b0262c5e4febaad57e00720e2d6deb55f72b1. Idle/Move/Basic Attack only, per-file variable-
+// duration PNG sequences -- not a fixed-interval spritesheet like ASSET_META above, so this is a
+// separate texture-swap registry rather than a UV-offset one (same shape as ARCHER_FRAME_SEQS in
+// the unmerged cc/archer-v3-2-runtime-integration-v1 branch, used here as an architectural
+// reference only -- that branch's own code is not present/modified in this branch's history).
+// Frames are loaded directly from the already-imported, byte-unmodified exact-approved package
+// path -- no PNG is copied, recompressed, or moved, and no GIF/contact-sheet/doc asset is loaded.
+const CASTER_ANCHOR = [0.5, 0.92]; // approved anchor, all 3 casters
+const CASTER_CANVAS = [640, 960];  // approved canvas, all 3 casters
+const CASTER_IMPORT_ROOT = 'docs/assets/review/character-production/class-1-motion-batch-2-caster-v1';
+function casterSeq(cls, action, frameCount, durationsCs, loop) {
+  const paths = Array.from({ length: frameCount }, (_, i) =>
+    `${CASTER_IMPORT_ROOT}/${cls}/${action}/frames/hero.${cls}_${action}_candidate_v1_${String(i).padStart(3, '0')}.png`);
+  const durationsSec = durationsCs.map((cs) => cs / 100);
+  const cumulative = []; let acc = 0;
+  for (const d of durationsSec) { acc += d; cumulative.push(acc); }
+  return { paths, durationsCs, durationsSec, cumulative, total: acc, loop, textures: null };
+}
+// Exact approved per-frame duration schedules (data/design/class1-motion-batch-2-caster-exact-
+// package-approval-v1.json `motions[]`, independently re-verified against each action's own
+// imported sidecar in this task's pre-implementation audit) -- not hardcoded to a shared value
+// across characters; each of the 3 casters keeps its own distinct schedule.
+const CASTER_FRAME_SEQS = {
+  mage: {
+    idle:   casterSeq('mage', 'idle', 6, [20, 16, 14, 14, 16, 20], true),
+    move:   casterSeq('mage', 'move', 8, [11, 11, 11, 11, 11, 11, 11, 11], true),
+    attack: casterSeq('mage', 'attack', 8, [12, 10, 9, 7, 6, 9, 14, 22], false),
+  },
+  summoner: {
+    idle:   casterSeq('summoner', 'idle', 6, [18, 16, 14, 14, 16, 18], true),
+    move:   casterSeq('summoner', 'move', 8, [10, 10, 10, 10, 10, 10, 10, 10], true),
+    attack: casterSeq('summoner', 'attack', 8, [11, 9, 8, 7, 6, 9, 13, 20], false),
+  },
+  acolyte: {
+    idle:   casterSeq('acolyte', 'idle', 6, [20, 18, 16, 16, 18, 20], true),
+    move:   casterSeq('acolyte', 'move', 8, [11, 11, 11, 11, 11, 11, 11, 11], true),
+    attack: casterSeq('acolyte', 'attack', 8, [12, 10, 8, 7, 6, 9, 14, 20], false),
+  },
+};
+// HERO_DEFS.boardSprite -> CASTER_FRAME_SEQS key. Deliberately a SEPARATE field from HERO_DEFS'
+// existing `sprite` (left untouched on mage/summoner/acolyte below) because `sprite` is also
+// reused verbatim by heroPortraitSrc() for shop/bench/ghost-drag <img> tags via
+// `sprite.toLowerCase()` -- repointing `sprite` itself here would silently 404 every existing
+// portrait image for these 3 heroes. boardSprite only affects which texture makeUnit() puts on
+// the 3D board/bench mesh; it has no bearing on any 2D UI asset path.
+const CASTER_SPRITE_KEYS = { MageReal: 'mage', SummonerReal: 'summoner', AcolyteReal: 'acolyte' };
+let casterLoaded = false;
+function loadCasterFrames(onDone) {
+  const loader = new THREE.TextureLoader();
+  const seqList = Object.values(CASTER_FRAME_SEQS).flatMap((byAction) => Object.values(byAction));
+  const allPaths = seqList.flatMap((s) => s.paths);
+  let settled = 0, failed = false;
+  allPaths.forEach((path) => {
+    loader.load(path, (tex) => {
+      tex.magFilter = THREE.NearestFilter; tex.minFilter = THREE.NearestFilter;
+      for (const seq of seqList) {
+        const idx = seq.paths.indexOf(path);
+        if (idx !== -1) { if (!seq.textures) seq.textures = new Array(seq.paths.length); seq.textures[idx] = tex; }
+      }
+      settle();
+    }, undefined, (err) => {
+      console.error('โหลด caster motion frame ไม่สำเร็จ:', path, err);
+      failed = true; settle();
+    });
+  });
+  function settle() {
+    settled++;
+    if (settled === allPaths.length) { casterLoaded = !failed; onDone(); }
+  }
 }
 
 // ============================================================
@@ -423,7 +498,7 @@ const HERO_DEFS = {
   ranger:       { name:'Ranger',       class_tier:2, evolves_from:'archer', cost:3, sprite:'Sniper', synergy:['Archer','Ranger','Multishot'], attack_type:'physical',
     stats:{ hp:540, p_atk:48, m_atk:0, p_def:22, m_def:26, move_speed:3.0, attack_speed:1.65, attack_range:5 },
     active_skill:{ name:'Triple Volley', description:'ยิงลูกธนูใส่ศัตรูสูงสุด 3 ตัว แต่ละดอกสร้างความเสียหายกายภาพ 90% ของ P.Atk หากมีเป้าหมายเดียว ลูกธนูทั้งสามจะโจมตีเป้าหมายเดียวโดยดอกที่สองและสามลดดาเมจลง' } },
-  mage:         { name:'Mage',         class_tier:1, cost:2, sprite:'Archmage', synergy:['Mage'], attack_type:'magic',
+  mage:         { name:'Mage',         class_tier:1, cost:2, sprite:'Archmage', boardSprite:'MageReal', synergy:['Mage'], attack_type:'magic',
     stats:{ hp:300, p_atk:0, m_atk:36, p_def:9, m_def:24, move_speed:2.1, attack_speed:0.9, attack_range:4 },
     active_skill:{ name:'Arcane Burst', description:'ระเบิดพลังเวทรอบเป้าหมาย สร้างความเสียหายเวท 150% ของ M.Atk แก่ศัตรูในระยะ 1 ช่อง' } },
   archmage:     { name:'Archmage',     class_tier:2, evolves_from:'mage', cost:3, sprite:'Archmage', synergy:['Mage','Archmage','Arcane'], attack_type:'magic',
@@ -432,7 +507,7 @@ const HERO_DEFS = {
   frost_weaver: { name:'Frost Weaver', class_tier:2, evolves_from:'mage', cost:3, sprite:'FrostWeaver', synergy:['Mage','Frost','Controller'], attack_type:'magic',
     stats:{ hp:520, p_atk:0, m_atk:62, p_def:18, m_def:48, move_speed:2.0, attack_speed:1.0, attack_range:5 },
     active_skill:{ name:'Frozen Domain', description:'สร้างความเสียหายเวท 135% ของ M.Atk แก่ศัตรูรอบเป้าหมาย ลด Move Speed และ Attack Speed 30% เป็นเวลา 4 วินาที ศัตรูที่ติด Slow อยู่แล้วจะถูก Freeze 1.5 วินาที' } },
-  summoner:     { name:'Summoner',     class_tier:1, cost:2, sprite:'Summoner', synergy:['Summoner'], attack_type:'magic',
+  summoner:     { name:'Summoner',     class_tier:1, cost:2, sprite:'Summoner', boardSprite:'SummonerReal', synergy:['Summoner'], attack_type:'magic',
     stats:{ hp:350, p_atk:0, m_atk:28, p_def:12, m_def:22, move_speed:2.2, attack_speed:1.0, attack_range:3 },
     active_skill:{ name:'Spirit Familiar', description:'อัญเชิญวิญญาณในช่องว่างข้างตัว วิญญาณมี HP เท่ากับ 35% ของผู้เรียก และโจมตีเวทด้วยพลัง 50% ของ M.Atk ของผู้เรียก' } },
   beast_lord:   { name:'Beast Lord',   class_tier:2, evolves_from:'summoner', cost:3, sprite:'BeastLord', synergy:['Summoner','Beast','Dragon'], attack_type:'magic',
@@ -441,7 +516,7 @@ const HERO_DEFS = {
   spirit_blade: { name:'Spirit Blade', class_tier:2, evolves_from:'summoner', cost:3, sprite:'Duelist', synergy:['Summoner','Spirit','Duelist'], attack_type:'physical', // melee duelist-style unit despite the Summoner lineage — no pet of its own, plays like striker
     stats:{ hp:670, p_atk:57, m_atk:34, p_def:33, m_def:31, move_speed:2.9, attack_speed:1.45, attack_range:1 },
     active_skill:{ name:'Spirit Merge', description:'รวมร่างกับวิญญาณเป็นเวลา 7 วินาที เพิ่ม P.Atk 30% และ Attack Speed 35% พร้อมทำให้การโจมตีปกติสร้างดาเมจเวทเพิ่มเติม 20% ของ M.Atk' } },
-  acolyte:      { name:'Acolyte',      class_tier:1, cost:2, sprite:'FrostWeaver', synergy:['Support'], attack_type:'magic',
+  acolyte:      { name:'Acolyte',      class_tier:1, cost:2, sprite:'FrostWeaver', boardSprite:'AcolyteReal', synergy:['Support'], attack_type:'magic',
     stats:{ hp:360, p_atk:0, m_atk:24, p_def:13, m_def:30, move_speed:2.2, attack_speed:0.95, attack_range:3 },
     active_skill:{ name:'Healing Light', description:'ฟื้นฟู HP ให้พันธมิตรที่มีเปอร์เซ็นต์ HP ต่ำที่สุดเท่ากับ 120% ของ M.Atk และเพิ่ม M.Def 10 เป็นเวลา 4 วินาที' } },
   priest:       { name:'Priest',       class_tier:2, evolves_from:'acolyte', cost:3, sprite:'FrostWeaver', synergy:['Support','Priest','Healer'], attack_type:'magic',
@@ -1432,8 +1507,23 @@ const LINK_BADGE_TEX = (() => {
 function makeUnit(cfg) {
   const group = new THREE.Group();
   const meta = ASSET_META[cfg.sprite];
+  const casterCls = (cfg.boardSprite && casterLoaded) ? CASTER_SPRITE_KEYS[cfg.boardSprite] : null;
   let frames = 1, tex = null, w, h, body, shadowRefW = 1.1;
-  if (meta && !failedSpriteKeys.has(cfg.sprite)) {
+  if (casterCls) {
+    // Approved Caster Family motion package: same bottom-anchored PlaneGeometry convention as
+    // every other sprite unit below (body.position.y = h/2 puts the plane's bottom edge at
+    // group-local y=0, matching the ground/shadow plane) -- only the texture-swap animation
+    // mechanism differs (see updateCasterAnim). w/h preserve the approved 640x960 canvas aspect
+    // ratio exactly, scaled to match the existing "frames>1" hero world-height convention (1.4).
+    frames = 1; // not used by the sheet UV-offset path; CASTER_FRAME_SEQS drives playback instead
+    const defaultH = 1.4, defaultW = defaultH * (CASTER_CANVAS[0] / CASTER_CANVAS[1]);
+    w = cfg.frameSize ? cfg.frameSize.w : defaultW;
+    h = cfg.frameSize ? cfg.frameSize.h : defaultH;
+    shadowRefW = defaultW;
+    tex = CASTER_FRAME_SEQS[casterCls].idle.textures[0];
+    body = new THREE.Mesh(new THREE.PlaneGeometry(w, h),
+      new THREE.MeshBasicMaterial({ map: tex, side: THREE.DoubleSide, transparent: true, alphaTest: 0.5 }));
+  } else if (meta && !failedSpriteKeys.has(cfg.sprite)) {
     frames = meta.frames;
     tex = SPRITES[cfg.sprite];
     if (frames > 1) { tex = tex.clone(); tex.needsUpdate = true; tex.repeat.set(1/frames, 1); tex.offset.set(0, 0); }
@@ -1515,7 +1605,8 @@ function makeUnit(cfg) {
     linkRing, linkBadge,
     maxHp: cfg.hp, alive: true, atkCooldown: 0,
     moving: false, moveFrom: null, moveTo: null, moveT: 0,
-    animState: 'idle', animTimer: 0, animFrame: 0 };
+    animState: 'idle', animTimer: 0, animFrame: 0,
+    casterCls, casterSeqKey: null, casterFrameTimer: 0, casterFrameIdx: 0 };
   body.userData.unit = u;
   units.push(u);
   return u;
@@ -2030,6 +2121,15 @@ function isSharedUnitTexture(t) {
   if (!t) return true;
   if (t === EQUIP_BADGE_TEX || t === LINK_BADGE_TEX) return true;
   for (const k in SPRITES) if (SPRITES[k] === t) return true;
+  // Caster Family motion frames (CASTER_FRAME_SEQS) are loaded ONCE at startup and shared by
+  // reference across every Mage/Summoner/Acolyte unit (board + bench), unlike the sheet path
+  // above which clones its texture per unit -- selling/removing one caster must never dispose a
+  // texture another still-alive caster's material.map still points at.
+  for (const byAction of Object.values(CASTER_FRAME_SEQS)) {
+    for (const seq of Object.values(byAction)) {
+      if (seq.textures && seq.textures.indexOf(t) !== -1) return true;
+    }
+  }
   return false;
 }
 function disposeObjectTree(root) {
@@ -2078,6 +2178,7 @@ function resetForWave(u) {
   u.group.visible = true;
   u.deathT = undefined;
   u.animState = 'idle'; u.animFrame = 0;
+  if (u.casterCls) { u.casterSeqKey = null; u.casterFrameTimer = 0; u.casterFrameIdx = 0; }
   // Skill/Mana/Status reset between waves (equipment + Link/synergy state are untouched)
   u.current_mana = 0; u.statuses = []; u.action_state = 'idle'; u.current_target = null;
   u.castTimer = 0; u.castTarget = null; u.castTargetList = null; u.skillGoldTriggers = 0;
@@ -2089,6 +2190,7 @@ function resetForWave(u) {
 
 const WALK_SEQ = [1,2,3,4], ATTACK_SEQ = [5,6,7], ATTACK_FRAME_DUR = 0.12;
 function updateAnim(u, dt) {
+  if (u.casterCls) { updateCasterAnim(u, dt); return; }
   if (u.frames <= 1) return;
   if (u.animState === 'attack') {
     u.animTimer += dt;
@@ -2100,6 +2202,39 @@ function updateAnim(u, dt) {
     u.animFrame = WALK_SEQ[Math.floor(u.animTimer)%WALK_SEQ.length];
   } else { u.animState = 'idle'; u.animFrame = 0; }
   u.tex.offset.x = u.animFrame / u.frames;
+}
+// Caster Family (Mage/Summoner/Acolyte) variable-per-frame-duration playback (see
+// CASTER_FRAME_SEQS above). Same dt/speedMul input as updateAnim's sheet path above, so x1/x4
+// speed scaling is inherited for free -- no caster-specific speed handling needed. Swaps
+// material.map to the exact approved texture per frame instead of offsetting a shared sheet's UV.
+// "Full replay" from frame 0 on every new Basic Attack: safe because each caster's approved
+// attack-animation total duration is below its own base attack interval (1/attack_speed) with a
+// comfortable margin (Mage 89cs vs 111cs, Summoner 83cs vs 100cs, Acolyte 86cs vs 105cs) -- see
+// docs/reviews/class1-motion-runtime-caster-v1.md for the measured comparison -- and dt is scaled
+// by the same speedMul for both atkCooldown and this timer, so the duration<interval relationship
+// holds at every game speed, not just x1. This never moves the actual Combat damage event, which
+// is applied synchronously in updateUnit() regardless of animation state.
+function updateCasterAnim(u, dt) {
+  const seqKey = u.animState === 'attack' ? 'attack' : (u.moving ? 'move' : 'idle');
+  if (u.casterSeqKey !== seqKey) { u.casterSeqKey = seqKey; u.casterFrameTimer = 0; u.casterFrameIdx = 0; }
+  const seq = CASTER_FRAME_SEQS[u.casterCls][seqKey];
+  u.casterFrameTimer += dt;
+
+  let t = u.casterFrameTimer;
+  let attackJustFinished = false;
+  if (t >= seq.total) {
+    if (seq.loop) { t = seq.total > 0 ? (t % seq.total) : 0; u.casterFrameTimer = t; }
+    else { t = seq.total; attackJustFinished = (seqKey === 'attack'); }
+  }
+  let idx = seq.cumulative.findIndex((c) => t < c);
+  if (idx === -1) idx = seq.durationsSec.length - 1;
+  u.casterFrameIdx = idx;
+
+  if (u.body.material.map !== seq.textures[idx]) {
+    u.body.material.map = seq.textures[idx];
+    u.body.material.needsUpdate = true;
+  }
+  if (attackJustFinished) { u.animState = u.moving ? 'walk' : 'idle'; u.animTimer = 0; u.casterFrameTimer = 0; u.casterSeqKey = null; }
 }
 // Physical/Magic damage split (HERO_DEFS attack_type): picks the attacker's raw attack value
 // by attack_type, then mitigates it against the target's matching defense stat. Monsters/bosses
@@ -3610,7 +3745,7 @@ function createUnitFromInstance(instData, c, r) {
   const def = HERO_DEFS[instData.heroKey];
   const starLevel = normalizeStarLevel(instData.starLevel || 1);
   const s = getScaledHeroStats(instData.heroKey, starLevel); // Hero Star System: tier-2 heroes may be 1★ or 2★
-  const u = makeUnit({ team:'player', name:def.name, sprite:def.sprite, c, r,
+  const u = makeUnit({ team:'player', name:def.name, sprite:def.sprite, boardSprite:def.boardSprite, c, r,
     hp:s.hp, pAtk:s.p_atk, mAtk:s.m_atk, pDef:s.p_def, mDef:s.m_def, attackType:def.attack_type,
     atkSpeed:s.attack_speed, range:s.attack_range, moveSpeed:s.move_speed, heroKey:instData.heroKey,
     instanceId: instData.instanceId, // identity carries across every bench<->field transition
@@ -4152,13 +4287,47 @@ function animate(now) {
 }
 
 // ============================================================
+// TEST/REVIEW HOOK (Class 1 Motion Runtime Integration — Caster Family v1)
+// ============================================================
+// Read-only-ish debug surface for automated actual-board evidence capture (Playwright), mirroring
+// the shape used by the (unmerged, reference-only) Archer Runtime Integration branch. Reuses the
+// real production placement path (createUnitFromInstance) and real per-frame animation code
+// (updateAnim/updateCasterAnim via the normal animate() loop) -- adds no new gameplay behavior,
+// just exposes already-existing internals that this classic script (no modules/exports) otherwise
+// keeps closure-private. Not referenced by any gameplay code path.
+window.__casterRuntimeTestHook = {
+  placeTestUnit: (heroKey, c, r) => createUnitFromInstance({ heroKey, instanceId: 'test-' + heroKey + '-' + c + '-' + r, starLevel: 1, equipment: [] }, c, r),
+  getUnits: () => units,
+  removeTestUnit: (u) => removeUnit(u),
+  setSpeedMul: (m) => { speedMul = m; },
+  getSpeedMul: () => speedMul,
+  setPhase: (p) => { phase = p; },
+  getPhase: () => phase,
+  casterLoaded: () => casterLoaded,
+  startTestBattle: () => { phase = 'battle'; waveTimer = 0; spawnWave(wave); },
+  // Deterministic single-unit time-step: calls the exact same updateUnit(u,dt) the real animate()
+  // loop calls every rAF frame, just decoupled from wall-clock/rAF timing so per-frame evidence
+  // capture doesn't depend on guessing real-time delays against a headless browser's frame rate.
+  stepUnit: (heroKey, dt) => { const u = units.find((x) => x.heroKey === heroKey && !x.isBench); if (u) updateUnit(u, dt); },
+  stepUnitRef: (u, dt) => updateUnit(u, dt),
+  renderFrame: () => { for (const u of units) u.group.quaternion.copy(camera.quaternion); renderer.render(scene, camera); },
+};
+
+// ============================================================
 // START
 // ============================================================
-loadAllSprites(() => {
+// Both loaders must finish before gameplay starts (shop offers reference sprite/frame state);
+// order between the two doesn't matter, so they run in parallel and the second to finish
+// triggers init -- same "wait for everything, then go" shape as loadAllSprites' own settle().
+let coreSpritesReady = false, casterFramesReady = false;
+function tryStartGame() {
+  if (!coreSpritesReady || !casterFramesReady) return;
   document.getElementById('loading').style.display = 'none';
   pickShopOffers();
   renderUI();
   requestAnimationFrame(animate);
-});
+}
+loadAllSprites(() => { coreSpritesReady = true; tryStartGame(); });
+loadCasterFrames(() => { casterFramesReady = true; tryStartGame(); });
 
 window.addEventListener('resize', layoutBoard);
