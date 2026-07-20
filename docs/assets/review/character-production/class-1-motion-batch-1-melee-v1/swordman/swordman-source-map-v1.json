@@ -1,0 +1,120 @@
+{
+  "schemaVersion": 1,
+  "class": "swordman",
+  "sourceApprovalPR": 83,
+  "sourceApprovalHead": "a7a821045dd7532dd96dfb07dfd352080e588c40",
+  "exactNeutralMaster": {
+    "path": "swordman/neutral/hero.swordman_neutral_master.png",
+    "sha256": "2a1fc6f93f384fbc92486a8e42975a10bb84d8f9cd35b13b155a9668638861ed",
+    "fileSizeBytes": 293059,
+    "dimensions": [
+      640,
+      960
+    ],
+    "mode": "RGBA",
+    "bitDepthPerChannel": 8,
+    "pngColorType": 6,
+    "alphaBoundsHalfOpen": [
+      20,
+      125,
+      619,
+      855
+    ],
+    "alphaBoundsGeometry": {
+      "width": 599,
+      "height": 730,
+      "x": 20,
+      "y": 125
+    },
+    "footBaselineHalfOpen": 855,
+    "fullyTransparentBorder": true,
+    "decodePass": true,
+    "logicalRole": "exact-approved Neutral Master reference",
+    "sourcePath": "/workspace/scratch/acd62eadac2b/class_1_neutral_master_batch_v1/package/candidates/swordman/hero.swordman_neutral_master_candidate_v1.png",
+    "expectedSha256": "2a1fc6f93f384fbc92486a8e42975a10bb84d8f9cd35b13b155a9668638861ed",
+    "byteIdenticalToApprovedSource": true
+  },
+  "actions": {
+    "idle": {
+      "rawGenerationSheet": {
+        "class": "swordman",
+        "action": "idle",
+        "scratchPath": "/workspace/scratch/acd62eadac2b/generated_images/exec-eebf9ada-ebaa-4dfd-b74d-21e8b9f54e08.png",
+        "sha256": "f5f5de49ea4f563d2fa90b6202f5a2d49944bc3debc69564786803daccf7a336",
+        "dimensions": [
+          1536,
+          1024
+        ],
+        "includedInReviewPackage": false
+      },
+      "sidecar": "swordman/idle/hero.swordman_idle_candidate_v1.json",
+      "finalFrames": [
+        "swordman/idle/frames/hero.swordman_idle_candidate_v1_000.png",
+        "swordman/idle/frames/hero.swordman_idle_candidate_v1_001.png",
+        "swordman/idle/frames/hero.swordman_idle_candidate_v1_002.png",
+        "swordman/idle/frames/hero.swordman_idle_candidate_v1_003.png",
+        "swordman/idle/frames/hero.swordman_idle_candidate_v1_004.png",
+        "swordman/idle/frames/hero.swordman_idle_candidate_v1_005.png",
+        "swordman/idle/frames/hero.swordman_idle_candidate_v1_006.png",
+        "swordman/idle/frames/hero.swordman_idle_candidate_v1_007.png"
+      ]
+    },
+    "move": {
+      "rawGenerationSheet": {
+        "class": "swordman",
+        "action": "move",
+        "scratchPath": "/workspace/scratch/acd62eadac2b/generated_images/exec-5e93ef66-8af3-4a85-9a3c-c2cfc365b197.png",
+        "sha256": "21c722d48aa796318fd5ee463c82837971aaf13e466c818d1aca80a785d72177",
+        "dimensions": [
+          1536,
+          1024
+        ],
+        "includedInReviewPackage": false
+      },
+      "sidecar": "swordman/move/hero.swordman_move_candidate_v1.json",
+      "finalFrames": [
+        "swordman/move/frames/hero.swordman_move_candidate_v1_000.png",
+        "swordman/move/frames/hero.swordman_move_candidate_v1_001.png",
+        "swordman/move/frames/hero.swordman_move_candidate_v1_002.png",
+        "swordman/move/frames/hero.swordman_move_candidate_v1_003.png",
+        "swordman/move/frames/hero.swordman_move_candidate_v1_004.png",
+        "swordman/move/frames/hero.swordman_move_candidate_v1_005.png",
+        "swordman/move/frames/hero.swordman_move_candidate_v1_006.png",
+        "swordman/move/frames/hero.swordman_move_candidate_v1_007.png"
+      ]
+    },
+    "attack": {
+      "rawGenerationSheet": {
+        "class": "swordman",
+        "action": "attack",
+        "scratchPath": "/workspace/scratch/acd62eadac2b/generated_images/exec-58ee5861-7f0e-4637-86b7-0658740c6795.png",
+        "sha256": "2b49a48b21e0ceb176a04296cb11c6af5ca62917b83781ef61e7880dca9f5ed9",
+        "dimensions": [
+          1536,
+          1024
+        ],
+        "includedInReviewPackage": false
+      },
+      "sidecar": "swordman/attack/hero.swordman_attack_candidate_v1.json",
+      "finalFrames": [
+        "swordman/attack/frames/hero.swordman_attack_candidate_v1_000.png",
+        "swordman/attack/frames/hero.swordman_attack_candidate_v1_001.png",
+        "swordman/attack/frames/hero.swordman_attack_candidate_v1_002.png",
+        "swordman/attack/frames/hero.swordman_attack_candidate_v1_003.png",
+        "swordman/attack/frames/hero.swordman_attack_candidate_v1_004.png",
+        "swordman/attack/frames/hero.swordman_attack_candidate_v1_005.png",
+        "swordman/attack/frames/hero.swordman_attack_candidate_v1_006.png",
+        "swordman/attack/frames/hero.swordman_attack_candidate_v1_007.png"
+      ]
+    }
+  },
+  "process": {
+    "generation": "reference-anchored local image generation; one primary 4x2 pose sheet per action",
+    "backgroundRemoval": "remove_chroma_key.py auto-key border, soft matte, transparent threshold 12, opaque threshold 220, despill",
+    "cleanup": "largest connected alpha component retained per pose cell; 21,321 stray cross-cell pixels removed across the batch",
+    "composition": "pose cells composited to 640x960; dominant face signal aligned; half-open baseline set to 855",
+    "idleScaleNormalization": "Idle only: apparent alpha height normalized within each class sequence",
+    "regenerationRounds": 0,
+    "targetedTechnicalCorrectionRounds": 1
+  }
+}

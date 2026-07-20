@@ -1,0 +1,81 @@
+{
+  "schemaVersion": 1,
+  "logicalId": "hero.fighter.move.human-review-candidate.v1",
+  "class": "fighter",
+  "action": "move",
+  "sourceNeutralMasterSha256": "4b2ec5558971c3730da352f5ba2a39d928bbf5c722d40e38256dd6b4d48a19c4",
+  "sourceNeutralMasterPath": "fighter/neutral/hero.fighter_neutral_master.png",
+  "canvas": [
+    640,
+    960
+  ],
+  "mode": "RGBA",
+  "bitDepthPerChannel": 8,
+  "transparentBackground": true,
+  "anchor": [
+    0.5,
+    0.92
+  ],
+  "footBaselineHalfOpen": 855,
+  "inPlaceRootMotion": true,
+  "runtimeFlipXCompatible": true,
+  "frameOrder": [
+    "fighter/move/frames/hero.fighter_move_candidate_v1_000.png",
+    "fighter/move/frames/hero.fighter_move_candidate_v1_001.png",
+    "fighter/move/frames/hero.fighter_move_candidate_v1_002.png",
+    "fighter/move/frames/hero.fighter_move_candidate_v1_003.png",
+    "fighter/move/frames/hero.fighter_move_candidate_v1_004.png",
+    "fighter/move/frames/hero.fighter_move_candidate_v1_005.png",
+    "fighter/move/frames/hero.fighter_move_candidate_v1_006.png",
+    "fighter/move/frames/hero.fighter_move_candidate_v1_007.png"
+  ],
+  "perFrameDurationCentiseconds": [
+    10,
+    10,
+    10,
+    10,
+    10,
+    10,
+    10,
+    10
+  ],
+  "totalDurationCentiseconds": 80,
+  "loop": true,
+  "impactMarker": null,
+  "perFrameSha256": [
+    "1eaee70fd73f0bb25cb667a5fcb90a9506d6dc874a2352bc8da14024c552e00d",
+    "c4331988525cab339424d1fba396b7ba4b605f14042a503ec3c6d8ed8de11737",
+    "2c530559e0851723d40938a98d5d2ee45ba28e6120385a2e539b713a08f93f40",
+    "987d2328bdcee501eb9d372e4e58a71c626078a9cc4ee8542dd91af53bee11ee",
+    "ed86e35ad4e6e7fd282c52196625f08015a25de8631d6268592b237260eef5a4",
+    "9587918c917c611cc2ce31290e45930f62ee349f1aae586d0a4025604e4bcbf9",
+    "9fd1911648ed41d2138cf9117b9bb6b5728263b3b948c005331320b066c7dccb",
+    "55c77ac80a1c71102abbd471b93b05325af10fdfd5c90a52c3a7bc1855add90b"
+  ],
+  "motionIntent": "compact combat-ready heavy jog with paired gauntlets controlled",
+  "productionNotes": [
+    "Archer was used only as a rendering-quality benchmark; no Archer pose, timing, frame-count rule, costume, anatomy, color, face, or silhouette was copied.",
+    "No baked VFX, shadow plate, background, gameplay marker implementation, or runtime behavior is included.",
+    "Review GIFs loop for inspection; this sidecar loop flag is the intended action behavior."
+  ],
+  "internalQa": {
+    "identity": "PASS",
+    "faceAndProportions": "PASS",
+    "anatomy": "PASS",
+    "weaponAndPropContinuity": "PASS",
+    "baselineAndAnchor": "PASS",
+    "transparentEdges": "PASS",
+    "normalSpeedReadability": "PASS",
+    "slowQaInspection": "PASS",
+    "humanVisualApproval": "pending"
+  },
+  "approval": {
+    "humanVisualApproval": "pending",
+    "exactPackageApproved": false,
+    "canonicalApproved": false,
+    "motionProductionApproved": false,
+    "runtimeIntegrationAuthorized": false,
+    "runtimeIntegrated": false,
+    "merged": false
+  }
+}

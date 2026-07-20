@@ -1,0 +1,81 @@
+{
+  "schemaVersion": 1,
+  "logicalId": "hero.fighter.idle.human-review-candidate.v1",
+  "class": "fighter",
+  "action": "idle",
+  "sourceNeutralMasterSha256": "4b2ec5558971c3730da352f5ba2a39d928bbf5c722d40e38256dd6b4d48a19c4",
+  "sourceNeutralMasterPath": "fighter/neutral/hero.fighter_neutral_master.png",
+  "canvas": [
+    640,
+    960
+  ],
+  "mode": "RGBA",
+  "bitDepthPerChannel": 8,
+  "transparentBackground": true,
+  "anchor": [
+    0.5,
+    0.92
+  ],
+  "footBaselineHalfOpen": 855,
+  "inPlaceRootMotion": true,
+  "runtimeFlipXCompatible": true,
+  "frameOrder": [
+    "fighter/idle/frames/hero.fighter_idle_candidate_v1_000.png",
+    "fighter/idle/frames/hero.fighter_idle_candidate_v1_001.png",
+    "fighter/idle/frames/hero.fighter_idle_candidate_v1_002.png",
+    "fighter/idle/frames/hero.fighter_idle_candidate_v1_003.png",
+    "fighter/idle/frames/hero.fighter_idle_candidate_v1_004.png",
+    "fighter/idle/frames/hero.fighter_idle_candidate_v1_005.png",
+    "fighter/idle/frames/hero.fighter_idle_candidate_v1_006.png",
+    "fighter/idle/frames/hero.fighter_idle_candidate_v1_007.png"
+  ],
+  "perFrameDurationCentiseconds": [
+    16,
+    14,
+    12,
+    10,
+    10,
+    12,
+    14,
+    16
+  ],
+  "totalDurationCentiseconds": 104,
+  "loop": true,
+  "impactMarker": null,
+  "perFrameSha256": [
+    "6f47ea9ca007b8cd748ecec0a12e6f011e02761d2ef105d05e80e8d2ea558606",
+    "a1c6a87449d69f8c82f3438e7452d0a210c8e7dc005ff171571a4e46e660c59f",
+    "35b083efd4ce39e86492311cbcb77a8205cde3621ea175afc7dcae3d2466adfc",
+    "af5dc2d7a2414062f2603ffb53d9dc02982a58ae7c4e3fd2bfb6c432acb945fc",
+    "5b3e86812bd8b60f3c5f998f77484671f9061146e13c6b4bb99df9675a35a5f4",
+    "a251a23663e0f976de3df234ec5472b5a77ae61090681a8f507febdfe78ed902",
+    "283dba7b96f478e3f9d6667b35f2d131e20b873da63220c9a540e3f20f6abc1c",
+    "dcff7f61ea645647af08223a62a1cc90ee76b43c857947b7e9f909fd7cb0247d"
+  ],
+  "motionIntent": "guarded boxing stance with restrained breathing and weight shift",
+  "productionNotes": [
+    "Archer was used only as a rendering-quality benchmark; no Archer pose, timing, frame-count rule, costume, anatomy, color, face, or silhouette was copied.",
+    "No baked VFX, shadow plate, background, gameplay marker implementation, or runtime behavior is included.",
+    "Review GIFs loop for inspection; this sidecar loop flag is the intended action behavior."
+  ],
+  "internalQa": {
+    "identity": "PASS",
+    "faceAndProportions": "PASS",
+    "anatomy": "PASS",
+    "weaponAndPropContinuity": "PASS",
+    "baselineAndAnchor": "PASS",
+    "transparentEdges": "PASS",
+    "normalSpeedReadability": "PASS",
+    "slowQaInspection": "PASS",
+    "humanVisualApproval": "pending"
+  },
+  "approval": {
+    "humanVisualApproval": "pending",
+    "exactPackageApproved": false,
+    "canonicalApproved": false,
+    "motionProductionApproved": false,
+    "runtimeIntegrationAuthorized": false,
+    "runtimeIntegrated": false,
+    "merged": false
+  }
+}

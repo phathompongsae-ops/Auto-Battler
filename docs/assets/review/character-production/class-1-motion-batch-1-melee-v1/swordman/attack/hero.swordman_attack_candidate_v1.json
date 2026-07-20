@@ -1,0 +1,101 @@
+{
+  "schemaVersion": 1,
+  "logicalId": "hero.swordman.attack.human-review-candidate.v1",
+  "class": "swordman",
+  "action": "attack",
+  "sourceNeutralMasterSha256": "2a1fc6f93f384fbc92486a8e42975a10bb84d8f9cd35b13b155a9668638861ed",
+  "sourceNeutralMasterPath": "swordman/neutral/hero.swordman_neutral_master.png",
+  "canvas": [
+    640,
+    960
+  ],
+  "mode": "RGBA",
+  "bitDepthPerChannel": 8,
+  "transparentBackground": true,
+  "anchor": [
+    0.5,
+    0.92
+  ],
+  "footBaselineHalfOpen": 855,
+  "inPlaceRootMotion": true,
+  "runtimeFlipXCompatible": true,
+  "frameOrder": [
+    "swordman/attack/frames/hero.swordman_attack_candidate_v1_000.png",
+    "swordman/attack/frames/hero.swordman_attack_candidate_v1_001.png",
+    "swordman/attack/frames/hero.swordman_attack_candidate_v1_002.png",
+    "swordman/attack/frames/hero.swordman_attack_candidate_v1_003.png",
+    "swordman/attack/frames/hero.swordman_attack_candidate_v1_004.png",
+    "swordman/attack/frames/hero.swordman_attack_candidate_v1_005.png",
+    "swordman/attack/frames/hero.swordman_attack_candidate_v1_006.png",
+    "swordman/attack/frames/hero.swordman_attack_candidate_v1_007.png"
+  ],
+  "perFrameDurationCentiseconds": [
+    8,
+    7,
+    6,
+    5,
+    4,
+    7,
+    11,
+    16
+  ],
+  "totalDurationCentiseconds": 64,
+  "loop": false,
+  "impactMarker": {
+    "frameIndex": 4,
+    "timeFromStartCentiseconds": 26
+  },
+  "perFrameSha256": [
+    "3a9edac24bd0c193eed33858f1df98af35b517deaad023adff6dac7e30cd5fbe",
+    "13e4af6c587a058f17ff85e9a2204256564f95d4280fcad9c8553e6a29e7cdb4",
+    "0c68ded1f7b80721fb98963d94600e30cea2afe27bb1a054e0fc1ca8a5519d4c",
+    "4578c0a256cd7e100239901473d89b59082a5f8407995b01daca0b90162bb517",
+    "fd6d35c5905d23d79606ca28cecc9acdf643ca6c257fc8e52f3b9bf6107c7582",
+    "33b2fd19004de5f338f0fe0ef3b98392551e70440c3e87ad25fc29ffd9ff27fb",
+    "5fa74a5b7bcfb322f8eb596b866e24ce9bab02b4f444c219b569342f6b070705",
+    "3fc59b7593bdebaa6c4b0e09418405cb7e64f460cd1ff0a028909bbf8400a4cb"
+  ],
+  "motionIntent": "simple single readable sword slash with shield retained",
+  "productionNotes": [
+    "Archer was used only as a rendering-quality benchmark; no Archer pose, timing, frame-count rule, costume, anatomy, color, face, or silhouette was copied.",
+    "No baked VFX, shadow plate, background, gameplay marker implementation, or runtime behavior is included.",
+    "Review GIFs loop for inspection; this sidecar loop flag is the intended action behavior."
+  ],
+  "internalQa": {
+    "identity": "PASS",
+    "faceAndProportions": "PASS",
+    "anatomy": "PASS",
+    "weaponAndPropContinuity": "PASS",
+    "baselineAndAnchor": "PASS",
+    "transparentEdges": "PASS",
+    "normalSpeedReadability": "PASS",
+    "slowQaInspection": "PASS",
+    "humanVisualApproval": "pending"
+  },
+  "approval": {
+    "humanVisualApproval": "pending",
+    "exactPackageApproved": false,
+    "canonicalApproved": false,
+    "motionProductionApproved": false,
+    "runtimeIntegrationAuthorized": false,
+    "runtimeIntegrated": false,
+    "merged": false
+  },
+  "attackSpeedSafety": {
+    "currentRuntimeRecord": {
+      "path": "src/game.js",
+      "attacksPerSecond": 1.25,
+      "baseAttackIntervalCentiseconds": 80.0
+    },
+    "designRecordObserved": {
+      "path": "data/design/hero-balance-v1.json",
+      "attacksPerSecond": 0.95
+    },
+    "recordDivergenceNoted": true,
+    "visualCycleFitsCurrentBaseInterval": true,
+    "balanceValuesModified": false,
+    "runtimeSynchronizationInvented": false,
+    "futureRuntimeValidationRequired": true,
+    "futureAcknowledgmentAssessment": "Full replay fits the current base interval. Reassess queued/coalesced/class-specific acknowledgment only if buffs or runtime sampling make events overlap."
+  }
+}

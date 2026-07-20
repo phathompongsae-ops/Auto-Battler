@@ -1,0 +1,133 @@
+{
+  "record": "class1-motion-batch-1-melee-exact-package-approval-v1",
+  "schemaVersion": 1,
+  "project": "phathompongsae-ops/Auto-Battler",
+  "scope": "Exact Package Approval layer for Class 1 Motion Production Batch 1 (Melee Family: Fighter, Swordman, Merchant) — Idle/Move/Basic Attack. Approval record + byte-for-byte package import only. No motion generated/regenerated, no PNG/GIF edited, no Neutral Master modified, no src/ or Combat change, no Runtime Integration started.",
+
+  "humanDecision": {
+    "verdict": "HUMAN_VISUAL_APPROVED",
+    "approvedBy": "user (explicit instruction, authoritative)",
+    "approvedCharacters": ["fighter", "swordman", "merchant"],
+    "approvedMotionsPerCharacter": ["idle", "move", "attack"],
+    "note": "The package's own docs/human-decision-sheet-v1.md and every sidecar's approval block record humanVisualApproval as 'pending' as shipped -- this record is what turns that pending state into true, per the user's explicit decision in this task."
+  },
+
+  "sourcePackage": {
+    "fileName": "class_1_motion_production_batch_1_melee_family_v1_human_review_package.zip",
+    "deliveryMethod": "12-part split upload (chunk_size_bytes=3145728) with a manifest (class_1_motion_batch_1_split_3mb_manifest.json); parts 009/010 were missing on first delivery, re-uploaded and verified before reassembly",
+    "sha256Expected": "48ad953c0c8fc5e3a6c368a77ffb540ca1dac0a96b6a38d0a944832e1b7c05d2",
+    "sha256Measured": "48ad953c0c8fc5e3a6c368a77ffb540ca1dac0a96b6a38d0a944832e1b7c05d2",
+    "sha256Match": true,
+    "sizeBytes": 34815662,
+    "zipEntries": 164,
+    "zipFileEntries": 134,
+    "zipDirectoryEntries": 30,
+    "zipCrcCheck": "PASS",
+    "pathTraversal": "none",
+    "note": "ZIP itself is not committed to the repository (same convention as prior Archer/Class-1 packages); reassembled from 12 verified parts, then extracted and imported byte-for-byte, verified file-by-file by SHA-256 against the extraction."
+  },
+
+  "importRoot": "docs/assets/review/character-production/class-1-motion-batch-1-melee-v1",
+  "importVerification": "all 134 files re-hashed after copy; byte-identical to the extraction (diff of sorted sha256 lists empty)",
+
+  "sourceApprovalReference": {
+    "pr": 83,
+    "title": "Class 1 Neutral Master Batch v1 — Exact Package Approval",
+    "headExpected": "a7a821045dd7532dd96dfb07dfd352080e588c40",
+    "headVerifiedLive": "a7a821045dd7532dd96dfb07dfd352080e588c40",
+    "match": true,
+    "state": "open, draft, unmerged, mergeable_state=clean (verified live before this task began writing)",
+    "note": "This branch was created from PR #83's exact head, the lineage this Motion Batch package's own manifest declares as its Neutral Master source. PR #83 itself was not modified."
+  },
+
+  "referencedLineageOnly": {
+    "pr82": { "role": "Archer Pilot runtime integration -- quality-pipeline reference only, not modified", "headVerifiedLive": "19f8ffe0d5c7d9970b1e3435697efb84885535ec" },
+    "pr84": { "role": "Archer Pilot Acceptance record -- quality-pipeline reference only, not modified", "headVerifiedLive": "4eded0f2bd45065d2b0dbdda887e48df965fdd94" }
+  },
+
+  "exactNeutralMasters": [
+    { "classId": "fighter", "path": "fighter/neutral/hero.fighter_neutral_master.png", "sha256": "4b2ec5558971c3730da352f5ba2a39d928bbf5c722d40e38256dd6b4d48a19c4", "dimensions": [640, 960], "mode": "RGBA", "bitDepth": 8, "byteIdenticalToPR83ApprovedCandidate": true },
+    { "classId": "swordman", "path": "swordman/neutral/hero.swordman_neutral_master.png", "sha256": "2a1fc6f93f384fbc92486a8e42975a10bb84d8f9cd35b13b155a9668638861ed", "dimensions": [640, 960], "mode": "RGBA", "bitDepth": 8, "byteIdenticalToPR83ApprovedCandidate": true },
+    { "classId": "merchant", "path": "merchant/neutral/hero.merchant_neutral_master.png", "sha256": "053785f1283a02c49897445edf038e3f95b30cb2733b81c206f648e986b157d3", "dimensions": [640, 960], "mode": "RGBA", "bitDepth": 8, "byteIdenticalToPR83ApprovedCandidate": true }
+  ],
+
+  "technicalContract": {
+    "format": "PNG", "mode": "RGBA", "bitDepth": 8, "canvas": [640, 960],
+    "footBaselineHalfOpen": 855, "anchor": [0.5, 0.92],
+    "inPlaceRootMotion": true, "runtimeFlipXCompatible": true,
+    "runtimeAuthorization": false
+  },
+
+  "motions": [
+    { "classId": "fighter", "action": "idle", "frameCount": 8, "totalCentiseconds": 104, "loop": true, "impactMarker": null },
+    { "classId": "fighter", "action": "move", "frameCount": 8, "totalCentiseconds": 80, "loop": true, "impactMarker": null },
+    { "classId": "fighter", "action": "attack", "frameCount": 8, "totalCentiseconds": 72, "loop": false, "impactMarker": { "frameIndex": 4, "timeFromStartCentiseconds": 31 } },
+    { "classId": "swordman", "action": "idle", "frameCount": 8, "totalCentiseconds": 104, "loop": true, "impactMarker": null },
+    { "classId": "swordman", "action": "move", "frameCount": 8, "totalCentiseconds": 72, "loop": true, "impactMarker": null },
+    { "classId": "swordman", "action": "attack", "frameCount": 8, "totalCentiseconds": 64, "loop": false, "impactMarker": { "frameIndex": 4, "timeFromStartCentiseconds": 26 } },
+    { "classId": "merchant", "action": "idle", "frameCount": 8, "totalCentiseconds": 120, "loop": true, "impactMarker": null },
+    { "classId": "merchant", "action": "move", "frameCount": 8, "totalCentiseconds": 88, "loop": true, "impactMarker": null },
+    { "classId": "merchant", "action": "attack", "frameCount": 8, "totalCentiseconds": 74, "loop": false, "impactMarker": { "frameIndex": 4, "timeFromStartCentiseconds": 33 } }
+  ],
+  "totalMotionFrames": 72,
+  "perFrameHashSource": "Every per-frame SHA-256 is recorded in each action's own imported sidecar JSON (e.g. fighter/idle/hero.fighter_idle_candidate_v1.json) and cross-recorded in data/technical-qa-report-v1.json inside the imported package tree -- the validator re-derives every hash directly from the imported PNG bytes and cross-checks against both, rather than this record duplicating all 72 hashes verbatim.",
+
+  "independentVerification": {
+    "method": "Manual PNG decode (IHDR/IDAT parse + zlib inflate + Paeth unfiltering) and fresh SHA-256, re-run against the imported binaries -- no claim from the package's own JSON was trusted without re-derivation.",
+    "allFramesPngRgba8Bit640x960": true,
+    "allFrameBordersFullyTransparent": true,
+    "allFrameBaselinesHalfOpen855": true,
+    "duplicateFrameHashesWithinAnySequence": false,
+    "allSidecarPerFrameHashesMatchBinaries": true,
+    "allDurationSumsMatchSidecarTotals": true,
+    "allTotalsMatchExpectedSummary": true,
+    "allImpactMarkersAtFrameIndex4": true,
+    "allLoopFlagsCorrect": "idle/move=true, attack=false, 9/9",
+    "neutralMasterHashesMatchPR83": true,
+    "normalPreviewGifTimingMatchesSidecars": "9/9 GIFs, exact centisecond match",
+    "impactFrameVisuallyConfirmed": "spot-checked all 3 classes (frame 004 of each attack sequence) -- clear weapon-forward strike contact pose in every case",
+    "recoveryToNeutralCoherence": "spot-checked representative class (Fighter, attack frame 007 vs neutral master) -- visually coherent guarded-stance return"
+  },
+
+  "boardPreview": {
+    "status": "DEFERRED_UNTIL_AFTER_DEMO",
+    "note": "Unchanged from PR #83's record. Not replaced, not regenerated, not revisited by this task. This package contains no board-preview asset of its own to defer."
+  },
+
+  "runtimeAttackSpeedSynchronization": {
+    "status": "PENDING_SEPARATE_RUNTIME_INTEGRATION_VALIDATION",
+    "note": "The package's own timing-summary-v1.json records attackRateSource='src/game.js' and designRateDivergenceRecorded=true -- i.e. the production team already flagged that these design-time attack durations were authored independently of any specific runtime attack_speed value and will need dedicated runtime-integration validation (as was required for Archer in PR #82's rework chain) before being trusted as-is against Combat's actual attack cadence. Not evaluated or resolved by this task."
+  },
+
+  "approvalFlags": {
+    "humanVisualApproval": true,
+    "motionProductionApproved": true,
+    "exactPackageApproved": true,
+    "canonicalApproved": false,
+    "runtimeIntegrationAuthorized": false,
+    "runtimeIntegrated": false,
+    "finalRuntimeApproved": false,
+    "merged": false
+  },
+
+  "prohibitionsHeld": {
+    "motionGeneratedOrRegenerated": false,
+    "pngOrGifBinaryEdited": false,
+    "resizedRecoloredCroppedRecompressedReencoded": false,
+    "neutralMastersModified": false,
+    "frameOrderChanged": false,
+    "perFrameTimingChanged": false,
+    "impactMarkersChanged": false,
+    "runtimeIntegrationStarted": false,
+    "srcModified": false,
+    "combatBalanceEconomyChanged": false,
+    "skillCastHitDeathVictoryFusionClass2SecretClassSurvivalOrThreeStarWorkStarted": false,
+    "boardPreviewReplaced": false,
+    "prMerged": false,
+    "autoMergeEnabled": false,
+    "pr82Or83Or84Modified": false
+  },
+
+  "validator": "tools/validate-class1-motion-batch-1-melee-exact-package-approval-v1.mjs",
+  "nextAuthorizedGate": "Human decision on canonical promotion and/or Runtime Integration authorization -- not started by this record."
+}

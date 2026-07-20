@@ -1,0 +1,120 @@
+{
+  "schemaVersion": 1,
+  "class": "fighter",
+  "sourceApprovalPR": 83,
+  "sourceApprovalHead": "a7a821045dd7532dd96dfb07dfd352080e588c40",
+  "exactNeutralMaster": {
+    "path": "fighter/neutral/hero.fighter_neutral_master.png",
+    "sha256": "4b2ec5558971c3730da352f5ba2a39d928bbf5c722d40e38256dd6b4d48a19c4",
+    "fileSizeBytes": 387714,
+    "dimensions": [
+      640,
+      960
+    ],
+    "mode": "RGBA",
+    "bitDepthPerChannel": 8,
+    "pngColorType": 6,
+    "alphaBoundsHalfOpen": [
+      56,
+      125,
+      584,
+      855
+    ],
+    "alphaBoundsGeometry": {
+      "width": 528,
+      "height": 730,
+      "x": 56,
+      "y": 125
+    },
+    "footBaselineHalfOpen": 855,
+    "fullyTransparentBorder": true,
+    "decodePass": true,
+    "logicalRole": "exact-approved Neutral Master reference",
+    "sourcePath": "/workspace/scratch/acd62eadac2b/class_1_neutral_master_batch_v1/package/candidates/fighter/hero.fighter_neutral_master_candidate_v1.png",
+    "expectedSha256": "4b2ec5558971c3730da352f5ba2a39d928bbf5c722d40e38256dd6b4d48a19c4",
+    "byteIdenticalToApprovedSource": true
+  },
+  "actions": {
+    "idle": {
+      "rawGenerationSheet": {
+        "class": "fighter",
+        "action": "idle",
+        "scratchPath": "/workspace/scratch/acd62eadac2b/generated_images/exec-fe47de3d-4d2f-4c15-a63f-f98871171297.png",
+        "sha256": "9d672a2dda505af4f9ec49c8b0794b8a962e25101e2fc1b24eeb0055b5110c8c",
+        "dimensions": [
+          1536,
+          1024
+        ],
+        "includedInReviewPackage": false
+      },
+      "sidecar": "fighter/idle/hero.fighter_idle_candidate_v1.json",
+      "finalFrames": [
+        "fighter/idle/frames/hero.fighter_idle_candidate_v1_000.png",
+        "fighter/idle/frames/hero.fighter_idle_candidate_v1_001.png",
+        "fighter/idle/frames/hero.fighter_idle_candidate_v1_002.png",
+        "fighter/idle/frames/hero.fighter_idle_candidate_v1_003.png",
+        "fighter/idle/frames/hero.fighter_idle_candidate_v1_004.png",
+        "fighter/idle/frames/hero.fighter_idle_candidate_v1_005.png",
+        "fighter/idle/frames/hero.fighter_idle_candidate_v1_006.png",
+        "fighter/idle/frames/hero.fighter_idle_candidate_v1_007.png"
+      ]
+    },
+    "move": {
+      "rawGenerationSheet": {
+        "class": "fighter",
+        "action": "move",
+        "scratchPath": "/workspace/scratch/acd62eadac2b/generated_images/exec-2d968ea7-6a41-4215-8c48-31909ac957fb.png",
+        "sha256": "5a05093c8be2f9323d4efb42fa58c723a4a70e52d47bc47968ad6f3c5b0bdf3a",
+        "dimensions": [
+          1536,
+          1024
+        ],
+        "includedInReviewPackage": false
+      },
+      "sidecar": "fighter/move/hero.fighter_move_candidate_v1.json",
+      "finalFrames": [
+        "fighter/move/frames/hero.fighter_move_candidate_v1_000.png",
+        "fighter/move/frames/hero.fighter_move_candidate_v1_001.png",
+        "fighter/move/frames/hero.fighter_move_candidate_v1_002.png",
+        "fighter/move/frames/hero.fighter_move_candidate_v1_003.png",
+        "fighter/move/frames/hero.fighter_move_candidate_v1_004.png",
+        "fighter/move/frames/hero.fighter_move_candidate_v1_005.png",
+        "fighter/move/frames/hero.fighter_move_candidate_v1_006.png",
+        "fighter/move/frames/hero.fighter_move_candidate_v1_007.png"
+      ]
+    },
+    "attack": {
+      "rawGenerationSheet": {
+        "class": "fighter",
+        "action": "attack",
+        "scratchPath": "/workspace/scratch/acd62eadac2b/generated_images/exec-1fdedd56-525d-4337-a304-b5ed70c630c2.png",
+        "sha256": "a19fba6cf65c70066010bb01325d6bb77c7e0ce1e428e6e95f04ee1c3f74cbd4",
+        "dimensions": [
+          1536,
+          1024
+        ],
+        "includedInReviewPackage": false
+      },
+      "sidecar": "fighter/attack/hero.fighter_attack_candidate_v1.json",
+      "finalFrames": [
+        "fighter/attack/frames/hero.fighter_attack_candidate_v1_000.png",
+        "fighter/attack/frames/hero.fighter_attack_candidate_v1_001.png",
+        "fighter/attack/frames/hero.fighter_attack_candidate_v1_002.png",
+        "fighter/attack/frames/hero.fighter_attack_candidate_v1_003.png",
+        "fighter/attack/frames/hero.fighter_attack_candidate_v1_004.png",
+        "fighter/attack/frames/hero.fighter_attack_candidate_v1_005.png",
+        "fighter/attack/frames/hero.fighter_attack_candidate_v1_006.png",
+        "fighter/attack/frames/hero.fighter_attack_candidate_v1_007.png"
+      ]
+    }
+  },
+  "process": {
+    "generation": "reference-anchored local image generation; one primary 4x2 pose sheet per action",
+    "backgroundRemoval": "remove_chroma_key.py auto-key border, soft matte, transparent threshold 12, opaque threshold 220, despill",
+    "cleanup": "largest connected alpha component retained per pose cell; 21,321 stray cross-cell pixels removed across the batch",
+    "composition": "pose cells composited to 640x960; dominant face signal aligned; half-open baseline set to 855",
+    "idleScaleNormalization": "Idle only: apparent alpha height normalized within each class sequence",
+    "regenerationRounds": 0,
+    "targetedTechnicalCorrectionRounds": 1
+  }
+}

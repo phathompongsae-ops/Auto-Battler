@@ -1,0 +1,1058 @@
+{
+  "schemaVersion": 1,
+  "logicalId": "class1.motion-production.batch1.melee.human-review-candidate.v1",
+  "project": "phathompongsae-ops/Auto-Battler",
+  "scope": [
+    "Fighter",
+    "Swordman",
+    "Merchant"
+  ],
+  "status": "READY_FOR_HUMAN_REVIEW",
+  "sourceApproval": {
+    "pr": 83,
+    "head": "a7a821045dd7532dd96dfb07dfd352080e588c40"
+  },
+  "exactNeutralMasters": [
+    {
+      "path": "fighter/neutral/hero.fighter_neutral_master.png",
+      "sha256": "4b2ec5558971c3730da352f5ba2a39d928bbf5c722d40e38256dd6b4d48a19c4",
+      "fileSizeBytes": 387714,
+      "dimensions": [
+        640,
+        960
+      ],
+      "mode": "RGBA",
+      "bitDepthPerChannel": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        56,
+        125,
+        584,
+        855
+      ],
+      "alphaBoundsGeometry": {
+        "width": 528,
+        "height": 730,
+        "x": 56,
+        "y": 125
+      },
+      "footBaselineHalfOpen": 855,
+      "fullyTransparentBorder": true,
+      "decodePass": true,
+      "logicalRole": "exact-approved Neutral Master reference",
+      "sourcePath": "/workspace/scratch/acd62eadac2b/class_1_neutral_master_batch_v1/package/candidates/fighter/hero.fighter_neutral_master_candidate_v1.png",
+      "expectedSha256": "4b2ec5558971c3730da352f5ba2a39d928bbf5c722d40e38256dd6b4d48a19c4",
+      "byteIdenticalToApprovedSource": true
+    },
+    {
+      "path": "swordman/neutral/hero.swordman_neutral_master.png",
+      "sha256": "2a1fc6f93f384fbc92486a8e42975a10bb84d8f9cd35b13b155a9668638861ed",
+      "fileSizeBytes": 293059,
+      "dimensions": [
+        640,
+        960
+      ],
+      "mode": "RGBA",
+      "bitDepthPerChannel": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        20,
+        125,
+        619,
+        855
+      ],
+      "alphaBoundsGeometry": {
+        "width": 599,
+        "height": 730,
+        "x": 20,
+        "y": 125
+      },
+      "footBaselineHalfOpen": 855,
+      "fullyTransparentBorder": true,
+      "decodePass": true,
+      "logicalRole": "exact-approved Neutral Master reference",
+      "sourcePath": "/workspace/scratch/acd62eadac2b/class_1_neutral_master_batch_v1/package/candidates/swordman/hero.swordman_neutral_master_candidate_v1.png",
+      "expectedSha256": "2a1fc6f93f384fbc92486a8e42975a10bb84d8f9cd35b13b155a9668638861ed",
+      "byteIdenticalToApprovedSource": true
+    },
+    {
+      "path": "merchant/neutral/hero.merchant_neutral_master.png",
+      "sha256": "053785f1283a02c49897445edf038e3f95b30cb2733b81c206f648e986b157d3",
+      "fileSizeBytes": 366042,
+      "dimensions": [
+        640,
+        960
+      ],
+      "mode": "RGBA",
+      "bitDepthPerChannel": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        53,
+        125,
+        586,
+        855
+      ],
+      "alphaBoundsGeometry": {
+        "width": 533,
+        "height": 730,
+        "x": 53,
+        "y": 125
+      },
+      "footBaselineHalfOpen": 855,
+      "fullyTransparentBorder": true,
+      "decodePass": true,
+      "logicalRole": "exact-approved Neutral Master reference",
+      "sourcePath": "/workspace/scratch/acd62eadac2b/class_1_neutral_master_batch_v1/package/candidates/merchant/hero.merchant_neutral_master_candidate_v1.png",
+      "expectedSha256": "053785f1283a02c49897445edf038e3f95b30cb2733b81c206f648e986b157d3",
+      "byteIdenticalToApprovedSource": true
+    }
+  ],
+  "actions": [
+    {
+      "schemaVersion": 1,
+      "logicalId": "hero.fighter.idle.human-review-candidate.v1",
+      "class": "fighter",
+      "action": "idle",
+      "sourceNeutralMasterSha256": "4b2ec5558971c3730da352f5ba2a39d928bbf5c722d40e38256dd6b4d48a19c4",
+      "sourceNeutralMasterPath": "fighter/neutral/hero.fighter_neutral_master.png",
+      "canvas": [
+        640,
+        960
+      ],
+      "mode": "RGBA",
+      "bitDepthPerChannel": 8,
+      "transparentBackground": true,
+      "anchor": [
+        0.5,
+        0.92
+      ],
+      "footBaselineHalfOpen": 855,
+      "inPlaceRootMotion": true,
+      "runtimeFlipXCompatible": true,
+      "frameOrder": [
+        "fighter/idle/frames/hero.fighter_idle_candidate_v1_000.png",
+        "fighter/idle/frames/hero.fighter_idle_candidate_v1_001.png",
+        "fighter/idle/frames/hero.fighter_idle_candidate_v1_002.png",
+        "fighter/idle/frames/hero.fighter_idle_candidate_v1_003.png",
+        "fighter/idle/frames/hero.fighter_idle_candidate_v1_004.png",
+        "fighter/idle/frames/hero.fighter_idle_candidate_v1_005.png",
+        "fighter/idle/frames/hero.fighter_idle_candidate_v1_006.png",
+        "fighter/idle/frames/hero.fighter_idle_candidate_v1_007.png"
+      ],
+      "perFrameDurationCentiseconds": [
+        16,
+        14,
+        12,
+        10,
+        10,
+        12,
+        14,
+        16
+      ],
+      "totalDurationCentiseconds": 104,
+      "loop": true,
+      "impactMarker": null,
+      "perFrameSha256": [
+        "6f47ea9ca007b8cd748ecec0a12e6f011e02761d2ef105d05e80e8d2ea558606",
+        "a1c6a87449d69f8c82f3438e7452d0a210c8e7dc005ff171571a4e46e660c59f",
+        "35b083efd4ce39e86492311cbcb77a8205cde3621ea175afc7dcae3d2466adfc",
+        "af5dc2d7a2414062f2603ffb53d9dc02982a58ae7c4e3fd2bfb6c432acb945fc",
+        "5b3e86812bd8b60f3c5f998f77484671f9061146e13c6b4bb99df9675a35a5f4",
+        "a251a23663e0f976de3df234ec5472b5a77ae61090681a8f507febdfe78ed902",
+        "283dba7b96f478e3f9d6667b35f2d131e20b873da63220c9a540e3f20f6abc1c",
+        "dcff7f61ea645647af08223a62a1cc90ee76b43c857947b7e9f909fd7cb0247d"
+      ],
+      "motionIntent": "guarded boxing stance with restrained breathing and weight shift",
+      "productionNotes": [
+        "Archer was used only as a rendering-quality benchmark; no Archer pose, timing, frame-count rule, costume, anatomy, color, face, or silhouette was copied.",
+        "No baked VFX, shadow plate, background, gameplay marker implementation, or runtime behavior is included.",
+        "Review GIFs loop for inspection; this sidecar loop flag is the intended action behavior."
+      ],
+      "internalQa": {
+        "identity": "PASS",
+        "faceAndProportions": "PASS",
+        "anatomy": "PASS",
+        "weaponAndPropContinuity": "PASS",
+        "baselineAndAnchor": "PASS",
+        "transparentEdges": "PASS",
+        "normalSpeedReadability": "PASS",
+        "slowQaInspection": "PASS",
+        "humanVisualApproval": "pending"
+      },
+      "approval": {
+        "humanVisualApproval": "pending",
+        "exactPackageApproved": false,
+        "canonicalApproved": false,
+        "motionProductionApproved": false,
+        "runtimeIntegrationAuthorized": false,
+        "runtimeIntegrated": false,
+        "merged": false
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "logicalId": "hero.fighter.move.human-review-candidate.v1",
+      "class": "fighter",
+      "action": "move",
+      "sourceNeutralMasterSha256": "4b2ec5558971c3730da352f5ba2a39d928bbf5c722d40e38256dd6b4d48a19c4",
+      "sourceNeutralMasterPath": "fighter/neutral/hero.fighter_neutral_master.png",
+      "canvas": [
+        640,
+        960
+      ],
+      "mode": "RGBA",
+      "bitDepthPerChannel": 8,
+      "transparentBackground": true,
+      "anchor": [
+        0.5,
+        0.92
+      ],
+      "footBaselineHalfOpen": 855,
+      "inPlaceRootMotion": true,
+      "runtimeFlipXCompatible": true,
+      "frameOrder": [
+        "fighter/move/frames/hero.fighter_move_candidate_v1_000.png",
+        "fighter/move/frames/hero.fighter_move_candidate_v1_001.png",
+        "fighter/move/frames/hero.fighter_move_candidate_v1_002.png",
+        "fighter/move/frames/hero.fighter_move_candidate_v1_003.png",
+        "fighter/move/frames/hero.fighter_move_candidate_v1_004.png",
+        "fighter/move/frames/hero.fighter_move_candidate_v1_005.png",
+        "fighter/move/frames/hero.fighter_move_candidate_v1_006.png",
+        "fighter/move/frames/hero.fighter_move_candidate_v1_007.png"
+      ],
+      "perFrameDurationCentiseconds": [
+        10,
+        10,
+        10,
+        10,
+        10,
+        10,
+        10,
+        10
+      ],
+      "totalDurationCentiseconds": 80,
+      "loop": true,
+      "impactMarker": null,
+      "perFrameSha256": [
+        "1eaee70fd73f0bb25cb667a5fcb90a9506d6dc874a2352bc8da14024c552e00d",
+        "c4331988525cab339424d1fba396b7ba4b605f14042a503ec3c6d8ed8de11737",
+        "2c530559e0851723d40938a98d5d2ee45ba28e6120385a2e539b713a08f93f40",
+        "987d2328bdcee501eb9d372e4e58a71c626078a9cc4ee8542dd91af53bee11ee",
+        "ed86e35ad4e6e7fd282c52196625f08015a25de8631d6268592b237260eef5a4",
+        "9587918c917c611cc2ce31290e45930f62ee349f1aae586d0a4025604e4bcbf9",
+        "9fd1911648ed41d2138cf9117b9bb6b5728263b3b948c005331320b066c7dccb",
+        "55c77ac80a1c71102abbd471b93b05325af10fdfd5c90a52c3a7bc1855add90b"
+      ],
+      "motionIntent": "compact combat-ready heavy jog with paired gauntlets controlled",
+      "productionNotes": [
+        "Archer was used only as a rendering-quality benchmark; no Archer pose, timing, frame-count rule, costume, anatomy, color, face, or silhouette was copied.",
+        "No baked VFX, shadow plate, background, gameplay marker implementation, or runtime behavior is included.",
+        "Review GIFs loop for inspection; this sidecar loop flag is the intended action behavior."
+      ],
+      "internalQa": {
+        "identity": "PASS",
+        "faceAndProportions": "PASS",
+        "anatomy": "PASS",
+        "weaponAndPropContinuity": "PASS",
+        "baselineAndAnchor": "PASS",
+        "transparentEdges": "PASS",
+        "normalSpeedReadability": "PASS",
+        "slowQaInspection": "PASS",
+        "humanVisualApproval": "pending"
+      },
+      "approval": {
+        "humanVisualApproval": "pending",
+        "exactPackageApproved": false,
+        "canonicalApproved": false,
+        "motionProductionApproved": false,
+        "runtimeIntegrationAuthorized": false,
+        "runtimeIntegrated": false,
+        "merged": false
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "logicalId": "hero.fighter.attack.human-review-candidate.v1",
+      "class": "fighter",
+      "action": "attack",
+      "sourceNeutralMasterSha256": "4b2ec5558971c3730da352f5ba2a39d928bbf5c722d40e38256dd6b4d48a19c4",
+      "sourceNeutralMasterPath": "fighter/neutral/hero.fighter_neutral_master.png",
+      "canvas": [
+        640,
+        960
+      ],
+      "mode": "RGBA",
+      "bitDepthPerChannel": 8,
+      "transparentBackground": true,
+      "anchor": [
+        0.5,
+        0.92
+      ],
+      "footBaselineHalfOpen": 855,
+      "inPlaceRootMotion": true,
+      "runtimeFlipXCompatible": true,
+      "frameOrder": [
+        "fighter/attack/frames/hero.fighter_attack_candidate_v1_000.png",
+        "fighter/attack/frames/hero.fighter_attack_candidate_v1_001.png",
+        "fighter/attack/frames/hero.fighter_attack_candidate_v1_002.png",
+        "fighter/attack/frames/hero.fighter_attack_candidate_v1_003.png",
+        "fighter/attack/frames/hero.fighter_attack_candidate_v1_004.png",
+        "fighter/attack/frames/hero.fighter_attack_candidate_v1_005.png",
+        "fighter/attack/frames/hero.fighter_attack_candidate_v1_006.png",
+        "fighter/attack/frames/hero.fighter_attack_candidate_v1_007.png"
+      ],
+      "perFrameDurationCentiseconds": [
+        10,
+        8,
+        7,
+        6,
+        5,
+        8,
+        12,
+        16
+      ],
+      "totalDurationCentiseconds": 72,
+      "loop": false,
+      "impactMarker": {
+        "frameIndex": 4,
+        "timeFromStartCentiseconds": 31
+      },
+      "perFrameSha256": [
+        "cee33bb4f13e36ce7f55a82b65cf3bc4939b0b6ca6802675d69bfcfbb174547e",
+        "ff40c32cbcb06518ec6096b47eefabb2e7631d32245feabd33befbf1e8558688",
+        "78962954d389a2e3ebc43aa9324c53d79a28e53aa6b660027d87df488cc8ffb8",
+        "e2960b9111fc9114bf2ba295a899f7d653b9bb5527c2200414b3c41b5479f884",
+        "e58a0315461a3f9d4232ba7307dd92edc884f4268be367b37a855b971ee367d5",
+        "61de891ff758eef08b98f916602d0624f814f4d271a025b25f674a8e239256e0",
+        "7420c0ec403ed95002a1e202f0e92d2f96112dbbe11d95b51381b010124a34cd",
+        "5f4e292f36e0465af9d22164e84cb4d6a61f3b35f8434f6d31fafda40ef68999"
+      ],
+      "motionIntent": "single heavy straight punch with anticipation, extension, follow-through, recovery",
+      "productionNotes": [
+        "Archer was used only as a rendering-quality benchmark; no Archer pose, timing, frame-count rule, costume, anatomy, color, face, or silhouette was copied.",
+        "No baked VFX, shadow plate, background, gameplay marker implementation, or runtime behavior is included.",
+        "Review GIFs loop for inspection; this sidecar loop flag is the intended action behavior."
+      ],
+      "internalQa": {
+        "identity": "PASS",
+        "faceAndProportions": "PASS",
+        "anatomy": "PASS",
+        "weaponAndPropContinuity": "PASS",
+        "baselineAndAnchor": "PASS",
+        "transparentEdges": "PASS",
+        "normalSpeedReadability": "PASS",
+        "slowQaInspection": "PASS",
+        "humanVisualApproval": "pending"
+      },
+      "approval": {
+        "humanVisualApproval": "pending",
+        "exactPackageApproved": false,
+        "canonicalApproved": false,
+        "motionProductionApproved": false,
+        "runtimeIntegrationAuthorized": false,
+        "runtimeIntegrated": false,
+        "merged": false
+      },
+      "attackSpeedSafety": {
+        "currentRuntimeRecord": {
+          "path": "src/game.js",
+          "attacksPerSecond": 1.1,
+          "baseAttackIntervalCentiseconds": 90.91
+        },
+        "designRecordObserved": {
+          "path": "data/design/hero-balance-v1.json",
+          "attacksPerSecond": 0.85
+        },
+        "recordDivergenceNoted": true,
+        "visualCycleFitsCurrentBaseInterval": true,
+        "balanceValuesModified": false,
+        "runtimeSynchronizationInvented": false,
+        "futureRuntimeValidationRequired": true,
+        "futureAcknowledgmentAssessment": "Full replay fits the current base interval. Reassess queued/coalesced/class-specific acknowledgment only if buffs or runtime sampling make events overlap."
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "logicalId": "hero.swordman.idle.human-review-candidate.v1",
+      "class": "swordman",
+      "action": "idle",
+      "sourceNeutralMasterSha256": "2a1fc6f93f384fbc92486a8e42975a10bb84d8f9cd35b13b155a9668638861ed",
+      "sourceNeutralMasterPath": "swordman/neutral/hero.swordman_neutral_master.png",
+      "canvas": [
+        640,
+        960
+      ],
+      "mode": "RGBA",
+      "bitDepthPerChannel": 8,
+      "transparentBackground": true,
+      "anchor": [
+        0.5,
+        0.92
+      ],
+      "footBaselineHalfOpen": 855,
+      "inPlaceRootMotion": true,
+      "runtimeFlipXCompatible": true,
+      "frameOrder": [
+        "swordman/idle/frames/hero.swordman_idle_candidate_v1_000.png",
+        "swordman/idle/frames/hero.swordman_idle_candidate_v1_001.png",
+        "swordman/idle/frames/hero.swordman_idle_candidate_v1_002.png",
+        "swordman/idle/frames/hero.swordman_idle_candidate_v1_003.png",
+        "swordman/idle/frames/hero.swordman_idle_candidate_v1_004.png",
+        "swordman/idle/frames/hero.swordman_idle_candidate_v1_005.png",
+        "swordman/idle/frames/hero.swordman_idle_candidate_v1_006.png",
+        "swordman/idle/frames/hero.swordman_idle_candidate_v1_007.png"
+      ],
+      "perFrameDurationCentiseconds": [
+        16,
+        14,
+        12,
+        10,
+        10,
+        12,
+        14,
+        16
+      ],
+      "totalDurationCentiseconds": 104,
+      "loop": true,
+      "impactMarker": null,
+      "perFrameSha256": [
+        "634424c56243a6c4167dbd91dbfad0328f7c52658266200d430be136ead196e6",
+        "991505610a0057a6b4191f85d8538ceb42946dc59841f58ed568435190abd59d",
+        "50da05b31b349791442de605f02d2b02785651244e874fac0a6d4633c1f6e57b",
+        "45ce9558b260679713d2adc3df1518ab6decc2f06755db3d5e7cf6d8da72441a",
+        "58bd0adbdf92ea1004837528db94286f99ce07ae09b1c5f269f34e50fa6926b7",
+        "e11f9cccec9131b401f7f571188db4eeddf12b2e314f8e2f791068e916962b16",
+        "719bc44563a46f70171ad84801066782eff156c4cde15a23539bd13aa9d9e84e",
+        "2afc06606fe5d88bceb15cdee4d442ac103965145f3bb444707e1684e533cb4b"
+      ],
+      "motionIntent": "beginner sword-and-buckler guard with subtle balance adjustment",
+      "productionNotes": [
+        "Archer was used only as a rendering-quality benchmark; no Archer pose, timing, frame-count rule, costume, anatomy, color, face, or silhouette was copied.",
+        "No baked VFX, shadow plate, background, gameplay marker implementation, or runtime behavior is included.",
+        "Review GIFs loop for inspection; this sidecar loop flag is the intended action behavior."
+      ],
+      "internalQa": {
+        "identity": "PASS",
+        "faceAndProportions": "PASS",
+        "anatomy": "PASS",
+        "weaponAndPropContinuity": "PASS",
+        "baselineAndAnchor": "PASS",
+        "transparentEdges": "PASS",
+        "normalSpeedReadability": "PASS",
+        "slowQaInspection": "PASS",
+        "humanVisualApproval": "pending"
+      },
+      "approval": {
+        "humanVisualApproval": "pending",
+        "exactPackageApproved": false,
+        "canonicalApproved": false,
+        "motionProductionApproved": false,
+        "runtimeIntegrationAuthorized": false,
+        "runtimeIntegrated": false,
+        "merged": false
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "logicalId": "hero.swordman.move.human-review-candidate.v1",
+      "class": "swordman",
+      "action": "move",
+      "sourceNeutralMasterSha256": "2a1fc6f93f384fbc92486a8e42975a10bb84d8f9cd35b13b155a9668638861ed",
+      "sourceNeutralMasterPath": "swordman/neutral/hero.swordman_neutral_master.png",
+      "canvas": [
+        640,
+        960
+      ],
+      "mode": "RGBA",
+      "bitDepthPerChannel": 8,
+      "transparentBackground": true,
+      "anchor": [
+        0.5,
+        0.92
+      ],
+      "footBaselineHalfOpen": 855,
+      "inPlaceRootMotion": true,
+      "runtimeFlipXCompatible": true,
+      "frameOrder": [
+        "swordman/move/frames/hero.swordman_move_candidate_v1_000.png",
+        "swordman/move/frames/hero.swordman_move_candidate_v1_001.png",
+        "swordman/move/frames/hero.swordman_move_candidate_v1_002.png",
+        "swordman/move/frames/hero.swordman_move_candidate_v1_003.png",
+        "swordman/move/frames/hero.swordman_move_candidate_v1_004.png",
+        "swordman/move/frames/hero.swordman_move_candidate_v1_005.png",
+        "swordman/move/frames/hero.swordman_move_candidate_v1_006.png",
+        "swordman/move/frames/hero.swordman_move_candidate_v1_007.png"
+      ],
+      "perFrameDurationCentiseconds": [
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9
+      ],
+      "totalDurationCentiseconds": 72,
+      "loop": true,
+      "impactMarker": null,
+      "perFrameSha256": [
+        "19ee16747412afc633d4843c45248ad94c584b3acf0315f86bfb1a2107882659",
+        "aef25548b696c29ee72a7dfe27aa73e38c364e126def9067cca1695f9714c147",
+        "524bc21d4ce3a3c2fb05022ae394e0402669e3ebe3fbed86ec935d62bd3bcd7b",
+        "fde82b732805ea67e1ef5c5e33c80ddd779783314d10e465d8c2fdddfb669050",
+        "4ab5b1d6d2914c1a940b376f5811e38db4e0c53575a0b300f4634c46541eb1bb",
+        "ca4f1e156e7ab40cf3d572b497a0a7a9ea38542c63887ab6d496352b2d9b17e4",
+        "3e60b468692ac07c4f3ba05a4de456393ebe12222d43d301aa68d0472964f236",
+        "db1f6c316a43f0edcb1c724ac2a7b32b5bade29d2836e16b2525c56d9f87020e"
+      ],
+      "motionIntent": "controlled sword-ready run without advanced flourish",
+      "productionNotes": [
+        "Archer was used only as a rendering-quality benchmark; no Archer pose, timing, frame-count rule, costume, anatomy, color, face, or silhouette was copied.",
+        "No baked VFX, shadow plate, background, gameplay marker implementation, or runtime behavior is included.",
+        "Review GIFs loop for inspection; this sidecar loop flag is the intended action behavior."
+      ],
+      "internalQa": {
+        "identity": "PASS",
+        "faceAndProportions": "PASS",
+        "anatomy": "PASS",
+        "weaponAndPropContinuity": "PASS",
+        "baselineAndAnchor": "PASS",
+        "transparentEdges": "PASS",
+        "normalSpeedReadability": "PASS",
+        "slowQaInspection": "PASS",
+        "humanVisualApproval": "pending"
+      },
+      "approval": {
+        "humanVisualApproval": "pending",
+        "exactPackageApproved": false,
+        "canonicalApproved": false,
+        "motionProductionApproved": false,
+        "runtimeIntegrationAuthorized": false,
+        "runtimeIntegrated": false,
+        "merged": false
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "logicalId": "hero.swordman.attack.human-review-candidate.v1",
+      "class": "swordman",
+      "action": "attack",
+      "sourceNeutralMasterSha256": "2a1fc6f93f384fbc92486a8e42975a10bb84d8f9cd35b13b155a9668638861ed",
+      "sourceNeutralMasterPath": "swordman/neutral/hero.swordman_neutral_master.png",
+      "canvas": [
+        640,
+        960
+      ],
+      "mode": "RGBA",
+      "bitDepthPerChannel": 8,
+      "transparentBackground": true,
+      "anchor": [
+        0.5,
+        0.92
+      ],
+      "footBaselineHalfOpen": 855,
+      "inPlaceRootMotion": true,
+      "runtimeFlipXCompatible": true,
+      "frameOrder": [
+        "swordman/attack/frames/hero.swordman_attack_candidate_v1_000.png",
+        "swordman/attack/frames/hero.swordman_attack_candidate_v1_001.png",
+        "swordman/attack/frames/hero.swordman_attack_candidate_v1_002.png",
+        "swordman/attack/frames/hero.swordman_attack_candidate_v1_003.png",
+        "swordman/attack/frames/hero.swordman_attack_candidate_v1_004.png",
+        "swordman/attack/frames/hero.swordman_attack_candidate_v1_005.png",
+        "swordman/attack/frames/hero.swordman_attack_candidate_v1_006.png",
+        "swordman/attack/frames/hero.swordman_attack_candidate_v1_007.png"
+      ],
+      "perFrameDurationCentiseconds": [
+        8,
+        7,
+        6,
+        5,
+        4,
+        7,
+        11,
+        16
+      ],
+      "totalDurationCentiseconds": 64,
+      "loop": false,
+      "impactMarker": {
+        "frameIndex": 4,
+        "timeFromStartCentiseconds": 26
+      },
+      "perFrameSha256": [
+        "3a9edac24bd0c193eed33858f1df98af35b517deaad023adff6dac7e30cd5fbe",
+        "13e4af6c587a058f17ff85e9a2204256564f95d4280fcad9c8553e6a29e7cdb4",
+        "0c68ded1f7b80721fb98963d94600e30cea2afe27bb1a054e0fc1ca8a5519d4c",
+        "4578c0a256cd7e100239901473d89b59082a5f8407995b01daca0b90162bb517",
+        "fd6d35c5905d23d79606ca28cecc9acdf643ca6c257fc8e52f3b9bf6107c7582",
+        "33b2fd19004de5f338f0fe0ef3b98392551e70440c3e87ad25fc29ffd9ff27fb",
+        "5fa74a5b7bcfb322f8eb596b866e24ce9bab02b4f444c219b569342f6b070705",
+        "3fc59b7593bdebaa6c4b0e09418405cb7e64f460cd1ff0a028909bbf8400a4cb"
+      ],
+      "motionIntent": "simple single readable sword slash with shield retained",
+      "productionNotes": [
+        "Archer was used only as a rendering-quality benchmark; no Archer pose, timing, frame-count rule, costume, anatomy, color, face, or silhouette was copied.",
+        "No baked VFX, shadow plate, background, gameplay marker implementation, or runtime behavior is included.",
+        "Review GIFs loop for inspection; this sidecar loop flag is the intended action behavior."
+      ],
+      "internalQa": {
+        "identity": "PASS",
+        "faceAndProportions": "PASS",
+        "anatomy": "PASS",
+        "weaponAndPropContinuity": "PASS",
+        "baselineAndAnchor": "PASS",
+        "transparentEdges": "PASS",
+        "normalSpeedReadability": "PASS",
+        "slowQaInspection": "PASS",
+        "humanVisualApproval": "pending"
+      },
+      "approval": {
+        "humanVisualApproval": "pending",
+        "exactPackageApproved": false,
+        "canonicalApproved": false,
+        "motionProductionApproved": false,
+        "runtimeIntegrationAuthorized": false,
+        "runtimeIntegrated": false,
+        "merged": false
+      },
+      "attackSpeedSafety": {
+        "currentRuntimeRecord": {
+          "path": "src/game.js",
+          "attacksPerSecond": 1.25,
+          "baseAttackIntervalCentiseconds": 80.0
+        },
+        "designRecordObserved": {
+          "path": "data/design/hero-balance-v1.json",
+          "attacksPerSecond": 0.95
+        },
+        "recordDivergenceNoted": true,
+        "visualCycleFitsCurrentBaseInterval": true,
+        "balanceValuesModified": false,
+        "runtimeSynchronizationInvented": false,
+        "futureRuntimeValidationRequired": true,
+        "futureAcknowledgmentAssessment": "Full replay fits the current base interval. Reassess queued/coalesced/class-specific acknowledgment only if buffs or runtime sampling make events overlap."
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "logicalId": "hero.merchant.idle.human-review-candidate.v1",
+      "class": "merchant",
+      "action": "idle",
+      "sourceNeutralMasterSha256": "053785f1283a02c49897445edf038e3f95b30cb2733b81c206f648e986b157d3",
+      "sourceNeutralMasterPath": "merchant/neutral/hero.merchant_neutral_master.png",
+      "canvas": [
+        640,
+        960
+      ],
+      "mode": "RGBA",
+      "bitDepthPerChannel": 8,
+      "transparentBackground": true,
+      "anchor": [
+        0.5,
+        0.92
+      ],
+      "footBaselineHalfOpen": 855,
+      "inPlaceRootMotion": true,
+      "runtimeFlipXCompatible": true,
+      "frameOrder": [
+        "merchant/idle/frames/hero.merchant_idle_candidate_v1_000.png",
+        "merchant/idle/frames/hero.merchant_idle_candidate_v1_001.png",
+        "merchant/idle/frames/hero.merchant_idle_candidate_v1_002.png",
+        "merchant/idle/frames/hero.merchant_idle_candidate_v1_003.png",
+        "merchant/idle/frames/hero.merchant_idle_candidate_v1_004.png",
+        "merchant/idle/frames/hero.merchant_idle_candidate_v1_005.png",
+        "merchant/idle/frames/hero.merchant_idle_candidate_v1_006.png",
+        "merchant/idle/frames/hero.merchant_idle_candidate_v1_007.png"
+      ],
+      "perFrameDurationCentiseconds": [
+        18,
+        16,
+        14,
+        12,
+        12,
+        14,
+        16,
+        18
+      ],
+      "totalDurationCentiseconds": 120,
+      "loop": true,
+      "impactMarker": null,
+      "perFrameSha256": [
+        "243f07970bf17473760856eb0163dfc6beac49b20bce0b4895fe09af4da003d9",
+        "80ed0f1654616af9bfbc9430ae7035dd5b7a76e686f9416ae11b7eb1fe9b1dc2",
+        "e74dc53921f771c6dfa91853c89d6dbb714c838d3296c8268e023eacd810a589",
+        "d9121e629296a1285c270b302623567b0a864e20171e7168f3114a72eb912e0e",
+        "51a17574ae36d90226e742ed3f61c1247c2026e972af8df78f3cb8b3e448b7a0",
+        "843c9c4926f438417ff08a85b639f24917ceef9428f03b07fd456fa94c14d4b6",
+        "916231a657d102906bfa68f893f6dde9af15093135eb8bdef22b4d55d13d1878",
+        "5dbef4a0d6e26fc575cb66cef1efe1b90b92131973f6573b4aa3d47d24360f8e"
+      ],
+      "motionIntent": "alert merchant-adventurer stance with restrained gear settling",
+      "productionNotes": [
+        "Archer was used only as a rendering-quality benchmark; no Archer pose, timing, frame-count rule, costume, anatomy, color, face, or silhouette was copied.",
+        "No baked VFX, shadow plate, background, gameplay marker implementation, or runtime behavior is included.",
+        "Review GIFs loop for inspection; this sidecar loop flag is the intended action behavior."
+      ],
+      "internalQa": {
+        "identity": "PASS",
+        "faceAndProportions": "PASS",
+        "anatomy": "PASS",
+        "weaponAndPropContinuity": "PASS",
+        "baselineAndAnchor": "PASS",
+        "transparentEdges": "PASS",
+        "normalSpeedReadability": "PASS",
+        "slowQaInspection": "PASS",
+        "humanVisualApproval": "pending"
+      },
+      "approval": {
+        "humanVisualApproval": "pending",
+        "exactPackageApproved": false,
+        "canonicalApproved": false,
+        "motionProductionApproved": false,
+        "runtimeIntegrationAuthorized": false,
+        "runtimeIntegrated": false,
+        "merged": false
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "logicalId": "hero.merchant.move.human-review-candidate.v1",
+      "class": "merchant",
+      "action": "move",
+      "sourceNeutralMasterSha256": "053785f1283a02c49897445edf038e3f95b30cb2733b81c206f648e986b157d3",
+      "sourceNeutralMasterPath": "merchant/neutral/hero.merchant_neutral_master.png",
+      "canvas": [
+        640,
+        960
+      ],
+      "mode": "RGBA",
+      "bitDepthPerChannel": 8,
+      "transparentBackground": true,
+      "anchor": [
+        0.5,
+        0.92
+      ],
+      "footBaselineHalfOpen": 855,
+      "inPlaceRootMotion": true,
+      "runtimeFlipXCompatible": true,
+      "frameOrder": [
+        "merchant/move/frames/hero.merchant_move_candidate_v1_000.png",
+        "merchant/move/frames/hero.merchant_move_candidate_v1_001.png",
+        "merchant/move/frames/hero.merchant_move_candidate_v1_002.png",
+        "merchant/move/frames/hero.merchant_move_candidate_v1_003.png",
+        "merchant/move/frames/hero.merchant_move_candidate_v1_004.png",
+        "merchant/move/frames/hero.merchant_move_candidate_v1_005.png",
+        "merchant/move/frames/hero.merchant_move_candidate_v1_006.png",
+        "merchant/move/frames/hero.merchant_move_candidate_v1_007.png"
+      ],
+      "perFrameDurationCentiseconds": [
+        11,
+        11,
+        11,
+        11,
+        11,
+        11,
+        11,
+        11
+      ],
+      "totalDurationCentiseconds": 88,
+      "loop": true,
+      "impactMarker": null,
+      "perFrameSha256": [
+        "005f736401bc9871cbc9d9576e74ea582745188b18e142578cbe28bd2823c0a1",
+        "1bd86cecc62943add92643a8998d9cb518a1c5e1d09645eae219c3b02d114eed",
+        "26e792e29ad0ef1ae57b132a056e2337fefd6746ed3c9e7380f6433762643ccc",
+        "9dd77177f19aba10a832955b762975fb49903aebad362d7272031ab277c6dd4a",
+        "30093836f76a5153beb32b8914cdb6d866380bfebbdc266c05d1f25a5fd7f0d1",
+        "2633814378c14096507a10d8071c0bd3437998edbe651cac7b4da7e476a6cc00",
+        "766bb8b5b7f8a3869468655dd15ff30347363dccb85849aca5dff332901cdfe4",
+        "0f5a3001454fcaf2a3f054a223a95d1baec5d6b3d31e2108a132b6a66fee2a07"
+      ],
+      "motionIntent": "practical loaded jog with stable backpack, trade gear, and axe",
+      "productionNotes": [
+        "Archer was used only as a rendering-quality benchmark; no Archer pose, timing, frame-count rule, costume, anatomy, color, face, or silhouette was copied.",
+        "No baked VFX, shadow plate, background, gameplay marker implementation, or runtime behavior is included.",
+        "Review GIFs loop for inspection; this sidecar loop flag is the intended action behavior."
+      ],
+      "internalQa": {
+        "identity": "PASS",
+        "faceAndProportions": "PASS",
+        "anatomy": "PASS",
+        "weaponAndPropContinuity": "PASS",
+        "baselineAndAnchor": "PASS",
+        "transparentEdges": "PASS",
+        "normalSpeedReadability": "PASS",
+        "slowQaInspection": "PASS",
+        "humanVisualApproval": "pending"
+      },
+      "approval": {
+        "humanVisualApproval": "pending",
+        "exactPackageApproved": false,
+        "canonicalApproved": false,
+        "motionProductionApproved": false,
+        "runtimeIntegrationAuthorized": false,
+        "runtimeIntegrated": false,
+        "merged": false
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "logicalId": "hero.merchant.attack.human-review-candidate.v1",
+      "class": "merchant",
+      "action": "attack",
+      "sourceNeutralMasterSha256": "053785f1283a02c49897445edf038e3f95b30cb2733b81c206f648e986b157d3",
+      "sourceNeutralMasterPath": "merchant/neutral/hero.merchant_neutral_master.png",
+      "canvas": [
+        640,
+        960
+      ],
+      "mode": "RGBA",
+      "bitDepthPerChannel": 8,
+      "transparentBackground": true,
+      "anchor": [
+        0.5,
+        0.92
+      ],
+      "footBaselineHalfOpen": 855,
+      "inPlaceRootMotion": true,
+      "runtimeFlipXCompatible": true,
+      "frameOrder": [
+        "merchant/attack/frames/hero.merchant_attack_candidate_v1_000.png",
+        "merchant/attack/frames/hero.merchant_attack_candidate_v1_001.png",
+        "merchant/attack/frames/hero.merchant_attack_candidate_v1_002.png",
+        "merchant/attack/frames/hero.merchant_attack_candidate_v1_003.png",
+        "merchant/attack/frames/hero.merchant_attack_candidate_v1_004.png",
+        "merchant/attack/frames/hero.merchant_attack_candidate_v1_005.png",
+        "merchant/attack/frames/hero.merchant_attack_candidate_v1_006.png",
+        "merchant/attack/frames/hero.merchant_attack_candidate_v1_007.png"
+      ],
+      "perFrameDurationCentiseconds": [
+        10,
+        9,
+        8,
+        6,
+        5,
+        8,
+        12,
+        16
+      ],
+      "totalDurationCentiseconds": 74,
+      "loop": false,
+      "impactMarker": {
+        "frameIndex": 4,
+        "timeFromStartCentiseconds": 33
+      },
+      "perFrameSha256": [
+        "f715d9ebc72f87036f10db1ef824ec6ae3aca7cf0ce401502f2b9e5745378428",
+        "eb0f6af99b936402189ce55b5e3db3ccb49d7738e86cd104461249511124a4dd",
+        "65768b810b914024109de7ab3890dea31547e69378744bb1c93f622089c64abc",
+        "512c7c4a85bb8f6312fc788265fff5e2891a3eb5b6c2e8ae43f77b99e9bfee60",
+        "b7ef557e6e4e73bbd342548972521b60e732a2ea468f3e18f164e0e7c00324e8",
+        "e43f15e8e6ed1a1e90ab6ffa2e17e63bb10331726d1ba9432df0514972e01c47",
+        "b6ff158aee994b88ff4081a9485a032d5ac9bf5267e4ac6376fc2afe0d04f814",
+        "f91f15689a67eea6387ecf215088fb7c2e32dd84a164be65239e9c87fd7fd5ab"
+      ],
+      "motionIntent": "simple short axe chop with stable backpack and clear recovery",
+      "productionNotes": [
+        "Archer was used only as a rendering-quality benchmark; no Archer pose, timing, frame-count rule, costume, anatomy, color, face, or silhouette was copied.",
+        "No baked VFX, shadow plate, background, gameplay marker implementation, or runtime behavior is included.",
+        "Review GIFs loop for inspection; this sidecar loop flag is the intended action behavior."
+      ],
+      "internalQa": {
+        "identity": "PASS",
+        "faceAndProportions": "PASS",
+        "anatomy": "PASS",
+        "weaponAndPropContinuity": "PASS",
+        "baselineAndAnchor": "PASS",
+        "transparentEdges": "PASS",
+        "normalSpeedReadability": "PASS",
+        "slowQaInspection": "PASS",
+        "humanVisualApproval": "pending"
+      },
+      "approval": {
+        "humanVisualApproval": "pending",
+        "exactPackageApproved": false,
+        "canonicalApproved": false,
+        "motionProductionApproved": false,
+        "runtimeIntegrationAuthorized": false,
+        "runtimeIntegrated": false,
+        "merged": false
+      },
+      "attackSpeedSafety": {
+        "currentRuntimeRecord": {
+          "path": "src/game.js",
+          "attacksPerSecond": 1.15,
+          "baseAttackIntervalCentiseconds": 86.96
+        },
+        "designRecordObserved": {
+          "path": "data/design/hero-balance-v1.json",
+          "attacksPerSecond": 0.9
+        },
+        "recordDivergenceNoted": true,
+        "visualCycleFitsCurrentBaseInterval": true,
+        "balanceValuesModified": false,
+        "runtimeSynchronizationInvented": false,
+        "futureRuntimeValidationRequired": true,
+        "futureAcknowledgmentAssessment": "Full replay fits the current base interval. Reassess queued/coalesced/class-specific acknowledgment only if buffs or runtime sampling make events overlap."
+      }
+    }
+  ],
+  "rawGenerationSheets": [
+    {
+      "class": "fighter",
+      "action": "idle",
+      "scratchPath": "/workspace/scratch/acd62eadac2b/generated_images/exec-fe47de3d-4d2f-4c15-a63f-f98871171297.png",
+      "sha256": "9d672a2dda505af4f9ec49c8b0794b8a962e25101e2fc1b24eeb0055b5110c8c",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "includedInReviewPackage": false
+    },
+    {
+      "class": "fighter",
+      "action": "move",
+      "scratchPath": "/workspace/scratch/acd62eadac2b/generated_images/exec-2d968ea7-6a41-4215-8c48-31909ac957fb.png",
+      "sha256": "5a05093c8be2f9323d4efb42fa58c723a4a70e52d47bc47968ad6f3c5b0bdf3a",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "includedInReviewPackage": false
+    },
+    {
+      "class": "fighter",
+      "action": "attack",
+      "scratchPath": "/workspace/scratch/acd62eadac2b/generated_images/exec-1fdedd56-525d-4337-a304-b5ed70c630c2.png",
+      "sha256": "a19fba6cf65c70066010bb01325d6bb77c7e0ce1e428e6e95f04ee1c3f74cbd4",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "includedInReviewPackage": false
+    },
+    {
+      "class": "swordman",
+      "action": "idle",
+      "scratchPath": "/workspace/scratch/acd62eadac2b/generated_images/exec-eebf9ada-ebaa-4dfd-b74d-21e8b9f54e08.png",
+      "sha256": "f5f5de49ea4f563d2fa90b6202f5a2d49944bc3debc69564786803daccf7a336",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "includedInReviewPackage": false
+    },
+    {
+      "class": "swordman",
+      "action": "move",
+      "scratchPath": "/workspace/scratch/acd62eadac2b/generated_images/exec-5e93ef66-8af3-4a85-9a3c-c2cfc365b197.png",
+      "sha256": "21c722d48aa796318fd5ee463c82837971aaf13e466c818d1aca80a785d72177",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "includedInReviewPackage": false
+    },
+    {
+      "class": "swordman",
+      "action": "attack",
+      "scratchPath": "/workspace/scratch/acd62eadac2b/generated_images/exec-58ee5861-7f0e-4637-86b7-0658740c6795.png",
+      "sha256": "2b49a48b21e0ceb176a04296cb11c6af5ca62917b83781ef61e7880dca9f5ed9",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "includedInReviewPackage": false
+    },
+    {
+      "class": "merchant",
+      "action": "idle",
+      "scratchPath": "/workspace/scratch/acd62eadac2b/generated_images/exec-3f296456-6fcb-4c7d-b40b-d957da4d20bf.png",
+      "sha256": "82231f9e428806a494d7be7b4c949a10659b8c91bcc5e36d5ca9ab73b8be94e6",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "includedInReviewPackage": false
+    },
+    {
+      "class": "merchant",
+      "action": "move",
+      "scratchPath": "/workspace/scratch/acd62eadac2b/generated_images/exec-4bb3bbf1-3315-45f0-bcf5-c60c25a9f8f9.png",
+      "sha256": "6bffd035b738f81728e073df67271c26bae27fc1b94ab5cd3046bf3933f3deb8",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "includedInReviewPackage": false
+    },
+    {
+      "class": "merchant",
+      "action": "attack",
+      "scratchPath": "/workspace/scratch/acd62eadac2b/generated_images/exec-b384332b-37cb-4b4c-8a46-ce463e035b13.png",
+      "sha256": "8ef13acae8ff22796c0efe7a09f7777c0a4e3ea8798926d946023d7b1bc8b5c9",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "includedInReviewPackage": false
+    }
+  ],
+  "reviewArtifacts": [
+    "fighter/review/fighter-attack-normal.gif",
+    "fighter/review/fighter-attack-slow-qa.gif",
+    "fighter/review/fighter-idle-normal.gif",
+    "fighter/review/fighter-idle-slow-qa.gif",
+    "fighter/review/fighter-move-normal.gif",
+    "fighter/review/fighter-move-slow-qa.gif",
+    "merchant/review/merchant-attack-normal.gif",
+    "merchant/review/merchant-attack-slow-qa.gif",
+    "merchant/review/merchant-idle-normal.gif",
+    "merchant/review/merchant-idle-slow-qa.gif",
+    "merchant/review/merchant-move-normal.gif",
+    "merchant/review/merchant-move-slow-qa.gif",
+    "review/batch-attack-comparison.gif",
+    "review/batch-idle-comparison.gif",
+    "review/batch-move-comparison.gif",
+    "review/bench-scale-motion-readability-proxy.gif",
+    "review/board-scale-motion-readability-proxy.gif",
+    "review/shop-card-motion-readability.gif",
+    "swordman/review/swordman-attack-normal.gif",
+    "swordman/review/swordman-attack-slow-qa.gif",
+    "swordman/review/swordman-idle-normal.gif",
+    "swordman/review/swordman-idle-slow-qa.gif",
+    "swordman/review/swordman-move-normal.gif",
+    "swordman/review/swordman-move-slow-qa.gif",
+    "fighter/review/fighter-attack-contact-sheet.png",
+    "fighter/review/fighter-idle-contact-sheet.png",
+    "fighter/review/fighter-move-contact-sheet.png",
+    "merchant/review/merchant-attack-contact-sheet.png",
+    "merchant/review/merchant-idle-contact-sheet.png",
+    "merchant/review/merchant-move-contact-sheet.png",
+    "swordman/review/swordman-attack-contact-sheet.png",
+    "swordman/review/swordman-idle-contact-sheet.png",
+    "swordman/review/swordman-move-contact-sheet.png",
+    "review/melee-family-pairwise-confusion-review.png",
+    "review/melee-family-silhouette-comparison.png"
+  ],
+  "technicalQaRecord": "data/technical-qa-report-v1.json",
+  "timingSummary": "data/timing-summary-v1.json",
+  "approval": {
+    "humanVisualApproval": "pending",
+    "exactPackageApproved": false,
+    "canonicalApproved": false,
+    "motionProductionApproved": false,
+    "runtimeIntegrationAuthorized": false,
+    "runtimeIntegrated": false,
+    "merged": false
+  },
+  "deferred": {
+    "boardPreview": "DEFERRED_UNTIL_AFTER_DEMO"
+  },
+  "packageIntegrity": {
+    "strategy": "post-build external unzip/CRC test plus SHA-256 measurement",
+    "selfHashEmbedded": false,
+    "reason": "Embedding the archive's own hash would create a recursive binary change."
+  }
+}

@@ -1,0 +1,81 @@
+{
+  "schemaVersion": 1,
+  "logicalId": "hero.merchant.move.human-review-candidate.v1",
+  "class": "merchant",
+  "action": "move",
+  "sourceNeutralMasterSha256": "053785f1283a02c49897445edf038e3f95b30cb2733b81c206f648e986b157d3",
+  "sourceNeutralMasterPath": "merchant/neutral/hero.merchant_neutral_master.png",
+  "canvas": [
+    640,
+    960
+  ],
+  "mode": "RGBA",
+  "bitDepthPerChannel": 8,
+  "transparentBackground": true,
+  "anchor": [
+    0.5,
+    0.92
+  ],
+  "footBaselineHalfOpen": 855,
+  "inPlaceRootMotion": true,
+  "runtimeFlipXCompatible": true,
+  "frameOrder": [
+    "merchant/move/frames/hero.merchant_move_candidate_v1_000.png",
+    "merchant/move/frames/hero.merchant_move_candidate_v1_001.png",
+    "merchant/move/frames/hero.merchant_move_candidate_v1_002.png",
+    "merchant/move/frames/hero.merchant_move_candidate_v1_003.png",
+    "merchant/move/frames/hero.merchant_move_candidate_v1_004.png",
+    "merchant/move/frames/hero.merchant_move_candidate_v1_005.png",
+    "merchant/move/frames/hero.merchant_move_candidate_v1_006.png",
+    "merchant/move/frames/hero.merchant_move_candidate_v1_007.png"
+  ],
+  "perFrameDurationCentiseconds": [
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11
+  ],
+  "totalDurationCentiseconds": 88,
+  "loop": true,
+  "impactMarker": null,
+  "perFrameSha256": [
+    "005f736401bc9871cbc9d9576e74ea582745188b18e142578cbe28bd2823c0a1",
+    "1bd86cecc62943add92643a8998d9cb518a1c5e1d09645eae219c3b02d114eed",
+    "26e792e29ad0ef1ae57b132a056e2337fefd6746ed3c9e7380f6433762643ccc",
+    "9dd77177f19aba10a832955b762975fb49903aebad362d7272031ab277c6dd4a",
+    "30093836f76a5153beb32b8914cdb6d866380bfebbdc266c05d1f25a5fd7f0d1",
+    "2633814378c14096507a10d8071c0bd3437998edbe651cac7b4da7e476a6cc00",
+    "766bb8b5b7f8a3869468655dd15ff30347363dccb85849aca5dff332901cdfe4",
+    "0f5a3001454fcaf2a3f054a223a95d1baec5d6b3d31e2108a132b6a66fee2a07"
+  ],
+  "motionIntent": "practical loaded jog with stable backpack, trade gear, and axe",
+  "productionNotes": [
+    "Archer was used only as a rendering-quality benchmark; no Archer pose, timing, frame-count rule, costume, anatomy, color, face, or silhouette was copied.",
+    "No baked VFX, shadow plate, background, gameplay marker implementation, or runtime behavior is included.",
+    "Review GIFs loop for inspection; this sidecar loop flag is the intended action behavior."
+  ],
+  "internalQa": {
+    "identity": "PASS",
+    "faceAndProportions": "PASS",
+    "anatomy": "PASS",
+    "weaponAndPropContinuity": "PASS",
+    "baselineAndAnchor": "PASS",
+    "transparentEdges": "PASS",
+    "normalSpeedReadability": "PASS",
+    "slowQaInspection": "PASS",
+    "humanVisualApproval": "pending"
+  },
+  "approval": {
+    "humanVisualApproval": "pending",
+    "exactPackageApproved": false,
+    "canonicalApproved": false,
+    "motionProductionApproved": false,
+    "runtimeIntegrationAuthorized": false,
+    "runtimeIntegrated": false,
+    "merged": false
+  }
+}

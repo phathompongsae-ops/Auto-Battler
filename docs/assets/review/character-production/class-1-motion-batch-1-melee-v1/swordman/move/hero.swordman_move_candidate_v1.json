@@ -1,0 +1,81 @@
+{
+  "schemaVersion": 1,
+  "logicalId": "hero.swordman.move.human-review-candidate.v1",
+  "class": "swordman",
+  "action": "move",
+  "sourceNeutralMasterSha256": "2a1fc6f93f384fbc92486a8e42975a10bb84d8f9cd35b13b155a9668638861ed",
+  "sourceNeutralMasterPath": "swordman/neutral/hero.swordman_neutral_master.png",
+  "canvas": [
+    640,
+    960
+  ],
+  "mode": "RGBA",
+  "bitDepthPerChannel": 8,
+  "transparentBackground": true,
+  "anchor": [
+    0.5,
+    0.92
+  ],
+  "footBaselineHalfOpen": 855,
+  "inPlaceRootMotion": true,
+  "runtimeFlipXCompatible": true,
+  "frameOrder": [
+    "swordman/move/frames/hero.swordman_move_candidate_v1_000.png",
+    "swordman/move/frames/hero.swordman_move_candidate_v1_001.png",
+    "swordman/move/frames/hero.swordman_move_candidate_v1_002.png",
+    "swordman/move/frames/hero.swordman_move_candidate_v1_003.png",
+    "swordman/move/frames/hero.swordman_move_candidate_v1_004.png",
+    "swordman/move/frames/hero.swordman_move_candidate_v1_005.png",
+    "swordman/move/frames/hero.swordman_move_candidate_v1_006.png",
+    "swordman/move/frames/hero.swordman_move_candidate_v1_007.png"
+  ],
+  "perFrameDurationCentiseconds": [
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9
+  ],
+  "totalDurationCentiseconds": 72,
+  "loop": true,
+  "impactMarker": null,
+  "perFrameSha256": [
+    "19ee16747412afc633d4843c45248ad94c584b3acf0315f86bfb1a2107882659",
+    "aef25548b696c29ee72a7dfe27aa73e38c364e126def9067cca1695f9714c147",
+    "524bc21d4ce3a3c2fb05022ae394e0402669e3ebe3fbed86ec935d62bd3bcd7b",
+    "fde82b732805ea67e1ef5c5e33c80ddd779783314d10e465d8c2fdddfb669050",
+    "4ab5b1d6d2914c1a940b376f5811e38db4e0c53575a0b300f4634c46541eb1bb",
+    "ca4f1e156e7ab40cf3d572b497a0a7a9ea38542c63887ab6d496352b2d9b17e4",
+    "3e60b468692ac07c4f3ba05a4de456393ebe12222d43d301aa68d0472964f236",
+    "db1f6c316a43f0edcb1c724ac2a7b32b5bade29d2836e16b2525c56d9f87020e"
+  ],
+  "motionIntent": "controlled sword-ready run without advanced flourish",
+  "productionNotes": [
+    "Archer was used only as a rendering-quality benchmark; no Archer pose, timing, frame-count rule, costume, anatomy, color, face, or silhouette was copied.",
+    "No baked VFX, shadow plate, background, gameplay marker implementation, or runtime behavior is included.",
+    "Review GIFs loop for inspection; this sidecar loop flag is the intended action behavior."
+  ],
+  "internalQa": {
+    "identity": "PASS",
+    "faceAndProportions": "PASS",
+    "anatomy": "PASS",
+    "weaponAndPropContinuity": "PASS",
+    "baselineAndAnchor": "PASS",
+    "transparentEdges": "PASS",
+    "normalSpeedReadability": "PASS",
+    "slowQaInspection": "PASS",
+    "humanVisualApproval": "pending"
+  },
+  "approval": {
+    "humanVisualApproval": "pending",
+    "exactPackageApproved": false,
+    "canonicalApproved": false,
+    "motionProductionApproved": false,
+    "runtimeIntegrationAuthorized": false,
+    "runtimeIntegrated": false,
+    "merged": false
+  }
+}
