@@ -202,6 +202,44 @@ similarly `6 + 4 + 0 == 10` at x4). Worst-case post-combat drift is unchanged fr
 `pilotAccepted`, `canonicalApproved`, `finalRuntimeApproved`, and `merged` all remain `false`,
 unchanged by this rework.
 
+**Report correction (superseded by §22):** the "7 completed replays" framing above was imprecise
+— it folded a still-in-progress replay at the measurement window's edge into the completed
+count, and the "≤1.27s" tail-drift figure was an estimate, not a measurement. §22 corrects both.
+
+## 22. Targeted Timing Rework v3 — Final Pilot Fix (additive follow-up, same Draft PR)
+
+Independent re-audit of v2 found two remaining runtime blockers, both visual-feedback/state-
+lifecycle issues, not combat-correctness defects (damage/cooldown/mana/lifesteal/targeting were
+reconfirmed unaffected):
+
+1. **Visual-feedback ownership conflict** — v2's overflow-acknowledgment tier reused
+   `applyHitFlash()`, sharing its timer and `body.material.color` with every unit's
+   incoming-damage feedback. An attack acknowledgment and a hit-taken flash could clobber each
+   other. Fixed with a fully separate channel: a new Archer-only `archerAckGlow` object with its
+   own material/timer (`applyArcherAckFlash()`/`restoreArcherAckGlow()`), never touching
+   `body.material.color` or `hitFlashTimer` at all. Proven independent with real `setTimeout`
+   timers: both channels stay simultaneously visible when fired together, in either order, and
+   revert on their own separate schedules.
+2. **Archer runtime state not reset on wave transition** — `resetForWave()` never cleared
+   `archerPendingAcks`/`archerSeqKey`/`archerFrameTimer`/`archerFrameIdx`/the evidence-only flash
+   counter or the new ack-glow channel between waves. Fixed with an Archer-gated reset block
+   (no-op for every other unit). Proven via the **real production path**: real `spawnWave()` →
+   deliberately-dirtied archer state → real `onWaveCleared()` → a real click on the actual
+   `#resultBtn` DOM element (the same one a player clicks) → real `healPlayerTeam()`/
+   `resetForWave()` → archer state confirmed completely clean → Wave B's first real Attack step
+   starts cleanly from frame 0.
+
+Also corrects the evidence-reporting terminology the re-audit flagged: replay accounting is now
+broken into completed / in-progress / queued / overflow-acknowledgment (proven to sum exactly to
+the attack-event count at both x1 and x4), and the worst-case post-combat tail time is now
+**measured** directly (2267ms) rather than estimated.
+
+Full defect analysis, proofs, and raw evidence are in
+`docs/reviews/archer-runtime-integration-v1/repeated-attack-timing-rework-v3.md`.
+
+29/29 protected assets re-confirmed byte-identical. `pilotAccepted`, `canonicalApproved`,
+`finalRuntimeApproved`, and `merged` all remain `false`, unchanged by this rework.
+
 Result: **TARGETED_RUNTIME_REWORK_READY_FOR_INDEPENDENT_REAUDIT**. `pilotAccepted`,
 `canonicalApproved`, `finalRuntimeApproved`, and `merged` remain `false`, unchanged by this
 rework.

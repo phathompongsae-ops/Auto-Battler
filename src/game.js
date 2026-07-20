@@ -1581,12 +1581,26 @@ function makeUnit(cfg) {
     linkBadge.visible = false;
     group.add(linkBadge);
   }
+  // Archer-only attack-acknowledgment channel: a small standalone glow, fully independent from
+  // the shared hit-flash channel (applyHitFlash/hitFlashTimer/body.material.color) used for
+  // incoming-damage feedback on every unit. Own object, own material/color, own timer field
+  // (archerAckFlashTimer) -- see applyArcherAckFlash/restoreArcherAckGlow below. Disposed for
+  // free by disposeObjectTree(u.group) (it's a normal child mesh), same as every other badge/
+  // ring here; its own pending timer is explicitly cleared in disposeUnitVisual so no stale
+  // callback can touch a disposed material.
+  let archerAckGlow = null;
+  if (cfg.sprite === 'ArcherReal') {
+    archerAckGlow = new THREE.Mesh(new THREE.CircleGeometry(0.16, 16),
+      new THREE.MeshBasicMaterial({ color: 0xfff2a8, transparent: true, opacity: 0, depthTest: false }));
+    archerAckGlow.position.set(0, h + 0.55, 0.02); // above equip/link badge row, clear of hp/mana bars
+    group.add(archerAckGlow);
+  }
   const p = gridToWorld(cfg.c, cfg.r);
   group.position.set(p.x, 0, p.z);
   scene.add(group);
   occupied.add(key(cfg.c, cfg.r));
   const u = { ...cfg, group, body, hpBar, manaBar, starBadge, shadow, tex, frames, halfH: h/2, equipBadge,
-    linkRing, linkBadge,
+    linkRing, linkBadge, archerAckGlow, archerAckFlashTimer: null,
     maxHp: cfg.hp, alive: true, atkCooldown: 0,
     moving: false, moveFrom: null, moveTo: null, moveT: 0,
     animState: 'idle', animTimer: 0, animFrame: 0,
@@ -2123,6 +2137,8 @@ function disposeObjectTree(root) {
 function disposeUnitVisual(u) {
   // ยกเลิก hit-flash timer ค้าง — ไม่ให้ callback restore สีไปแตะ material ที่กำลังจะถูก dispose
   if (u.hitFlashTimer) { clearTimeout(u.hitFlashTimer); u.hitFlashTimer = null; }
+  // Same for the separate Archer ack-flash channel (independent timer, see applyArcherAckFlash).
+  if (u.archerAckFlashTimer) { clearTimeout(u.archerAckFlashTimer); u.archerAckFlashTimer = null; }
   disposeObjectTree(u.group);
   // floating text ที่ยังลอยค้างเหนือหัวยูนิตนี้: resource ถูก dispose ไปกับ traverse ด้านบนแล้ว
   // เหลือแค่ถอด entry ออกจาก registry ไม่ให้ updateFloatingTexts ถือ reference ของยูนิตที่ลบแล้ว
@@ -2160,6 +2176,22 @@ function resetForWave(u) {
   u.reviveUsesThisWave = 0; u.shield = 0; u.shieldTimer = 0;
   updateManaBar(u);
   if (u.baseStats) buildCombatStats(u, ITEM_DEFS_BY_ID); // statuses cleared -> combatStats must drop any lingering modifier
+  // Archer-only runtime/visual state reset -- explicit, not implicit. Without this, values left
+  // over from the wave that just ended (a still-queued replay ack, a mid-cycle frame timer/
+  // index, the evidence-only flash counter, or an active ack-glow timer) would otherwise carry
+  // into the next wave's very first Attack, corrupting its own acknowledgment accounting from
+  // frame 0. Gated on archerSeqs (true only for the archer once its frames are loaded), so this
+  // is a complete no-op for every other unit -- resetForWave() already runs for all placed
+  // units, this just adds the Archer-specific piece it was missing. Values mirror exactly what
+  // makeUnit() sets on a freshly created unit.
+  if (u.archerSeqs) {
+    u.archerPendingAcks = 0;
+    u.archerSeqKey = null;
+    u.archerFrameTimer = 0;
+    u.archerFrameIdx = 0;
+    u.archerFlashAckCount = 0;
+    restoreArcherAckGlow(u); // clears archerAckFlashTimer + reverts the ack-glow's own opacity to 0
+  }
   occupied.add(key(u.c, u.r));
 }
 
@@ -2251,6 +2283,27 @@ function applyHitFlash(u, colorHex, durationMs) {
   if (u.hitFlashTimer) clearTimeout(u.hitFlashTimer); // flash ซ้อน: ตัวใหม่ทับตัวเก่า ไม่มี timer หลุดมือ
   u.body.material.color.set(colorHex);
   u.hitFlashTimer = setTimeout(() => { u.hitFlashTimer = null; restoreBodyColor(u); }, durationMs);
+}
+// Archer-only attack-acknowledgment channel -- deliberately separate from applyHitFlash/
+// restoreBodyColor above. Ownership conflict this avoids: applyHitFlash tints u.body.material
+// .color and owns u.hitFlashTimer, which is ALSO used for incoming-damage feedback on every
+// unit (including the archer, when it's hit). Reusing that same channel for the archer's own
+// attack-acknowledgment pulse meant a hit taken while an ack was showing (or vice versa) would
+// clobber the other's timer and color -- whichever fired second would silently cancel and
+// overwrite the first, and the reverted color could belong to neither event. This channel
+// instead drives its own object (archerAckGlow, a small standalone glow mesh, not body), its
+// own material/color (never touches body.material.color), and its own timer field
+// (archerAckFlashTimer, never touches hitFlashTimer) -- the two channels cannot observe or
+// interfere with each other under any interleaving, including simultaneous firing.
+function restoreArcherAckGlow(u) {
+  if (u.archerAckFlashTimer) { clearTimeout(u.archerAckFlashTimer); u.archerAckFlashTimer = null; }
+  if (u.archerAckGlow) u.archerAckGlow.material.opacity = 0;
+}
+function applyArcherAckFlash(u, durationMs) {
+  if (!u.archerAckGlow) return;
+  if (u.archerAckFlashTimer) clearTimeout(u.archerAckFlashTimer); // ack ซ้อน: เหมือน applyHitFlash แต่เป็น channel แยก
+  u.archerAckGlow.material.opacity = 0.9;
+  u.archerAckFlashTimer = setTimeout(() => { u.archerAckFlashTimer = null; restoreArcherAckGlow(u); }, durationMs);
 }
 function applyTrait(u, target, dmg) {
   if (u.trait === 'crit' && Math.random() < 0.2) {
@@ -3165,11 +3218,14 @@ function updateUnit(u, dt) {
       //     own natural completion boundary -- never mid-frame -- as a full replay of the exact
       //     approved sequence, so it still shows Full Draw (007) and Release (008) in full.
       //  2) If a replay is already queued (queue saturated): this event still gets an immediate,
-      //     distinct, visible acknowledgment via a brief self-flash (reusing the existing generic
-      //     applyHitFlash() hit-reaction mechanism used elsewhere for damage taken, here applied
-      //     to the archer itself on firing) -- purely a body.material.color tint+revert, touching
-      //     neither archerFrameTimer/archerFrameIdx nor any texture, so it cannot alter frame
-      //     order/timing or suppress/duplicate Full Draw/Release in the cycle already playing.
+      //     distinct, visible acknowledgment via applyArcherAckFlash() -- a standalone glow
+      //     channel, fully independent from applyHitFlash()'s incoming-damage feedback (own
+      //     object, own material/color, own timer; see applyArcherAckFlash's own comment for why
+      //     sharing applyHitFlash's channel was rejected: a hit-taken flash and an attack-ack
+      //     flash competing for the same timer/color could clobber each other). Purely a small
+      //     glow-mesh opacity tint+revert, touching neither archerFrameTimer/archerFrameIdx nor
+      //     any texture, so it cannot alter frame order/timing or suppress/duplicate Full
+      //     Draw/Release in the cycle already playing.
       //
       // Why not just raise the cap (e.g. to 2)? Because the structural rate is fixed: attacks
       // fire at 1/0.7143 = 1.4/s, but a full 1.27s replay can complete at most 1/1.27 = 0.787/s
@@ -3182,7 +3238,7 @@ function updateUnit(u, dt) {
         if ((u.archerPendingAcks || 0) < 1) {
           u.archerPendingAcks = 1;
         } else {
-          applyHitFlash(u, 0xfff2a8, 70); // instant self-ack for a queue-saturated extra hit
+          applyArcherAckFlash(u, 70); // instant self-ack for a queue-saturated extra hit
           // Evidence-only counter (additive, not read by any gameplay code) -- real-time
           // setTimeout-based flash reversion can't be observed reliably by a synchronous,
           // dt-driven deterministic test harness, so this exists purely so automated evidence
@@ -4330,6 +4386,27 @@ window.__archerRuntimeTestHook = {
   // guessing real-time delays against a headless browser's actual frame rate.
   stepUnit: (heroKey, dt) => { const u = units.find((x) => x.heroKey === heroKey); if (u) updateUnit(u, dt); },
   renderFrame: () => { for (const u of units) u.group.quaternion.copy(camera.quaternion); renderer.render(scene, camera); },
+  getWave: () => wave,
+  // Invokes the exact same onWaveCleared() the real animate() loop calls once eAlive===0 --
+  // not a fake/simplified reset, the real production function (grantWaveIncome, clearEnemies,
+  // despawnSummons, clearAllVFX, showResult/result-modal wiring), just triggered directly so a
+  // wave-transition evidence capture doesn't depend on driving genuine wall-clock combat to a
+  // kill. The real result-modal Continue button (#resultBtn) still has to be clicked afterward
+  // to reach healPlayerTeam()/resetForWave(), exactly as a real player would.
+  triggerWaveCleared: () => onWaveCleared(),
+  // Exposes the two real visual-feedback functions directly (not re-implementations) so an
+  // evidence capture can trigger both channels at precise, controlled moments and observe real
+  // setTimeout-driven independence -- the whole point of this specific test is real timers, so
+  // it deliberately does NOT go through stepUnit's synchronous dt path for this one.
+  applyHitFlash: (u, colorHex, durationMs) => applyHitFlash(u, colorHex, durationMs),
+  applyArcherAckFlash: (u, durationMs) => applyArcherAckFlash(u, durationMs),
+  // placeTestUnit() (above) calls createUnitFromInstance() directly, which -- unlike the real
+  // moveUnitTo() placement path a shop-phase player actually uses -- never registers the new
+  // unit into placedUnits[]. That's fine for combat/animation evidence (units[] is all
+  // updateUnit()/animate() need), but healPlayerTeam()'s wave-transition reset iterates
+  // placedUnits[] specifically, so a wave-transition evidence capture needs this one extra step
+  // to put a test unit through the exact same real reset a genuinely-placed hero gets.
+  registerAsPlaced: (heroKey) => { const u = units.find((x) => x.heroKey === heroKey); if (u && !placedUnits.includes(u)) placedUnits.push(u); },
 };
 
 // ============================================================

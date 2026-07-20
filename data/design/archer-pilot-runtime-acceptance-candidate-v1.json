@@ -243,6 +243,70 @@
       "archerOnly": true,
       "noAssetModification": true
     },
+    "approvalFlagsUnchanged": { "pilotAccepted": false, "canonicalApproved": false, "finalRuntimeApproved": false, "merged": false },
+    "reportingCorrection": "SUPERSEDED by repeatedAttackTimingReworkV3: the 'completedReplays: 7' figure above folded a still-in-progress replay at the measurement window's edge into the completed count -- v3 corrects this to completedReplays=6 + inProgressReplayAtWindowClose=1 (same underlying trace, precise categorization). The tail-drift figure here was also an ESTIMATE ('<=1.27s'); v3 measures it directly (2267ms).",
+    "supersededBy": "repeatedAttackTimingReworkV3"
+  },
+
+  "repeatedAttackTimingReworkV3": {
+    "status": "TARGETED_RUNTIME_REWORK_READY_FOR_INDEPENDENT_REAUDIT",
+    "fullRecord": "docs/reviews/archer-runtime-integration-v1/repeated-attack-timing-rework-v3.md",
+    "auditSourceBlockers": {
+      "blocker1_visualFeedbackOwnershipConflict": "v2's overflow-acknowledgment tier reused applyHitFlash(), sharing its timer (hitFlashTimer) and body.material.color with every unit's incoming-damage feedback. An attack acknowledgment and a hit-taken flash firing near each other could clobber one another's timer/color.",
+      "blocker2_archerStateNotResetOnWaveTransition": "resetForWave() (the real function healPlayerTeam() calls for every placed unit) never cleared archerPendingAcks/archerSeqKey/archerFrameTimer/archerFrameIdx/the evidence-only archerFlashAckCount counter, or any new visual-acknowledgment channel, between waves."
+    },
+    "combatCorrectnessReconfirmed": "damage/cooldown/mana/lifesteal/targeting/protected-assets/non-Archer-regression were all reconfirmed unaffected by the same re-audit -- both blockers are visual-feedback and state-lifecycle issues only.",
+    "fix1_ownershipSeparation": {
+      "design": "a fully separate Archer-only visual channel: archerAckGlow (standalone glow mesh, created only for cfg.sprite==='ArcherReal'), its own material color/opacity, its own timer field (archerAckFlashTimer). applyArcherAckFlash()/restoreArcherAckGlow() mirror applyHitFlash()/restoreBodyColor()'s shape but never read or write body.material.color or hitFlashTimer.",
+      "hitFlashUntouched": "applyHitFlash/restoreBodyColor/hitFlashTimer/body.material.color are exactly the same code used for every unit's damage-taken feedback -- unmodified.",
+      "disposal": "archerAckGlow disposed for free by disposeObjectTree(u.group) (a normal child mesh); its own pending timer explicitly cleared in disposeUnitVisual(), mirroring the existing hitFlashTimer clear.",
+      "proofMethod": "real setTimeout timers (not stepUnit's synchronous dt) -- the whole point is genuine real-time channel independence",
+      "proofResult": { "bothVisibleSimultaneously": true, "distinctTimers": true, "ackRevertedIndependentlyOfHitFlash": true, "bothEventuallyReverted": true, "reversedOrder_ackUnaffectedByHitFlash": true, "reversedOrder_bothReverted": true }
+    },
+    "fix2_waveResetImplementation": {
+      "design": "Archer-gated block added to resetForWave() (gated on u.archerSeqs, no-op for every other unit) resetting archerPendingAcks/archerSeqKey/archerFrameTimer/archerFrameIdx/archerFlashAckCount to exactly makeUnit()'s fresh-unit values, plus restoreArcherAckGlow(u).",
+      "proofMethod": "REAL production path: real spawnWave() -> deliberately-dirtied archer state (confirmed genuinely dirty, not assumed) -> real onWaveCleared() (the exact function animate() calls once eAlive===0) -> a real click on the actual #resultBtn DOM element -> real healPlayerTeam()/resetForWave() -> archer state read -> Wave B started for real -> one real deterministic Attack step taken.",
+      "testHarnessGapClosed": "placeTestUnit() alone doesn't register into placedUnits[] (only the shop's moveUnitTo() does, in real gameplay) -- a one-line registerAsPlaced() test hook was added so the test archer goes through the exact same reset a genuinely shop-placed hero gets. Test-hook addition only, not a change to any reset logic.",
+      "proofResult": {
+        "waveA_dirtyStateBeforeTransition": { "archerPendingAcks": 1, "archerSeqKey": "attack", "archerFrameTimer": 0.21666666666666665, "archerFrameIdx": 1, "animState": "attack", "wasGenuinelyDirty": true },
+        "phaseAfterOnWaveCleared": "result",
+        "phaseAfterRealResultBtnClick": "shop",
+        "waveIncremented": "1 -> 2",
+        "archerStateAfterRealClick": { "archerPendingAcks": 0, "archerSeqKey": null, "archerFrameTimer": 0, "archerFrameIdx": 0, "archerFlashAckCount": 0, "animState": "idle", "archerAckGlowOpacity": 0, "isCompletelyClean": true },
+        "waveBFirstRealAttackStep": { "archerSeqKey": "attack", "archerFrameIdx": 0, "archerPendingAcks": 0, "startedCleanFromFrameZero": true }
+      }
+    },
+    "reportingCorrections": {
+      "replayAccountingCategories": "completedReplay (finished within the window) / inProgressReplay (still playing at window close, at most 1) / queuedReplay (sitting in archerPendingAcks at window close, at most 1) / overflowAcknowledgment (flash-tier) -- proven to sum exactly to the attack-event count",
+      "x1_8sWindow": { "attackEventCount": 11, "damageEventCountProxy": 11, "completedReplays": 6, "inProgressReplayAtWindowClose": 1, "stillQueuedAtWindowClose": 1, "overflowAcknowledgments": 3, "accountedForExactlyOnce": "6+1+1+3==11, true", "fullDrawHits": 6, "releaseHits": 6, "noReleaseSuppression": true },
+      "combatX4EquivalentTrace_8sGameTime": { "attackEventCount": 10, "damageEventCountProxy": 10, "completedReplays": 6, "inProgressReplayAtWindowClose": 0, "stillQueuedAtWindowClose": 0, "overflowAcknowledgments": 4, "accountedForExactlyOnce": "6+0+0+4==10, true", "fullDrawHits": 6, "releaseHits": 6, "noReleaseSuppression": true },
+      "measuredTailTimeMs": 2267,
+      "measurementMethod": "measured directly from target-death instant to the exact simulated-time offset at which animState==='idle' and archerPendingAcks===0 -- not estimated; taken from the x1 trace's own recovery phase using that trace's genuinely-worst-case leftover state (1 in-progress + 1 queued replay), not a synthetic worst case."
+    },
+    "nonArcherRegression": { "unitTested": "swordman", "archerSeqsNull": true, "archerAckGlowNeverCreated": true, "attackEventsEqualDamageEvents": true, "sawFullOriginalAttackSeq": true, "archerPendingAcksAlwaysZero": true, "archerFlashAckCountAlwaysUndefined": true, "archerAckFlashTimerAlwaysUndefinedOrNull": true, "returnsToIdleCleanly": true, "noErrors": true },
+    "changedRuntimePaths": ["src/game.js"],
+    "assetBinariesChanged": false,
+    "protectedAssetReHashBeforeAfter": "ALL_29_BYTE_IDENTICAL_NO_DRIFT",
+    "newEvidenceFiles": [
+      "docs/reviews/archer-runtime-integration-v1/repeated-attack-timing-rework-v3.md",
+      "docs/reviews/archer-runtime-integration-v1/repeated-attack-timing-trace-raw-x1-v3.json",
+      "docs/reviews/archer-runtime-integration-v1/combat-x4-timing-trace-raw-v3.json",
+      "docs/reviews/archer-runtime-integration-v1/non-archer-regression-raw-v3.json",
+      "docs/reviews/archer-runtime-integration-v1/dual-flash-independence-raw-v3.json",
+      "docs/reviews/archer-runtime-integration-v1/wave-transition-reset-raw-v3.json"
+    ],
+    "validationRun": {
+      "nodeCheckSrcGameJs": "PASS",
+      "gitDiffCheck": "clean",
+      "validateArcherAttackV3_2ReviewCandidate": "exit 0, PASS"
+    },
+    "forbiddenListHeld": {
+      "attackCooldownChanged": false, "attackSpeedChanged": false, "damageTimingChanged": false, "manaChanged": false,
+      "lifestealChanged": false, "targetingChanged": false, "balanceChanged": false, "frameOrderChanged": false,
+      "frameTimingChanged": false, "fullDrawChanged": false, "releaseChanged": false, "assetsChanged": false,
+      "pngModified": false, "gameLoopChanged": false, "economyChanged": false, "projectileAdded": false,
+      "vfxAdded": false, "nonArcherRuntimeChanged": false
+    },
     "approvalFlagsUnchanged": { "pilotAccepted": false, "canonicalApproved": false, "finalRuntimeApproved": false, "merged": false }
   }
 }

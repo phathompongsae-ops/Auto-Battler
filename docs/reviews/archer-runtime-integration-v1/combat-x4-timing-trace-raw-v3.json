@@ -1,0 +1,20 @@
+{
+ "x4": {
+  "attackEventCount": 10,
+  "damageEventCountProxy": 10,
+  "attackEventsEqualDamageEvents": true,
+  "completedReplays": 6,
+  "inProgressReplayAtWindowClose": 0,
+  "stillQueuedAtWindowClose": 0,
+  "overflowAcknowledgments": 4,
+  "accountedFor": 10,
+  "everyAttackEventAccountedForExactlyOnce": true,
+  "fullDrawHits": 6,
+  "releaseHits": 6,
+  "noReleaseSuppression": true
+ },
+ "errors": {
+  "consoleErrors": [],
+  "pageErrors": []
+ }
+}
