@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "project": "Auto-Battler",
+  "classId": "summoner",
+  "authoritativeNeutralMaster": {
+    "record": "Class 1 Neutral Master Batch v1 — Exact Package Approval PR #83",
+    "packageRelativePath": "summoner/neutral/hero.summoner_neutral_master.png",
+    "sha256": "731531aaa1d3efc462a12d2265ad602e6e4711a83f054d8f84b5bb00f3956ae3",
+    "byteIdentical": true
+  },
+  "identityLock": {
+    "summary": "Male summoning/control caster; teal coat, grimoire, and ring-seal motif.",
+    "sheet": "summoner/review/summoner-identity-lock-sheet.png"
+  },
+  "actions": {
+    "idle": {
+      "directory": "summoner/idle",
+      "sidecar": "summoner/idle/summoner-idle-sidecar-v1.json",
+      "normalPreview": "summoner/review/summoner-idle-normal.gif",
+      "slowQaPreview": "summoner/review/summoner-idle-slow-qa.gif",
+      "contactSheet": "summoner/review/summoner-idle-contact-sheet.png"
+    },
+    "move": {
+      "directory": "summoner/move",
+      "sidecar": "summoner/move/summoner-move-sidecar-v1.json",
+      "normalPreview": "summoner/review/summoner-move-normal.gif",
+      "slowQaPreview": "summoner/review/summoner-move-slow-qa.gif",
+      "contactSheet": "summoner/review/summoner-move-contact-sheet.png"
+    },
+    "attack": {
+      "directory": "summoner/attack",
+      "sidecar": "summoner/attack/summoner-attack-sidecar-v1.json",
+      "normalPreview": "summoner/review/summoner-attack-normal.gif",
+      "slowQaPreview": "summoner/review/summoner-attack-slow-qa.gif",
+      "contactSheet": "summoner/review/summoner-attack-contact-sheet.png"
+    }
+  },
+  "technicalQaRecord": "summoner/technical-qa-record-v1.json",
+  "productionNotes": "summoner/production-notes-v1.md",
+  "knownDefectsRecord": "summoner/known-defects-v1.json",
+  "correctionHistory": [],
+  "prohibitedReferencesNotCopied": [
+    "Archer poses, frame count, and timing",
+    "Melee Batch attack poses",
+    "Other-class identity, costume, face, palette, anatomy, weapon, prop, silhouette, or motion"
+  ]
+}

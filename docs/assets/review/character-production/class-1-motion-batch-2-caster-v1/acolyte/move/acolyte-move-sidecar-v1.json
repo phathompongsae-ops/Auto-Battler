@@ -1,0 +1,253 @@
+{
+  "schemaVersion": 1,
+  "project": "Auto-Battler",
+  "classId": "acolyte",
+  "actionId": "move",
+  "candidateVersion": "v1",
+  "candidateState": "READY_FOR_HUMAN_REVIEW",
+  "sourceNeutralMasterPath": "acolyte/neutral/hero.acolyte_neutral_master.png",
+  "sourceNeutralMasterSha256": "0853ab6d8f91e4100732c7f3628b31a09a38a762dc999dfbecef3cc23804a9c8",
+  "canvas": [
+    640,
+    960
+  ],
+  "format": "PNG",
+  "colorMode": "RGBA",
+  "bitDepth": 8,
+  "transparentBackground": true,
+  "anchor": [
+    0.5,
+    0.92
+  ],
+  "footBaselineHalfOpenY": 855,
+  "runtimeFlipXCompatible": true,
+  "inPlaceRootMotion": true,
+  "loop": true,
+  "orderedFrames": [
+    {
+      "sha256": "3cc23bb9609bd528ec64b8afa62719695b8211b9acc2f2a332026cee1c5d9663",
+      "byteSize": 385895,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        69,
+        167,
+        531,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 0,
+      "file": "acolyte/move/frames/hero.acolyte_move_candidate_v1_000.png",
+      "durationCentiseconds": 11,
+      "role": "contact-a"
+    },
+    {
+      "sha256": "5593177a067819bf8f5a0b637b69ba282a68676b94216565aa609f019b01eb6e",
+      "byteSize": 379352,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        65,
+        173,
+        545,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 1,
+      "file": "acolyte/move/frames/hero.acolyte_move_candidate_v1_001.png",
+      "durationCentiseconds": 11,
+      "role": "down-a"
+    },
+    {
+      "sha256": "9a4146874d326f99431f5fccd03e7bd7dcca489cff55262898d4a0b279e8791f",
+      "byteSize": 381112,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        63,
+        187,
+        557,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 2,
+      "file": "acolyte/move/frames/hero.acolyte_move_candidate_v1_002.png",
+      "durationCentiseconds": 11,
+      "role": "passing-a"
+    },
+    {
+      "sha256": "1610a6a96c49f53f6d8a745652b29bea84a6d2d41572d2c77f60da0e2d308821",
+      "byteSize": 380790,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        61,
+        178,
+        552,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 3,
+      "file": "acolyte/move/frames/hero.acolyte_move_candidate_v1_003.png",
+      "durationCentiseconds": 11,
+      "role": "up-a"
+    },
+    {
+      "sha256": "df8d88d901a6626177c67234367d171d8334f057963b3eee01e7ea85d1bbecf3",
+      "byteSize": 378326,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        67,
+        174,
+        532,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 4,
+      "file": "acolyte/move/frames/hero.acolyte_move_candidate_v1_004.png",
+      "durationCentiseconds": 11,
+      "role": "contact-b"
+    },
+    {
+      "sha256": "67c4f4f112974025a191057cd7ed48243c5488070473cc6a6493b4975d06a967",
+      "byteSize": 377715,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        66,
+        171,
+        538,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 5,
+      "file": "acolyte/move/frames/hero.acolyte_move_candidate_v1_005.png",
+      "durationCentiseconds": 11,
+      "role": "down-b"
+    },
+    {
+      "sha256": "f87125cd518248f03b49b18d75d0037a0fbaa1d5fe167abfafbf55845b3f495a",
+      "byteSize": 371036,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        63,
+        179,
+        540,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 6,
+      "file": "acolyte/move/frames/hero.acolyte_move_candidate_v1_006.png",
+      "durationCentiseconds": 11,
+      "role": "passing-b"
+    },
+    {
+      "sha256": "0d22c04ab52662e7a352d6d7c2bdfc88f8a1f5b54e71375610aae618495151c0",
+      "byteSize": 385202,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        60,
+        178,
+        548,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 7,
+      "file": "acolyte/move/frames/hero.acolyte_move_candidate_v1_007.png",
+      "durationCentiseconds": 11,
+      "role": "up-b"
+    }
+  ],
+  "durationsCentiseconds": [
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11
+  ],
+  "totalDurationCentiseconds": 88,
+  "impactOrReleaseMarker": null,
+  "attackTimingBreakdown": null,
+  "attackSpeedValidationStatus": null,
+  "likelyFutureRuntimeHandling": null,
+  "runtimeSynchronizationStatus": "PENDING_SEPARATE_RUNTIME_INTEGRATION_VALIDATION",
+  "previews": {
+    "normalSpeed": "acolyte/review/acolyte-move-normal.gif",
+    "slowQa": "acolyte/review/acolyte-move-slow-qa.gif",
+    "contactSheet": "acolyte/review/acolyte-move-contact-sheet.png"
+  },
+  "correctionRoundCount": 0,
+  "knownDefects": [],
+  "productionNotes": "Grounded support jog with contained veil, robe, and sun-ring staff.",
+  "approval": {
+    "humanVisualApproval": "pending",
+    "motionProductionApproved": false,
+    "exactPackageApproved": false,
+    "canonicalApproved": false,
+    "runtimeIntegrationAuthorized": false,
+    "runtimeIntegrated": false,
+    "merged": false
+  }
+}

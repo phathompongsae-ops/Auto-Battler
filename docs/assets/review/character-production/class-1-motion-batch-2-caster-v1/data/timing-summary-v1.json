@@ -1,0 +1,170 @@
+{
+  "schemaVersion": 1,
+  "project": "Auto-Battler",
+  "timingUnit": "centiseconds",
+  "characters": {
+    "mage": {
+      "idle": {
+        "durations": [
+          20,
+          16,
+          14,
+          14,
+          16,
+          20
+        ],
+        "total": 100,
+        "loop": true,
+        "releaseFrame": null,
+        "releaseTimestamp": null,
+        "attackSpeedValidationStatus": null,
+        "likelyFutureRuntimeHandling": null
+      },
+      "move": {
+        "durations": [
+          11,
+          11,
+          11,
+          11,
+          11,
+          11,
+          11,
+          11
+        ],
+        "total": 88,
+        "loop": true,
+        "releaseFrame": null,
+        "releaseTimestamp": null,
+        "attackSpeedValidationStatus": null,
+        "likelyFutureRuntimeHandling": null
+      },
+      "attack": {
+        "durations": [
+          12,
+          10,
+          9,
+          7,
+          6,
+          9,
+          14,
+          22
+        ],
+        "total": 89,
+        "loop": false,
+        "releaseFrame": 4,
+        "releaseTimestamp": 38,
+        "attackSpeedValidationStatus": "ATTACK_SPEED_RUNTIME_VALIDATION_PENDING",
+        "likelyFutureRuntimeHandling": "full replay"
+      }
+    },
+    "summoner": {
+      "idle": {
+        "durations": [
+          18,
+          16,
+          14,
+          14,
+          16,
+          18
+        ],
+        "total": 96,
+        "loop": true,
+        "releaseFrame": null,
+        "releaseTimestamp": null,
+        "attackSpeedValidationStatus": null,
+        "likelyFutureRuntimeHandling": null
+      },
+      "move": {
+        "durations": [
+          10,
+          10,
+          10,
+          10,
+          10,
+          10,
+          10,
+          10
+        ],
+        "total": 80,
+        "loop": true,
+        "releaseFrame": null,
+        "releaseTimestamp": null,
+        "attackSpeedValidationStatus": null,
+        "likelyFutureRuntimeHandling": null
+      },
+      "attack": {
+        "durations": [
+          11,
+          9,
+          8,
+          7,
+          6,
+          9,
+          13,
+          20
+        ],
+        "total": 83,
+        "loop": false,
+        "releaseFrame": 4,
+        "releaseTimestamp": 35,
+        "attackSpeedValidationStatus": "ATTACK_SPEED_RUNTIME_VALIDATION_PENDING",
+        "likelyFutureRuntimeHandling": "full replay"
+      }
+    },
+    "acolyte": {
+      "idle": {
+        "durations": [
+          20,
+          18,
+          16,
+          16,
+          18,
+          20
+        ],
+        "total": 108,
+        "loop": true,
+        "releaseFrame": null,
+        "releaseTimestamp": null,
+        "attackSpeedValidationStatus": null,
+        "likelyFutureRuntimeHandling": null
+      },
+      "move": {
+        "durations": [
+          11,
+          11,
+          11,
+          11,
+          11,
+          11,
+          11,
+          11
+        ],
+        "total": 88,
+        "loop": true,
+        "releaseFrame": null,
+        "releaseTimestamp": null,
+        "attackSpeedValidationStatus": null,
+        "likelyFutureRuntimeHandling": null
+      },
+      "attack": {
+        "durations": [
+          12,
+          10,
+          8,
+          7,
+          6,
+          9,
+          14,
+          20
+        ],
+        "total": 86,
+        "loop": false,
+        "releaseFrame": 4,
+        "releaseTimestamp": 37,
+        "attackSpeedValidationStatus": "ATTACK_SPEED_RUNTIME_VALIDATION_PENDING",
+        "likelyFutureRuntimeHandling": "full replay"
+      }
+    }
+  },
+  "runtimeSynchronizationStatus": "PENDING_SEPARATE_RUNTIME_INTEGRATION_VALIDATION"
+}

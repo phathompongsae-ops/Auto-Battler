@@ -1,0 +1,280 @@
+{
+  "schemaVersion": 1,
+  "project": "Auto-Battler",
+  "classId": "summoner",
+  "actionId": "attack",
+  "candidateVersion": "v1",
+  "candidateState": "READY_FOR_HUMAN_REVIEW",
+  "sourceNeutralMasterPath": "summoner/neutral/hero.summoner_neutral_master.png",
+  "sourceNeutralMasterSha256": "731531aaa1d3efc462a12d2265ad602e6e4711a83f054d8f84b5bb00f3956ae3",
+  "canvas": [
+    640,
+    960
+  ],
+  "format": "PNG",
+  "colorMode": "RGBA",
+  "bitDepth": 8,
+  "transparentBackground": true,
+  "anchor": [
+    0.5,
+    0.92
+  ],
+  "footBaselineHalfOpenY": 855,
+  "runtimeFlipXCompatible": true,
+  "inPlaceRootMotion": true,
+  "loop": false,
+  "orderedFrames": [
+    {
+      "sha256": "3ed796e1bb11ec5e0d9cab77060f7fe489cef5ebee5552c8d413aabe1c8e9670",
+      "byteSize": 388423,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        93,
+        205,
+        545,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 0,
+      "file": "summoner/attack/frames/hero.summoner_attack_candidate_v1_000.png",
+      "durationCentiseconds": 11,
+      "role": "ready"
+    },
+    {
+      "sha256": "d71c1e586d4de315e03fb0bb125637a91acd235c78fa3847dfb5747852cab391",
+      "byteSize": 370721,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        112,
+        204,
+        536,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 1,
+      "file": "summoner/attack/frames/hero.summoner_attack_candidate_v1_001.png",
+      "durationCentiseconds": 9,
+      "role": "anticipation"
+    },
+    {
+      "sha256": "cf63c0de202ed88667c22b676c95dad6513f9ccfb8148cc79c8e4f9df11a27cf",
+      "byteSize": 385593,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        101,
+        213,
+        566,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 2,
+      "file": "summoner/attack/frames/hero.summoner_attack_candidate_v1_002.png",
+      "durationCentiseconds": 8,
+      "role": "wind-up"
+    },
+    {
+      "sha256": "98596d13fc29c20cfaad4a04cad6eb6d61f8faa1c393454c608a2b38bd17eda6",
+      "byteSize": 348187,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        104,
+        210,
+        535,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 3,
+      "file": "summoner/attack/frames/hero.summoner_attack_candidate_v1_003.png",
+      "durationCentiseconds": 7,
+      "role": "pre-release"
+    },
+    {
+      "sha256": "50f1d012fa56895982ae9cd1db94775f2eeded41fb3f4b629100b37e2921495f",
+      "byteSize": 358148,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        84,
+        241,
+        613,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 4,
+      "file": "summoner/attack/frames/hero.summoner_attack_candidate_v1_004.png",
+      "durationCentiseconds": 6,
+      "role": "release"
+    },
+    {
+      "sha256": "8f334a7b0faab919dd11e56b5d457a7c5d60ededa98978440b6de6ac41da272c",
+      "byteSize": 345223,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        79,
+        256,
+        604,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 5,
+      "file": "summoner/attack/frames/hero.summoner_attack_candidate_v1_005.png",
+      "durationCentiseconds": 9,
+      "role": "follow-through"
+    },
+    {
+      "sha256": "901c659ef1399d3ab7f61852b4ac38bbd80b36645468bc1cec603b0b1ceadb24",
+      "byteSize": 349830,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        147,
+        218,
+        548,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 6,
+      "file": "summoner/attack/frames/hero.summoner_attack_candidate_v1_006.png",
+      "durationCentiseconds": 13,
+      "role": "recovery"
+    },
+    {
+      "sha256": "35f29dcd401c167474147abf5499d1104ebf9970752e6eb1873d722010e754ba",
+      "byteSize": 373564,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        98,
+        216,
+        539,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 7,
+      "file": "summoner/attack/frames/hero.summoner_attack_candidate_v1_007.png",
+      "durationCentiseconds": 20,
+      "role": "neutral-exit"
+    }
+  ],
+  "durationsCentiseconds": [
+    11,
+    9,
+    8,
+    7,
+    6,
+    9,
+    13,
+    20
+  ],
+  "totalDurationCentiseconds": 83,
+  "impactOrReleaseMarker": {
+    "type": "visualRelease",
+    "frameIndex": 4,
+    "frameFile": "summoner/attack/frames/hero.summoner_attack_candidate_v1_004.png",
+    "timestampCentiseconds": 35,
+    "frameDurationCentiseconds": 6
+  },
+  "attackTimingBreakdown": {
+    "anticipation": {
+      "startFrame": 0,
+      "endFrameInclusive": 3,
+      "durationCentiseconds": 35
+    },
+    "release": {
+      "frameIndex": 4,
+      "timestampCentiseconds": 35,
+      "durationCentiseconds": 6
+    },
+    "followThrough": {
+      "startFrame": 5,
+      "endFrameInclusive": 6,
+      "durationCentiseconds": 22
+    },
+    "recovery": {
+      "startFrame": 7,
+      "endFrameInclusive": 7,
+      "durationCentiseconds": 20
+    }
+  },
+  "attackSpeedValidationStatus": "ATTACK_SPEED_RUNTIME_VALIDATION_PENDING",
+  "likelyFutureRuntimeHandling": "full replay",
+  "runtimeSynchronizationStatus": "PENDING_SEPARATE_RUNTIME_INTEGRATION_VALIDATION",
+  "previews": {
+    "normalSpeed": "summoner/review/summoner-attack-normal.gif",
+    "slowQa": "summoner/review/summoner-attack-slow-qa.gif",
+    "contactSheet": "summoner/review/summoner-attack-contact-sheet.png"
+  },
+  "correctionRoundCount": 0,
+  "knownDefects": [],
+  "productionNotes": "Book command and ring-directed release at frame 004; no summon or baked VFX.",
+  "approval": {
+    "humanVisualApproval": "pending",
+    "motionProductionApproved": false,
+    "exactPackageApproved": false,
+    "canonicalApproved": false,
+    "runtimeIntegrationAuthorized": false,
+    "runtimeIntegrated": false,
+    "merged": false
+  }
+}

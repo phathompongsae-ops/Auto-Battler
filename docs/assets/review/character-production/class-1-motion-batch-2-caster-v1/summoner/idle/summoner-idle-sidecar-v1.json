@@ -1,0 +1,203 @@
+{
+  "schemaVersion": 1,
+  "project": "Auto-Battler",
+  "classId": "summoner",
+  "actionId": "idle",
+  "candidateVersion": "v1",
+  "candidateState": "READY_FOR_HUMAN_REVIEW",
+  "sourceNeutralMasterPath": "summoner/neutral/hero.summoner_neutral_master.png",
+  "sourceNeutralMasterSha256": "731531aaa1d3efc462a12d2265ad602e6e4711a83f054d8f84b5bb00f3956ae3",
+  "canvas": [
+    640,
+    960
+  ],
+  "format": "PNG",
+  "colorMode": "RGBA",
+  "bitDepth": 8,
+  "transparentBackground": true,
+  "anchor": [
+    0.5,
+    0.92
+  ],
+  "footBaselineHalfOpenY": 855,
+  "runtimeFlipXCompatible": true,
+  "inPlaceRootMotion": true,
+  "loop": true,
+  "orderedFrames": [
+    {
+      "sha256": "46f5dd460ed585ce2255ae045556adf6de68dd9fce751f077c4e6767179f4674",
+      "byteSize": 458315,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        64,
+        140,
+        592,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 0,
+      "file": "summoner/idle/frames/hero.summoner_idle_candidate_v1_000.png",
+      "durationCentiseconds": 18,
+      "role": "ready"
+    },
+    {
+      "sha256": "31cd719907f674e0091151a7536c9e1b7815b082debe53b09d81dad470bf20bd",
+      "byteSize": 458629,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        66,
+        140,
+        594,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 1,
+      "file": "summoner/idle/frames/hero.summoner_idle_candidate_v1_001.png",
+      "durationCentiseconds": 16,
+      "role": "breathe-in"
+    },
+    {
+      "sha256": "b0b6d5a115fb6a6c526feea120bb71536802aeb49abe2d94da8dc39e83d3f42d",
+      "byteSize": 458006,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        67,
+        140,
+        589,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 2,
+      "file": "summoner/idle/frames/hero.summoner_idle_candidate_v1_002.png",
+      "durationCentiseconds": 14,
+      "role": "settle"
+    },
+    {
+      "sha256": "07f49740d658a77d7c087d2068fab100b5dfdbed86cb0f9d2afb1bb46849521f",
+      "byteSize": 447541,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        76,
+        153,
+        588,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 3,
+      "file": "summoner/idle/frames/hero.summoner_idle_candidate_v1_003.png",
+      "durationCentiseconds": 14,
+      "role": "breathe-out"
+    },
+    {
+      "sha256": "b4fc42f79a8275ac88f8a0a3ee1c0d8f06c7059bc84a7e385497f82cdf963f9c",
+      "byteSize": 448803,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        74,
+        153,
+        583,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 4,
+      "file": "summoner/idle/frames/hero.summoner_idle_candidate_v1_004.png",
+      "durationCentiseconds": 16,
+      "role": "return"
+    },
+    {
+      "sha256": "fdd0dff77f347b7172783732511e1e8060b668c182969f608d9e1cd5265445ad",
+      "byteSize": 450971,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        68,
+        150,
+        590,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 5,
+      "file": "summoner/idle/frames/hero.summoner_idle_candidate_v1_005.png",
+      "durationCentiseconds": 18,
+      "role": "loop-bridge"
+    }
+  ],
+  "durationsCentiseconds": [
+    18,
+    16,
+    14,
+    14,
+    16,
+    18
+  ],
+  "totalDurationCentiseconds": 96,
+  "impactOrReleaseMarker": null,
+  "attackTimingBreakdown": null,
+  "attackSpeedValidationStatus": null,
+  "likelyFutureRuntimeHandling": null,
+  "runtimeSynchronizationStatus": "PENDING_SEPARATE_RUNTIME_INTEGRATION_VALIDATION",
+  "previews": {
+    "normalSpeed": "summoner/review/summoner-idle-normal.gif",
+    "slowQa": "summoner/review/summoner-idle-slow-qa.gif",
+    "contactSheet": "summoner/review/summoner-idle-contact-sheet.png"
+  },
+  "correctionRoundCount": 0,
+  "knownDefects": [],
+  "productionNotes": "Controlled grimoire-ready stance with restrained page, coat, hand, and ring motion.",
+  "approval": {
+    "humanVisualApproval": "pending",
+    "motionProductionApproved": false,
+    "exactPackageApproved": false,
+    "canonicalApproved": false,
+    "runtimeIntegrationAuthorized": false,
+    "runtimeIntegrated": false,
+    "merged": false
+  }
+}

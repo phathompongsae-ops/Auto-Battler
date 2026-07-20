@@ -1,0 +1,253 @@
+{
+  "schemaVersion": 1,
+  "project": "Auto-Battler",
+  "classId": "summoner",
+  "actionId": "move",
+  "candidateVersion": "v1",
+  "candidateState": "READY_FOR_HUMAN_REVIEW",
+  "sourceNeutralMasterPath": "summoner/neutral/hero.summoner_neutral_master.png",
+  "sourceNeutralMasterSha256": "731531aaa1d3efc462a12d2265ad602e6e4711a83f054d8f84b5bb00f3956ae3",
+  "canvas": [
+    640,
+    960
+  ],
+  "format": "PNG",
+  "colorMode": "RGBA",
+  "bitDepth": 8,
+  "transparentBackground": true,
+  "anchor": [
+    0.5,
+    0.92
+  ],
+  "footBaselineHalfOpenY": 855,
+  "runtimeFlipXCompatible": true,
+  "inPlaceRootMotion": true,
+  "loop": true,
+  "orderedFrames": [
+    {
+      "sha256": "4bc53734bb0799c4bd3048b891bb1d35a52273bffedaab65835a66239304f0cf",
+      "byteSize": 373705,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        76,
+        208,
+        550,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 0,
+      "file": "summoner/move/frames/hero.summoner_move_candidate_v1_000.png",
+      "durationCentiseconds": 10,
+      "role": "contact-a"
+    },
+    {
+      "sha256": "b5e6537bd0d9cd8dade9c83ad8970c8efe09938fec60467cd6031e9748e1b07a",
+      "byteSize": 368154,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        90,
+        207,
+        558,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 1,
+      "file": "summoner/move/frames/hero.summoner_move_candidate_v1_001.png",
+      "durationCentiseconds": 10,
+      "role": "down-a"
+    },
+    {
+      "sha256": "a448fb01f3a874e8cbf1c8b4d1a8652b3f102862ba55bf005d92eece349946d8",
+      "byteSize": 374006,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        73,
+        205,
+        556,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 2,
+      "file": "summoner/move/frames/hero.summoner_move_candidate_v1_002.png",
+      "durationCentiseconds": 10,
+      "role": "passing-a"
+    },
+    {
+      "sha256": "0ee29dcd130fe175850e2dd2a2aea52607b2dfc21ec6037c5cc166f3adf9fc22",
+      "byteSize": 363616,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        92,
+        218,
+        550,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 3,
+      "file": "summoner/move/frames/hero.summoner_move_candidate_v1_003.png",
+      "durationCentiseconds": 10,
+      "role": "up-a"
+    },
+    {
+      "sha256": "a50f6c0b069bf2c4bb9d030c0bf24977aaad22ea32283fe3095810b55cb32ea5",
+      "byteSize": 376709,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        73,
+        225,
+        558,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 4,
+      "file": "summoner/move/frames/hero.summoner_move_candidate_v1_004.png",
+      "durationCentiseconds": 10,
+      "role": "contact-b"
+    },
+    {
+      "sha256": "81a6a12b7dbf377338bce4fe576c75149f7249b8de8b823af89d04adf326c231",
+      "byteSize": 374354,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        83,
+        224,
+        563,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 5,
+      "file": "summoner/move/frames/hero.summoner_move_candidate_v1_005.png",
+      "durationCentiseconds": 10,
+      "role": "down-b"
+    },
+    {
+      "sha256": "1a06c82a310d96750165997ce6eb2ce373529b4fed0df67edc622467e33df860",
+      "byteSize": 358316,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        87,
+        225,
+        545,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 6,
+      "file": "summoner/move/frames/hero.summoner_move_candidate_v1_006.png",
+      "durationCentiseconds": 10,
+      "role": "passing-b"
+    },
+    {
+      "sha256": "13c1dcd66ffd5db97bc31f12be198034907328f029c55cd219252f1799bee274",
+      "byteSize": 375940,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        74,
+        219,
+        563,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 7,
+      "file": "summoner/move/frames/hero.summoner_move_candidate_v1_007.png",
+      "durationCentiseconds": 10,
+      "role": "up-b"
+    }
+  ],
+  "durationsCentiseconds": [
+    10,
+    10,
+    10,
+    10,
+    10,
+    10,
+    10,
+    10
+  ],
+  "totalDurationCentiseconds": 80,
+  "impactOrReleaseMarker": null,
+  "attackTimingBreakdown": null,
+  "attackSpeedValidationStatus": null,
+  "likelyFutureRuntimeHandling": null,
+  "runtimeSynchronizationStatus": "PENDING_SEPARATE_RUNTIME_INTEGRATION_VALIDATION",
+  "previews": {
+    "normalSpeed": "summoner/review/summoner-move-normal.gif",
+    "slowQa": "summoner/review/summoner-move-slow-qa.gif",
+    "contactSheet": "summoner/review/summoner-move-contact-sheet.png"
+  },
+  "correctionRoundCount": 0,
+  "knownDefects": [],
+  "productionNotes": "Grounded movement while maintaining book and ring-seal control.",
+  "approval": {
+    "humanVisualApproval": "pending",
+    "motionProductionApproved": false,
+    "exactPackageApproved": false,
+    "canonicalApproved": false,
+    "runtimeIntegrationAuthorized": false,
+    "runtimeIntegrated": false,
+    "merged": false
+  }
+}

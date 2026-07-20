@@ -1,0 +1,191 @@
+{
+  "record": "class1-motion-batch-2-caster-exact-package-approval-v1",
+  "schemaVersion": 1,
+  "project": "phathompongsae-ops/Auto-Battler",
+  "status": "CLASS1_MOTION_BATCH2_CASTER_EXACT_PACKAGE_APPROVED",
+  "scope": "Independent verification and byte-for-byte import of the Class 1 Motion Production Batch 2 (Caster Family: Mage, Summoner, Acolyte) human-review package, plus the user's explicit Human Visual Approval and Exact Package Approval recorded below. Every technical field is independently measured from the imported binaries, not copied from the package's own claims without re-derivation. Exact Package Approval applies only to the exact package identified by packageHandoff.sha256Measured -- it does not authorize Runtime Integration, canonical promotion, or any Combat/gameplay/balance/Skill/Cast/projectile/VFX/Board-Preview work.",
+
+  "humanDecision": {
+    "verdict": "HUMAN_VISUAL_APPROVED",
+    "approvedBy": "user (explicit instruction, authoritative)",
+    "userStatementVerbatim": "ผมโอเคแล้ว (Thai: \"I'm OK now\" / \"I've approved now\")",
+    "approvedCharacters": ["mage", "summoner", "acolyte"],
+    "approvedMotionsPerCharacter": ["neutral", "idle", "move", "attack"],
+    "approvedPackage": { "sha256": "2a7e074388f0ce93f9182a841d91ff45477af6ed6c52015bee1a29531d7016af", "reassembledFileName": "class_1_motion_production_batch_2_caster_family_v1_human_review_package_FINAL.zip" },
+    "recordUpdatedAtUtc": "2026-07-20T11:25:28Z",
+    "recordUpdatedAtNote": "This timestamp is the record creation/update time for this approval entry, not a claimed timestamp of the user's original spoken decision.",
+    "explicitlyNotApproved": ["runtimeIntegration", "runtimeSynchronization", "combatTimingBehavior", "attackSpeedHandling", "skillCast", "hit", "death", "victory", "fusion", "class2", "secretClass", "survival", "threeStarMotion", "boardPreview", "projectile", "vfx", "gameplay", "balance"],
+    "note": "The package's own docs/human-decision-sheet-v1.md and every sidecar's approval block record humanVisualApproval as 'pending' as shipped -- this record is what turns that pending state into true, per the user's explicit decision in this task. This is Human Visual Approval and Exact Package Approval only -- not canonical approval, not Runtime Integration authorization, not a merge."
+  },
+
+  "referencePipeline": {
+    "archerPilotAcceptance": { "role": "quality-pipeline reference only, not modified", "record": "data/design/archer-pilot-acceptance-record-v1.json" },
+    "pr83": { "title": "Class 1 Neutral Master Batch v1 — Exact Package Approval", "role": "authoritative Neutral Master source for Mage/Summoner/Acolyte", "notModified": true },
+    "pr84": { "title": "Archer Pilot Acceptance Record", "role": "quality-pipeline reference only", "notModified": true },
+    "pr86": { "title": "Class 1 Motion Production Batch 1 (Melee Family) — Exact Package Approval v1", "role": "established import/validation pattern this batch reuses", "notModified": true }
+  },
+
+  "packageHandoff": {
+    "note": "The two hashes reported in the task's original handoff (a mid-production report and an earlier downloaded package) are explicitly OBSOLETE per this task's own instructions and were NOT used as expected values. The rebuilt package's independently measured SHA-256 below is the sole authoritative value.",
+    "deliveryMethod": "14-part split upload, no manifest accompanied this specific upload (the only manifest files present in the session belonged to unrelated earlier packages); parts verified for completeness (indexes 1-14 contiguous, no gaps/duplicates/zero-byte parts) and reassembled in binary-safe numeric order in a scratch directory outside the repository",
+    "reassembledFileName": "class_1_motion_production_batch_2_caster_family_v1_human_review_package_FINAL.zip",
+    "sha256Measured": "2a7e074388f0ce93f9182a841d91ff45477af6ed6c52015bee1a29531d7016af",
+    "sizeBytesMeasured": 42013790,
+    "zipEntryCountMeasured": 134,
+    "zipCrcCheck": "PASS",
+    "pathTraversal": "none",
+    "absolutePaths": "none",
+    "symlinks": "none",
+    "duplicatePaths": "none",
+    "caseCollisionPaths": "none",
+    "hiddenOsOrTempFiles": "none",
+    "repositoryMetadata": "none",
+    "outerWrapperDirectory": "class-1-motion-batch-2-caster-human-review-candidate-v1/ (single level, stripped on import to match the established PR #86 no-wrapper import structure)",
+    "note2": "ZIP itself, split parts, and any manifest/reassembly scratch file are not committed -- same convention as every prior package in this pipeline."
+  },
+
+  "importRoot": "docs/assets/review/character-production/class-1-motion-batch-2-caster-v1",
+  "importVerification": "all 134 files re-hashed after copy; byte-identical to the extraction (diff of sorted sha256 lists empty)",
+
+  "exactNeutralMasters": [
+    { "classId": "mage", "path": "mage/neutral/hero.mage_neutral_master.png", "sha256": "6587abdf0b4427ed9c95acb98a6d7c618e8be653fb13cdcaa9be1472fcb96315", "matchesPR83": true },
+    { "classId": "summoner", "path": "summoner/neutral/hero.summoner_neutral_master.png", "sha256": "731531aaa1d3efc462a12d2265ad602e6e4711a83f054d8f84b5bb00f3956ae3", "matchesPR83": true },
+    { "classId": "acolyte", "path": "acolyte/neutral/hero.acolyte_neutral_master.png", "sha256": "0853ab6d8f91e4100732c7f3628b31a09a38a762dc999dfbecef3cc23804a9c8", "matchesPR83": true }
+  ],
+
+  "technicalContract": {
+    "format": "PNG", "mode": "RGBA", "bitDepth": 8, "canvas": [640, 960],
+    "footBaselineHalfOpen": 855, "anchor": [0.5, 0.92],
+    "note": "No universal fixed frame count -- per-action frame counts are derived from each action's own sidecar, not assumed. Idle is 6 frames for all three casters in this batch; Move and Attack are 8 frames."
+  },
+
+  "motions": [
+    { "classId": "mage", "action": "idle", "frameCount": 6, "totalCentiseconds": 100, "loop": true, "releaseMarker": null },
+    { "classId": "mage", "action": "move", "frameCount": 8, "totalCentiseconds": 88, "loop": true, "releaseMarker": null },
+    { "classId": "mage", "action": "attack", "frameCount": 8, "totalCentiseconds": 89, "loop": false, "releaseMarker": { "frameIndex": 4, "frameFile": "mage/attack/frames/hero.mage_attack_candidate_v1_004.png", "timestampCentiseconds": 38, "frameDurationCentiseconds": 6 }, "attackTimingBreakdown": { "anticipationCentiseconds": 38, "releaseCentiseconds": 6, "followThroughCentiseconds": 23, "recoveryCentiseconds": 22 } },
+    { "classId": "summoner", "action": "idle", "frameCount": 6, "totalCentiseconds": 96, "loop": true, "releaseMarker": null },
+    { "classId": "summoner", "action": "move", "frameCount": 8, "totalCentiseconds": 80, "loop": true, "releaseMarker": null },
+    { "classId": "summoner", "action": "attack", "frameCount": 8, "totalCentiseconds": 83, "loop": false, "releaseMarker": { "frameIndex": 4, "frameFile": "summoner/attack/frames/hero.summoner_attack_candidate_v1_004.png", "timestampCentiseconds": 35, "frameDurationCentiseconds": 6 }, "attackTimingBreakdown": { "anticipationCentiseconds": 35, "releaseCentiseconds": 6, "followThroughCentiseconds": 22, "recoveryCentiseconds": 20 } },
+    { "classId": "acolyte", "action": "idle", "frameCount": 6, "totalCentiseconds": 108, "loop": true, "releaseMarker": null },
+    { "classId": "acolyte", "action": "move", "frameCount": 8, "totalCentiseconds": 88, "loop": true, "releaseMarker": null },
+    { "classId": "acolyte", "action": "attack", "frameCount": 8, "totalCentiseconds": 86, "loop": false, "releaseMarker": { "frameIndex": 4, "frameFile": "acolyte/attack/frames/hero.acolyte_attack_candidate_v1_004.png", "timestampCentiseconds": 37, "frameDurationCentiseconds": 6 }, "attackTimingBreakdown": { "anticipationCentiseconds": 37, "releaseCentiseconds": 6, "followThroughCentiseconds": 23, "recoveryCentiseconds": 20 } }
+  ],
+  "totalAnimatedMotionFrames": 66,
+  "perFrameHashSource": "Every per-frame SHA-256 is recorded in each action's own sidecar JSON (e.g. mage/idle/mage-idle-sidecar-v1.json) -- the validator re-derives every hash directly from the imported PNG bytes and cross-checks against the sidecars, never trusting the package's own claim.",
+
+  "independentVerification": {
+    "method": "Manual PNG decode (IHDR/IDAT parse + zlib inflate + Paeth unfiltering) and fresh SHA-256, run against the imported binaries -- no claim from the package's own JSON was trusted without re-derivation.",
+    "allFramesPngRgba8Bit640x960": true,
+    "allFrameBordersFullyTransparent": true,
+    "allFrameBaselinesHalfOpen855": true,
+    "duplicateFrameHashesAcrossBatch": false,
+    "allSidecarPerFrameHashesMatchBinaries": true,
+    "frameOrderingCompleteNoGaps": true,
+    "noUnexpectedFrameInAnyActionDirectory": true,
+    "allDurationSumsMatchSidecarTotals": true,
+    "allTotalsMatchHandoffReportedValues": true,
+    "allReleaseMarkersMatchHandoffReportedValues": true,
+    "releaseTimestampEqualsSumOfPrecedingFrameDurations": true,
+    "loopFlagsCorrect": "idle/move=true, attack=false, 9/9",
+    "neutralMasterHashesMatchPR83": true,
+    "normalPreviewGifTimingMatchesSidecars": "9/9 GIFs, exact centisecond match",
+    "noProjectileVfxSummonHealingOrBakedImpactEffectPresent": true,
+    "releaseFrameVisuallyConfirmed": "spot-checked all 3 classes (frame 004 of each attack sequence) -- clear prop-forward release pose in every case (Mage staff/gem, Summoner book/summoning-ring, Acolyte staff), no baked VFX",
+    "recoveryToNeutralCoherence": "spot-checked representative class (Mage, attack frame 007 vs neutral master) -- visually coherent return to standing pose",
+    "metadataSourceMapPathSafety": "no absolute local filesystem paths found in any JSON/MD file in the package",
+    "humanDecisionSheetPreselection": "none -- all actions recorded as PENDING, no verdict pre-filled"
+  },
+
+  "checkpointByteComparison": {
+    "performed": false,
+    "reason": "CHECKPOINT_BINARY_COMPARISON_NOT_INDEPENDENTLY_REPRODUCIBLE -- the package's own data/batch-technical-qa-report-v1.json and data/batch-manifest-v1.json claim 107/107 byte-identical against two prior checkpoint ZIPs (sha256 7c8d16fa... and dbeaae75..., both explicitly obsolete per this task), but neither of those prior ZIPs is present in this session to independently re-verify against. This is a disclosed limitation, not a package failure -- all current-package binary and contract checks pass independently.",
+    "packagesOwnUnverifiedClaim": { "comparedCount": 107, "claimedByteIdenticalCount": 107, "claimedDifferences": [] }
+  },
+
+  "boardPreview": {
+    "status": "DEFERRED_UNTIL_AFTER_DEMO",
+    "note": "Unchanged from PR #83/#86. Not replaced, not regenerated. The package's own review/board-scale-motion-readability-proxy.gif is a readability proxy only, not a Board Preview replacement."
+  },
+
+  "runtimeAttackSpeedSynchronization": {
+    "status": "PENDING_SEPARATE_RUNTIME_INTEGRATION_VALIDATION",
+    "attackSpeedValidationStatus": "ATTACK_SPEED_RUNTIME_VALIDATION_PENDING",
+    "likelyFutureRuntimeHandlingProductionNote": "full replay",
+    "note": "This is a base-speed production note only, not an implementation decision. Not evaluated or resolved by this task -- no Runtime or Combat code touched."
+  },
+
+  "internalProductionReviewFindings": {
+    "source": "Coco's reported internal QA (not independent human approval)",
+    "identityConsistency": "Internal PASS",
+    "anatomyConsistency": "Internal PASS",
+    "handContinuity": "Internal PASS",
+    "propContinuity": "Internal PASS",
+    "normalSpeedReadability": "Internal PASS",
+    "pairwiseDistinction": "Internal PASS",
+    "targetedCorrectionRounds": 0,
+    "remainingDefectsReported": "none found",
+    "disclaimer": "These are internal production-review findings only, preserved as reported because they are supported by the package's own technical-qa records. They are NOT user approval and NOT independent human approval. The user's visual decision remains pending."
+  },
+
+  "knownLimitations": [
+    "Human Visual Approval and Exact Package Approval are now recorded (see humanDecision); Runtime Integration authorization is NOT included and remains a separate, later, user-authorized gate.",
+    "Attack-speed validation is ATTACK_SPEED_RUNTIME_VALIDATION_PENDING.",
+    "Runtime synchronization is PENDING_SEPARATE_RUNTIME_INTEGRATION_VALIDATION.",
+    "Board Preview replacement remains DEFERRED_UNTIL_AFTER_DEMO; the included board artifact is a readability proxy only.",
+    "No projectile, VFX, Skill, Cast, summon, or healing implementation is included.",
+    "Runtime, Combat, balance, and gameplay checks were intentionally not performed (out of scope for this task).",
+    "Checkpoint-to-checkpoint byte comparison against the two prior (obsolete) package hashes could not be independently reproduced in this session -- see checkpointByteComparison above."
+  ],
+
+  "testsActuallyRun": [
+    "ZIP part completeness/order/hash-free-integrity check (14/14 parts, contiguous, no gaps/dupes/zero-byte)",
+    "Binary-safe reassembly + fresh SHA-256/size measurement of the resulting ZIP",
+    "unzip -t (CRC integrity, all entries)",
+    "Python zipfile-based path-traversal/absolute-path/symlink/duplicate-path/case-collision/hidden-file scan",
+    "Full independent PNG re-decode + re-hash of all 66 motion frames + 3 Neutral Masters (manual IHDR/IDAT/zlib/Paeth)",
+    "Per-action frame-directory-vs-sidecar completeness check (no missing, no unexpected frame)",
+    "Duration-sum, loop-flag, and release-marker cross-check against both the sidecars and the task's handoff-reported values",
+    "9/9 normal-speed GIF frame-timing decode and comparison against sidecars",
+    "Grep-based absolute-path scan of every JSON/MD file in the package",
+    "node -e JSON.parse on every JSON file in the package",
+    "Human Decision Sheet preselection check",
+    "Visual spot-check of all 3 release frames + 1 representative recovery-to-neutral frame",
+    "node --check on the updated validator",
+    "node run of the updated validator",
+    "git diff --check",
+    "Pre-approval re-confirmation (this task): git HEAD/branch/clean-tree check, live PR #87 state check, imported-file count re-count (134/134), fresh re-hash of all 3 Neutral Masters against both this record and data/design/class1-neutral-master-batch-exact-package-approval-v1.json, full validator re-run before any record edit"
+  ],
+
+  "prohibitionsHeld": {
+    "artworkGenerated": false,
+    "motionRegenerated": false,
+    "pngOrGifBinaryEdited": false,
+    "resizedRecoloredCroppedRecompressedReencoded": false,
+    "neutralMastersModified": false,
+    "frameOrderChanged": false,
+    "perFrameTimingChanged": false,
+    "impactMarkersChanged": false,
+    "runtimeIntegrationStarted": false,
+    "srcModified": false,
+    "combatBalanceEconomyChanged": false,
+    "skillCastProjectileVfxStarted": false,
+    "boardPreviewReplaced": false,
+    "prMerged": false,
+    "autoMergeEnabled": false,
+    "pr82Or83Or84Or86Modified": false,
+    "userApprovalFabricated": false
+  },
+
+  "approvalFlags": {
+    "humanVisualApproval": true,
+    "motionProductionApproved": true,
+    "exactPackageApproved": true,
+    "canonicalApproved": false,
+    "runtimeIntegrationAuthorized": false,
+    "runtimeIntegrated": false,
+    "merged": false
+  },
+
+  "validator": "tools/validate-class1-motion-batch-2-caster-exact-package-approval-v1.mjs",
+  "nextStep": "Human Visual Approval and Exact Package Approval are recorded. The next authorized gate is a separate, later, user-authorized decision on canonical promotion and/or Runtime Integration -- not started by this record."
+}
