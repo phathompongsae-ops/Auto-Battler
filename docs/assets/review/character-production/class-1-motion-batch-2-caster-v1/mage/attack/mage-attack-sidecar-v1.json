@@ -1,0 +1,280 @@
+{
+  "schemaVersion": 1,
+  "project": "Auto-Battler",
+  "classId": "mage",
+  "actionId": "attack",
+  "candidateVersion": "v1",
+  "candidateState": "READY_FOR_HUMAN_REVIEW",
+  "sourceNeutralMasterPath": "mage/neutral/hero.mage_neutral_master.png",
+  "sourceNeutralMasterSha256": "6587abdf0b4427ed9c95acb98a6d7c618e8be653fb13cdcaa9be1472fcb96315",
+  "canvas": [
+    640,
+    960
+  ],
+  "format": "PNG",
+  "colorMode": "RGBA",
+  "bitDepth": 8,
+  "transparentBackground": true,
+  "anchor": [
+    0.5,
+    0.92
+  ],
+  "footBaselineHalfOpenY": 855,
+  "runtimeFlipXCompatible": true,
+  "inPlaceRootMotion": true,
+  "loop": false,
+  "orderedFrames": [
+    {
+      "sha256": "c7db7e9c8e30140755a8c9d9e023f61030ec99e60f5d0f2c008da36042fcd41f",
+      "byteSize": 359839,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        103,
+        185,
+        522,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 0,
+      "file": "mage/attack/frames/hero.mage_attack_candidate_v1_000.png",
+      "durationCentiseconds": 12,
+      "role": "ready"
+    },
+    {
+      "sha256": "ccb6717fa5ea075562f8161d119dbbf7c57440d3a2d73f2d8e52d0211896256f",
+      "byteSize": 367560,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        111,
+        187,
+        533,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 1,
+      "file": "mage/attack/frames/hero.mage_attack_candidate_v1_001.png",
+      "durationCentiseconds": 10,
+      "role": "anticipation"
+    },
+    {
+      "sha256": "c8f7a86a1da97c3c4970f44af07dfe26051794139d7531bab7913a43387f1c0f",
+      "byteSize": 325727,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        109,
+        226,
+        529,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 2,
+      "file": "mage/attack/frames/hero.mage_attack_candidate_v1_002.png",
+      "durationCentiseconds": 9,
+      "role": "wind-up"
+    },
+    {
+      "sha256": "66d8a4aad7dd25b4c66c91bbfe981cdd34519f5de7c1ddc68b2ca3a67fbbfef5",
+      "byteSize": 343129,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        55,
+        209,
+        613,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 3,
+      "file": "mage/attack/frames/hero.mage_attack_candidate_v1_003.png",
+      "durationCentiseconds": 7,
+      "role": "pre-release"
+    },
+    {
+      "sha256": "dfb0b337e8ddea3d7dcc3d2ce2422990363bb71b079f61b0ee2894bc324ed308",
+      "byteSize": 311854,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        51,
+        236,
+        525,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 4,
+      "file": "mage/attack/frames/hero.mage_attack_candidate_v1_004.png",
+      "durationCentiseconds": 6,
+      "role": "release"
+    },
+    {
+      "sha256": "4c445b4bf199d00471b2db2c9af290bd79b454aca1f41aa23d7084c64cc8929f",
+      "byteSize": 286009,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        56,
+        247,
+        498,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 5,
+      "file": "mage/attack/frames/hero.mage_attack_candidate_v1_005.png",
+      "durationCentiseconds": 9,
+      "role": "follow-through"
+    },
+    {
+      "sha256": "e763e56353e376a6439c1e9f80cf65bba6637c8158b8261a8f989a62d465bb74",
+      "byteSize": 342617,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        120,
+        190,
+        516,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 6,
+      "file": "mage/attack/frames/hero.mage_attack_candidate_v1_006.png",
+      "durationCentiseconds": 14,
+      "role": "recovery"
+    },
+    {
+      "sha256": "97903bfd635c6f9c989636a7c0e3c8dbb5e27b5ac03d2461f675b03d8109565a",
+      "byteSize": 343476,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        124,
+        188,
+        513,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 7,
+      "file": "mage/attack/frames/hero.mage_attack_candidate_v1_007.png",
+      "durationCentiseconds": 22,
+      "role": "neutral-exit"
+    }
+  ],
+  "durationsCentiseconds": [
+    12,
+    10,
+    9,
+    7,
+    6,
+    9,
+    14,
+    22
+  ],
+  "totalDurationCentiseconds": 89,
+  "impactOrReleaseMarker": {
+    "type": "visualRelease",
+    "frameIndex": 4,
+    "frameFile": "mage/attack/frames/hero.mage_attack_candidate_v1_004.png",
+    "timestampCentiseconds": 38,
+    "frameDurationCentiseconds": 6
+  },
+  "attackTimingBreakdown": {
+    "anticipation": {
+      "startFrame": 0,
+      "endFrameInclusive": 3,
+      "durationCentiseconds": 38
+    },
+    "release": {
+      "frameIndex": 4,
+      "timestampCentiseconds": 38,
+      "durationCentiseconds": 6
+    },
+    "followThrough": {
+      "startFrame": 5,
+      "endFrameInclusive": 6,
+      "durationCentiseconds": 23
+    },
+    "recovery": {
+      "startFrame": 7,
+      "endFrameInclusive": 7,
+      "durationCentiseconds": 22
+    }
+  },
+  "attackSpeedValidationStatus": "ATTACK_SPEED_RUNTIME_VALIDATION_PENDING",
+  "likelyFutureRuntimeHandling": "full replay",
+  "runtimeSynchronizationStatus": "PENDING_SEPARATE_RUNTIME_INTEGRATION_VALIDATION",
+  "previews": {
+    "normalSpeed": "mage/review/mage-attack-normal.gif",
+    "slowQa": "mage/review/mage-attack-slow-qa.gif",
+    "contactSheet": "mage/review/mage-attack-contact-sheet.png"
+  },
+  "correctionRoundCount": 0,
+  "knownDefects": [],
+  "productionNotes": "Compact crystal-staff release at frame 004; no projectile or baked VFX.",
+  "approval": {
+    "humanVisualApproval": "pending",
+    "motionProductionApproved": false,
+    "exactPackageApproved": false,
+    "canonicalApproved": false,
+    "runtimeIntegrationAuthorized": false,
+    "runtimeIntegrated": false,
+    "merged": false
+  }
+}

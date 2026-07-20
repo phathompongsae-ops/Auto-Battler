@@ -1,0 +1,1644 @@
+{
+  "schemaVersion": 1,
+  "project": "Auto-Battler",
+  "candidateState": "READY_FOR_HUMAN_REVIEW",
+  "retainedImageBinaryCount": 107,
+  "checkpointBinaryComparisons": {
+    "downloaded": {
+      "available": true,
+      "zipSha256": "7c8d16fa4f43a38f962815a36abac3b1321b86dea80568ef1e99e6c7b794a910",
+      "compared": 107,
+      "byteIdentical": 107,
+      "differences": []
+    },
+    "reported": {
+      "available": true,
+      "zipSha256": "dbeaae759ec95694d21a2ff03315ad3f707c7635d4eb6f9fb89e08ddd78ea87d",
+      "compared": 107,
+      "byteIdentical": 107,
+      "differences": []
+    }
+  },
+  "neutralMasterHashes": {
+    "mage": "6587abdf0b4427ed9c95acb98a6d7c618e8be653fb13cdcaa9be1472fcb96315",
+    "summoner": "731531aaa1d3efc462a12d2265ad602e6e4711a83f054d8f84b5bb00f3956ae3",
+    "acolyte": "0853ab6d8f91e4100732c7f3628b31a09a38a762dc999dfbecef3cc23804a9c8"
+  },
+  "motionFrameCount": 66,
+  "uniqueMotionFrameHashes": 66,
+  "allMotionPngRgbaEightBit640x960": true,
+  "allMotionFramesBaselineHalfOpenY855": true,
+  "allMotionFramesTransparentOuterBorder": true,
+  "allNormalGifTimingsMatchSidecars": true,
+  "frameRecords": [
+    {
+      "sha256": "3bbc2155419057ff717551932b76cfc571814c08cfc34a162cfdd57c446b0030",
+      "byteSize": 391237,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        104,
+        141,
+        542,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 0,
+      "file": "mage/idle/frames/hero.mage_idle_candidate_v1_000.png",
+      "durationCentiseconds": 20,
+      "role": "ready"
+    },
+    {
+      "sha256": "d13387a253401695f185af583d4a515613c314e7ac4b411d172bcc0722473ace",
+      "byteSize": 385925,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        112,
+        147,
+        537,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 1,
+      "file": "mage/idle/frames/hero.mage_idle_candidate_v1_001.png",
+      "durationCentiseconds": 16,
+      "role": "breathe-in"
+    },
+    {
+      "sha256": "e6d8043ac102490f86b8c87aa55378c9dbd59b73dbcb71a4d78eb499e6f52d8f",
+      "byteSize": 388921,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        105,
+        144,
+        539,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 2,
+      "file": "mage/idle/frames/hero.mage_idle_candidate_v1_002.png",
+      "durationCentiseconds": 14,
+      "role": "settle"
+    },
+    {
+      "sha256": "65a493fbad6af7bc761a0eba3610647ea6ff66aa839592c82fcdaa57f65011df",
+      "byteSize": 385317,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        111,
+        149,
+        525,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 3,
+      "file": "mage/idle/frames/hero.mage_idle_candidate_v1_003.png",
+      "durationCentiseconds": 14,
+      "role": "breathe-out"
+    },
+    {
+      "sha256": "8c557af67a924b27ae4b54bf93b21f830e337d3083dcb0ac5ce5b59c33f47704",
+      "byteSize": 384759,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        108,
+        146,
+        522,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 4,
+      "file": "mage/idle/frames/hero.mage_idle_candidate_v1_004.png",
+      "durationCentiseconds": 16,
+      "role": "return"
+    },
+    {
+      "sha256": "7c4f9c3eb7e74f8824ad2c762c731d3c49c78ecdc4edb43a7f730b9dcb126a31",
+      "byteSize": 386652,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        108,
+        144,
+        531,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 5,
+      "file": "mage/idle/frames/hero.mage_idle_candidate_v1_005.png",
+      "durationCentiseconds": 20,
+      "role": "loop-bridge"
+    },
+    {
+      "sha256": "963d3f90f63e5b7ad2da121eb5b83cb76692e43581e6a2c0207cd0dc401f1617",
+      "byteSize": 353822,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        114,
+        171,
+        534,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 0,
+      "file": "mage/move/frames/hero.mage_move_candidate_v1_000.png",
+      "durationCentiseconds": 11,
+      "role": "contact-a"
+    },
+    {
+      "sha256": "259d56e14d350cd60807b5c7df142a5dfabd7a9bcb5b1d13993edc2baac9de52",
+      "byteSize": 357699,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        106,
+        171,
+        534,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 1,
+      "file": "mage/move/frames/hero.mage_move_candidate_v1_001.png",
+      "durationCentiseconds": 11,
+      "role": "down-a"
+    },
+    {
+      "sha256": "7bb3ebba04dcf21d19b1f8c8ffd897e91f41513247fc354141ef62ee684cbcb7",
+      "byteSize": 358430,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        107,
+        163,
+        532,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 2,
+      "file": "mage/move/frames/hero.mage_move_candidate_v1_002.png",
+      "durationCentiseconds": 11,
+      "role": "passing-a"
+    },
+    {
+      "sha256": "c0e44e4ac5669d903d6b9ad414be5bfa823cc584bd41aa7e37209c0f3cd6f4d3",
+      "byteSize": 360201,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        107,
+        171,
+        533,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 3,
+      "file": "mage/move/frames/hero.mage_move_candidate_v1_003.png",
+      "durationCentiseconds": 11,
+      "role": "up-a"
+    },
+    {
+      "sha256": "fb72750f1bf1231df15d2c346e97e4052ebe3e1ab796dfd7f6112cbe1d54521c",
+      "byteSize": 348877,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        110,
+        173,
+        529,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 4,
+      "file": "mage/move/frames/hero.mage_move_candidate_v1_004.png",
+      "durationCentiseconds": 11,
+      "role": "contact-b"
+    },
+    {
+      "sha256": "0242e7f02bdb3ad81278602d7fa383fa67b79eed3b1446b78bddb4594ce60ba0",
+      "byteSize": 353251,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        110,
+        171,
+        532,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 5,
+      "file": "mage/move/frames/hero.mage_move_candidate_v1_005.png",
+      "durationCentiseconds": 11,
+      "role": "down-b"
+    },
+    {
+      "sha256": "9c426a61abf7bbc5efb45f46e8af224de39693ac6d4595390223dcbac3f6ff23",
+      "byteSize": 350075,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        110,
+        174,
+        524,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 6,
+      "file": "mage/move/frames/hero.mage_move_candidate_v1_006.png",
+      "durationCentiseconds": 11,
+      "role": "passing-b"
+    },
+    {
+      "sha256": "ca029050c8a463a8ba2ae8fac1179be91d7007e004a1b8fe63265b4698cafa4f",
+      "byteSize": 353429,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        107,
+        169,
+        529,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 7,
+      "file": "mage/move/frames/hero.mage_move_candidate_v1_007.png",
+      "durationCentiseconds": 11,
+      "role": "up-b"
+    },
+    {
+      "sha256": "c7db7e9c8e30140755a8c9d9e023f61030ec99e60f5d0f2c008da36042fcd41f",
+      "byteSize": 359839,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        103,
+        185,
+        522,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 0,
+      "file": "mage/attack/frames/hero.mage_attack_candidate_v1_000.png",
+      "durationCentiseconds": 12,
+      "role": "ready"
+    },
+    {
+      "sha256": "ccb6717fa5ea075562f8161d119dbbf7c57440d3a2d73f2d8e52d0211896256f",
+      "byteSize": 367560,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        111,
+        187,
+        533,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 1,
+      "file": "mage/attack/frames/hero.mage_attack_candidate_v1_001.png",
+      "durationCentiseconds": 10,
+      "role": "anticipation"
+    },
+    {
+      "sha256": "c8f7a86a1da97c3c4970f44af07dfe26051794139d7531bab7913a43387f1c0f",
+      "byteSize": 325727,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        109,
+        226,
+        529,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 2,
+      "file": "mage/attack/frames/hero.mage_attack_candidate_v1_002.png",
+      "durationCentiseconds": 9,
+      "role": "wind-up"
+    },
+    {
+      "sha256": "66d8a4aad7dd25b4c66c91bbfe981cdd34519f5de7c1ddc68b2ca3a67fbbfef5",
+      "byteSize": 343129,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        55,
+        209,
+        613,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 3,
+      "file": "mage/attack/frames/hero.mage_attack_candidate_v1_003.png",
+      "durationCentiseconds": 7,
+      "role": "pre-release"
+    },
+    {
+      "sha256": "dfb0b337e8ddea3d7dcc3d2ce2422990363bb71b079f61b0ee2894bc324ed308",
+      "byteSize": 311854,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        51,
+        236,
+        525,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 4,
+      "file": "mage/attack/frames/hero.mage_attack_candidate_v1_004.png",
+      "durationCentiseconds": 6,
+      "role": "release"
+    },
+    {
+      "sha256": "4c445b4bf199d00471b2db2c9af290bd79b454aca1f41aa23d7084c64cc8929f",
+      "byteSize": 286009,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        56,
+        247,
+        498,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 5,
+      "file": "mage/attack/frames/hero.mage_attack_candidate_v1_005.png",
+      "durationCentiseconds": 9,
+      "role": "follow-through"
+    },
+    {
+      "sha256": "e763e56353e376a6439c1e9f80cf65bba6637c8158b8261a8f989a62d465bb74",
+      "byteSize": 342617,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        120,
+        190,
+        516,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 6,
+      "file": "mage/attack/frames/hero.mage_attack_candidate_v1_006.png",
+      "durationCentiseconds": 14,
+      "role": "recovery"
+    },
+    {
+      "sha256": "97903bfd635c6f9c989636a7c0e3c8dbb5e27b5ac03d2461f675b03d8109565a",
+      "byteSize": 343476,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        124,
+        188,
+        513,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 7,
+      "file": "mage/attack/frames/hero.mage_attack_candidate_v1_007.png",
+      "durationCentiseconds": 22,
+      "role": "neutral-exit"
+    },
+    {
+      "sha256": "46f5dd460ed585ce2255ae045556adf6de68dd9fce751f077c4e6767179f4674",
+      "byteSize": 458315,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        64,
+        140,
+        592,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 0,
+      "file": "summoner/idle/frames/hero.summoner_idle_candidate_v1_000.png",
+      "durationCentiseconds": 18,
+      "role": "ready"
+    },
+    {
+      "sha256": "31cd719907f674e0091151a7536c9e1b7815b082debe53b09d81dad470bf20bd",
+      "byteSize": 458629,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        66,
+        140,
+        594,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 1,
+      "file": "summoner/idle/frames/hero.summoner_idle_candidate_v1_001.png",
+      "durationCentiseconds": 16,
+      "role": "breathe-in"
+    },
+    {
+      "sha256": "b0b6d5a115fb6a6c526feea120bb71536802aeb49abe2d94da8dc39e83d3f42d",
+      "byteSize": 458006,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        67,
+        140,
+        589,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 2,
+      "file": "summoner/idle/frames/hero.summoner_idle_candidate_v1_002.png",
+      "durationCentiseconds": 14,
+      "role": "settle"
+    },
+    {
+      "sha256": "07f49740d658a77d7c087d2068fab100b5dfdbed86cb0f9d2afb1bb46849521f",
+      "byteSize": 447541,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        76,
+        153,
+        588,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 3,
+      "file": "summoner/idle/frames/hero.summoner_idle_candidate_v1_003.png",
+      "durationCentiseconds": 14,
+      "role": "breathe-out"
+    },
+    {
+      "sha256": "b4fc42f79a8275ac88f8a0a3ee1c0d8f06c7059bc84a7e385497f82cdf963f9c",
+      "byteSize": 448803,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        74,
+        153,
+        583,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 4,
+      "file": "summoner/idle/frames/hero.summoner_idle_candidate_v1_004.png",
+      "durationCentiseconds": 16,
+      "role": "return"
+    },
+    {
+      "sha256": "fdd0dff77f347b7172783732511e1e8060b668c182969f608d9e1cd5265445ad",
+      "byteSize": 450971,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        68,
+        150,
+        590,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 5,
+      "file": "summoner/idle/frames/hero.summoner_idle_candidate_v1_005.png",
+      "durationCentiseconds": 18,
+      "role": "loop-bridge"
+    },
+    {
+      "sha256": "4bc53734bb0799c4bd3048b891bb1d35a52273bffedaab65835a66239304f0cf",
+      "byteSize": 373705,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        76,
+        208,
+        550,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 0,
+      "file": "summoner/move/frames/hero.summoner_move_candidate_v1_000.png",
+      "durationCentiseconds": 10,
+      "role": "contact-a"
+    },
+    {
+      "sha256": "b5e6537bd0d9cd8dade9c83ad8970c8efe09938fec60467cd6031e9748e1b07a",
+      "byteSize": 368154,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        90,
+        207,
+        558,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 1,
+      "file": "summoner/move/frames/hero.summoner_move_candidate_v1_001.png",
+      "durationCentiseconds": 10,
+      "role": "down-a"
+    },
+    {
+      "sha256": "a448fb01f3a874e8cbf1c8b4d1a8652b3f102862ba55bf005d92eece349946d8",
+      "byteSize": 374006,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        73,
+        205,
+        556,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 2,
+      "file": "summoner/move/frames/hero.summoner_move_candidate_v1_002.png",
+      "durationCentiseconds": 10,
+      "role": "passing-a"
+    },
+    {
+      "sha256": "0ee29dcd130fe175850e2dd2a2aea52607b2dfc21ec6037c5cc166f3adf9fc22",
+      "byteSize": 363616,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        92,
+        218,
+        550,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 3,
+      "file": "summoner/move/frames/hero.summoner_move_candidate_v1_003.png",
+      "durationCentiseconds": 10,
+      "role": "up-a"
+    },
+    {
+      "sha256": "a50f6c0b069bf2c4bb9d030c0bf24977aaad22ea32283fe3095810b55cb32ea5",
+      "byteSize": 376709,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        73,
+        225,
+        558,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 4,
+      "file": "summoner/move/frames/hero.summoner_move_candidate_v1_004.png",
+      "durationCentiseconds": 10,
+      "role": "contact-b"
+    },
+    {
+      "sha256": "81a6a12b7dbf377338bce4fe576c75149f7249b8de8b823af89d04adf326c231",
+      "byteSize": 374354,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        83,
+        224,
+        563,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 5,
+      "file": "summoner/move/frames/hero.summoner_move_candidate_v1_005.png",
+      "durationCentiseconds": 10,
+      "role": "down-b"
+    },
+    {
+      "sha256": "1a06c82a310d96750165997ce6eb2ce373529b4fed0df67edc622467e33df860",
+      "byteSize": 358316,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        87,
+        225,
+        545,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 6,
+      "file": "summoner/move/frames/hero.summoner_move_candidate_v1_006.png",
+      "durationCentiseconds": 10,
+      "role": "passing-b"
+    },
+    {
+      "sha256": "13c1dcd66ffd5db97bc31f12be198034907328f029c55cd219252f1799bee274",
+      "byteSize": 375940,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        74,
+        219,
+        563,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 7,
+      "file": "summoner/move/frames/hero.summoner_move_candidate_v1_007.png",
+      "durationCentiseconds": 10,
+      "role": "up-b"
+    },
+    {
+      "sha256": "3ed796e1bb11ec5e0d9cab77060f7fe489cef5ebee5552c8d413aabe1c8e9670",
+      "byteSize": 388423,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        93,
+        205,
+        545,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 0,
+      "file": "summoner/attack/frames/hero.summoner_attack_candidate_v1_000.png",
+      "durationCentiseconds": 11,
+      "role": "ready"
+    },
+    {
+      "sha256": "d71c1e586d4de315e03fb0bb125637a91acd235c78fa3847dfb5747852cab391",
+      "byteSize": 370721,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        112,
+        204,
+        536,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 1,
+      "file": "summoner/attack/frames/hero.summoner_attack_candidate_v1_001.png",
+      "durationCentiseconds": 9,
+      "role": "anticipation"
+    },
+    {
+      "sha256": "cf63c0de202ed88667c22b676c95dad6513f9ccfb8148cc79c8e4f9df11a27cf",
+      "byteSize": 385593,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        101,
+        213,
+        566,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 2,
+      "file": "summoner/attack/frames/hero.summoner_attack_candidate_v1_002.png",
+      "durationCentiseconds": 8,
+      "role": "wind-up"
+    },
+    {
+      "sha256": "98596d13fc29c20cfaad4a04cad6eb6d61f8faa1c393454c608a2b38bd17eda6",
+      "byteSize": 348187,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        104,
+        210,
+        535,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 3,
+      "file": "summoner/attack/frames/hero.summoner_attack_candidate_v1_003.png",
+      "durationCentiseconds": 7,
+      "role": "pre-release"
+    },
+    {
+      "sha256": "50f1d012fa56895982ae9cd1db94775f2eeded41fb3f4b629100b37e2921495f",
+      "byteSize": 358148,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        84,
+        241,
+        613,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 4,
+      "file": "summoner/attack/frames/hero.summoner_attack_candidate_v1_004.png",
+      "durationCentiseconds": 6,
+      "role": "release"
+    },
+    {
+      "sha256": "8f334a7b0faab919dd11e56b5d457a7c5d60ededa98978440b6de6ac41da272c",
+      "byteSize": 345223,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        79,
+        256,
+        604,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 5,
+      "file": "summoner/attack/frames/hero.summoner_attack_candidate_v1_005.png",
+      "durationCentiseconds": 9,
+      "role": "follow-through"
+    },
+    {
+      "sha256": "901c659ef1399d3ab7f61852b4ac38bbd80b36645468bc1cec603b0b1ceadb24",
+      "byteSize": 349830,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        147,
+        218,
+        548,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 6,
+      "file": "summoner/attack/frames/hero.summoner_attack_candidate_v1_006.png",
+      "durationCentiseconds": 13,
+      "role": "recovery"
+    },
+    {
+      "sha256": "35f29dcd401c167474147abf5499d1104ebf9970752e6eb1873d722010e754ba",
+      "byteSize": 373564,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        98,
+        216,
+        539,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 7,
+      "file": "summoner/attack/frames/hero.summoner_attack_candidate_v1_007.png",
+      "durationCentiseconds": 20,
+      "role": "neutral-exit"
+    },
+    {
+      "sha256": "84cf028f49f48639f23fb813aff7b3425dd7e3dab5e91782218026b11ccb67bd",
+      "byteSize": 440483,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        47,
+        139,
+        539,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 0,
+      "file": "acolyte/idle/frames/hero.acolyte_idle_candidate_v1_000.png",
+      "durationCentiseconds": 20,
+      "role": "ready"
+    },
+    {
+      "sha256": "2a391129c7a7d785f98f3116140a7ca525809cfd03863b8d94f7ab559357fe49",
+      "byteSize": 440005,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        48,
+        139,
+        532,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 1,
+      "file": "acolyte/idle/frames/hero.acolyte_idle_candidate_v1_001.png",
+      "durationCentiseconds": 18,
+      "role": "breathe-in"
+    },
+    {
+      "sha256": "b3d9a0cfa1a45a05dd90448044da865a3496be6509fddf8d4518ed2e64489bf4",
+      "byteSize": 432065,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        52,
+        144,
+        522,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 2,
+      "file": "acolyte/idle/frames/hero.acolyte_idle_candidate_v1_002.png",
+      "durationCentiseconds": 16,
+      "role": "settle"
+    },
+    {
+      "sha256": "c5c8512bc5d92560d61bab907c55a79accae80a7e4a79301c7fc825afb06a966",
+      "byteSize": 432682,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        44,
+        146,
+        519,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 3,
+      "file": "acolyte/idle/frames/hero.acolyte_idle_candidate_v1_003.png",
+      "durationCentiseconds": 16,
+      "role": "breathe-out"
+    },
+    {
+      "sha256": "832aa7c847d6cfe0ccf2b522946c475b9659b179addf6a7bc1447ad61f47ae3e",
+      "byteSize": 431991,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        45,
+        146,
+        537,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 4,
+      "file": "acolyte/idle/frames/hero.acolyte_idle_candidate_v1_004.png",
+      "durationCentiseconds": 18,
+      "role": "return"
+    },
+    {
+      "sha256": "91dbffaaa8b9d1883dd45b6a995e72949b3ea47cd136d2efce5b85d36f34e8a3",
+      "byteSize": 428753,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        54,
+        146,
+        527,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 5,
+      "file": "acolyte/idle/frames/hero.acolyte_idle_candidate_v1_005.png",
+      "durationCentiseconds": 20,
+      "role": "loop-bridge"
+    },
+    {
+      "sha256": "3cc23bb9609bd528ec64b8afa62719695b8211b9acc2f2a332026cee1c5d9663",
+      "byteSize": 385895,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        69,
+        167,
+        531,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 0,
+      "file": "acolyte/move/frames/hero.acolyte_move_candidate_v1_000.png",
+      "durationCentiseconds": 11,
+      "role": "contact-a"
+    },
+    {
+      "sha256": "5593177a067819bf8f5a0b637b69ba282a68676b94216565aa609f019b01eb6e",
+      "byteSize": 379352,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        65,
+        173,
+        545,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 1,
+      "file": "acolyte/move/frames/hero.acolyte_move_candidate_v1_001.png",
+      "durationCentiseconds": 11,
+      "role": "down-a"
+    },
+    {
+      "sha256": "9a4146874d326f99431f5fccd03e7bd7dcca489cff55262898d4a0b279e8791f",
+      "byteSize": 381112,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        63,
+        187,
+        557,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 2,
+      "file": "acolyte/move/frames/hero.acolyte_move_candidate_v1_002.png",
+      "durationCentiseconds": 11,
+      "role": "passing-a"
+    },
+    {
+      "sha256": "1610a6a96c49f53f6d8a745652b29bea84a6d2d41572d2c77f60da0e2d308821",
+      "byteSize": 380790,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        61,
+        178,
+        552,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 3,
+      "file": "acolyte/move/frames/hero.acolyte_move_candidate_v1_003.png",
+      "durationCentiseconds": 11,
+      "role": "up-a"
+    },
+    {
+      "sha256": "df8d88d901a6626177c67234367d171d8334f057963b3eee01e7ea85d1bbecf3",
+      "byteSize": 378326,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        67,
+        174,
+        532,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 4,
+      "file": "acolyte/move/frames/hero.acolyte_move_candidate_v1_004.png",
+      "durationCentiseconds": 11,
+      "role": "contact-b"
+    },
+    {
+      "sha256": "67c4f4f112974025a191057cd7ed48243c5488070473cc6a6493b4975d06a967",
+      "byteSize": 377715,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        66,
+        171,
+        538,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 5,
+      "file": "acolyte/move/frames/hero.acolyte_move_candidate_v1_005.png",
+      "durationCentiseconds": 11,
+      "role": "down-b"
+    },
+    {
+      "sha256": "f87125cd518248f03b49b18d75d0037a0fbaa1d5fe167abfafbf55845b3f495a",
+      "byteSize": 371036,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        63,
+        179,
+        540,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 6,
+      "file": "acolyte/move/frames/hero.acolyte_move_candidate_v1_006.png",
+      "durationCentiseconds": 11,
+      "role": "passing-b"
+    },
+    {
+      "sha256": "0d22c04ab52662e7a352d6d7c2bdfc88f8a1f5b54e71375610aae618495151c0",
+      "byteSize": 385202,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        60,
+        178,
+        548,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 7,
+      "file": "acolyte/move/frames/hero.acolyte_move_candidate_v1_007.png",
+      "durationCentiseconds": 11,
+      "role": "up-b"
+    },
+    {
+      "sha256": "acff6797f427c4207dd9a1d91b5cc21aaa392bc0d70eaf0749fbbfa447beda68",
+      "byteSize": 398876,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        62,
+        170,
+        523,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 0,
+      "file": "acolyte/attack/frames/hero.acolyte_attack_candidate_v1_000.png",
+      "durationCentiseconds": 12,
+      "role": "ready"
+    },
+    {
+      "sha256": "c52f839ededa149311acef96a178271d7c54d16ff47e851b29c45341908a56b7",
+      "byteSize": 343776,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        164,
+        130,
+        532,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 1,
+      "file": "acolyte/attack/frames/hero.acolyte_attack_candidate_v1_001.png",
+      "durationCentiseconds": 10,
+      "role": "anticipation"
+    },
+    {
+      "sha256": "50b3a2ae4418db0e8a84da32a249943a693430b10ab196af41bbc7cc34f6accf",
+      "byteSize": 321399,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        83,
+        151,
+        555,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 2,
+      "file": "acolyte/attack/frames/hero.acolyte_attack_candidate_v1_002.png",
+      "durationCentiseconds": 8,
+      "role": "wind-up"
+    },
+    {
+      "sha256": "d566bb42e4b84181d79523653cdee39720cc3ee45186a7cfc42a4689a3b22df6",
+      "byteSize": 339216,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        8,
+        200,
+        531,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 3,
+      "file": "acolyte/attack/frames/hero.acolyte_attack_candidate_v1_003.png",
+      "durationCentiseconds": 7,
+      "role": "pre-release"
+    },
+    {
+      "sha256": "d4311be4daa1a8294e453420a9df42fde71cdeaad46b98863ede5e0d62572c1b",
+      "byteSize": 318587,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        8,
+        218,
+        594,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 4,
+      "file": "acolyte/attack/frames/hero.acolyte_attack_candidate_v1_004.png",
+      "durationCentiseconds": 6,
+      "role": "release"
+    },
+    {
+      "sha256": "5ccd988606c47dc2de80273f696f34115ce47517347bbaac568b4be9a56f2cf3",
+      "byteSize": 298891,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        132,
+        240,
+        632,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 5,
+      "file": "acolyte/attack/frames/hero.acolyte_attack_candidate_v1_005.png",
+      "durationCentiseconds": 9,
+      "role": "follow-through"
+    },
+    {
+      "sha256": "aa86e8f6fba0c9d559c59890f577584ec22f4c305e35b81904e320bcb2a87c41",
+      "byteSize": 322145,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        101,
+        208,
+        496,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 6,
+      "file": "acolyte/attack/frames/hero.acolyte_attack_candidate_v1_006.png",
+      "durationCentiseconds": 14,
+      "role": "recovery"
+    },
+    {
+      "sha256": "17e9b697d17c6d6eb3aaa0c0f7cb02801bc9ddd0b1242b1f07d9091c84007d52",
+      "byteSize": 372566,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        81,
+        189,
+        508,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 7,
+      "file": "acolyte/attack/frames/hero.acolyte_attack_candidate_v1_007.png",
+      "durationCentiseconds": 20,
+      "role": "neutral-exit"
+    }
+  ],
+  "internalVisualProductionFindings": {
+    "identityConsistency": "PASS_INTERNAL",
+    "anatomyAndHands": "PASS_INTERNAL",
+    "propContinuity": "PASS_INTERNAL",
+    "normalSpeedReadability": "PASS_INTERNAL",
+    "pairwiseDistinction": "PASS_INTERNAL",
+    "humanVisualApproval": "pending"
+  },
+  "checksIntentionallyDeferred": [
+    "Runtime synchronization",
+    "Combat and balance",
+    "Skill/Cast",
+    "Projectile and VFX",
+    "Replacement 8x8 Board Preview"
+  ],
+  "result": "PASS_INTERNAL",
+  "approval": {
+    "humanVisualApproval": "pending",
+    "motionProductionApproved": false,
+    "exactPackageApproved": false,
+    "canonicalApproved": false,
+    "runtimeIntegrationAuthorized": false,
+    "runtimeIntegrated": false,
+    "merged": false
+  }
+}

@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 1,
+  "project": "Auto-Battler",
+  "classId": "mage",
+  "candidateState": "READY_FOR_HUMAN_REVIEW",
+  "neutralMaster": {
+    "path": "mage/neutral/hero.mage_neutral_master.png",
+    "sha256": "6587abdf0b4427ed9c95acb98a6d7c618e8be653fb13cdcaa9be1472fcb96315",
+    "byteSize": 336486,
+    "dimensions": [
+      640,
+      960
+    ],
+    "colorMode": "RGBA",
+    "bitDepth": 8,
+    "pngColorType": 6,
+    "alphaBoundsHalfOpen": [
+      49,
+      125,
+      590,
+      855
+    ],
+    "footBaselineHalfOpenY": 855,
+    "fullyTransparentOuterBorder": true,
+    "decodeSuccess": true,
+    "exactHashMatch": true
+  },
+  "automatedTechnicalChecks": {
+    "motionFrameCount": 22,
+    "expectedMotionFrameCount": 22,
+    "pngRgbaEightBit640x960": true,
+    "fullyTransparentOuterBorders": true,
+    "baselineHalfOpenY855": true,
+    "uniqueMotionFrameHashes": true,
+    "normalGifTimingMatchesSidecars": true,
+    "result": "PASS"
+  },
+  "internalVisualProductionReview": {
+    "identityConsistency": "PASS_INTERNAL",
+    "anatomyAndHandContinuity": "PASS_INTERNAL",
+    "propContinuity": "PASS_INTERNAL",
+    "normalSpeedReadability": "PASS_INTERNAL",
+    "humanVisualApproval": "pending"
+  },
+  "unresolvedHumanReviewQuestions": [
+    "Subjective action quality and class readability require the user's visual decision."
+  ],
+  "checksNotPerformed": [
+    "Runtime synchronization",
+    "Combat validation",
+    "Balance validation",
+    "Skill/Cast validation",
+    "Projectile or VFX validation"
+  ],
+  "knownDefects": [],
+  "approval": {
+    "humanVisualApproval": "pending",
+    "motionProductionApproved": false,
+    "exactPackageApproved": false,
+    "canonicalApproved": false,
+    "runtimeIntegrationAuthorized": false,
+    "runtimeIntegrated": false,
+    "merged": false
+  }
+}

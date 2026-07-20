@@ -1,0 +1,203 @@
+{
+  "schemaVersion": 1,
+  "project": "Auto-Battler",
+  "classId": "acolyte",
+  "actionId": "idle",
+  "candidateVersion": "v1",
+  "candidateState": "READY_FOR_HUMAN_REVIEW",
+  "sourceNeutralMasterPath": "acolyte/neutral/hero.acolyte_neutral_master.png",
+  "sourceNeutralMasterSha256": "0853ab6d8f91e4100732c7f3628b31a09a38a762dc999dfbecef3cc23804a9c8",
+  "canvas": [
+    640,
+    960
+  ],
+  "format": "PNG",
+  "colorMode": "RGBA",
+  "bitDepth": 8,
+  "transparentBackground": true,
+  "anchor": [
+    0.5,
+    0.92
+  ],
+  "footBaselineHalfOpenY": 855,
+  "runtimeFlipXCompatible": true,
+  "inPlaceRootMotion": true,
+  "loop": true,
+  "orderedFrames": [
+    {
+      "sha256": "84cf028f49f48639f23fb813aff7b3425dd7e3dab5e91782218026b11ccb67bd",
+      "byteSize": 440483,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        47,
+        139,
+        539,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 0,
+      "file": "acolyte/idle/frames/hero.acolyte_idle_candidate_v1_000.png",
+      "durationCentiseconds": 20,
+      "role": "ready"
+    },
+    {
+      "sha256": "2a391129c7a7d785f98f3116140a7ca525809cfd03863b8d94f7ab559357fe49",
+      "byteSize": 440005,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        48,
+        139,
+        532,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 1,
+      "file": "acolyte/idle/frames/hero.acolyte_idle_candidate_v1_001.png",
+      "durationCentiseconds": 18,
+      "role": "breathe-in"
+    },
+    {
+      "sha256": "b3d9a0cfa1a45a05dd90448044da865a3496be6509fddf8d4518ed2e64489bf4",
+      "byteSize": 432065,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        52,
+        144,
+        522,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 2,
+      "file": "acolyte/idle/frames/hero.acolyte_idle_candidate_v1_002.png",
+      "durationCentiseconds": 16,
+      "role": "settle"
+    },
+    {
+      "sha256": "c5c8512bc5d92560d61bab907c55a79accae80a7e4a79301c7fc825afb06a966",
+      "byteSize": 432682,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        44,
+        146,
+        519,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 3,
+      "file": "acolyte/idle/frames/hero.acolyte_idle_candidate_v1_003.png",
+      "durationCentiseconds": 16,
+      "role": "breathe-out"
+    },
+    {
+      "sha256": "832aa7c847d6cfe0ccf2b522946c475b9659b179addf6a7bc1447ad61f47ae3e",
+      "byteSize": 431991,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        45,
+        146,
+        537,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 4,
+      "file": "acolyte/idle/frames/hero.acolyte_idle_candidate_v1_004.png",
+      "durationCentiseconds": 18,
+      "role": "return"
+    },
+    {
+      "sha256": "91dbffaaa8b9d1883dd45b6a995e72949b3ea47cd136d2efce5b85d36f34e8a3",
+      "byteSize": 428753,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        54,
+        146,
+        527,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 5,
+      "file": "acolyte/idle/frames/hero.acolyte_idle_candidate_v1_005.png",
+      "durationCentiseconds": 20,
+      "role": "loop-bridge"
+    }
+  ],
+  "durationsCentiseconds": [
+    20,
+    18,
+    16,
+    16,
+    18,
+    20
+  ],
+  "totalDurationCentiseconds": 108,
+  "impactOrReleaseMarker": null,
+  "attackTimingBreakdown": null,
+  "attackSpeedValidationStatus": null,
+  "likelyFutureRuntimeHandling": null,
+  "runtimeSynchronizationStatus": "PENDING_SEPARATE_RUNTIME_INTEGRATION_VALIDATION",
+  "previews": {
+    "normalSpeed": "acolyte/review/acolyte-idle-normal.gif",
+    "slowQa": "acolyte/review/acolyte-idle-slow-qa.gif",
+    "contactSheet": "acolyte/review/acolyte-idle-contact-sheet.png"
+  },
+  "correctionRoundCount": 0,
+  "knownDefects": [],
+  "productionNotes": "Calm support-ready breathing with restrained veil and staff settling.",
+  "approval": {
+    "humanVisualApproval": "pending",
+    "motionProductionApproved": false,
+    "exactPackageApproved": false,
+    "canonicalApproved": false,
+    "runtimeIntegrationAuthorized": false,
+    "runtimeIntegrated": false,
+    "merged": false
+  }
+}

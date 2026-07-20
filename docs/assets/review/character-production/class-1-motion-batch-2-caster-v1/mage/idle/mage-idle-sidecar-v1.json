@@ -1,0 +1,203 @@
+{
+  "schemaVersion": 1,
+  "project": "Auto-Battler",
+  "classId": "mage",
+  "actionId": "idle",
+  "candidateVersion": "v1",
+  "candidateState": "READY_FOR_HUMAN_REVIEW",
+  "sourceNeutralMasterPath": "mage/neutral/hero.mage_neutral_master.png",
+  "sourceNeutralMasterSha256": "6587abdf0b4427ed9c95acb98a6d7c618e8be653fb13cdcaa9be1472fcb96315",
+  "canvas": [
+    640,
+    960
+  ],
+  "format": "PNG",
+  "colorMode": "RGBA",
+  "bitDepth": 8,
+  "transparentBackground": true,
+  "anchor": [
+    0.5,
+    0.92
+  ],
+  "footBaselineHalfOpenY": 855,
+  "runtimeFlipXCompatible": true,
+  "inPlaceRootMotion": true,
+  "loop": true,
+  "orderedFrames": [
+    {
+      "sha256": "3bbc2155419057ff717551932b76cfc571814c08cfc34a162cfdd57c446b0030",
+      "byteSize": 391237,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        104,
+        141,
+        542,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 0,
+      "file": "mage/idle/frames/hero.mage_idle_candidate_v1_000.png",
+      "durationCentiseconds": 20,
+      "role": "ready"
+    },
+    {
+      "sha256": "d13387a253401695f185af583d4a515613c314e7ac4b411d172bcc0722473ace",
+      "byteSize": 385925,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        112,
+        147,
+        537,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 1,
+      "file": "mage/idle/frames/hero.mage_idle_candidate_v1_001.png",
+      "durationCentiseconds": 16,
+      "role": "breathe-in"
+    },
+    {
+      "sha256": "e6d8043ac102490f86b8c87aa55378c9dbd59b73dbcb71a4d78eb499e6f52d8f",
+      "byteSize": 388921,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        105,
+        144,
+        539,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 2,
+      "file": "mage/idle/frames/hero.mage_idle_candidate_v1_002.png",
+      "durationCentiseconds": 14,
+      "role": "settle"
+    },
+    {
+      "sha256": "65a493fbad6af7bc761a0eba3610647ea6ff66aa839592c82fcdaa57f65011df",
+      "byteSize": 385317,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        111,
+        149,
+        525,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 3,
+      "file": "mage/idle/frames/hero.mage_idle_candidate_v1_003.png",
+      "durationCentiseconds": 14,
+      "role": "breathe-out"
+    },
+    {
+      "sha256": "8c557af67a924b27ae4b54bf93b21f830e337d3083dcb0ac5ce5b59c33f47704",
+      "byteSize": 384759,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        108,
+        146,
+        522,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 4,
+      "file": "mage/idle/frames/hero.mage_idle_candidate_v1_004.png",
+      "durationCentiseconds": 16,
+      "role": "return"
+    },
+    {
+      "sha256": "7c4f9c3eb7e74f8824ad2c762c731d3c49c78ecdc4edb43a7f730b9dcb126a31",
+      "byteSize": 386652,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        108,
+        144,
+        531,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 5,
+      "file": "mage/idle/frames/hero.mage_idle_candidate_v1_005.png",
+      "durationCentiseconds": 20,
+      "role": "loop-bridge"
+    }
+  ],
+  "durationsCentiseconds": [
+    20,
+    16,
+    14,
+    14,
+    16,
+    20
+  ],
+  "totalDurationCentiseconds": 100,
+  "impactOrReleaseMarker": null,
+  "attackTimingBreakdown": null,
+  "attackSpeedValidationStatus": null,
+  "likelyFutureRuntimeHandling": null,
+  "runtimeSynchronizationStatus": "PENDING_SEPARATE_RUNTIME_INTEGRATION_VALIDATION",
+  "previews": {
+    "normalSpeed": "mage/review/mage-idle-normal.gif",
+    "slowQa": "mage/review/mage-idle-slow-qa.gif",
+    "contactSheet": "mage/review/mage-idle-contact-sheet.png"
+  },
+  "correctionRoundCount": 0,
+  "knownDefects": [],
+  "productionNotes": "Restrained magical-ready breathing with stable cap, robe, and staff.",
+  "approval": {
+    "humanVisualApproval": "pending",
+    "motionProductionApproved": false,
+    "exactPackageApproved": false,
+    "canonicalApproved": false,
+    "runtimeIntegrationAuthorized": false,
+    "runtimeIntegrated": false,
+    "merged": false
+  }
+}

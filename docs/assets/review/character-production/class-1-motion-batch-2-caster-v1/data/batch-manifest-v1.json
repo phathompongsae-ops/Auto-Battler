@@ -1,0 +1,484 @@
+{
+  "schemaVersion": 1,
+  "project": "Auto-Battler",
+  "packageId": "class-1-motion-batch-2-caster-human-review-candidate-v1",
+  "candidateState": "READY_FOR_HUMAN_REVIEW",
+  "scope": "Offline Human Review motion candidate only",
+  "retainedImageBinaryCount": 107,
+  "motionPngCount": 66,
+  "characters": {
+    "mage": {
+      "neutralMaster": {
+        "path": "mage/neutral/hero.mage_neutral_master.png",
+        "sha256": "6587abdf0b4427ed9c95acb98a6d7c618e8be653fb13cdcaa9be1472fcb96315"
+      },
+      "identity": "Male basic offensive caster; pointed cap, purple robe, and crystal staff.",
+      "actions": {
+        "idle": {
+          "frameCount": 6,
+          "sidecar": "mage/idle/mage-idle-sidecar-v1.json",
+          "normalPreview": {
+            "path": "mage/review/mage-idle-normal.gif",
+            "sha256": "7efc18e05a96441a4d1a126e8030d65ab4be587cf74561b034d9dcce8b1de895",
+            "byteSize": 168789,
+            "frameCount": 6,
+            "durationsCentiseconds": [
+              20,
+              16,
+              14,
+              14,
+              16,
+              20
+            ],
+            "loopMetadata": 0,
+            "decodeSuccess": true
+          },
+          "slowQaPreview": {
+            "path": "mage/review/mage-idle-slow-qa.gif",
+            "sha256": "b5bb8154ce9a74cbe2113dd9a02c25790b165ebe30365aeaeff92eaf48ef1745",
+            "byteSize": 168301,
+            "frameCount": 6,
+            "durationsCentiseconds": [
+              24,
+              24,
+              24,
+              24,
+              24,
+              24
+            ],
+            "loopMetadata": 0,
+            "decodeSuccess": true
+          },
+          "contactSheet": "mage/review/mage-idle-contact-sheet.png",
+          "totalDurationCentiseconds": 100,
+          "impactOrReleaseMarker": null
+        },
+        "move": {
+          "frameCount": 8,
+          "sidecar": "mage/move/mage-move-sidecar-v1.json",
+          "normalPreview": {
+            "path": "mage/review/mage-move-normal.gif",
+            "sha256": "da38e031bd8b9b5203ac638ee6ab335042e29d46b2957f9bf1b159e3013cb2ad",
+            "byteSize": 208485,
+            "frameCount": 8,
+            "durationsCentiseconds": [
+              11,
+              11,
+              11,
+              11,
+              11,
+              11,
+              11,
+              11
+            ],
+            "loopMetadata": 0,
+            "decodeSuccess": true
+          },
+          "slowQaPreview": {
+            "path": "mage/review/mage-move-slow-qa.gif",
+            "sha256": "3fc02d329c0e361c40dc8e4ed0aad79d07e295790d954d0524a36022f21643a9",
+            "byteSize": 207806,
+            "frameCount": 8,
+            "durationsCentiseconds": [
+              24,
+              24,
+              24,
+              24,
+              24,
+              24,
+              24,
+              24
+            ],
+            "loopMetadata": 0,
+            "decodeSuccess": true
+          },
+          "contactSheet": "mage/review/mage-move-contact-sheet.png",
+          "totalDurationCentiseconds": 88,
+          "impactOrReleaseMarker": null
+        },
+        "attack": {
+          "frameCount": 8,
+          "sidecar": "mage/attack/mage-attack-sidecar-v1.json",
+          "normalPreview": {
+            "path": "mage/review/mage-attack-normal.gif",
+            "sha256": "fad3b802dc52722c579a9c5d519b72ddf96bca2fc881c9cae707e2856d7feb55",
+            "byteSize": 195289,
+            "frameCount": 8,
+            "durationsCentiseconds": [
+              12,
+              10,
+              9,
+              7,
+              6,
+              9,
+              14,
+              22
+            ],
+            "loopMetadata": 0,
+            "decodeSuccess": true
+          },
+          "slowQaPreview": {
+            "path": "mage/review/mage-attack-slow-qa.gif",
+            "sha256": "2b5b0a356748e4a8c9ef353c37a19ac097efc375fc62b6f7f4aa42f8282bbb0b",
+            "byteSize": 194488,
+            "frameCount": 8,
+            "durationsCentiseconds": [
+              24,
+              24,
+              24,
+              24,
+              24,
+              24,
+              24,
+              24
+            ],
+            "loopMetadata": 0,
+            "decodeSuccess": true
+          },
+          "contactSheet": "mage/review/mage-attack-contact-sheet.png",
+          "totalDurationCentiseconds": 89,
+          "impactOrReleaseMarker": {
+            "type": "visualRelease",
+            "frameIndex": 4,
+            "frameFile": "mage/attack/frames/hero.mage_attack_candidate_v1_004.png",
+            "timestampCentiseconds": 38,
+            "frameDurationCentiseconds": 6
+          }
+        }
+      },
+      "sourceMap": "mage/source-map-v1.json",
+      "technicalQaRecord": "mage/technical-qa-record-v1.json",
+      "productionNotes": "mage/production-notes-v1.md",
+      "knownDefectsRecord": "mage/known-defects-v1.json"
+    },
+    "summoner": {
+      "neutralMaster": {
+        "path": "summoner/neutral/hero.summoner_neutral_master.png",
+        "sha256": "731531aaa1d3efc462a12d2265ad602e6e4711a83f054d8f84b5bb00f3956ae3"
+      },
+      "identity": "Male summoning/control caster; teal coat, grimoire, and ring-seal motif.",
+      "actions": {
+        "idle": {
+          "frameCount": 6,
+          "sidecar": "summoner/idle/summoner-idle-sidecar-v1.json",
+          "normalPreview": {
+            "path": "summoner/review/summoner-idle-normal.gif",
+            "sha256": "6fe5c5017bc5589f6a6037c4ad1bff19bd76b720cf3d2a6fca5f84f6bc70998f",
+            "byteSize": 201287,
+            "frameCount": 6,
+            "durationsCentiseconds": [
+              18,
+              16,
+              14,
+              14,
+              16,
+              18
+            ],
+            "loopMetadata": 0,
+            "decodeSuccess": true
+          },
+          "slowQaPreview": {
+            "path": "summoner/review/summoner-idle-slow-qa.gif",
+            "sha256": "8d96f89c236be35133aa0d73c3e2e73ac8475f5ab417c20a190148eece60c820",
+            "byteSize": 200650,
+            "frameCount": 6,
+            "durationsCentiseconds": [
+              24,
+              24,
+              24,
+              24,
+              24,
+              24
+            ],
+            "loopMetadata": 0,
+            "decodeSuccess": true
+          },
+          "contactSheet": "summoner/review/summoner-idle-contact-sheet.png",
+          "totalDurationCentiseconds": 96,
+          "impactOrReleaseMarker": null
+        },
+        "move": {
+          "frameCount": 8,
+          "sidecar": "summoner/move/summoner-move-sidecar-v1.json",
+          "normalPreview": {
+            "path": "summoner/review/summoner-move-normal.gif",
+            "sha256": "78a92fb8555df759ca637b4917b32a6c4c72f047d15eaec596d97f4354c8495b",
+            "byteSize": 224905,
+            "frameCount": 8,
+            "durationsCentiseconds": [
+              10,
+              10,
+              10,
+              10,
+              10,
+              10,
+              10,
+              10
+            ],
+            "loopMetadata": 0,
+            "decodeSuccess": true
+          },
+          "slowQaPreview": {
+            "path": "summoner/review/summoner-move-slow-qa.gif",
+            "sha256": "048523a8ea0004fb66fbb6a5f992184f35602497c1a10b9319e4675dd517bcee",
+            "byteSize": 223811,
+            "frameCount": 8,
+            "durationsCentiseconds": [
+              24,
+              24,
+              24,
+              24,
+              24,
+              24,
+              24,
+              24
+            ],
+            "loopMetadata": 0,
+            "decodeSuccess": true
+          },
+          "contactSheet": "summoner/review/summoner-move-contact-sheet.png",
+          "totalDurationCentiseconds": 80,
+          "impactOrReleaseMarker": null
+        },
+        "attack": {
+          "frameCount": 8,
+          "sidecar": "summoner/attack/summoner-attack-sidecar-v1.json",
+          "normalPreview": {
+            "path": "summoner/review/summoner-attack-normal.gif",
+            "sha256": "d582806c0e40715421c2e1b025ac092ba88ec20af428c97fddb156529cc69e93",
+            "byteSize": 221947,
+            "frameCount": 8,
+            "durationsCentiseconds": [
+              11,
+              9,
+              8,
+              7,
+              6,
+              9,
+              13,
+              20
+            ],
+            "loopMetadata": 0,
+            "decodeSuccess": true
+          },
+          "slowQaPreview": {
+            "path": "summoner/review/summoner-attack-slow-qa.gif",
+            "sha256": "7cbd125d77a37dadc0fa62745fb457d9782381f642dbee384f89c141ec522efe",
+            "byteSize": 221115,
+            "frameCount": 8,
+            "durationsCentiseconds": [
+              24,
+              24,
+              24,
+              24,
+              24,
+              24,
+              24,
+              24
+            ],
+            "loopMetadata": 0,
+            "decodeSuccess": true
+          },
+          "contactSheet": "summoner/review/summoner-attack-contact-sheet.png",
+          "totalDurationCentiseconds": 83,
+          "impactOrReleaseMarker": {
+            "type": "visualRelease",
+            "frameIndex": 4,
+            "frameFile": "summoner/attack/frames/hero.summoner_attack_candidate_v1_004.png",
+            "timestampCentiseconds": 35,
+            "frameDurationCentiseconds": 6
+          }
+        }
+      },
+      "sourceMap": "summoner/source-map-v1.json",
+      "technicalQaRecord": "summoner/technical-qa-record-v1.json",
+      "productionNotes": "summoner/production-notes-v1.md",
+      "knownDefectsRecord": "summoner/known-defects-v1.json"
+    },
+    "acolyte": {
+      "neutralMaster": {
+        "path": "acolyte/neutral/hero.acolyte_neutral_master.png",
+        "sha256": "0853ab6d8f91e4100732c7f3628b31a09a38a762dc999dfbecef3cc23804a9c8"
+      },
+      "identity": "Female beginner holy-support caster; ivory/sky-blue veil and sun-ring staff.",
+      "actions": {
+        "idle": {
+          "frameCount": 6,
+          "sidecar": "acolyte/idle/acolyte-idle-sidecar-v1.json",
+          "normalPreview": {
+            "path": "acolyte/review/acolyte-idle-normal.gif",
+            "sha256": "14cad9886ab27e4507fdf9eabc1bd111a32ea95d2513f3f12fbebf69c75ac144",
+            "byteSize": 209557,
+            "frameCount": 6,
+            "durationsCentiseconds": [
+              20,
+              18,
+              16,
+              16,
+              18,
+              20
+            ],
+            "loopMetadata": 0,
+            "decodeSuccess": true
+          },
+          "slowQaPreview": {
+            "path": "acolyte/review/acolyte-idle-slow-qa.gif",
+            "sha256": "bfd02298051c0a87d758c3b4716aff6a963dfe92665ef7294d180e0aa7081f5e",
+            "byteSize": 208992,
+            "frameCount": 6,
+            "durationsCentiseconds": [
+              24,
+              24,
+              24,
+              24,
+              24,
+              24
+            ],
+            "loopMetadata": 0,
+            "decodeSuccess": true
+          },
+          "contactSheet": "acolyte/review/acolyte-idle-contact-sheet.png",
+          "totalDurationCentiseconds": 108,
+          "impactOrReleaseMarker": null
+        },
+        "move": {
+          "frameCount": 8,
+          "sidecar": "acolyte/move/acolyte-move-sidecar-v1.json",
+          "normalPreview": {
+            "path": "acolyte/review/acolyte-move-normal.gif",
+            "sha256": "f403336a12b00a2fae61cce22f79d08cedd4497460748ac00d1d79f49d7197d9",
+            "byteSize": 243685,
+            "frameCount": 8,
+            "durationsCentiseconds": [
+              11,
+              11,
+              11,
+              11,
+              11,
+              11,
+              11,
+              11
+            ],
+            "loopMetadata": 0,
+            "decodeSuccess": true
+          },
+          "slowQaPreview": {
+            "path": "acolyte/review/acolyte-move-slow-qa.gif",
+            "sha256": "bc7c9d0a7403de5402edf03414751bca1a820d1bbd61c53d044dcdfa9c05e4e5",
+            "byteSize": 242962,
+            "frameCount": 8,
+            "durationsCentiseconds": [
+              24,
+              24,
+              24,
+              24,
+              24,
+              24,
+              24,
+              24
+            ],
+            "loopMetadata": 0,
+            "decodeSuccess": true
+          },
+          "contactSheet": "acolyte/review/acolyte-move-contact-sheet.png",
+          "totalDurationCentiseconds": 88,
+          "impactOrReleaseMarker": null
+        },
+        "attack": {
+          "frameCount": 8,
+          "sidecar": "acolyte/attack/acolyte-attack-sidecar-v1.json",
+          "normalPreview": {
+            "path": "acolyte/review/acolyte-attack-normal.gif",
+            "sha256": "608c657c3d51884e76a3cd5aa5507fe2154acc69e34263ab40c88e7bc35066b5",
+            "byteSize": 220294,
+            "frameCount": 8,
+            "durationsCentiseconds": [
+              12,
+              10,
+              8,
+              7,
+              6,
+              9,
+              14,
+              20
+            ],
+            "loopMetadata": 0,
+            "decodeSuccess": true
+          },
+          "slowQaPreview": {
+            "path": "acolyte/review/acolyte-attack-slow-qa.gif",
+            "sha256": "5f3b7d3b4dab927a14a865a5fa1b5f64e2cac34f01dc1a836ee7fb4b6687db35",
+            "byteSize": 219683,
+            "frameCount": 8,
+            "durationsCentiseconds": [
+              24,
+              24,
+              24,
+              24,
+              24,
+              24,
+              24,
+              24
+            ],
+            "loopMetadata": 0,
+            "decodeSuccess": true
+          },
+          "contactSheet": "acolyte/review/acolyte-attack-contact-sheet.png",
+          "totalDurationCentiseconds": 86,
+          "impactOrReleaseMarker": {
+            "type": "visualRelease",
+            "frameIndex": 4,
+            "frameFile": "acolyte/attack/frames/hero.acolyte_attack_candidate_v1_004.png",
+            "timestampCentiseconds": 37,
+            "frameDurationCentiseconds": 6
+          }
+        }
+      },
+      "sourceMap": "acolyte/source-map-v1.json",
+      "technicalQaRecord": "acolyte/technical-qa-record-v1.json",
+      "productionNotes": "acolyte/production-notes-v1.md",
+      "knownDefectsRecord": "acolyte/known-defects-v1.json"
+    }
+  },
+  "batchReviewArtifacts": [
+    "review/batch-idle-comparison.gif",
+    "review/batch-move-comparison.gif",
+    "review/batch-attack-comparison.gif",
+    "review/caster-family-silhouette-comparison.png",
+    "review/board-scale-motion-readability-proxy.gif",
+    "review/bench-scale-motion-readability-proxy.gif",
+    "review/shop-card-motion-readability.gif",
+    "review/caster-family-pairwise-confusion-review.png"
+  ],
+  "timingSummary": "data/timing-summary-v1.json",
+  "batchTechnicalQaReport": "data/batch-technical-qa-report-v1.json",
+  "knownLimitations": "docs/known-limitations-v1.md",
+  "humanDecisionSheet": "docs/human-decision-sheet-v1.md",
+  "checkpointComparisons": {
+    "previousDownloadedPackage": {
+      "available": true,
+      "zipSha256": "7c8d16fa4f43a38f962815a36abac3b1321b86dea80568ef1e99e6c7b794a910",
+      "compared": 107,
+      "byteIdentical": 107,
+      "differences": []
+    },
+    "previousReportedPackage": {
+      "available": true,
+      "zipSha256": "dbeaae759ec95694d21a2ff03315ad3f707c7635d4eb6f9fb89e08ddd78ea87d",
+      "compared": 107,
+      "byteIdentical": 107,
+      "differences": []
+    }
+  },
+  "boardPreviewStatus": "DEFERRED_UNTIL_AFTER_DEMO",
+  "runtimeSynchronizationStatus": "PENDING_SEPARATE_RUNTIME_INTEGRATION_VALIDATION",
+  "approval": {
+    "humanVisualApproval": "pending",
+    "motionProductionApproved": false,
+    "exactPackageApproved": false,
+    "canonicalApproved": false,
+    "runtimeIntegrationAuthorized": false,
+    "runtimeIntegrated": false,
+    "merged": false
+  }
+}

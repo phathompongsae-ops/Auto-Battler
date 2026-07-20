@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "project": "Auto-Battler",
+  "classId": "acolyte",
+  "authoritativeNeutralMaster": {
+    "record": "Class 1 Neutral Master Batch v1 — Exact Package Approval PR #83",
+    "packageRelativePath": "acolyte/neutral/hero.acolyte_neutral_master.png",
+    "sha256": "0853ab6d8f91e4100732c7f3628b31a09a38a762dc999dfbecef3cc23804a9c8",
+    "byteIdentical": true
+  },
+  "identityLock": {
+    "summary": "Female beginner holy-support caster; ivory/sky-blue veil and sun-ring staff.",
+    "sheet": "acolyte/review/acolyte-identity-lock-sheet.png"
+  },
+  "actions": {
+    "idle": {
+      "directory": "acolyte/idle",
+      "sidecar": "acolyte/idle/acolyte-idle-sidecar-v1.json",
+      "normalPreview": "acolyte/review/acolyte-idle-normal.gif",
+      "slowQaPreview": "acolyte/review/acolyte-idle-slow-qa.gif",
+      "contactSheet": "acolyte/review/acolyte-idle-contact-sheet.png"
+    },
+    "move": {
+      "directory": "acolyte/move",
+      "sidecar": "acolyte/move/acolyte-move-sidecar-v1.json",
+      "normalPreview": "acolyte/review/acolyte-move-normal.gif",
+      "slowQaPreview": "acolyte/review/acolyte-move-slow-qa.gif",
+      "contactSheet": "acolyte/review/acolyte-move-contact-sheet.png"
+    },
+    "attack": {
+      "directory": "acolyte/attack",
+      "sidecar": "acolyte/attack/acolyte-attack-sidecar-v1.json",
+      "normalPreview": "acolyte/review/acolyte-attack-normal.gif",
+      "slowQaPreview": "acolyte/review/acolyte-attack-slow-qa.gif",
+      "contactSheet": "acolyte/review/acolyte-attack-contact-sheet.png"
+    }
+  },
+  "technicalQaRecord": "acolyte/technical-qa-record-v1.json",
+  "productionNotes": "acolyte/production-notes-v1.md",
+  "knownDefectsRecord": "acolyte/known-defects-v1.json",
+  "correctionHistory": [],
+  "prohibitedReferencesNotCopied": [
+    "Archer poses, frame count, and timing",
+    "Melee Batch attack poses",
+    "Other-class identity, costume, face, palette, anatomy, weapon, prop, silhouette, or motion"
+  ]
+}

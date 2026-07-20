@@ -1,0 +1,280 @@
+{
+  "schemaVersion": 1,
+  "project": "Auto-Battler",
+  "classId": "acolyte",
+  "actionId": "attack",
+  "candidateVersion": "v1",
+  "candidateState": "READY_FOR_HUMAN_REVIEW",
+  "sourceNeutralMasterPath": "acolyte/neutral/hero.acolyte_neutral_master.png",
+  "sourceNeutralMasterSha256": "0853ab6d8f91e4100732c7f3628b31a09a38a762dc999dfbecef3cc23804a9c8",
+  "canvas": [
+    640,
+    960
+  ],
+  "format": "PNG",
+  "colorMode": "RGBA",
+  "bitDepth": 8,
+  "transparentBackground": true,
+  "anchor": [
+    0.5,
+    0.92
+  ],
+  "footBaselineHalfOpenY": 855,
+  "runtimeFlipXCompatible": true,
+  "inPlaceRootMotion": true,
+  "loop": false,
+  "orderedFrames": [
+    {
+      "sha256": "acff6797f427c4207dd9a1d91b5cc21aaa392bc0d70eaf0749fbbfa447beda68",
+      "byteSize": 398876,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        62,
+        170,
+        523,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 0,
+      "file": "acolyte/attack/frames/hero.acolyte_attack_candidate_v1_000.png",
+      "durationCentiseconds": 12,
+      "role": "ready"
+    },
+    {
+      "sha256": "c52f839ededa149311acef96a178271d7c54d16ff47e851b29c45341908a56b7",
+      "byteSize": 343776,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        164,
+        130,
+        532,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 1,
+      "file": "acolyte/attack/frames/hero.acolyte_attack_candidate_v1_001.png",
+      "durationCentiseconds": 10,
+      "role": "anticipation"
+    },
+    {
+      "sha256": "50b3a2ae4418db0e8a84da32a249943a693430b10ab196af41bbc7cc34f6accf",
+      "byteSize": 321399,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        83,
+        151,
+        555,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 2,
+      "file": "acolyte/attack/frames/hero.acolyte_attack_candidate_v1_002.png",
+      "durationCentiseconds": 8,
+      "role": "wind-up"
+    },
+    {
+      "sha256": "d566bb42e4b84181d79523653cdee39720cc3ee45186a7cfc42a4689a3b22df6",
+      "byteSize": 339216,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        8,
+        200,
+        531,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 3,
+      "file": "acolyte/attack/frames/hero.acolyte_attack_candidate_v1_003.png",
+      "durationCentiseconds": 7,
+      "role": "pre-release"
+    },
+    {
+      "sha256": "d4311be4daa1a8294e453420a9df42fde71cdeaad46b98863ede5e0d62572c1b",
+      "byteSize": 318587,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        8,
+        218,
+        594,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 4,
+      "file": "acolyte/attack/frames/hero.acolyte_attack_candidate_v1_004.png",
+      "durationCentiseconds": 6,
+      "role": "release"
+    },
+    {
+      "sha256": "5ccd988606c47dc2de80273f696f34115ce47517347bbaac568b4be9a56f2cf3",
+      "byteSize": 298891,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        132,
+        240,
+        632,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 5,
+      "file": "acolyte/attack/frames/hero.acolyte_attack_candidate_v1_005.png",
+      "durationCentiseconds": 9,
+      "role": "follow-through"
+    },
+    {
+      "sha256": "aa86e8f6fba0c9d559c59890f577584ec22f4c305e35b81904e320bcb2a87c41",
+      "byteSize": 322145,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        101,
+        208,
+        496,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 6,
+      "file": "acolyte/attack/frames/hero.acolyte_attack_candidate_v1_006.png",
+      "durationCentiseconds": 14,
+      "role": "recovery"
+    },
+    {
+      "sha256": "17e9b697d17c6d6eb3aaa0c0f7cb02801bc9ddd0b1242b1f07d9091c84007d52",
+      "byteSize": 372566,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        81,
+        189,
+        508,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 7,
+      "file": "acolyte/attack/frames/hero.acolyte_attack_candidate_v1_007.png",
+      "durationCentiseconds": 20,
+      "role": "neutral-exit"
+    }
+  ],
+  "durationsCentiseconds": [
+    12,
+    10,
+    8,
+    7,
+    6,
+    9,
+    14,
+    20
+  ],
+  "totalDurationCentiseconds": 86,
+  "impactOrReleaseMarker": {
+    "type": "visualRelease",
+    "frameIndex": 4,
+    "frameFile": "acolyte/attack/frames/hero.acolyte_attack_candidate_v1_004.png",
+    "timestampCentiseconds": 37,
+    "frameDurationCentiseconds": 6
+  },
+  "attackTimingBreakdown": {
+    "anticipation": {
+      "startFrame": 0,
+      "endFrameInclusive": 3,
+      "durationCentiseconds": 37
+    },
+    "release": {
+      "frameIndex": 4,
+      "timestampCentiseconds": 37,
+      "durationCentiseconds": 6
+    },
+    "followThrough": {
+      "startFrame": 5,
+      "endFrameInclusive": 6,
+      "durationCentiseconds": 23
+    },
+    "recovery": {
+      "startFrame": 7,
+      "endFrameInclusive": 7,
+      "durationCentiseconds": 20
+    }
+  },
+  "attackSpeedValidationStatus": "ATTACK_SPEED_RUNTIME_VALIDATION_PENDING",
+  "likelyFutureRuntimeHandling": "full replay",
+  "runtimeSynchronizationStatus": "PENDING_SEPARATE_RUNTIME_INTEGRATION_VALIDATION",
+  "previews": {
+    "normalSpeed": "acolyte/review/acolyte-attack-normal.gif",
+    "slowQa": "acolyte/review/acolyte-attack-slow-qa.gif",
+    "contactSheet": "acolyte/review/acolyte-attack-contact-sheet.png"
+  },
+  "correctionRoundCount": 0,
+  "knownDefects": [],
+  "productionNotes": "Compact holy-staff release at frame 004; no light, healing effect, or baked VFX.",
+  "approval": {
+    "humanVisualApproval": "pending",
+    "motionProductionApproved": false,
+    "exactPackageApproved": false,
+    "canonicalApproved": false,
+    "runtimeIntegrationAuthorized": false,
+    "runtimeIntegrated": false,
+    "merged": false
+  }
+}

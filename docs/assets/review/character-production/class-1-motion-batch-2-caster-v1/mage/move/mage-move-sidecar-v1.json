@@ -1,0 +1,253 @@
+{
+  "schemaVersion": 1,
+  "project": "Auto-Battler",
+  "classId": "mage",
+  "actionId": "move",
+  "candidateVersion": "v1",
+  "candidateState": "READY_FOR_HUMAN_REVIEW",
+  "sourceNeutralMasterPath": "mage/neutral/hero.mage_neutral_master.png",
+  "sourceNeutralMasterSha256": "6587abdf0b4427ed9c95acb98a6d7c618e8be653fb13cdcaa9be1472fcb96315",
+  "canvas": [
+    640,
+    960
+  ],
+  "format": "PNG",
+  "colorMode": "RGBA",
+  "bitDepth": 8,
+  "transparentBackground": true,
+  "anchor": [
+    0.5,
+    0.92
+  ],
+  "footBaselineHalfOpenY": 855,
+  "runtimeFlipXCompatible": true,
+  "inPlaceRootMotion": true,
+  "loop": true,
+  "orderedFrames": [
+    {
+      "sha256": "963d3f90f63e5b7ad2da121eb5b83cb76692e43581e6a2c0207cd0dc401f1617",
+      "byteSize": 353822,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        114,
+        171,
+        534,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 0,
+      "file": "mage/move/frames/hero.mage_move_candidate_v1_000.png",
+      "durationCentiseconds": 11,
+      "role": "contact-a"
+    },
+    {
+      "sha256": "259d56e14d350cd60807b5c7df142a5dfabd7a9bcb5b1d13993edc2baac9de52",
+      "byteSize": 357699,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        106,
+        171,
+        534,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 1,
+      "file": "mage/move/frames/hero.mage_move_candidate_v1_001.png",
+      "durationCentiseconds": 11,
+      "role": "down-a"
+    },
+    {
+      "sha256": "7bb3ebba04dcf21d19b1f8c8ffd897e91f41513247fc354141ef62ee684cbcb7",
+      "byteSize": 358430,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        107,
+        163,
+        532,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 2,
+      "file": "mage/move/frames/hero.mage_move_candidate_v1_002.png",
+      "durationCentiseconds": 11,
+      "role": "passing-a"
+    },
+    {
+      "sha256": "c0e44e4ac5669d903d6b9ad414be5bfa823cc584bd41aa7e37209c0f3cd6f4d3",
+      "byteSize": 360201,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        107,
+        171,
+        533,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 3,
+      "file": "mage/move/frames/hero.mage_move_candidate_v1_003.png",
+      "durationCentiseconds": 11,
+      "role": "up-a"
+    },
+    {
+      "sha256": "fb72750f1bf1231df15d2c346e97e4052ebe3e1ab796dfd7f6112cbe1d54521c",
+      "byteSize": 348877,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        110,
+        173,
+        529,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 4,
+      "file": "mage/move/frames/hero.mage_move_candidate_v1_004.png",
+      "durationCentiseconds": 11,
+      "role": "contact-b"
+    },
+    {
+      "sha256": "0242e7f02bdb3ad81278602d7fa383fa67b79eed3b1446b78bddb4594ce60ba0",
+      "byteSize": 353251,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        110,
+        171,
+        532,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 5,
+      "file": "mage/move/frames/hero.mage_move_candidate_v1_005.png",
+      "durationCentiseconds": 11,
+      "role": "down-b"
+    },
+    {
+      "sha256": "9c426a61abf7bbc5efb45f46e8af224de39693ac6d4595390223dcbac3f6ff23",
+      "byteSize": 350075,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        110,
+        174,
+        524,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 6,
+      "file": "mage/move/frames/hero.mage_move_candidate_v1_006.png",
+      "durationCentiseconds": 11,
+      "role": "passing-b"
+    },
+    {
+      "sha256": "ca029050c8a463a8ba2ae8fac1179be91d7007e004a1b8fe63265b4698cafa4f",
+      "byteSize": 353429,
+      "dimensions": [
+        640,
+        960
+      ],
+      "colorMode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        107,
+        169,
+        529,
+        855
+      ],
+      "footBaselineHalfOpenY": 855,
+      "fullyTransparentOuterBorder": true,
+      "decodeSuccess": true,
+      "index": 7,
+      "file": "mage/move/frames/hero.mage_move_candidate_v1_007.png",
+      "durationCentiseconds": 11,
+      "role": "up-b"
+    }
+  ],
+  "durationsCentiseconds": [
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11
+  ],
+  "totalDurationCentiseconds": 88,
+  "impactOrReleaseMarker": null,
+  "attackTimingBreakdown": null,
+  "attackSpeedValidationStatus": null,
+  "likelyFutureRuntimeHandling": null,
+  "runtimeSynchronizationStatus": "PENDING_SEPARATE_RUNTIME_INTEGRATION_VALIDATION",
+  "previews": {
+    "normalSpeed": "mage/review/mage-move-normal.gif",
+    "slowQa": "mage/review/mage-move-slow-qa.gif",
+    "contactSheet": "mage/review/mage-move-contact-sheet.png"
+  },
+  "correctionRoundCount": 0,
+  "knownDefects": [],
+  "productionNotes": "Grounded caster jog with controlled staff, robe, and cap follow-through.",
+  "approval": {
+    "humanVisualApproval": "pending",
+    "motionProductionApproved": false,
+    "exactPackageApproved": false,
+    "canonicalApproved": false,
+    "runtimeIntegrationAuthorized": false,
+    "runtimeIntegrated": false,
+    "merged": false
+  }
+}

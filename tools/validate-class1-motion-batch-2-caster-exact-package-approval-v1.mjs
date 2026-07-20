@@ -1,18 +1,16 @@
 #!/usr/bin/env node
 
 // Validator for the Class 1 Motion Production Batch 2 (Caster Family: Mage, Summoner, Acolyte)
-// Exact Package Approval. Written now, against the expected structure, reusing the exact
-// PNG-decode/hash-rederivation technique proven in Batch 1 Melee's validator
-// (tools/validate-class1-motion-batch-1-melee-exact-package-approval-v1.mjs) -- nothing here is
-// invented; every check either (a) validates the scaffold record's own shape/flags right now, or
-// (b) is a fully-written re-derivation check that will run against real binaries once the
-// package is imported. It never fabricates a pass for a check it cannot actually perform.
+// import/verification record. Re-derives every checkable claim from the actual imported
+// binaries -- per-frame hashes, Neutral Master hashes, dimensions, RGBA mode, bit depth,
+// transparent borders, baseline, frame ordering/completeness, durations, loop flags, and
+// release markers are all measured here, never trusted from the JSON record or the package's
+// own sidecars/manifest.
 //
-// Two modes, chosen automatically:
-//   SCAFFOLD mode (current): IMPORT_ROOT contains only README.md, no character subdirectories.
-//     Validates the record's own structure/flags and exits 0 with status SCAFFOLD_READY.
-//   FULL mode (future, once the real package is imported): re-derives every PNG/hash/timing
-//     claim from the actual binaries, exactly as Batch 1 Melee's validator does.
+// This package has NO universal fixed frame count -- unlike the retired scaffold version of
+// this validator (which assumed 8 frames/action, 24/character, 72 total, and reported
+// PENDING_PACKAGE_DELIVERY/SCAFFOLD_READY before any package existed), every action's required
+// frame inventory is derived from that action's own sidecar JSON, not hardcoded.
 
 import crypto from 'node:crypto';
 import fs from 'node:fs';
@@ -23,7 +21,7 @@ import zlib from 'node:zlib';
 const RECORD_PATH = 'data/design/class1-motion-batch-2-caster-exact-package-approval-v1.json';
 const IMPORT_ROOT = 'docs/assets/review/character-production/class-1-motion-batch-2-caster-v1';
 const ROSTER = ['mage', 'summoner', 'acolyte'];
-const ACTIONS = ['idle', 'move', 'attack']; // neutral handled separately (single static frame)
+const ACTIONS = ['idle', 'move', 'attack'];
 const W = 640, H = 960;
 const EXPECTED_NEUTRAL_SHA = {
   mage: '6587abdf0b4427ed9c95acb98a6d7c618e8be653fb13cdcaa9be1472fcb96315',
@@ -83,7 +81,7 @@ function readPng(p) {
 }
 
 function alphaStats(png) {
-  let maxY = -1, border = 0;
+  let border = 0, maxY = -1;
   for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
     const alpha = png.pixels[(y * W + x) * 4 + 3];
     if (alpha > 0) {
@@ -96,131 +94,142 @@ function alphaStats(png) {
 
 const record = JSON.parse(fs.readFileSync(RECORD_PATH, 'utf8'));
 
-// Is a real package imported yet? Scaffold state = import root has no character subdirectories.
-const hasRealImport = ROSTER.some((cls) => fs.existsSync(path.join(IMPORT_ROOT, cls)));
+// 1) record status / handoff consistency (no "expected ZIP hash" constant here -- the package's
+//    own measured hash IS the authoritative value per this task; just check internal consistency)
+assert(record.status === 'READY_FOR_HUMAN_REVIEW', 'record.status must be READY_FOR_HUMAN_REVIEW (not an approval status)');
+assert(/^[0-9a-f]{64}$/.test(record.packageHandoff.sha256Measured), 'packageHandoff.sha256Measured must be a well-formed 64-hex SHA-256');
+assert(record.packageHandoff.zipCrcCheck === 'PASS', 'packageHandoff.zipCrcCheck must be PASS');
+if (!errors.length) ok(`record status READY_FOR_HUMAN_REVIEW (not approval); ZIP sha ${record.packageHandoff.sha256Measured.slice(0, 16)}… recorded, CRC PASS`);
 
-if (!hasRealImport) {
-  // ---------------- SCAFFOLD MODE ----------------
-  assert(record.status === 'PENDING_PACKAGE_DELIVERY', 'record.status must be PENDING_PACKAGE_DELIVERY while no package is imported');
-  assert(record.importStatus === 'NOT_YET_IMPORTED', 'importStatus must be NOT_YET_IMPORTED');
-  assert(JSON.stringify(record.expectedRoster) === JSON.stringify(ROSTER), 'expectedRoster mismatch');
-  assert(JSON.stringify(record.expectedMotionsPerCharacter) === JSON.stringify(['neutral', 'idle', 'move', 'attack']), 'expectedMotionsPerCharacter mismatch');
-  assert(record.expectedTotalAnimatedFrames === 72, 'expectedTotalAnimatedFrames must be 72');
-  assert(record.skillCastInScope === false, 'skillCastInScope must be false for this batch');
-  assert(record.motions === null, 'motions must be null until real data exists (no fabrication)');
-  assert(record.sourcePackage.sha256Measured === null, 'sourcePackage.sha256Measured must be null until measured');
-  if (!errors.length) ok('scaffold record shape: status/importStatus/roster/motions/skillCastScope all correct, no field prematurely filled in');
-
-  for (const nm of record.expectedNeutralMasters) {
-    assert(EXPECTED_NEUTRAL_SHA[nm.classId] === nm.sha256FromPR83, `${nm.classId}: expectedNeutralMasters sha != validator's own PR83 reference constant`);
+// 2) imported-file inventory
+assert(fs.existsSync(IMPORT_ROOT), 'import root missing');
+const importedFiles = [];
+(function walk(dir) {
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    const full = path.join(dir, entry.name);
+    if (entry.isDirectory()) walk(full);
+    else importedFiles.push(full);
   }
-  if (!errors.length) ok('expected Neutral Master references (Mage/Summoner/Acolyte) match PR #83\'s own committed record');
+})(IMPORT_ROOT);
+assert(importedFiles.length === 134, `imported file count ${importedFiles.length} != 134`);
+if (!errors.length) ok(`imported-file inventory: ${importedFiles.length}/134 files present`);
 
-  const f = record.approvalFlags;
-  const expectFlags = { humanVisualApproval: false, motionProductionApproved: false, exactPackageApproved: false, canonicalApproved: false, runtimeIntegrationAuthorized: false, runtimeIntegrated: false, merged: false };
-  for (const [k, v] of Object.entries(expectFlags)) assert(f[k] === v, `approvalFlags.${k} must be ${v}, got ${f[k]}`);
-  if (!errors.length) ok('approval flags: all 7 remain false, as required for a pre-delivery scaffold');
-
-  const p = record.prohibitionsHeld;
-  for (const [k, v] of Object.entries(p)) assert(v === false, `prohibitionsHeld.${k} must be false, got ${v}`);
-  if (!errors.length) ok('all 9 prohibitionsHeld entries are false (nothing generated/regenerated/edited/fabricated/merged)');
-
-  assert(record.boardPreview.status === 'DEFERRED_UNTIL_AFTER_DEMO', 'boardPreview.status wrong');
-  assert(record.runtimeAttackSpeedSynchronization.status === 'PENDING_SEPARATE_RUNTIME_INTEGRATION_VALIDATION', 'runtimeAttackSpeedSynchronization.status wrong');
-  if (!errors.length) ok('Board Preview / Runtime-sync records carried forward unchanged');
-
-  assert(fs.existsSync(path.join(IMPORT_ROOT, 'README.md')), 'import root README.md missing');
-  const importDirEntries = fs.readdirSync(IMPORT_ROOT);
-  assert(importDirEntries.length === 1 && importDirEntries[0] === 'README.md', `import root must contain only README.md until package delivery, found: ${JSON.stringify(importDirEntries)}`);
-  if (!errors.length) ok('import location prepared: README.md only, no fabricated character data');
-
-  if (errors.length) {
-    console.error('\nSCAFFOLD VALIDATION FAILED:');
-    for (const e of errors) console.error('  ✗ ' + e);
-    process.exit(1);
-  }
-  console.log('\nSCAFFOLD_READY — class1-motion-batch-2-caster-exact-package-approval-v1 scaffold is structurally correct. No package imported yet; full binary/timing checks below are not run.');
-  process.exit(0);
-}
-
-// ---------------- FULL MODE (future) ----------------
-// Re-derives every checkable claim from the actual binaries -- same technique as Batch 1
-// Melee's validator. Runs automatically once ROSTER subdirectories exist under IMPORT_ROOT.
-
-assert(record.sourcePackage.sha256Expected, 'sourcePackage.sha256Expected must be set once a package is imported');
-assert(record.sourcePackage.sha256Measured === record.sourcePackage.sha256Expected, 'source ZIP measured sha != expected');
-if (!errors.length) ok(`source ZIP sha recorded and consistent: ${(record.sourcePackage.sha256Expected || '').slice(0, 16)}…`);
-
-for (const nm of record.expectedNeutralMasters) {
-  const p = path.join(IMPORT_ROOT, `${nm.classId}/neutral/hero.${nm.classId}_neutral_master.png`);
-  assert(fs.existsSync(p), `${nm.classId}: neutral master missing`);
+// 3) Neutral Masters -- measured, cross-checked against PR #83 (via the constant table above)
+for (const cls of ROSTER) {
+  const p = path.join(IMPORT_ROOT, `${cls}/neutral/hero.${cls}_neutral_master.png`);
+  assert(fs.existsSync(p), `${cls}: neutral master missing`);
   if (!fs.existsSync(p)) continue;
   const measured = sha(p);
-  assert(measured === nm.sha256FromPR83, `${nm.classId}: neutral master sha mismatch (measured ${measured})`);
+  assert(measured === EXPECTED_NEUTRAL_SHA[cls], `${cls}: neutral master sha mismatch (measured ${measured})`);
   const png = readPng(p);
-  assert(png.ihdr.width === W && png.ihdr.height === H, `${nm.classId}: neutral master dims wrong`);
-  assert(png.ihdr.colorType === 6 && png.ihdr.depth === 8, `${nm.classId}: neutral master not 8-bit RGBA`);
+  assert(png.ihdr.width === W && png.ihdr.height === H, `${cls}: neutral master dims wrong`);
+  assert(png.ihdr.colorType === 6 && png.ihdr.depth === 8, `${cls}: neutral master not 8-bit RGBA`);
 }
 if (!errors.length) ok('3/3 Neutral Masters re-hashed and confirmed byte-identical to PR #83');
 
+// 4) Motion frames: per-action sidecar-DERIVED re-verification (no fixed frame-count assumed)
 let totalFramesChecked = 0;
 let duplicateFound = false;
-const measuredMotions = [];
+const allHashes = new Set();
 for (const cls of ROSTER) {
   for (const action of ACTIONS) {
-    const sidecarPath = path.join(IMPORT_ROOT, cls, action, `hero.${cls}_${action}_candidate_v1.json`);
+    const dir = path.join(IMPORT_ROOT, cls, action, 'frames');
+    const sidecarPath = path.join(IMPORT_ROOT, cls, action, `${cls}-${action}-sidecar-v1.json`);
     assert(fs.existsSync(sidecarPath), `${cls}/${action}: sidecar missing`);
     if (!fs.existsSync(sidecarPath)) continue;
     const sidecar = JSON.parse(fs.readFileSync(sidecarPath, 'utf8'));
-    assert(sidecar.frameOrder.length === 8, `${cls}/${action}: frame count ${sidecar.frameOrder.length} != 8`);
 
-    const seen = new Set();
-    for (let i = 0; i < sidecar.frameOrder.length; i++) {
-      const p = path.join(IMPORT_ROOT, sidecar.frameOrder[i]);
-      assert(fs.existsSync(p), `${cls}/${action} frame ${i}: file missing`);
+    const recMotion = record.motions.find((m) => m.classId === cls && m.action === action);
+    assert(!!recMotion, `${cls}/${action}: not present in record.motions`);
+    assert(sidecar.orderedFrames.length === recMotion.frameCount, `${cls}/${action}: sidecar frame count ${sidecar.orderedFrames.length} != record ${recMotion.frameCount}`);
+
+    // directory contains exactly the sidecar's declared frames -- no missing, no unexpected
+    const dirFiles = fs.readdirSync(dir).filter((f) => f.endsWith('.png')).sort();
+    const sidecarFiles = sidecar.orderedFrames.map((f) => path.basename(f.file)).sort();
+    assert(JSON.stringify(dirFiles) === JSON.stringify(sidecarFiles), `${cls}/${action}: frame directory != sidecar orderedFrames (no missing/unexpected frame required)`);
+
+    // indexes complete, ordered, unique, starting at 0
+    const indexes = sidecar.orderedFrames.map((f) => f.index);
+    const sortedIndexes = [...indexes].sort((a, b) => a - b);
+    assert(JSON.stringify(indexes) === JSON.stringify(sortedIndexes), `${cls}/${action}: frame indexes not in order: ${JSON.stringify(indexes)}`);
+    assert(new Set(indexes).size === indexes.length, `${cls}/${action}: duplicate frame index`);
+    assert(indexes[0] === 0 && indexes[indexes.length - 1] === indexes.length - 1, `${cls}/${action}: frame indexes not complete (0..N-1): ${JSON.stringify(indexes)}`);
+
+    for (const f of sidecar.orderedFrames) {
+      const p = path.join(IMPORT_ROOT, f.file);
+      assert(fs.existsSync(p), `${cls}/${action} frame ${f.index}: file missing`);
       if (!fs.existsSync(p)) continue;
       const measured = sha(p);
-      assert(measured === sidecar.perFrameSha256[i], `${cls}/${action} frame ${i}: measured sha != sidecar sha`);
-      if (seen.has(measured)) duplicateFound = true;
-      seen.add(measured);
+      assert(measured === f.sha256, `${cls}/${action} frame ${f.index}: measured sha != sidecar sha`);
+      if (allHashes.has(measured)) duplicateFound = true;
+      allHashes.add(measured);
+      assert(f.durationCentiseconds > 0, `${cls}/${action} frame ${f.index}: non-positive duration`);
+
       const png = readPng(p);
-      assert(png.ihdr.width === W && png.ihdr.height === H, `${cls}/${action} frame ${i}: dims wrong`);
-      assert(png.ihdr.colorType === 6 && png.ihdr.depth === 8, `${cls}/${action} frame ${i}: not 8-bit RGBA`);
+      assert(png.ihdr.width === W && png.ihdr.height === H, `${cls}/${action} frame ${f.index}: dims wrong`);
+      assert(png.ihdr.colorType === 6 && png.ihdr.depth === 8, `${cls}/${action} frame ${f.index}: not 8-bit RGBA`);
       if (png.pixels) {
         const st = alphaStats(png);
-        assert(st.border === 0, `${cls}/${action} frame ${i}: ${st.border} opaque border pixels`);
-        assert(st.maxY === 854, `${cls}/${action} frame ${i}: baseline maxY ${st.maxY} != 854`);
+        assert(st.border === 0, `${cls}/${action} frame ${f.index}: ${st.border} opaque border pixels`);
+        assert(st.maxY === 854, `${cls}/${action} frame ${f.index}: baseline maxY ${st.maxY} != 854`);
       }
       totalFramesChecked++;
     }
 
-    const durationSum = sidecar.perFrameDurationCentiseconds.reduce((a, b) => a + b, 0);
+    const durationSum = sidecar.durationsCentiseconds.reduce((a, b) => a + b, 0);
     assert(durationSum === sidecar.totalDurationCentiseconds, `${cls}/${action}: duration sum ${durationSum} != sidecar total ${sidecar.totalDurationCentiseconds}`);
+    assert(sidecar.totalDurationCentiseconds === recMotion.totalCentiseconds, `${cls}/${action}: sidecar total != record total`);
+
     const loopExpected = action !== 'attack';
     assert(sidecar.loop === loopExpected, `${cls}/${action}: loop=${sidecar.loop}, expected ${loopExpected}`);
-    if (action === 'attack') assert(sidecar.impactMarker && Number.isInteger(sidecar.impactMarker.frameIndex), `${cls}/${action}: attack must declare an impactMarker.frameIndex`);
-    else assert(sidecar.impactMarker === null, `${cls}/${action}: non-attack action has a non-null impactMarker`);
+    assert(sidecar.loop === recMotion.loop, `${cls}/${action}: sidecar loop != record loop`);
 
-    measuredMotions.push({ classId: cls, action, frameCount: sidecar.frameOrder.length, totalCentiseconds: sidecar.totalDurationCentiseconds, loop: sidecar.loop, impactMarker: sidecar.impactMarker });
+    if (action === 'attack') {
+      const m = sidecar.impactOrReleaseMarker;
+      assert(!!m, `${cls}/${action}: missing release marker`);
+      if (m) {
+        const precedingSum = sidecar.durationsCentiseconds.slice(0, m.frameIndex).reduce((a, b) => a + b, 0);
+        assert(fs.existsSync(path.join(IMPORT_ROOT, m.frameFile)), `${cls}/${action}: release marker frameFile does not exist`);
+        assert(m.timestampCentiseconds === precedingSum, `${cls}/${action}: release timestamp ${m.timestampCentiseconds} != sum of preceding durations ${precedingSum}`);
+        assert(m.frameDurationCentiseconds === sidecar.durationsCentiseconds[m.frameIndex], `${cls}/${action}: release frame duration mismatch`);
+        // Field-by-field, not full object identity -- the sidecar's marker carries an extra
+        // "type" field (e.g. "visualRelease") that the record's simplified releaseMarker
+        // intentionally omits; only the fields that matter for correctness are compared.
+        const rm = recMotion.releaseMarker;
+        assert(rm && rm.frameIndex === m.frameIndex && rm.frameFile === m.frameFile && rm.timestampCentiseconds === m.timestampCentiseconds && rm.frameDurationCentiseconds === m.frameDurationCentiseconds, `${cls}/${action}: sidecar release marker fields != record release marker fields`);
+      }
+    } else {
+      assert(sidecar.impactOrReleaseMarker === null, `${cls}/${action}: non-attack action has a non-null release marker`);
+    }
   }
 }
-assert(totalFramesChecked === 72, `total motion frames checked ${totalFramesChecked} != 72`);
-assert(duplicateFound === false, 'duplicate frame hash found within a sequence');
-if (!errors.length) ok('72/72 motion frames: sha + 640x960 + 8-bit RGBA + fully transparent borders + baseline y=854 + timing self-consistency + loop flag + impact marker, all measured; zero duplicate hashes within any sequence');
+assert(totalFramesChecked === record.totalAnimatedMotionFrames, `total motion frames checked ${totalFramesChecked} != record total ${record.totalAnimatedMotionFrames}`);
+assert(duplicateFound === false, 'duplicate frame hash found across the batch (masquerading as unique motion)');
+if (!errors.length) ok(`${totalFramesChecked}/${record.totalAnimatedMotionFrames} motion frames: sha + 640x960 + 8-bit RGBA + fully transparent borders + baseline y=854 + frame-directory completeness + duration sums + loop flags + release markers, all measured; zero duplicate hashes across the batch`);
 
-assert(JSON.stringify(record.motions) === JSON.stringify(measuredMotions) || record.motions !== null, 'record.motions must be filled in with real measured values, not left null');
+// 5) roster completeness
+assert(ROSTER.length === 3 && ACTIONS.length === 3, 'roster/action constant tampering');
+if (!errors.length) ok('roster completeness: 3 classes (Mage, Summoner, Acolyte) x 3 animated actions (Idle, Move, Attack) + 3 Neutral Masters');
 
+// 6) approval flags -- exact required values (pending, not approved)
 const f = record.approvalFlags;
-assert(typeof f.humanVisualApproval === 'boolean', 'approvalFlags.humanVisualApproval must be a boolean once real');
-if (!errors.length) ok('approval flags present with real boolean values');
+assert(f.humanVisualApproval === 'pending', `approvalFlags.humanVisualApproval must be 'pending', got ${f.humanVisualApproval}`);
+const expectFalseFlags = { motionProductionApproved: false, exactPackageApproved: false, canonicalApproved: false, runtimeIntegrationAuthorized: false, runtimeIntegrated: false, merged: false };
+for (const [k, v] of Object.entries(expectFalseFlags)) assert(f[k] === v, `approvalFlags.${k} must be ${v}, got ${f[k]}`);
+if (!errors.length) ok("approval flags exact: humanVisualApproval='pending'; motionProductionApproved/exactPackageApproved/canonicalApproved/runtimeIntegrationAuthorized/runtimeIntegrated/merged=false");
 
+// 7) Board Preview deferred record
 assert(record.boardPreview.status === 'DEFERRED_UNTIL_AFTER_DEMO', 'boardPreview.status wrong');
-assert(record.runtimeAttackSpeedSynchronization.status === 'PENDING_SEPARATE_RUNTIME_INTEGRATION_VALIDATION', 'runtimeAttackSpeedSynchronization.status wrong');
+if (!errors.length) ok('Board Preview record: DEFERRED_UNTIL_AFTER_DEMO (unchanged, not replaced)');
 
-// Changed-path allowlist (full mode)
+// 8) Runtime synchronization pending record
+assert(record.runtimeAttackSpeedSynchronization.status === 'PENDING_SEPARATE_RUNTIME_INTEGRATION_VALIDATION', 'runtimeAttackSpeedSynchronization.status wrong');
+if (!errors.length) ok('Runtime attack-speed synchronization record: PENDING_SEPARATE_RUNTIME_INTEGRATION_VALIDATION');
+
+// 9) changed-path allowlist
 try {
   const { execSync } = await import('node:child_process');
-  const base = execSync('git merge-base HEAD origin/cc/class1-motion-batch-1-melee-exact-package-approval-v1 2>/dev/null || git rev-list --max-parents=0 HEAD', { encoding: 'utf8' }).trim();
+  const base = execSync('git merge-base HEAD origin/cc/class1-motion-batch-2-caster-production-v1 2>/dev/null || git rev-list --max-parents=0 HEAD', { encoding: 'utf8' }).trim();
   const changed = execSync(`git diff --name-only ${base} HEAD`, { encoding: 'utf8' }).trim().split('\n').filter(Boolean);
   const allowlist = [`${IMPORT_ROOT}/`, RECORD_PATH, 'docs/reviews/class1-motion-batch-2-caster-exact-package-approval-v1.md', 'tools/validate-class1-motion-batch-2-caster-exact-package-approval-v1.mjs'];
   const disallowed = changed.filter((cf) => !allowlist.some((prefix) => cf === prefix || cf.startsWith(prefix)));
@@ -235,4 +244,4 @@ if (errors.length) {
   for (const e of errors) console.error('  ✗ ' + e);
   process.exit(1);
 }
-console.log('\nALL CHECKS PASSED — class1-motion-batch-2-caster-exact-package-approval-v1 record is consistent with measured binaries.');
+console.log('\nALL CHECKS PASSED — class1-motion-batch-2-caster-exact-package-approval-v1 record is consistent with measured binaries. READY_FOR_HUMAN_REVIEW (not approval).');

@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "project": "Auto-Battler",
+  "classId": "mage",
+  "authoritativeNeutralMaster": {
+    "record": "Class 1 Neutral Master Batch v1 — Exact Package Approval PR #83",
+    "packageRelativePath": "mage/neutral/hero.mage_neutral_master.png",
+    "sha256": "6587abdf0b4427ed9c95acb98a6d7c618e8be653fb13cdcaa9be1472fcb96315",
+    "byteIdentical": true
+  },
+  "identityLock": {
+    "summary": "Male basic offensive caster; pointed cap, purple robe, and crystal staff.",
+    "sheet": "mage/review/mage-identity-lock-sheet.png"
+  },
+  "actions": {
+    "idle": {
+      "directory": "mage/idle",
+      "sidecar": "mage/idle/mage-idle-sidecar-v1.json",
+      "normalPreview": "mage/review/mage-idle-normal.gif",
+      "slowQaPreview": "mage/review/mage-idle-slow-qa.gif",
+      "contactSheet": "mage/review/mage-idle-contact-sheet.png"
+    },
+    "move": {
+      "directory": "mage/move",
+      "sidecar": "mage/move/mage-move-sidecar-v1.json",
+      "normalPreview": "mage/review/mage-move-normal.gif",
+      "slowQaPreview": "mage/review/mage-move-slow-qa.gif",
+      "contactSheet": "mage/review/mage-move-contact-sheet.png"
+    },
+    "attack": {
+      "directory": "mage/attack",
+      "sidecar": "mage/attack/mage-attack-sidecar-v1.json",
+      "normalPreview": "mage/review/mage-attack-normal.gif",
+      "slowQaPreview": "mage/review/mage-attack-slow-qa.gif",
+      "contactSheet": "mage/review/mage-attack-contact-sheet.png"
+    }
+  },
+  "technicalQaRecord": "mage/technical-qa-record-v1.json",
+  "productionNotes": "mage/production-notes-v1.md",
+  "knownDefectsRecord": "mage/known-defects-v1.json",
+  "correctionHistory": [],
+  "prohibitedReferencesNotCopied": [
+    "Archer poses, frame count, and timing",
+    "Melee Batch attack poses",
+    "Other-class identity, costume, face, palette, anatomy, weapon, prop, silhouette, or motion"
+  ]
+}
