@@ -2,8 +2,22 @@
   "record": "class1-motion-runtime-caster-v1",
   "schemaVersion": 1,
   "project": "phathompongsae-ops/Auto-Battler",
-  "status": "READY_FOR_RUNTIME_HUMAN_REVIEW",
+  "status": "CLASS1_MOTION_RUNTIME_CASTER_APPROVED",
   "scope": "Runtime Integration Phase 1 for the Class 1 Caster Family (Mage, Summoner, Acolyte) -- Idle, Move, Basic Attack only. Registers the exact-approved per-file variable-duration PNG motion frames into the existing THREE.js board/bench renderer (src/game.js), selected by exact character identity, with fallback to the prior placeholder spritesheet if the frames fail to load. Does not touch Fighter/Swordman/Merchant/Archer, Skill/Cast, Hit/Death/Victory, Fusion, Class 2/Secret Class/Survival/3-star, projectiles, VFX, Board Preview, or any gameplay/balance value.",
+
+  "runtimeHumanDecision": {
+    "verdict": "RUNTIME_HUMAN_APPROVED",
+    "approvedBy": "user (explicit instruction, authoritative)",
+    "recordUpdatedAtUtc": "2026-07-20T14:06:50Z",
+    "recordUpdatedAtNote": "This timestamp is the record creation/update time for this approval entry, not a claimed timestamp of the user's original spoken decision.",
+    "basis": "The user reviewed the Runtime Human Review evidence package for PR #88 (docs/reviews/class1-motion-runtime-caster-v1/evidence/human-review-v1/) and is satisfied with the Runtime motion behavior of Mage, Summoner, and Acolyte.",
+    "approvedCharacters": ["mage", "summoner", "acolyte"],
+    "approvedScenarios": ["idle", "move", "basicAttack", "x1Readability", "x4Readability", "facingLeftRight", "repeatedBasicAttackStability", "returnToIdle", "multiUnitIndependence"],
+    "approvedAtExactHead": { "branch": "cc/class1-motion-runtime-caster-v1", "pr": 88, "headSha": "dc75c52b42073eb60cd13d92e9f02815beb7e159" },
+    "explicitlyNotApproved": ["boardAppearance", "boardLayout", "cameraFraming", "artDirection", "lighting", "shadows", "colorGrading", "uiTone", "skillCast", "projectile", "vfx", "gameplay", "balance", "combatOrdering", "meleeRuntime", "archerRuntime", "monsterRuntime"],
+    "userExpressedDissatisfactionWith": ["board", "cameraMotionViewpoint", "artDirection", "lightingAndShadow", "overallVisualPresentation"],
+    "note": "This is Runtime motion-behavior approval only. Board/camera/art/lighting/UI presentation are explicitly NOT approved -- the user has specifically expressed dissatisfaction with them, and that work remains a separate, later, user-authorized task. This approval does not authorize Skill/Cast, canonical promotion, Melee/Archer/monster Runtime work, or a merge."
+  },
 
   "sourceLineage": {
     "approvalRecord": "data/design/class1-motion-batch-2-caster-exact-package-approval-v1.json",
@@ -151,7 +165,8 @@
     "ATTACK_SPEED_RUNTIME_VALIDATION_PENDING and PENDING_SEPARATE_RUNTIME_INTEGRATION_VALIDATION are NOT resolved by this record -- this task only measured and compared existing values, per its own scope; it did not perform full attack-speed Runtime validation as a separate later gate might.",
     "Board Preview remains DEFERRED_UNTIL_AFTER_DEMO -- not touched.",
     "Skill/Cast, Hit, Death, Victory, Fusion, Class 2, Secret Class, Survival, and 3-star motion are entirely out of scope and unimplemented.",
-    "The Archer Runtime Integration's own shared-texture-disposal bug (see criticalFindingsFromAudit) was identified but intentionally NOT fixed, since Archer is out of this task's scope."
+    "The Archer Runtime Integration's own shared-texture-disposal bug (see criticalFindingsFromAudit) was identified but intentionally NOT fixed, since Archer is out of this task's scope.",
+    "Runtime motion approval (this record) does not cover board appearance, camera framing, art direction, lighting/shadow, or overall visual presentation -- the user has specifically expressed dissatisfaction with these and they remain a separate, later, user-authorized task."
   ],
 
   "approvalFlags": {
@@ -165,5 +180,5 @@
   },
 
   "validator": "tools/validate-class1-motion-runtime-caster-v1.mjs",
-  "nextAuthorizedGate": "User's Runtime visual review/decision on this Draft PR. Not started by this record: Skill/Cast, canonical asset promotion, Melee family Runtime Integration, merge."
+  "nextAuthorizedGate": "Board/camera/art-direction/lighting visual-presentation work is a separate, later, user-authorized task -- not started by this record. Also not started by this record: Skill/Cast, canonical asset promotion, Melee family Runtime Integration, merge."
 }

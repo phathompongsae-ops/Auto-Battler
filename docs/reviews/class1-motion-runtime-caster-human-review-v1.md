@@ -1,10 +1,15 @@
 # Class 1 Caster Runtime — Human Review Evidence v1
 
-**Status: READY_FOR_RUNTIME_HUMAN_REVIEW**
+**Status: CLASS1_MOTION_RUNTIME_CASTER_APPROVED**
 
-This is **evidence and review preparation only**. No Human Visual Approval is recorded here, and
-this task does not self-approve the Runtime Integration in PR #88. All checklist items below are
-explicitly **pending**.
+The user reviewed this evidence package and gave explicit **Runtime Human Approval** for the
+Runtime motion behavior of Mage, Summoner, and Acolyte (Idle, Move, Basic Attack, x1/x4
+readability, facing, repeated-attack stability, return to Idle, multi-unit independence). The
+authoritative decision is recorded in `data/design/class1-motion-runtime-caster-v1.json`
+(`runtimeHumanDecision`); this record's checklist is updated below to reflect that decision.
+**Board/camera/art-direction/lighting/UI presentation are NOT approved** — the user has
+specifically expressed dissatisfaction with these, and that work remains a separate, later,
+user-authorized task. This record does not authorize Skill/Cast, canonical promotion, or a merge.
 
 ## Source verified before capture
 
@@ -78,37 +83,43 @@ Board Preview remains **`DEFERRED_UNTIL_AFTER_DEMO`** — not created or replace
 layout, camera framing, and UI tone are **not reviewed or approved** by this task; this evidence
 package covers Caster Runtime **motion behavior only**.
 
-## Human Review checklist (all pending — no item preselected)
+## Human Review checklist (resolved — Runtime Human Approved)
 
 ### Mage
-- [ ] Idle acceptable — **pending**
-- [ ] Move acceptable — **pending**
-- [ ] Basic Attack acceptable — **pending**
-- [ ] x4 readability acceptable — **pending**
-- [ ] Facing acceptable — **pending**
-- [ ] Return to Idle acceptable — **pending**
+- [x] Idle acceptable — **approved**
+- [x] Move acceptable — **approved**
+- [x] Basic Attack acceptable — **approved**
+- [x] x4 readability acceptable — **approved**
+- [x] Facing acceptable — **approved**
+- [x] Return to Idle acceptable — **approved**
 
 ### Summoner
-- [ ] Idle acceptable — **pending**
-- [ ] Move acceptable — **pending**
-- [ ] Basic Attack acceptable — **pending**
-- [ ] x4 readability acceptable — **pending**
-- [ ] Facing acceptable — **pending**
-- [ ] Return to Idle acceptable — **pending**
+- [x] Idle acceptable — **approved**
+- [x] Move acceptable — **approved**
+- [x] Basic Attack acceptable — **approved**
+- [x] x4 readability acceptable — **approved**
+- [x] Facing acceptable — **approved**
+- [x] Return to Idle acceptable — **approved**
 
 ### Acolyte
-- [ ] Idle acceptable — **pending**
-- [ ] Move acceptable — **pending**
-- [ ] Basic Attack acceptable — **pending**
-- [ ] x4 readability acceptable — **pending**
-- [ ] Facing acceptable — **pending**
-- [ ] Return to Idle acceptable — **pending**
+- [x] Idle acceptable — **approved**
+- [x] Move acceptable — **approved**
+- [x] Basic Attack acceptable — **approved**
+- [x] x4 readability acceptable — **approved**
+- [x] Facing acceptable — **approved**
+- [x] Return to Idle acceptable — **approved**
 
 ### Batch
-- [ ] Character distinction acceptable — **pending**
-- [ ] Simultaneous playback acceptable — **pending**
-- [ ] No obvious visual collision — **pending**
-- [ ] **Runtime motion approved: pending**
+- [x] Character distinction acceptable — **approved**
+- [x] Simultaneous playback acceptable — **approved**
+- [x] No obvious visual collision — **approved**
+- [x] **Runtime motion approved: approved**
+
+### Explicitly NOT covered by this approval
+Board appearance, board layout, camera framing, art direction, lighting, shadows, color grading,
+UI tone, Skill/Cast, projectile, VFX, gameplay, balance, Combat ordering, Melee Runtime, Archer
+Runtime, monster Runtime. The user has specifically expressed dissatisfaction with the board,
+camera/motion viewpoint, art direction, lighting/shadow, and overall visual presentation.
 
 ## Known limitations
 

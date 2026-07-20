@@ -1,11 +1,38 @@
 # Class 1 Motion Runtime Integration — Caster Family, Phase 1
 
-**Status: READY_FOR_RUNTIME_HUMAN_REVIEW**
+**Status: CLASS1_MOTION_RUNTIME_CASTER_APPROVED**
 
 Integrates the exact-approved Class 1 Caster Family (Mage, Summoner, Acolyte) motion package —
 Idle, Move, Basic Attack — into the existing THREE.js board/bench Runtime. Phase 1 only: no
 Fighter/Swordman/Merchant integration, no Archer changes, no Skill/Cast/Hit/Death/Victory/
 Fusion/Class 2/Secret Class/Survival/3-star work, no projectile/VFX, no gameplay/balance change.
+
+## Runtime Human Approval (user decision)
+
+The user reviewed the Runtime Human Review evidence package for PR #88
+(`docs/reviews/class1-motion-runtime-caster-v1/evidence/human-review-v1/`) and is satisfied with
+the Runtime motion behavior of **Mage, Summoner, and Acolyte**.
+
+This is recorded as explicit **Runtime Human Approval** for:
+
+- Idle, Move, Basic Attack
+- x1 readability and x4 readability
+- Facing left/right
+- Repeated Basic Attack stability
+- Return to Idle
+- Multi-unit independence
+
+Approved at the exact PR #88 head `dc75c52b42073eb60cd13d92e9f02815beb7e159`
+(branch `cc/class1-motion-runtime-caster-v1`).
+**Record updated (UTC)**: `2026-07-20T14:06:50Z` — this is the record creation/update time for this
+approval entry, not a claimed timestamp of the user's original spoken decision.
+
+**This approval does NOT cover**: board appearance, board layout, camera framing, art direction,
+lighting, shadows, color grading, UI tone, Skill/Cast, projectile, VFX, gameplay, balance, Combat
+ordering, Melee Runtime, Archer Runtime, or monster Runtime. The user has **specifically expressed
+dissatisfaction** with the board, camera/motion viewpoint, art direction, lighting/shadow, and
+overall visual presentation — that work is **not** approved here and remains a separate, later,
+user-authorized task.
 
 ## Source lineage
 
@@ -210,6 +237,9 @@ merged: false
   projectile, and VFX are entirely out of scope and unimplemented.
 - The Archer reference branch's own shared-texture-disposal bug (see Critical Findings) was
   identified but intentionally not fixed — out of this task's scope.
+- This Runtime motion approval does not cover board appearance, camera framing, art direction,
+  lighting/shadow, or overall visual presentation — the user has specifically expressed
+  dissatisfaction with these, and they remain a separate, later, user-authorized task.
 
 ## Scope
 
@@ -217,3 +247,8 @@ Changed paths limited to `src/game.js` (additive only), this record, the approva
 validator, and the evidence directory. No PNG/GIF binary modified. No `src/` gameplay/Combat/
 balance/Skill/Cast/projectile/VFX logic touched beyond the additive animation-registration code
 described above. PR #87 not modified. No PR merged, no auto-merge enabled.
+
+This Runtime Human Approval update touched only this record, its dedicated human-review
+counterpart (`data/design/class1-motion-runtime-caster-human-review-v1.json`,
+`docs/reviews/class1-motion-runtime-caster-human-review-v1.md`), and the validator's allowlist —
+no `src/game.js`, no motion asset, no evidence media file was modified.

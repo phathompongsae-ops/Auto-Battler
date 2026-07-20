@@ -2,8 +2,16 @@
   "record": "class1-motion-runtime-caster-human-review-v1",
   "schemaVersion": 1,
   "project": "phathompongsae-ops/Auto-Battler",
-  "status": "READY_FOR_RUNTIME_HUMAN_REVIEW",
-  "scope": "Human Review evidence package for the Class 1 Caster Family (Mage, Summoner, Acolyte) Runtime Integration in PR #88. Evidence capture and review preparation only -- does not record any approval decision, does not modify Runtime behavior, does not touch approved PNG/GIF binaries, does not touch gameplay/balance/Combat/Skill-Cast/projectile/VFX/Board-Preview.",
+  "status": "CLASS1_MOTION_RUNTIME_CASTER_APPROVED",
+  "scope": "Human Review evidence package for the Class 1 Caster Family (Mage, Summoner, Acolyte) Runtime Integration in PR #88, now closed out with the user's explicit Runtime Human Approval (see runtimeHumanDecisionReference below and data/design/class1-motion-runtime-caster-v1.json's own runtimeHumanDecision). Does not modify Runtime behavior, does not touch approved PNG/GIF binaries or evidence media, does not touch gameplay/balance/Combat/Skill-Cast/projectile/VFX/Board-Preview, and does not approve board/camera/art/lighting/UI presentation.",
+
+  "runtimeHumanDecisionReference": {
+    "verdict": "RUNTIME_HUMAN_APPROVED",
+    "recordedIn": "data/design/class1-motion-runtime-caster-v1.json (runtimeHumanDecision)",
+    "recordUpdatedAtUtc": "2026-07-20T14:06:50Z",
+    "recordUpdatedAtNote": "This timestamp is the record creation/update time for this approval entry, not a claimed timestamp of the user's original spoken decision.",
+    "note": "This dedicated evidence/checklist record is updated narrowly to reflect that decision -- the decision itself is authoritatively recorded in the main Runtime Integration record referenced above."
+  },
 
   "sourceVerifiedBeforeCapture": {
     "repository": "phathompongsae-ops/Auto-Battler",
@@ -61,13 +69,13 @@
   },
 
   "boardPreviewStatus": "DEFERRED_UNTIL_AFTER_DEMO -- unchanged, not created or replaced by this task",
-  "boardUiCameraColorGrading": "not reviewed or altered by this task -- this evidence package covers Caster Runtime motion behavior only",
+  "boardUiCameraColorGrading": "NOT approved by this record. The user has specifically expressed dissatisfaction with the board, camera/motion viewpoint, art direction, lighting/shadow, and overall visual presentation -- that work is not reviewed or approved here and remains a separate, later, user-authorized task.",
 
   "humanReviewChecklist": {
-    "mage": { "idleAcceptable": "pending", "moveAcceptable": "pending", "basicAttackAcceptable": "pending", "x4ReadabilityAcceptable": "pending", "facingAcceptable": "pending", "returnToIdleAcceptable": "pending" },
-    "summoner": { "idleAcceptable": "pending", "moveAcceptable": "pending", "basicAttackAcceptable": "pending", "x4ReadabilityAcceptable": "pending", "facingAcceptable": "pending", "returnToIdleAcceptable": "pending" },
-    "acolyte": { "idleAcceptable": "pending", "moveAcceptable": "pending", "basicAttackAcceptable": "pending", "x4ReadabilityAcceptable": "pending", "facingAcceptable": "pending", "returnToIdleAcceptable": "pending" },
-    "batch": { "characterDistinctionAcceptable": "pending", "simultaneousPlaybackAcceptable": "pending", "noObviousVisualCollision": "pending", "runtimeMotionApproved": "pending" }
+    "mage": { "idleAcceptable": "approved", "moveAcceptable": "approved", "basicAttackAcceptable": "approved", "x4ReadabilityAcceptable": "approved", "facingAcceptable": "approved", "returnToIdleAcceptable": "approved" },
+    "summoner": { "idleAcceptable": "approved", "moveAcceptable": "approved", "basicAttackAcceptable": "approved", "x4ReadabilityAcceptable": "approved", "facingAcceptable": "approved", "returnToIdleAcceptable": "approved" },
+    "acolyte": { "idleAcceptable": "approved", "moveAcceptable": "approved", "basicAttackAcceptable": "approved", "x4ReadabilityAcceptable": "approved", "facingAcceptable": "approved", "returnToIdleAcceptable": "approved" },
+    "batch": { "characterDistinctionAcceptable": "approved", "simultaneousPlaybackAcceptable": "approved", "noObviousVisualCollision": "approved", "runtimeMotionApproved": "approved" }
   },
 
   "knownLimitations": [
@@ -96,13 +104,13 @@
     "boardLayoutCameraOrUiToneChanged": false,
     "meleeIntegrated": false,
     "archerIntegrated": false,
-    "humanVisualApprovalRecorded": false,
+    "humanVisualApprovalRecorded": true,
     "runtimeSelfApproved": false,
     "prMerged": false,
     "autoMergeEnabled": false,
     "pr87Modified": false
   },
 
-  "validator": "tools/validate-class1-motion-runtime-caster-v1.mjs (unchanged, re-run and passing)",
-  "nextStep": "User's Human Visual Review decision on the evidence in this package. Not performed by this record: approval recording, canonical promotion, Melee integration, Skill/Cast, merge."
+  "validator": "tools/validate-class1-motion-runtime-caster-v1.mjs (allowlist extended for this update; re-run and passing)",
+  "nextStep": "Board/camera/art-direction/lighting visual-presentation work is a separate, later, user-authorized task -- not performed by this record. Also not performed by this record: canonical promotion, Melee integration, Skill/Cast, merge."
 }

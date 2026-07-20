@@ -42,13 +42,26 @@ const approvalRecord = JSON.parse(fs.readFileSync(APPROVAL_RECORD_PATH, 'utf8'))
 const gameJs = fs.readFileSync(GAME_JS_PATH, 'utf8');
 
 // 1) record status / approval flags
-assert(record.status === 'READY_FOR_RUNTIME_HUMAN_REVIEW', `record.status must be READY_FOR_RUNTIME_HUMAN_REVIEW, got ${record.status}`);
+assert(record.status === 'CLASS1_MOTION_RUNTIME_CASTER_APPROVED', `record.status must be CLASS1_MOTION_RUNTIME_CASTER_APPROVED, got ${record.status}`);
 const f = record.approvalFlags;
 const expectTrue = { humanVisualApproval: true, motionProductionApproved: true, exactPackageApproved: true, runtimeIntegrationAuthorized: true, runtimeIntegrated: true };
 for (const [k, v] of Object.entries(expectTrue)) assert(f[k] === v, `approvalFlags.${k} must be ${v}, got ${f[k]}`);
 const expectFalse = { canonicalApproved: false, merged: false };
 for (const [k, v] of Object.entries(expectFalse)) assert(f[k] === v, `approvalFlags.${k} must be ${v}, got ${f[k]}`);
-if (!errors.length) ok('record status READY_FOR_RUNTIME_HUMAN_REVIEW; approvalFlags exact (runtimeIntegrationAuthorized/runtimeIntegrated=true, canonicalApproved/merged=false)');
+if (!errors.length) ok('record status CLASS1_MOTION_RUNTIME_CASTER_APPROVED; approvalFlags exact (runtimeIntegrationAuthorized/runtimeIntegrated=true, canonicalApproved/merged=false)');
+
+// 1b) Runtime Human Approval decision — must be an explicit, non-fabricated record, and must not
+// claim board/camera/art/lighting/UI presentation was approved
+const rhd = record.runtimeHumanDecision;
+assert(!!rhd, 'record.runtimeHumanDecision is required once status is CLASS1_MOTION_RUNTIME_CASTER_APPROVED');
+if (rhd) {
+  assert(rhd.verdict === 'RUNTIME_HUMAN_APPROVED', `runtimeHumanDecision.verdict must be RUNTIME_HUMAN_APPROVED, got ${rhd.verdict}`);
+  assert(Array.isArray(rhd.approvedCharacters) && ROSTER.every((c) => rhd.approvedCharacters.includes(c)), 'runtimeHumanDecision.approvedCharacters must cover mage/summoner/acolyte');
+  assert(rhd.approvedAtExactHead && rhd.approvedAtExactHead.pr === 88, 'runtimeHumanDecision.approvedAtExactHead.pr must be 88');
+  const mustExclude = ['boardAppearance', 'boardLayout', 'cameraFraming', 'artDirection', 'lighting', 'shadows', 'colorGrading', 'uiTone', 'skillCast', 'projectile', 'vfx', 'gameplay', 'balance', 'combatOrdering', 'meleeRuntime', 'archerRuntime', 'monsterRuntime'];
+  assert(Array.isArray(rhd.explicitlyNotApproved) && mustExclude.every((x) => rhd.explicitlyNotApproved.includes(x)), 'runtimeHumanDecision.explicitlyNotApproved must list every required exclusion (board/camera/art/lighting/UI/Skill-Cast/etc.)');
+}
+if (!errors.length) ok('runtimeHumanDecision present: verdict=RUNTIME_HUMAN_APPROVED, characters cover mage/summoner/acolyte, board/camera/art/lighting/UI/Skill-Cast/etc. explicitly excluded');
 
 // 2) source lineage: PR #87 head + package identity, cross-checked against the (untouched)
 //    exact-package-approval record, which must NOT itself claim Runtime Integration/merge
@@ -160,19 +173,24 @@ if (fs.existsSync(evidencePath)) {
 }
 if (!errors.length) ok('x4/normal-speed Runtime evidence present (screenshots + structured JSON), casterLoaded=true, 0 console errors');
 
-// 8b) Human Review evidence record (if present): must not preselect approval — every checklist
-// item and the batch-level runtimeMotionApproved verdict must remain 'pending'
+// 8b) Human Review evidence record (if present): before an explicit runtimeHumanDecision exists,
+// every checklist item (including the batch-level runtimeMotionApproved verdict) must remain
+// 'pending' — approval must never be preselected. Once record.runtimeHumanDecision.verdict is
+// RUNTIME_HUMAN_APPROVED, this record's checklist must consistently reflect that same resolved
+// decision ('approved'), not silently disagree with it.
 if (fs.existsSync(HUMAN_REVIEW_RECORD_PATH)) {
   const hr = JSON.parse(fs.readFileSync(HUMAN_REVIEW_RECORD_PATH, 'utf8'));
+  const decided = record.runtimeHumanDecision && record.runtimeHumanDecision.verdict === 'RUNTIME_HUMAN_APPROVED';
+  const expected = decided ? 'approved' : 'pending';
   for (const cls of ROSTER) {
     const c = hr.humanReviewChecklist && hr.humanReviewChecklist[cls];
     assert(!!c, `human review checklist missing section for ${cls}`);
-    if (c) for (const [k, v] of Object.entries(c)) assert(v === 'pending', `human review checklist ${cls}.${k} must be 'pending', got ${v} — approval must not be preselected`);
+    if (c) for (const [k, v] of Object.entries(c)) assert(v === expected, `human review checklist ${cls}.${k} must be '${expected}', got ${v}`);
   }
   const batch = hr.humanReviewChecklist && hr.humanReviewChecklist.batch;
   assert(!!batch, 'human review checklist missing batch section');
-  if (batch) for (const [k, v] of Object.entries(batch)) assert(v === 'pending', `human review checklist batch.${k} must be 'pending', got ${v} — approval must not be preselected`);
-  if (!errors.length) ok('Human Review checklist present and no item preselected (every field, including batch.runtimeMotionApproved, is \'pending\')');
+  if (batch) for (const [k, v] of Object.entries(batch)) assert(v === expected, `human review checklist batch.${k} must be '${expected}', got ${v}`);
+  if (!errors.length) ok(`Human Review checklist present and consistent with the recorded decision (every field, including batch.runtimeMotionApproved, is '${expected}')`);
 }
 
 // 9) changed-path allowlist — this branch must not touch the imported package, PR #87's own
@@ -196,4 +214,4 @@ if (errors.length) {
   for (const e of errors) console.error('  ✗ ' + e);
   process.exit(1);
 }
-console.log('\nALL CHECKS PASSED — class1-motion-runtime-caster-v1 record is consistent with src/game.js and the approved source package. READY_FOR_RUNTIME_HUMAN_REVIEW.');
+console.log('\nALL CHECKS PASSED — class1-motion-runtime-caster-v1 record is consistent with src/game.js and the approved source package. CLASS1_MOTION_RUNTIME_CASTER_APPROVED (board/camera/art/lighting/UI presentation NOT approved).');
