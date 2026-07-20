@@ -1,0 +1,137 @@
+{
+  "schemaVersion": 1,
+  "packageId": "class-1-neutral-master-batch-v1-human-review",
+  "status": "READY_FOR_HUMAN_REVIEW",
+  "project": "phathompongsae-ops/Auto-Battler",
+  "scope": "local-only offline Class 1 Neutral Master asset production",
+  "exactArcherBenchmark": {
+    "logicalId": "hero.archer.production-master.candidate.v1",
+    "repositoryPath": "docs/assets/review/character-production/archer/master-v1/archer-production-master-candidate-v1.png",
+    "packagePath": "exact-approved-archer-reference/archer-production-master-candidate-v1.png",
+    "sha256": "4911e7e3ba59241ee011be3e62f1b64230dcf9b3c24c6aeb23dc939d83311013",
+    "byteIdenticalCopy": true,
+    "modified": false
+  },
+  "identitySources": [
+    "data/design/hero-codex-v1.json",
+    "data/design/character-art-style-lock-and-migration-contract-v1.json",
+    "data/demo1-localization.json",
+    "assets/fighter.png, assets/swordman.png, assets/mage.png, assets/summoner.png, assets/acolyte.png, assets/merchant.png",
+    "assets/v5/body_<class>.png and assets/v5/face_<class>.png"
+  ],
+  "technicalContract": {
+    "format": "PNG",
+    "mode": "RGBA",
+    "bitDepth": 8,
+    "canvas": [640, 960],
+    "baselineMaxOpaqueY": 854,
+    "baselineHalfOpenY": 855,
+    "anchorReviewCandidate": [0.5, 0.92],
+    "runtimeAuthorization": false
+  },
+  "candidates": [
+    {
+      "classId": "fighter",
+      "path": "candidates/fighter/hero.fighter_neutral_master_candidate_v1.png",
+      "sha256": "4b2ec5558971c3730da352f5ba2a39d928bbf5c722d40e38256dd6b4d48a19c4",
+      "dimensions": [640, 960], "mode": "RGBA", "bitDepth": 8,
+      "alphaBounds": "528x730+56+125", "baselineHalfOpenY": 855,
+      "identitySummary": "Male crimson/iron frontline brawler with paired gauntlets and broad silhouette.",
+      "iterationCount": 1
+    },
+    {
+      "classId": "swordman",
+      "path": "candidates/swordman/hero.swordman_neutral_master_candidate_v1.png",
+      "sha256": "2a1fc6f93f384fbc92486a8e42975a10bb84d8f9cd35b13b155a9668638861ed",
+      "dimensions": [640, 960], "mode": "RGBA", "bitDepth": 8,
+      "alphaBounds": "599x730+20+125", "baselineHalfOpenY": 855,
+      "identitySummary": "Male cobalt/silver agile novice swordsman with slender sword and small buckler.",
+      "iterationCount": 2,
+      "revision": "Targeted chibi-proportion correction only; identity and equipment retained."
+    },
+    {
+      "classId": "mage",
+      "path": "candidates/mage/hero.mage_neutral_master_candidate_v1.png",
+      "sha256": "6587abdf0b4427ed9c95acb98a6d7c618e8be653fb13cdcaa9be1472fcb96315",
+      "dimensions": [640, 960], "mode": "RGBA", "bitDepth": 8,
+      "alphaBounds": "541x730+49+125", "baselineHalfOpenY": 855,
+      "identitySummary": "Male violet cloth caster with pointed cap and crystal staff.",
+      "iterationCount": 1
+    },
+    {
+      "classId": "summoner",
+      "path": "candidates/summoner/hero.summoner_neutral_master_candidate_v1.png",
+      "sha256": "731531aaa1d3efc462a12d2265ad602e6e4711a83f054d8f84b5bb00f3956ae3",
+      "dimensions": [640, 960], "mode": "RGBA", "bitDepth": 8,
+      "alphaBounds": "534x730+53+125", "baselineHalfOpenY": 855,
+      "identitySummary": "Male teal contract caster with grimoire and ring-shaped summoning seal.",
+      "iterationCount": 1
+    },
+    {
+      "classId": "acolyte",
+      "path": "candidates/acolyte/hero.acolyte_neutral_master_candidate_v1.png",
+      "sha256": "0853ab6d8f91e4100732c7f3628b31a09a38a762dc999dfbecef3cc23804a9c8",
+      "dimensions": [640, 960], "mode": "RGBA", "bitDepth": 8,
+      "alphaBounds": "550x730+45+125", "baselineHalfOpenY": 855,
+      "identitySummary": "Female ivory/sky-blue novice support with veil and simple sun-ring staff.",
+      "iterationCount": 1
+    },
+    {
+      "classId": "merchant",
+      "path": "candidates/merchant/hero.merchant_neutral_master_candidate_v1.png",
+      "sha256": "053785f1283a02c49897445edf038e3f95b30cb2733b81c206f648e986b157d3",
+      "dimensions": [640, 960], "mode": "RGBA", "bitDepth": 8,
+      "alphaBounds": "533x730+53+125", "baselineHalfOpenY": 855,
+      "identitySummary": "Male ochre traveling merchant with backpack, ledger, coin pouch and compact axe.",
+      "iterationCount": 1
+    }
+  ],
+  "generationProcess": {
+    "mode": "built-in image generation, one distinct class per call",
+    "referencesPerClass": ["exact Archer style/quality benchmark", "matching legacy v5 class body as identity evidence"],
+    "background": "flat #FF00FF chroma key",
+    "localPostProcess": [
+      "color-distance alpha extraction",
+      "edge-only chroma decontamination",
+      "premultiplied-alpha Lanczos normalization without geometric distortion",
+      "8-bit RGBA 640x960 placement",
+      "bottom alpha bound aligned to half-open y=855",
+      "nearest-opaque RGB alpha-bleed cleanup"
+    ],
+    "originalArcherModified": false,
+    "legacyPixelsCopiedIntoFinal": false
+  },
+  "internalQa": {
+    "styleAgainstArcher": "PASS_FOR_HUMAN_REVIEW",
+    "pairwiseClassDifferentiation": "PASS_21_OF_21",
+    "maxNormalizedSilhouetteIoU": 0.6566,
+    "pairwiseConflictThreshold": 0.88,
+    "boardReadability": "PASS_FOR_HUMAN_REVIEW",
+    "benchReadability": "PASS_FOR_HUMAN_REVIEW",
+    "shopCardContainment": "PASS",
+    "technical": "PASS",
+    "humanVisualApproval": false
+  },
+  "knownConcerns": [
+    "All six new files remain unapproved candidates pending human visual review.",
+    "Swordman's long diagonal sword reduces side margin to 20 pixels but remains fully contained and uncropped.",
+    "No Runtime rendering or browser/toolchain test was performed or authorized."
+  ],
+  "reviewOrder": [
+    "review/class-1-full-size-roster-contact-sheet.png",
+    "review/class-1-board-scale-roster.png",
+    "review/class-1-bench-scale-roster.png",
+    "review/class-1-shop-card-roster.png",
+    "review/class-1-silhouette-comparison.png",
+    "review/class-1-pairwise-silhouette-matrix.png",
+    "review/individual/"
+  ],
+  "approvalFlags": {
+    "neutralMasterApproved": false,
+    "exactPackageApproved": false,
+    "canonicalApproved": false,
+    "runtimeEligible": false,
+    "motionAuthorized": false,
+    "runtimeIntegrated": false
+  }
+}

@@ -1,0 +1,125 @@
+{
+  "schemaVersion": 1,
+  "matrixId": "class-1-identity-matrix-v1",
+  "project": "phathompongsae-ops/Auto-Battler",
+  "sourcePriority": [
+    "canonical data and current design records",
+    "user-approved visual records",
+    "legacy art as identity reference only",
+    "class role and name",
+    "conservative design decision"
+  ],
+  "globalStyleBenchmark": {
+    "logicalId": "hero.archer.production-master.candidate.v1",
+    "path": "exact-approved-archer-reference/archer-production-master-candidate-v1.png",
+    "sha256": "4911e7e3ba59241ee011be3e62f1b64230dcf9b3c24c6aeb23dc939d83311013",
+    "allowedUse": ["render quality", "hand-painted material language", "soft lighting", "2.5-3-head chibi proportion", "camera and canvas convention", "small-scale readability"],
+    "forbiddenCopy": ["face", "eye design", "green hair", "elf ears", "green hood", "green-gold costume", "bow", "pose details"]
+  },
+  "classes": {
+    "fighter": {
+      "gender": "male",
+      "faceLanguage": "square, sturdy, determined, warm tan skin",
+      "hair": "dark-brown upward spikes with short crimson headband",
+      "primaryColor": "crimson",
+      "secondaryColor": "charcoal iron and dark-brown leather",
+      "costumeSilhouette": "broad shoulders, sleeveless novice armor, huge paired forearm mass",
+      "materialLanguage": "worn iron, practical leather, rough cloth",
+      "weapon": "paired iron fighting gauntlets",
+      "personality": "direct, confident frontline brawler",
+      "mandatoryClassCues": ["broad compact body", "paired gauntlets", "red headband/scarf", "frontline stance"],
+      "forbiddenOverlap": ["Swordman sword/shield profile", "Knight full plate", "Berserker spikes", "Archer hood or green-gold palette"],
+      "sourceEvidence": ["data/design/hero-codex-v1.json", "data/demo1-localization.json", "assets/fighter.png", "assets/v5/body_fighter.png", "assets/v5/face_fighter.png"]
+    },
+    "swordman": {
+      "gender": "male",
+      "faceLanguage": "tapered, focused, refined",
+      "hair": "chestnut swept hair with prominent side lock",
+      "primaryColor": "cobalt blue",
+      "secondaryColor": "silver steel and dark navy leather",
+      "costumeSilhouette": "slim layered novice armor, light shoulders, compact buckler",
+      "materialLanguage": "clean steel, fitted leather, short cloth scarf",
+      "weapon": "slender straight longsword with small blue buckler",
+      "personality": "disciplined, agile and balanced",
+      "mandatoryClassCues": ["clear sword silhouette", "narrower body than Fighter", "blue scarf", "light defensive buckler"],
+      "forbiddenOverlap": ["Fighter gauntlet mass", "Knight heavy plate or tower shield", "Blade Master oversized blade", "Duelist prestige ornament"],
+      "sourceEvidence": ["data/design/hero-codex-v1.json", "data/demo1-localization.json", "assets/swordman.png", "assets/v5/body_swordman.png", "assets/v5/face_swordman.png"]
+    },
+    "archer": {
+      "gender": "female",
+      "faceLanguage": "exact approved Archer identity; not reused by other classes",
+      "hair": "green hair under green hood",
+      "primaryColor": "green",
+      "secondaryColor": "gold and brown leather",
+      "costumeSilhouette": "hood, cape, quiver and ornate bow",
+      "materialLanguage": "soft green leather/cloth with ornate gold trim",
+      "weapon": "ornate green-and-gold bow",
+      "personality": "cute, alert and battle-ready ranged hero",
+      "mandatoryClassCues": ["exact approved binary", "hood", "elf ears", "bow", "quiver"],
+      "forbiddenOverlap": ["all Archer-specific face, hood, ears, palette and bow cues are reserved"],
+      "sourceEvidence": ["docs/assets/review/character-production/archer/master-v1/archer-production-master-candidate-v1.png", "data/design/archer-neutral-master-exact-file-approval-v1.json"]
+    },
+    "mage": {
+      "gender": "male",
+      "faceLanguage": "narrow oval, thoughtful, amber-violet eyes",
+      "hair": "short tousled black hair beneath asymmetric pointed cap",
+      "primaryColor": "deep violet",
+      "secondaryColor": "charcoal and muted silver",
+      "costumeSilhouette": "tall pointed cap, triangular robe and short mantle",
+      "materialLanguage": "soft layered cloth, dark wood and faceted crystal",
+      "weapon": "slim staff with violet crystal",
+      "personality": "calm, analytical magical damage dealer",
+      "mandatoryClassCues": ["pointed cap", "violet crystal staff", "triangular robe", "cloth caster profile"],
+      "forbiddenOverlap": ["Summoner contract book/ring seal", "Archmage crown", "Frost Weaver ice palette", "Archer hood silhouette"],
+      "sourceEvidence": ["data/design/hero-codex-v1.json", "data/demo1-localization.json", "assets/mage.png", "assets/v5/body_mage.png", "assets/v5/face_mage.png"]
+    },
+    "summoner": {
+      "gender": "male",
+      "faceLanguage": "soft angular, reserved, calm teal eyes",
+      "hair": "short swept dark-brown hair with turquoise contract band",
+      "primaryColor": "deep teal",
+      "secondaryColor": "muted indigo, cyan crystal and antique bronze",
+      "costumeSilhouette": "high split collar, layered coat, contract tabs and open coat tails",
+      "materialLanguage": "soft cloth, embossed grimoire leather, bronze ritual tool",
+      "weapon": "contract grimoire plus ring-shaped summoning seal",
+      "personality": "mysterious, controlled spirit contractor",
+      "mandatoryClassCues": ["contract book", "ring seal", "teal high collar", "no large summoned creature required"],
+      "forbiddenOverlap": ["Mage pointed hat/staff", "Beast Lord fur/beast mass", "Spirit Blade weapon", "large creature baked into master"],
+      "sourceEvidence": ["data/design/hero-codex-v1.json", "data/demo1-localization.json", "assets/summoner.png", "assets/v5/body_summoner.png", "assets/v5/face_summoner.png"]
+    },
+    "acolyte": {
+      "gender": "female",
+      "faceLanguage": "round, gentle and distinct from Archer; warm amber eyes",
+      "hair": "shoulder-length pale-blonde curls under short ivory veil",
+      "primaryColor": "ivory",
+      "secondaryColor": "pale sky blue and champagne brass",
+      "costumeSilhouette": "short novice veil, A-line tunic, modest shoulder cape",
+      "materialLanguage": "clean soft cloth, simple brass and wood",
+      "weapon": "slim support staff with small open sun ring",
+      "personality": "calm, compassionate novice support",
+      "mandatoryClassCues": ["female", "ivory veil", "sun-ring staff", "open support hand", "light clean silhouette"],
+      "forbiddenOverlap": ["Archer face/elf ears/green hood", "Priest cathedral regalia", "Inquisitor armor", "heavy halo VFX"],
+      "sourceEvidence": ["data/design/hero-codex-v1.json", "data/demo1-localization.json", "assets/acolyte.png", "assets/v5/body_acolyte.png", "assets/v5/face_acolyte.png"]
+    },
+    "merchant": {
+      "gender": "male",
+      "faceLanguage": "broad rounded, cheerful and clever",
+      "hair": "tousled chestnut hair under rust-orange trade cap",
+      "primaryColor": "ochre",
+      "secondaryColor": "warm brown, cream, rust orange and muted olive",
+      "costumeSilhouette": "padded vest, loaded backpack, belt pouches and rolled map",
+      "materialLanguage": "canvas, worn leather, wood and practical iron",
+      "weapon": "compact hand axe with ledger and trade satchel",
+      "personality": "resourceful traveling trader ready to defend himself",
+      "mandatoryClassCues": ["backpack", "ledger", "coin pouch", "trade cap", "compact axe"],
+      "forbiddenOverlap": ["Fighter armor mass", "Tycoon luxury", "Trickster cards/mask", "generic civilian NPC"],
+      "sourceEvidence": ["data/design/hero-codex-v1.json", "data/demo1-localization.json", "assets/merchant.png", "assets/v5/body_merchant.png", "assets/v5/face_merchant.png"]
+    }
+  },
+  "conflictResolutions": [
+    "Legacy 144x192 procedural sprites and v5 concept bodies differ in detail and polish; hero-codex and the current style-lock remain authoritative, while legacy pixels are identity evidence only.",
+    "Mage and Summoner legacy tools overlap. The batch separates Mage through pointed cap plus crystal staff, and Summoner through contract grimoire plus ring seal.",
+    "Swordman's legacy shield risks Knight overlap; only a small novice buckler is retained, with a slimmer body and light armor.",
+    "Merchant legacy sources vary between briefcase and backpack/axe. The newer detailed travel-merchant cue is used, retaining ledger and trade equipment."
+  ]
+}
