@@ -1,0 +1,76 @@
+{
+  "record": "archer-pilot-acceptance-record-v1",
+  "status": "ARCHER_PILOT_ACCEPTANCE_RECORDED",
+  "createdBy": "autonomous-agent",
+  "scope": "Records the human's Pilot Acceptance decision for PR #82 (hero.archer runtime integration + all three Targeted Runtime Timing Reworks). Additive record only -- no runtime code, no asset binary, no animation data, and no prior evidence file was modified, regenerated, or touched by this task.",
+
+  "referencedPullRequest": {
+    "number": 82,
+    "title": "Archer v3.2 — Runtime Integration, x4 Validation & Pilot Acceptance Candidate",
+    "branch": "cc/archer-v3-2-runtime-integration-v1",
+    "headShaAtAcceptance": "19f8ffe0d5c7d9970b1e3435697efb84885535ec",
+    "verifiedOpen": true,
+    "verifiedDraft": true,
+    "verifiedUnmerged": true,
+    "verifiedMergeableState": "clean",
+    "lineageDriftDetected": false,
+    "verificationMethod": "mcp__github__pull_request_read(method=get) on phathompongsae-ops/Auto-Battler#82, immediately before this record was created; head SHA compared byte-for-byte against the exact SHA supplied in this task"
+  },
+
+  "humanDecision": {
+    "verdict": "HUMAN_PILOT_ACCEPTED",
+    "recordedFlag": "pilotAccepted",
+    "approvedBy": "user (explicit authoritative instruction in this task)",
+    "decisionSource": "Approved by the user after: (1) Independent Final Delta Re-Audit, (2) READY_FOR_HUMAN_PILOT_ACCEPTANCE recommendation.",
+    "priorReworkChain": [
+      { "rework": "v1", "commit": "f84b0f50407503e7da93ce162b1b28e86da34310", "fixed": "repeated-attack visual acknowledgment (cap=1 replay queue)" },
+      { "rework": "v2", "commit": "187108ac4d74b0edcbf8708a3588c6d87f3bdb84", "fixed": "acknowledgment coverage gap (two-tier queue + overflow flash)" },
+      { "rework": "v3", "commit": "19f8ffe0d5c7d9970b1e3435697efb84885535ec", "fixed": "visual-feedback ownership conflict (separate ack-glow channel) + Archer runtime state not reset on wave transition" }
+    ],
+    "note": "This record does not itself re-derive or re-validate the underlying runtime work -- it records the human decision on top of the already-completed and already-evidenced v1/v2/v3 rework chain on PR #82's own head."
+  },
+
+  "approvalFlags": {
+    "pilotAccepted": true,
+    "canonicalApproved": false,
+    "finalRuntimeApproved": false,
+    "merged": false
+  },
+
+  "retainedLimitations": [
+    "No projectile/VFX system exists for any unit in this codebase; Release-frame synchronization was verified via direct frame-timing rather than a projectile-spawn event.",
+    "Regression testing throughout the runtime-integration and rework chain used a single representative non-Archer unit (Sniper in the base candidate; Swordman in reworks v1-v3) on the original, unmodified sheet-based animation path -- not a full-roster regression sweep across every hero/monster sprite type.",
+    "Browser/device coverage is limited to Chromium/Blink in this environment's headless container; WebKit/Gecko and real mobile-device hardware were never exercised (same disclosed limitation carried since PR #81's compatibility check).",
+    "Board Preview remains DEFERRED_UNTIL_AFTER_DEMO -- recorded separately in the Class 1 Neutral Master Batch v1 exact-package approval (PR #83, docs/reviews/class1-neutral-master-batch-exact-package-approval-v1.md); not regenerated, not revisited, not affected by this Pilot Acceptance.",
+    "Canonical approval has not yet been granted -- canonicalApproved remains false.",
+    "Final runtime approval has not yet been granted -- finalRuntimeApproved remains false."
+  ],
+
+  "priorRecordCarryForward": {
+    "note": "The following limitations from the base candidate record (archer-pilot-runtime-acceptance-candidate-v1.json) also remain true and unaffected by this Pilot Acceptance; not repeated in full here, listed by reference only:",
+    "sourceRecord": "data/design/archer-pilot-runtime-acceptance-candidate-v1.json#limitations",
+    "items": [
+      "THREE.js r128 vendored copy substituted for the live CDN (network-blocked in this environment)",
+      "x4-speed narrow Release-frame display-sampling characteristic (non-blocking, damage timing unaffected)",
+      "Facing/flip during Idle/Move not covered by any existing system for any unit (pre-existing, not Archer-specific)",
+      "Wave 1's 'Slime' enemy type has no registered sprite (pre-existing, unrelated to Archer)",
+      "Structural rate-mismatch characteristic addressed by rework v2's two-tier acknowledgment design (documented, not a defect)"
+    ]
+  },
+
+  "prohibitionsHeld": {
+    "runtimeModified": false,
+    "assetsModified": false,
+    "animationRegenerated": false,
+    "evidenceRegenerated": false,
+    "gameplayChanged": false,
+    "replacementPrCreated": false,
+    "merged": false,
+    "autoMergeEnabled": false,
+    "canonicalApprovedSetTrue": false,
+    "finalRuntimeApprovedSetTrue": false
+  },
+
+  "validator": "tools/validate-archer-pilot-acceptance-record-v1.mjs",
+  "nextAuthorizedGate": "Human decision on canonical promotion and/or final runtime approval -- not started by this record."
+}
