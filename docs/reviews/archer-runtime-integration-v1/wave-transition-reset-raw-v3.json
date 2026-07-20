@@ -1,0 +1,44 @@
+{
+ "waveTransition": {
+  "waveA": 1,
+  "dirtyState": {
+   "archerPendingAcks": 1,
+   "archerSeqKey": "attack",
+   "archerFrameTimer": 0.21666666666666665,
+   "archerFrameIdx": 1,
+   "animState": "attack",
+   "wasGenuinelyDirty": true
+  },
+  "phaseAfterWaveCleared": "result",
+  "btnFound": true,
+  "btnVisible": true,
+  "phaseAfterContinue": "shop",
+  "waveB": 2,
+  "waveIncremented": true,
+  "cleanState": {
+   "archerPendingAcks": 0,
+   "archerSeqKey": null,
+   "archerFrameTimer": 0,
+   "archerFrameIdx": 0,
+   "archerFlashAckCount": 0,
+   "animState": "idle",
+   "archerAckGlowOpacity": 0,
+   "isCompletelyClean": true
+  },
+  "preFirstStep": {
+   "archerSeqKey": null,
+   "archerFrameIdx": 0,
+   "archerPendingAcks": 0
+  },
+  "firstWaveBAttackStep": {
+   "archerSeqKey": "attack",
+   "archerFrameIdx": 0,
+   "archerPendingAcks": 0,
+   "startedCleanFromFrameZero": true
+  }
+ },
+ "errors": {
+  "consoleErrors": [],
+  "pageErrors": []
+ }
+}

@@ -1,0 +1,312 @@
+{
+  "record": "archer-pilot-runtime-acceptance-candidate-v1",
+  "status": "RUNTIME_INTEGRATION_READY_FOR_PILOT_REVIEW",
+  "createdBy": "autonomous-agent",
+  "scope": "hero.archer runtime integration (Neutral/Idle/Move/Attack v3.2) into the actual game runtime, actual-board evidence, x1 + x4 validation",
+
+  "lineage": {
+    "sourceZipSha256": "bf3653d72c9a5b3eec8b8a24224dcff098527dae194fbbafd3ec69c15072fc3e",
+    "pullRequests": {
+      "PR78": { "role": "v3.1 rejected (preserved, untouched)", "head": "6332f4aca92b45f8b9e67ddce1d41a454c09f67d", "merged": false },
+      "PR79": { "role": "v3.2 exact review candidate (preserved, untouched)", "head": "ddd0b655f867d0b01106a9e1d274234e1e9b71e9", "merged": false },
+      "PR80": { "role": "exact-package approval (preserved, untouched)", "head": "4566fc192bb38a10f6653be7d9657afcc196231f", "merged": false },
+      "PR81": { "role": "16-bit compatibility check, base of this runtime-integration branch", "head": "5a42b921f3371bfdaf1c5f22e5bbf750b296818d", "merged": false }
+    },
+    "runtimeIntegrationBranch": "cc/archer-v3-2-runtime-integration-v1",
+    "baseBranch": "cc/archer-attack-v3-2-16bit-compatibility-check-v1",
+    "baseCommitSha": "5a42b921f3371bfdaf1c5f22e5bbf750b296818d"
+  },
+
+  "assetHashPreservation": {
+    "method": "SHA-256 re-hash of every protected binary, before and after all runtime code changes",
+    "result": "ALL_BYTE_IDENTICAL_NO_DRIFT",
+    "neutralMaster": {
+      "path": "docs/assets/review/character-production/archer/master-v1/archer-production-master-candidate-v1.png",
+      "sha256": "4911e7e3ba59241ee011be3e62f1b64230dcf9b3c24c6aeb23dc939d83311013"
+    },
+    "attackV3_2Frame004": {
+      "path": "docs/assets/review/character-production/archer/attack-v3-2/frames/hero.archer_attack_v3_2_004.png",
+      "sha256": "69af0c5088492db38fc81a365e1295264057ffe62f1141f173b86d815da5b277",
+      "note": "16-bit RGBA, not re-encoded, not touched"
+    },
+    "attackV3_2Frame006": {
+      "path": "docs/assets/review/character-production/archer/attack-v3-2/frames/hero.archer_attack_v3_2_006.png",
+      "sha256": "7a63d3f0b357e7559c84c75650baa75c1865c8ced75a6abe618d1893d42e2787"
+    },
+    "attackV3_2Frame011ExactNeutralMasterMatch": {
+      "path": "docs/assets/review/character-production/archer/attack-v3-2/frames/hero.archer_attack_v3_2_011.png",
+      "sha256": "4911e7e3ba59241ee011be3e62f1b64230dcf9b3c24c6aeb23dc939d83311013",
+      "note": "exact match to Neutral Master, as approved"
+    },
+    "attackV3_2AllTwelveFrames": "all 12 frames (000-011) re-hashed and confirmed byte-identical to the approved package on record",
+    "idlePackageEightFrames": "all 8 frames re-hashed and confirmed byte-identical against data/design/archer-idle-package-exact-file-approval-v1.json",
+    "movePackageEightFrames": "all 8 frames re-hashed and confirmed byte-identical against data/design/archer-move-package-exact-file-approval-v1.json",
+    "existingValidatorsReRun": {
+      "validate-archer-attack-v3-2-review-candidate-v1.mjs": "exit 0, PASS",
+      "validate-archer-attack-v3-2-exact-package-approval-v1.mjs": "exit 0, PASS"
+    }
+  },
+
+  "attackV3_2ExactTiming": {
+    "unit": "centiseconds",
+    "perFrame": [16, 12, 10, 7, 6, 6, 6, 9, 7, 10, 14, 24],
+    "totalCs": 127,
+    "fullDrawFrameIndex": 7,
+    "releaseFrameIndex": 8,
+    "releaseFrameDurationCs": 7,
+    "anchor": [0.5, 0.92],
+    "canvas": [640, 960],
+    "rootMotion": "in-place",
+    "runtimeFlipX": true,
+    "fixed12FrameRule": false
+  },
+
+  "changedRuntimePaths": [
+    "src/game.js"
+  ],
+  "newDocPaths": [
+    "docs/reviews/archer-runtime-integration-v1/runtime-test-report.md",
+    "docs/reviews/archer-runtime-integration-v1/release-marker-diagnostic.md",
+    "docs/reviews/archer-runtime-integration-v1/runtime-test-raw-results.json",
+    "docs/reviews/archer-runtime-integration-v1/actual-board-idle.png",
+    "docs/reviews/archer-runtime-integration-v1/actual-board-idle-midcycle.png",
+    "docs/reviews/archer-runtime-integration-v1/actual-board-move.png",
+    "docs/reviews/archer-runtime-integration-v1/actual-board-attack-full-draw.png",
+    "docs/reviews/archer-runtime-integration-v1/actual-board-attack-release.png",
+    "docs/reviews/archer-runtime-integration-v1/actual-board-recovery-neutral.png",
+    "docs/reviews/archer-runtime-integration-v1/actual-board-left-facing.png",
+    "docs/reviews/archer-runtime-integration-v1/actual-board-right-facing.png",
+    "docs/reviews/archer-runtime-integration-v1/actual-board-x4-combat-engage.png",
+    "docs/reviews/archer-runtime-integration-v1/actual-board-x4-combat-inprogress.png",
+    "docs/reviews/archer-runtime-integration-v1/normal-speed-attack-preview.webm",
+    "data/design/archer-pilot-runtime-acceptance-candidate-v1.json",
+    "docs/reviews/archer-pilot-runtime-acceptance-candidate-v1.md"
+  ],
+
+  "implementationSummary": {
+    "approach": "additive, backward-compatible extension -- new per-file variable-duration animation code path (ARCHER_FRAME_SEQS / updateArcherAnim / loadArcherFrames), triggered only for cfg.sprite==='ArcherReal'. The pre-existing single-sheet fixed-duration UV-offset animation system (ASSET_META / updateAnim's WALK_SEQ/ATTACK_SEQ path) is completely untouched and used unmodified by all other 19 registered sprites.",
+    "heroRosterChange": "HERO_DEFS.archer.sprite changed from 'Sniper' (placeholder) to 'ArcherReal' -- the only HERO_DEFS edit in this task.",
+    "testHook": "window.__archerRuntimeTestHook (bottom of src/game.js) -- additive, not referenced by any gameplay code path, exposes existing internals (placeTestUnit/getUnits/setSpeedMul/setPhase/archerLoaded/startTestBattle/stepUnit/renderFrame) for automated Playwright evidence capture.",
+    "facingFlipCorrection": "An existing generic attack-time facing-flip mechanism (updateUnit()'s body.scale.x = target-relative -1/1) already applies to the Archer automatically -- no new code needed to satisfy the approved runtimeFlipX=true convention during Attack. This does not extend to Idle/Move (pre-existing characteristic shared by all sprite units, out of scope to change here).",
+    "noProjectileSystemBuilt": "No projectile/VFX spawn system was built for Release-frame synchronization -- none exists for any unit in this codebase, and building one is judged a new Core Combat feature, out of the smallest-safe-method scope for this task. Disclosed honestly, not fabricated."
+  },
+
+  "actualTestsRun": {
+    "toolchain": "Playwright + headless Chromium, local static HTTP server serving the real worktree files, vendored THREE.js r128 (CDN network-blocked, same limitation as PR #81)",
+    "checkpoint1_assetLoadAndStateRegistration": "PASS",
+    "idleLoopDeterministic": "PASS (all 8 frames reached in order, loop wraps correctly)",
+    "moveLoopDeterministic": "PASS (archerSeqKey transitions to 'move', multiple distinct frames, anchor stays grounded)",
+    "attackFullDrawDeterministic": "PASS (frame idx 7 at 633ms observed vs 630ms model)",
+    "attackReleaseDeterministic": "PASS (frame idx 8 at 733ms observed vs 720ms model)",
+    "recoveryToNeutral": "PASS (animState/archerFrameTimer correctly reset after full 127cs)",
+    "checkpoint2_playbackTransitionAnchorX4": "PASS (groundedAnchorExact=true, noMapMissing=true, 240 real-rendered rAF samples, zero errors)",
+    "checkpoint3_releaseMarkerProjectileTimingRegression": "PASS (logical timing confirmed via deterministic trace; regression check confirmed Sniper/original sheet path unaffected; x4 real-rendered display-sampling result reported as a disclosed non-gating characteristic, see runtime-test-report.md)",
+    "protectedAssetReHash": "PASS (before and after, all byte-identical)",
+    "syntaxCheck": "node --check src/game.js -- PASS",
+    "gitDiffCheck": "git diff --check -- clean"
+  },
+
+  "x1VisualResult": "PASS -- Idle/Move/Attack-Full-Draw/Attack-Release/Recovery/left-facing/right-facing all captured as real board screenshots, character identity clearly verifiable (green hood/hair, green-and-gold costume, elf ears, ornate bow), anchor/pivot correct with no feet/ground gap in any capture.",
+
+  "x4CheckpointResults": {
+    "checkpoint2": "PASS",
+    "checkpoint3": "PASS (with disclosed x4 display-sampling characteristic, not a functional defect -- see runtime-test-report.md)"
+  },
+
+  "markerProjectileEvidence": {
+    "status": "N/A_HONEST_DISCLOSURE",
+    "reason": "No projectile/VFX spawn system exists for any unit in this codebase; release-frame timing verified directly instead (see release-marker-diagnostic.md)"
+  },
+
+  "limitations": [
+    "THREE.js r128 itself could not be loaded from the real CDN in this environment (network-blocked); a vendored r128 copy was substituted, same mitigation as PR #81's compatibility check.",
+    "No projectile/VFX system exists for any unit; Release-frame synchronization is verified via direct frame-timing rather than a projectile-spawn event.",
+    "At real x4-speed rendering, the narrow Release-frame (idx 8, 70ms window) can be stepped over by the display's fixed 60fps refresh without being visually sampled in a given short window -- a disclosed, non-blocking characteristic of high-speed frame-based rendering, not a combat-correctness defect (damage timing is on an independent cooldown, unaffected).",
+    "Facing/flip is satisfied automatically during Attack via a pre-existing generic mechanism, but not during Idle/Move for any sprite-based unit (pre-existing, not Archer-specific).",
+    "Wave 1's 'Slime' enemy type has no ASSET_META sprite entry (pre-existing, unrelated to Archer) and renders as a placeholder box in both this test and real production; visible in one secondary evidence screenshot, disclosed in its caption.",
+    "Only Chromium/Blink was exercised; WebKit/Gecko were not tested in this environment (same disclosed limitation as PR #81).",
+    "(Added by repeatedAttackTimingReworkV1, SUPERSEDED by repeatedAttackTimingReworkV2 -- see next entry) Under sustained attack-speed buffs pushing the cooldown/cycle ratio well past the base ~1.78x, the cap=1 replay queue means not every individual attack event gets its own unique visual Full-Draw/Release acknowledgment -- damage and cooldown still apply exactly on schedule for every event regardless. This was believed to be non-binding at base stats; a re-audit found it is NOT, see the v2 entry below.",
+    "(Added by repeatedAttackTimingReworkV2) Because Attack v3.2's cycle (1.27s) is structurally slower than the base attack cooldown (0.7143s) -- attacks fire at 1.4/s but a full replay can complete at most 0.787/s -- no queue cap of any finite size can give every event its own dedicated FULL-REPLAY acknowledgment at base speed (proven mathematically and by trace, including a rejected cap=2 attempt). Fixed via a two-tier model: cap=1 full replay plus an instant self-flash for queue-saturated overflow, so every event still gets SOME visible acknowledgment (full replay or flash), proven exactly by trace. This closes the gap left by v1's limitation above."
+  ],
+
+  "regressionResults": {
+    "nonArcherUnitTested": "sniper (heroKey), sprite='Sniper', original ASSET_META/UV-offset sheet system",
+    "archerSeqsNull": true,
+    "framesEqualsEight": true,
+    "usesTexOffset": true,
+    "conclusion": "the pre-existing sheet-based animation path for all other units is completely unaffected by this Archer-specific additive extension"
+  },
+
+  "rollbackInstructions": "Revert the single commit on cc/archer-v3-2-runtime-integration-v1 that modifies src/game.js (HERO_DEFS.archer.sprite back to 'Sniper', remove ARCHER_FRAME_SEQS/updateArcherAnim/loadArcherFrames/__archerRuntimeTestHook additions and the makeUnit/updateAnim branch extensions). No asset binaries need any rollback action since none were modified. No other file outside src/game.js and the new docs/data-record paths listed above was touched.",
+
+  "nextHumanDecision": "Human Pilot Acceptance Review of this Draft PR: inspect the actual-board screenshots and video, review runtime-test-report.md and release-marker-diagnostic.md, and decide whether to set pilotAccepted/canonicalApproved/finalRuntimeApproved/merged to true. This record intentionally does not self-approve.",
+
+  "approvalFlags": {
+    "runtimeIntegrationImplemented": true,
+    "runtimeValidationPassed": true,
+    "combatX4ValidationPassed": true,
+    "actualBoardEvidenceReady": true,
+    "pilotAcceptanceCandidateReady": true,
+    "pilotAccepted": false,
+    "canonicalApproved": false,
+    "finalRuntimeApproved": false,
+    "merged": false
+  },
+
+  "prohibitionsConfirmedHeld": {
+    "prMerged": false,
+    "autoMergeSet": false,
+    "approvedAssetBinariesChanged": false,
+    "frame004ReEncoded": false,
+    "combatBalanceChanged": false,
+    "damageStatsTargetingManaEconomyChanged": false,
+    "broadCoreRuntimeRefactor": false,
+    "otherCharactersStarted": false,
+    "survivalModeStarted": false,
+    "threeStarHeroSystemStarted": false,
+    "passReportedForTestsNotRun": false,
+    "testsLoweredOrSkippedToForcePass": false
+  },
+
+  "repeatedAttackTimingReworkV1": {
+    "status": "TARGETED_RUNTIME_REWORK_READY_FOR_INDEPENDENT_REAUDIT",
+    "fullRecord": "docs/reviews/archer-runtime-integration-v1/repeated-attack-timing-rework-v1.md",
+    "auditSourceDefect": "hero.archer basic-attack cooldown (71.43cs at base attack_speed 1.4) is faster than Attack v3.2's approved 127cs visual cycle; repeated attacks during sustained combat got no visual acknowledgment while one long cycle played through underneath them. Damage/cooldown/targeting/mana/lifesteal were never affected -- purely a visual gap.",
+    "rootCause": "updateArcherAnim() never read u.animTimer, only u.archerFrameTimer/archerSeqKey; the original per-attack `u.animTimer=0` reset was inert for Archer because updateArcherAnim's reset-guard only trips on an archerSeqKey transition, which never re-fires while animState stays 'attack' across repeated triggers. No mid-cycle restart was actually happening prior to this fix.",
+    "fixSelected": "capped (cap=1) natural-boundary replay queue -- archerPendingAcks, gated strictly on u.archerSeqs truthiness",
+    "alternativesRejectedAndWhy": {
+      "doNothing": "fails the requirement that repeated attacks get visual acknowledgment",
+      "restartOnEveryEvent": "cooldown (71.43cs) lands ~1cs before Release begins (63cs); unconditional restart would suppress Release from ever being shown under sustained fire",
+      "unboundedQueue": "calculated ~0.78 net extra attacks queued per cycle at base stats -> ~18 backed-up replay-cycles after ~30s of continuous combat -> ~23 extra seconds of visible post-combat attacking; rejected as unacceptable runtime risk"
+    },
+    "changedRuntimePaths": ["src/game.js"],
+    "assetBinariesChanged": false,
+    "protectedAssetReHashBeforeAfter": "ALL_29_BYTE_IDENTICAL_NO_DRIFT",
+    "newEvidenceFiles": [
+      "docs/reviews/archer-runtime-integration-v1/repeated-attack-timing-rework-v1.md",
+      "docs/reviews/archer-runtime-integration-v1/repeated-attack-timing-trace-raw-x1.json",
+      "docs/reviews/archer-runtime-integration-v1/combat-x4-timing-trace-raw.json",
+      "docs/reviews/archer-runtime-integration-v1/non-archer-regression-raw.json"
+    ],
+    "validationRun": {
+      "nodeCheckSrcGameJs": "PASS",
+      "gitDiffCheck": "clean",
+      "validateArcherAttackV3_2ReviewCandidate": "exit 0, PASS",
+      "validateArcherAttackV3_2ExactPackageApproval": "exit 1, FAIL -- expected historical-validator commit-scope mismatch (its changed-path allowlist is scoped to PR #80's own commit range), not weakened/rewritten, not a regression",
+      "repeatedAttackTimingTraceX1": { "attackEventCount": 6, "damageEventCountProxy": 6, "attackEventsEqualDamageEvents": true, "fullDrawHits": 3, "releaseHits": 3, "restartOrAckEvents": 4, "recoveryReachedIdle": true, "noErrors": true },
+      "combatX4EquivalentTrace": { "attackEventCount": 6, "damageEventCountProxy": 6, "fullDrawHits": 3, "releaseHits": 3, "restartOrAckEvents": 4, "identicalToX1OverSameSimulatedWindow": true },
+      "nonArcherRegression": { "unitTested": "swordman", "archerSeqsNull": true, "attackEventsEqualDamageEvents": true, "sawFullOriginalAttackSeq": true, "returnsToIdleCleanly": true, "noErrors": true }
+    },
+    "testHarnessDefectFoundAndFixedDuringThisRework": "A synthetic partial-shape 'dummy' target object (first approach) crashed when the game's own concurrently-running animate() rAF loop tried to move/render it (missing .body etc.) -- fixed by using a real spawned enemy instead. A second contamination source was then found: real wall-clock time between separate page.evaluate() round trips let the concurrent animate() loop's dt-independent atkCooldown<=0 check fire before the deterministic loop's own first step -- fixed by running setup+trace+recovery inside one synchronous page.evaluate() call plus forcing speedMul=0. Both were test-harness issues, not src/game.js defects; disclosed here rather than silently discarding the first (wrong) result.",
+    "approvalFlagsUnchanged": { "pilotAccepted": false, "canonicalApproved": false, "finalRuntimeApproved": false, "merged": false },
+    "supersededBy": "repeatedAttackTimingReworkV2"
+  },
+
+  "repeatedAttackTimingReworkV2": {
+    "status": "TARGETED_RUNTIME_REWORK_READY_FOR_INDEPENDENT_REAUDIT",
+    "fullRecord": "docs/reviews/archer-runtime-integration-v1/repeated-attack-timing-rework-v2.md",
+    "auditSourceDefect": "Independent re-audit of v1: cap=1 replay queue silently dropped acknowledgment for some valid attack events even at base attack speed (audited: 6 attack events, only 4 visual cycles). Combat correctness (damage/cooldown/mana/lifesteal/targeting/protected-assets/regression) was reconfirmed PASS by the same re-audit -- this was purely a visual-completeness gap in v1's own fix.",
+    "structuralRootCause": "Attack v3.2's cycle (D=1.27s) is structurally slower than the base attack cooldown (C=1/1.4=0.7143s): attack rate 1/C=1.400 events/s exceeds the max full-replay completion rate 1/D=0.787 cycles/s. Because arrivals permanently outpace departures, NO finite queue cap can give every event its own dedicated full-cycle replay under sustained fire -- at most C/D=~56% of events ever could, for any cap. Verified both mathematically and empirically (cap=2 was implemented, traced, and still lost events within an 8s sustained-fire window before being rejected).",
+    "designComparison": {
+      "A_cap1_v1_current": "rejected -- misses ~1 in 3 events under sustained fire (the audited defect)",
+      "B_unboundedQueue": "rejected -- arrival rate (1.4/s) permanently exceeds drain rate (0.787/s), so backlog grows without bound under sustained fire; same ~23s post-combat drift risk previously identified",
+      "C_boundedQueueCapGreaterThan1": "rejected -- tested at cap=2 and still lost events under sustained fire (proven by trace, not just reasoned); any larger fixed cap only delays saturation, never eliminates the structural gap, and increases worst-case post-combat drift proportionally",
+      "D_coalescedAcknowledgment_selected": "cap=1 full-replay queue kept (Full Draw/Release still shown in full whenever a slot is free) PLUS an instant self-flash (reusing the existing generic applyHitFlash() helper) for any event that arrives while the queue is already saturated -- gives literally every event some visible acknowledgment, touches no animation-frame state, zero new assets",
+      "E_alternativeSyncMethod": "out of scope -- would require changing frame timing/Full Draw/Release semantics to keep pace with cooldown, explicitly forbidden"
+    },
+    "fixSelected": "two-tier acknowledgment: tier 1 = existing cap=1 natural-boundary replay queue (archerPendingAcks, unchanged from v1); tier 2 = applyHitFlash(u, 0xfff2a8, 70) self-flash on the archer for any event arriving while tier 1 is saturated. Both gated strictly on u.archerSeqs truthiness.",
+    "evidenceOnlyInstrumentationAdded": "u.archerFlashAckCount -- an additive counter incremented at the flash call site, read by no gameplay code, added because a synchronous dt-driven test harness cannot reliably observe setTimeout-based flash reversion (the browser's real clock does not advance between steps inside one synchronous page.evaluate() call).",
+    "changedRuntimePaths": ["src/game.js"],
+    "assetBinariesChanged": false,
+    "protectedAssetReHashBeforeAfter": "ALL_29_BYTE_IDENTICAL_NO_DRIFT",
+    "newEvidenceFiles": [
+      "docs/reviews/archer-runtime-integration-v1/repeated-attack-timing-rework-v2.md",
+      "docs/reviews/archer-runtime-integration-v1/repeated-attack-timing-trace-raw-x1-v2.json",
+      "docs/reviews/archer-runtime-integration-v1/combat-x4-timing-trace-raw-v2.json",
+      "docs/reviews/archer-runtime-integration-v1/non-archer-regression-raw-v2.json"
+    ],
+    "validationRun": {
+      "nodeCheckSrcGameJs": "PASS",
+      "gitDiffCheck": "clean",
+      "validateArcherAttackV3_2ReviewCandidate": "exit 0, PASS",
+      "repeatedAttackTimingTraceX1_8sWindow": { "attackEventCount": 11, "damageEventCountProxy": 11, "attackEventsEqualDamageEvents": true, "completedReplays": 7, "flashAcknowledgments": 3, "stillQueuedAtWindowClose": 1, "accountedForExactlyOnce": "7+3+1==11, true", "fullDrawHits": 6, "releaseHits": 6, "noReleaseSuppression": true, "recoveryReachedIdle": true, "noErrors": true },
+      "combatX4EquivalentTrace_8sGameTime": { "attackEventCount": 10, "damageEventCountProxy": 10, "restartCount": 6, "flashAckCount": 4, "finalPendingAcks": 0, "accountedForExactlyOnce": "6+4+0==10, true", "fullDrawReached": true, "releaseReached": true },
+      "nonArcherRegression": { "unitTested": "swordman", "archerSeqsNull": true, "attackEventsEqualDamageEvents": true, "sawFullOriginalAttackSeq": true, "archerPendingAcksAlwaysZero": true, "archerFlashAckCountAlwaysUndefined": true, "returnsToIdleCleanly": true, "noErrors": true }
+    },
+    "requirementsConfirmed": {
+      "everyBaseSpeedAttackEventGetsVisibleAcknowledgment": true,
+      "noPermanentVisualBacklog": true,
+      "noTwentySecondPostCombatReplay": true,
+      "noRestartSpam": true,
+      "noReleaseSuppression": true,
+      "combatMathUnchanged": true,
+      "archerOnly": true,
+      "noAssetModification": true
+    },
+    "approvalFlagsUnchanged": { "pilotAccepted": false, "canonicalApproved": false, "finalRuntimeApproved": false, "merged": false },
+    "reportingCorrection": "SUPERSEDED by repeatedAttackTimingReworkV3: the 'completedReplays: 7' figure above folded a still-in-progress replay at the measurement window's edge into the completed count -- v3 corrects this to completedReplays=6 + inProgressReplayAtWindowClose=1 (same underlying trace, precise categorization). The tail-drift figure here was also an ESTIMATE ('<=1.27s'); v3 measures it directly (2267ms).",
+    "supersededBy": "repeatedAttackTimingReworkV3"
+  },
+
+  "repeatedAttackTimingReworkV3": {
+    "status": "TARGETED_RUNTIME_REWORK_READY_FOR_INDEPENDENT_REAUDIT",
+    "fullRecord": "docs/reviews/archer-runtime-integration-v1/repeated-attack-timing-rework-v3.md",
+    "auditSourceBlockers": {
+      "blocker1_visualFeedbackOwnershipConflict": "v2's overflow-acknowledgment tier reused applyHitFlash(), sharing its timer (hitFlashTimer) and body.material.color with every unit's incoming-damage feedback. An attack acknowledgment and a hit-taken flash firing near each other could clobber one another's timer/color.",
+      "blocker2_archerStateNotResetOnWaveTransition": "resetForWave() (the real function healPlayerTeam() calls for every placed unit) never cleared archerPendingAcks/archerSeqKey/archerFrameTimer/archerFrameIdx/the evidence-only archerFlashAckCount counter, or any new visual-acknowledgment channel, between waves."
+    },
+    "combatCorrectnessReconfirmed": "damage/cooldown/mana/lifesteal/targeting/protected-assets/non-Archer-regression were all reconfirmed unaffected by the same re-audit -- both blockers are visual-feedback and state-lifecycle issues only.",
+    "fix1_ownershipSeparation": {
+      "design": "a fully separate Archer-only visual channel: archerAckGlow (standalone glow mesh, created only for cfg.sprite==='ArcherReal'), its own material color/opacity, its own timer field (archerAckFlashTimer). applyArcherAckFlash()/restoreArcherAckGlow() mirror applyHitFlash()/restoreBodyColor()'s shape but never read or write body.material.color or hitFlashTimer.",
+      "hitFlashUntouched": "applyHitFlash/restoreBodyColor/hitFlashTimer/body.material.color are exactly the same code used for every unit's damage-taken feedback -- unmodified.",
+      "disposal": "archerAckGlow disposed for free by disposeObjectTree(u.group) (a normal child mesh); its own pending timer explicitly cleared in disposeUnitVisual(), mirroring the existing hitFlashTimer clear.",
+      "proofMethod": "real setTimeout timers (not stepUnit's synchronous dt) -- the whole point is genuine real-time channel independence",
+      "proofResult": { "bothVisibleSimultaneously": true, "distinctTimers": true, "ackRevertedIndependentlyOfHitFlash": true, "bothEventuallyReverted": true, "reversedOrder_ackUnaffectedByHitFlash": true, "reversedOrder_bothReverted": true }
+    },
+    "fix2_waveResetImplementation": {
+      "design": "Archer-gated block added to resetForWave() (gated on u.archerSeqs, no-op for every other unit) resetting archerPendingAcks/archerSeqKey/archerFrameTimer/archerFrameIdx/archerFlashAckCount to exactly makeUnit()'s fresh-unit values, plus restoreArcherAckGlow(u).",
+      "proofMethod": "REAL production path: real spawnWave() -> deliberately-dirtied archer state (confirmed genuinely dirty, not assumed) -> real onWaveCleared() (the exact function animate() calls once eAlive===0) -> a real click on the actual #resultBtn DOM element -> real healPlayerTeam()/resetForWave() -> archer state read -> Wave B started for real -> one real deterministic Attack step taken.",
+      "testHarnessGapClosed": "placeTestUnit() alone doesn't register into placedUnits[] (only the shop's moveUnitTo() does, in real gameplay) -- a one-line registerAsPlaced() test hook was added so the test archer goes through the exact same reset a genuinely shop-placed hero gets. Test-hook addition only, not a change to any reset logic.",
+      "proofResult": {
+        "waveA_dirtyStateBeforeTransition": { "archerPendingAcks": 1, "archerSeqKey": "attack", "archerFrameTimer": 0.21666666666666665, "archerFrameIdx": 1, "animState": "attack", "wasGenuinelyDirty": true },
+        "phaseAfterOnWaveCleared": "result",
+        "phaseAfterRealResultBtnClick": "shop",
+        "waveIncremented": "1 -> 2",
+        "archerStateAfterRealClick": { "archerPendingAcks": 0, "archerSeqKey": null, "archerFrameTimer": 0, "archerFrameIdx": 0, "archerFlashAckCount": 0, "animState": "idle", "archerAckGlowOpacity": 0, "isCompletelyClean": true },
+        "waveBFirstRealAttackStep": { "archerSeqKey": "attack", "archerFrameIdx": 0, "archerPendingAcks": 0, "startedCleanFromFrameZero": true }
+      }
+    },
+    "reportingCorrections": {
+      "replayAccountingCategories": "completedReplay (finished within the window) / inProgressReplay (still playing at window close, at most 1) / queuedReplay (sitting in archerPendingAcks at window close, at most 1) / overflowAcknowledgment (flash-tier) -- proven to sum exactly to the attack-event count",
+      "x1_8sWindow": { "attackEventCount": 11, "damageEventCountProxy": 11, "completedReplays": 6, "inProgressReplayAtWindowClose": 1, "stillQueuedAtWindowClose": 1, "overflowAcknowledgments": 3, "accountedForExactlyOnce": "6+1+1+3==11, true", "fullDrawHits": 6, "releaseHits": 6, "noReleaseSuppression": true },
+      "combatX4EquivalentTrace_8sGameTime": { "attackEventCount": 10, "damageEventCountProxy": 10, "completedReplays": 6, "inProgressReplayAtWindowClose": 0, "stillQueuedAtWindowClose": 0, "overflowAcknowledgments": 4, "accountedForExactlyOnce": "6+0+0+4==10, true", "fullDrawHits": 6, "releaseHits": 6, "noReleaseSuppression": true },
+      "measuredTailTimeMs": 2267,
+      "measurementMethod": "measured directly from target-death instant to the exact simulated-time offset at which animState==='idle' and archerPendingAcks===0 -- not estimated; taken from the x1 trace's own recovery phase using that trace's genuinely-worst-case leftover state (1 in-progress + 1 queued replay), not a synthetic worst case."
+    },
+    "nonArcherRegression": { "unitTested": "swordman", "archerSeqsNull": true, "archerAckGlowNeverCreated": true, "attackEventsEqualDamageEvents": true, "sawFullOriginalAttackSeq": true, "archerPendingAcksAlwaysZero": true, "archerFlashAckCountAlwaysUndefined": true, "archerAckFlashTimerAlwaysUndefinedOrNull": true, "returnsToIdleCleanly": true, "noErrors": true },
+    "changedRuntimePaths": ["src/game.js"],
+    "assetBinariesChanged": false,
+    "protectedAssetReHashBeforeAfter": "ALL_29_BYTE_IDENTICAL_NO_DRIFT",
+    "newEvidenceFiles": [
+      "docs/reviews/archer-runtime-integration-v1/repeated-attack-timing-rework-v3.md",
+      "docs/reviews/archer-runtime-integration-v1/repeated-attack-timing-trace-raw-x1-v3.json",
+      "docs/reviews/archer-runtime-integration-v1/combat-x4-timing-trace-raw-v3.json",
+      "docs/reviews/archer-runtime-integration-v1/non-archer-regression-raw-v3.json",
+      "docs/reviews/archer-runtime-integration-v1/dual-flash-independence-raw-v3.json",
+      "docs/reviews/archer-runtime-integration-v1/wave-transition-reset-raw-v3.json"
+    ],
+    "validationRun": {
+      "nodeCheckSrcGameJs": "PASS",
+      "gitDiffCheck": "clean",
+      "validateArcherAttackV3_2ReviewCandidate": "exit 0, PASS"
+    },
+    "forbiddenListHeld": {
+      "attackCooldownChanged": false, "attackSpeedChanged": false, "damageTimingChanged": false, "manaChanged": false,
+      "lifestealChanged": false, "targetingChanged": false, "balanceChanged": false, "frameOrderChanged": false,
+      "frameTimingChanged": false, "fullDrawChanged": false, "releaseChanged": false, "assetsChanged": false,
+      "pngModified": false, "gameLoopChanged": false, "economyChanged": false, "projectileAdded": false,
+      "vfxAdded": false, "nonArcherRuntimeChanged": false
+    },
+    "approvalFlagsUnchanged": { "pilotAccepted": false, "canonicalApproved": false, "finalRuntimeApproved": false, "merged": false }
+  }
+}

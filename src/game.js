@@ -381,6 +381,66 @@ function loadAllSprites(onDone) {
   });
 }
 
+// hero.archer approved motion package (Neutral/Idle/Move/Attack v3.2) — exact per-file frame
+// sequences with variable per-frame timing, loaded and rendered separately from the ASSET_META
+// single-sheet system above. The sheet system assumes one shared texture with a UV offset per
+// frame and a single fixed per-frame duration (ATTACK_FRAME_DUR); Attack v3.2's approved
+// schedule is non-uniform per frame ([16,12,10,7,6,6,6,9,7,10,14,24]cs), which the sheet system
+// cannot express without changing ATTACK_FRAME_DUR for every other unit. This registry instead
+// holds one THREE.Texture per approved PNG file and swaps material.map directly. Idle/Move use a
+// uniform per-frame interval only because that happens to be their own approved fps (8/12) — the
+// loader itself makes no uniformity assumption.
+const ARCHER_ANCHOR = [0.5, 0.92]; // approved anchor, carried from the source package contracts
+const ARCHER_CANVAS = [640, 960];  // approved canvas, all frames across Idle/Move/Attack v3.2
+function archerSeq(paths, durationsCs, loop, extra) {
+  const durationsSec = durationsCs.map((cs) => cs / 100);
+  const cumulative = []; let acc = 0;
+  for (const d of durationsSec) { acc += d; cumulative.push(acc); }
+  return Object.assign({ paths, durationsSec, cumulative, total: acc, loop, textures: null }, extra || {});
+}
+const ARCHER_FRAME_SEQS = {
+  idle: archerSeq(
+    Array.from({ length: 8 }, (_, i) => `assets/units/hero.archer/idle-chibi-v1/hero.archer_idle_${String(i).padStart(3, '0')}.png`),
+    Array(8).fill(100 / 8), // 8 fps approved
+    true
+  ),
+  move: archerSeq(
+    Array.from({ length: 8 }, (_, i) => `assets/units/hero.archer/move-chibi-v1/hero.archer_move_${String(i).padStart(3, '0')}.png`),
+    Array(8).fill(100 / 12), // 12 fps approved
+    true
+  ),
+  attack: archerSeq(
+    Array.from({ length: 12 }, (_, i) => `docs/assets/review/character-production/archer/attack-v3-2/frames/hero.archer_attack_v3_2_${String(i).padStart(3, '0')}.png`),
+    [16, 12, 10, 7, 6, 6, 6, 9, 7, 10, 14, 24], // approved exact schedule, total 127cs
+    false,
+    { fullDrawFrame: 7, releaseFrame: 8 }
+  ),
+};
+let archerLoaded = false;
+function loadArcherFrames(onDone) {
+  const loader = new THREE.TextureLoader();
+  const seqList = Object.values(ARCHER_FRAME_SEQS);
+  const allPaths = seqList.flatMap((s) => s.paths);
+  let settled = 0, failed = false;
+  allPaths.forEach((path) => {
+    loader.load(path, (tex) => {
+      tex.magFilter = THREE.NearestFilter; tex.minFilter = THREE.NearestFilter;
+      for (const seq of seqList) {
+        const idx = seq.paths.indexOf(path);
+        if (idx !== -1) { if (!seq.textures) seq.textures = new Array(seq.paths.length); seq.textures[idx] = tex; }
+      }
+      settle();
+    }, undefined, (err) => {
+      console.error('โหลด hero.archer frame ไม่สำเร็จ:', path, err);
+      failed = true; settle();
+    });
+  });
+  function settle() {
+    settled++;
+    if (settled === allPaths.length) { archerLoaded = !failed; onDone(); }
+  }
+}
+
 // ============================================================
 // ข้อมูลฮีโร่ (ร้านค้า) + คลื่นศัตรู
 // ============================================================
@@ -414,7 +474,7 @@ const HERO_DEFS = {
   duelist:      { name:'Duelist',      class_tier:2, evolves_from:'swordman', cost:3, sprite:'Duelist', synergy:['Swordsman','Duelist','Executioner'], attack_type:'physical',
     stats:{ hp:610, p_atk:62, m_atk:0, p_def:27, m_def:24, move_speed:3.0, attack_speed:1.55, attack_range:1 },
     active_skill:{ name:"Duelist's Verdict", description:'โจมตีศัตรูที่มี Max HP สูงที่สุด สร้างความเสียหายกายภาพ 190% ของ P.Atk และเพิ่มอีก 30% หากเป้าหมายมี HP มากกว่าผู้ใช้' } },
-  archer:       { name:'Archer',       class_tier:1, cost:2, sprite:'Sniper', synergy:['Archer'], attack_type:'physical',
+  archer:       { name:'Archer',       class_tier:1, cost:2, sprite:'ArcherReal', synergy:['Archer'], attack_type:'physical',
     stats:{ hp:330, p_atk:29, m_atk:0, p_def:12, m_def:15, move_speed:2.6, attack_speed:1.4, attack_range:4 },
     active_skill:{ name:'Piercing Arrow', description:'ยิงลูกธนูเป็นเส้นตรง สร้างความเสียหายกายภาพ 145% ของ P.Atk แก่ศัตรูทุกตัวในแนว โดยดาเมจลดลง 15% ต่อเป้าหมายที่ทะลุผ่าน' } },
   sniper:       { name:'Sniper',       class_tier:2, evolves_from:'archer', cost:3, sprite:'Sniper', synergy:['Archer','Sniper','Longshot'], attack_type:'physical',
@@ -1433,7 +1493,21 @@ function makeUnit(cfg) {
   const group = new THREE.Group();
   const meta = ASSET_META[cfg.sprite];
   let frames = 1, tex = null, w, h, body, shadowRefW = 1.1;
-  if (meta && !failedSpriteKeys.has(cfg.sprite)) {
+  if (cfg.sprite === 'ArcherReal' && archerLoaded) {
+    // Approved hero.archer motion package: same bottom-anchored PlaneGeometry convention as
+    // every other sprite unit below (body.position.y = h/2 puts the plane's bottom edge at
+    // group-local y=0, matching the ground/shadow plane) -- only the texture-swap animation
+    // mechanism differs (see updateArcherAnim). w/h preserve the approved 640x960 canvas aspect
+    // ratio exactly, scaled to match the existing "frames>1" hero world-height convention (1.4).
+    frames = 1; // not used by the sheet UV-offset path; archerSeqs drives playback instead
+    const defaultH = 1.4, defaultW = defaultH * (ARCHER_CANVAS[0] / ARCHER_CANVAS[1]);
+    w = cfg.frameSize ? cfg.frameSize.w : defaultW;
+    h = cfg.frameSize ? cfg.frameSize.h : defaultH;
+    shadowRefW = defaultW;
+    tex = ARCHER_FRAME_SEQS.idle.textures[0];
+    body = new THREE.Mesh(new THREE.PlaneGeometry(w, h),
+      new THREE.MeshBasicMaterial({ map: tex, side: THREE.DoubleSide, transparent: true, alphaTest: 0.5 }));
+  } else if (meta && !failedSpriteKeys.has(cfg.sprite)) {
     frames = meta.frames;
     tex = SPRITES[cfg.sprite];
     if (frames > 1) { tex = tex.clone(); tex.needsUpdate = true; tex.repeat.set(1/frames, 1); tex.offset.set(0, 0); }
@@ -1507,15 +1581,31 @@ function makeUnit(cfg) {
     linkBadge.visible = false;
     group.add(linkBadge);
   }
+  // Archer-only attack-acknowledgment channel: a small standalone glow, fully independent from
+  // the shared hit-flash channel (applyHitFlash/hitFlashTimer/body.material.color) used for
+  // incoming-damage feedback on every unit. Own object, own material/color, own timer field
+  // (archerAckFlashTimer) -- see applyArcherAckFlash/restoreArcherAckGlow below. Disposed for
+  // free by disposeObjectTree(u.group) (it's a normal child mesh), same as every other badge/
+  // ring here; its own pending timer is explicitly cleared in disposeUnitVisual so no stale
+  // callback can touch a disposed material.
+  let archerAckGlow = null;
+  if (cfg.sprite === 'ArcherReal') {
+    archerAckGlow = new THREE.Mesh(new THREE.CircleGeometry(0.16, 16),
+      new THREE.MeshBasicMaterial({ color: 0xfff2a8, transparent: true, opacity: 0, depthTest: false }));
+    archerAckGlow.position.set(0, h + 0.55, 0.02); // above equip/link badge row, clear of hp/mana bars
+    group.add(archerAckGlow);
+  }
   const p = gridToWorld(cfg.c, cfg.r);
   group.position.set(p.x, 0, p.z);
   scene.add(group);
   occupied.add(key(cfg.c, cfg.r));
   const u = { ...cfg, group, body, hpBar, manaBar, starBadge, shadow, tex, frames, halfH: h/2, equipBadge,
-    linkRing, linkBadge,
+    linkRing, linkBadge, archerAckGlow, archerAckFlashTimer: null,
     maxHp: cfg.hp, alive: true, atkCooldown: 0,
     moving: false, moveFrom: null, moveTo: null, moveT: 0,
-    animState: 'idle', animTimer: 0, animFrame: 0 };
+    animState: 'idle', animTimer: 0, animFrame: 0,
+    archerSeqs: (cfg.sprite === 'ArcherReal' && archerLoaded) ? ARCHER_FRAME_SEQS : null,
+    archerSeqKey: null, archerFrameTimer: 0, archerFrameIdx: 0, archerPendingAcks: 0 };
   body.userData.unit = u;
   units.push(u);
   return u;
@@ -2047,6 +2137,8 @@ function disposeObjectTree(root) {
 function disposeUnitVisual(u) {
   // ยกเลิก hit-flash timer ค้าง — ไม่ให้ callback restore สีไปแตะ material ที่กำลังจะถูก dispose
   if (u.hitFlashTimer) { clearTimeout(u.hitFlashTimer); u.hitFlashTimer = null; }
+  // Same for the separate Archer ack-flash channel (independent timer, see applyArcherAckFlash).
+  if (u.archerAckFlashTimer) { clearTimeout(u.archerAckFlashTimer); u.archerAckFlashTimer = null; }
   disposeObjectTree(u.group);
   // floating text ที่ยังลอยค้างเหนือหัวยูนิตนี้: resource ถูก dispose ไปกับ traverse ด้านบนแล้ว
   // เหลือแค่ถอด entry ออกจาก registry ไม่ให้ updateFloatingTexts ถือ reference ของยูนิตที่ลบแล้ว
@@ -2084,11 +2176,28 @@ function resetForWave(u) {
   u.reviveUsesThisWave = 0; u.shield = 0; u.shieldTimer = 0;
   updateManaBar(u);
   if (u.baseStats) buildCombatStats(u, ITEM_DEFS_BY_ID); // statuses cleared -> combatStats must drop any lingering modifier
+  // Archer-only runtime/visual state reset -- explicit, not implicit. Without this, values left
+  // over from the wave that just ended (a still-queued replay ack, a mid-cycle frame timer/
+  // index, the evidence-only flash counter, or an active ack-glow timer) would otherwise carry
+  // into the next wave's very first Attack, corrupting its own acknowledgment accounting from
+  // frame 0. Gated on archerSeqs (true only for the archer once its frames are loaded), so this
+  // is a complete no-op for every other unit -- resetForWave() already runs for all placed
+  // units, this just adds the Archer-specific piece it was missing. Values mirror exactly what
+  // makeUnit() sets on a freshly created unit.
+  if (u.archerSeqs) {
+    u.archerPendingAcks = 0;
+    u.archerSeqKey = null;
+    u.archerFrameTimer = 0;
+    u.archerFrameIdx = 0;
+    u.archerFlashAckCount = 0;
+    restoreArcherAckGlow(u); // clears archerAckFlashTimer + reverts the ack-glow's own opacity to 0
+  }
   occupied.add(key(u.c, u.r));
 }
 
 const WALK_SEQ = [1,2,3,4], ATTACK_SEQ = [5,6,7], ATTACK_FRAME_DUR = 0.12;
 function updateAnim(u, dt) {
+  if (u.archerSeqs) { updateArcherAnim(u, dt); return; }
   if (u.frames <= 1) return;
   if (u.animState === 'attack') {
     u.animTimer += dt;
@@ -2100,6 +2209,44 @@ function updateAnim(u, dt) {
     u.animFrame = WALK_SEQ[Math.floor(u.animTimer)%WALK_SEQ.length];
   } else { u.animState = 'idle'; u.animFrame = 0; }
   u.tex.offset.x = u.animFrame / u.frames;
+}
+// hero.archer variable-per-frame-duration playback (see ARCHER_FRAME_SEQS above). Same dt/
+// speedMul input as updateAnim's sheet path above, so x1/x4 speed scaling is inherited for free
+// -- no Archer-specific speed handling needed. Swaps material.map to the exact approved texture
+// per frame instead of offsetting a shared sheet's UV.
+function updateArcherAnim(u, dt) {
+  const seqKey = u.animState === 'attack' ? 'attack' : (u.moving ? 'move' : 'idle');
+  if (u.archerSeqKey !== seqKey) { u.archerSeqKey = seqKey; u.archerFrameTimer = 0; u.archerFrameIdx = 0; }
+  const seq = u.archerSeqs[seqKey];
+  u.archerFrameTimer += dt;
+
+  let t = u.archerFrameTimer;
+  let attackJustFinished = false;
+  if (t >= seq.total) {
+    if (seq.loop) { t = seq.total > 0 ? (t % seq.total) : 0; u.archerFrameTimer = t; }
+    else { t = seq.total; attackJustFinished = (seqKey === 'attack'); }
+  }
+  let idx = seq.cumulative.findIndex((c) => t < c);
+  if (idx === -1) idx = seq.durationsSec.length - 1;
+  u.archerFrameIdx = idx;
+
+  if (u.body.material.map !== seq.textures[idx]) {
+    u.body.material.map = seq.textures[idx];
+    u.body.material.needsUpdate = true;
+  }
+  if (attackJustFinished) {
+    if (u.archerPendingAcks > 0) {
+      // one or more attack events fired while this cycle was playing (see updateUnit's
+      // Basic Attack block) -- replay the exact approved sequence once more from frame 0 so
+      // the queued hit gets its own full Full-Draw/Release/Recovery acknowledgment. Restart
+      // only ever happens here, at a clean cycle boundary, never mid-frame.
+      u.archerPendingAcks--;
+      u.archerFrameTimer = 0;
+      u.archerFrameIdx = 0;
+    } else {
+      u.animState = u.moving ? 'walk' : 'idle'; u.animTimer = 0; u.archerFrameTimer = 0;
+    }
+  }
 }
 // Physical/Magic damage split (HERO_DEFS attack_type): picks the attacker's raw attack value
 // by attack_type, then mitigates it against the target's matching defense stat. Monsters/bosses
@@ -2136,6 +2283,27 @@ function applyHitFlash(u, colorHex, durationMs) {
   if (u.hitFlashTimer) clearTimeout(u.hitFlashTimer); // flash ซ้อน: ตัวใหม่ทับตัวเก่า ไม่มี timer หลุดมือ
   u.body.material.color.set(colorHex);
   u.hitFlashTimer = setTimeout(() => { u.hitFlashTimer = null; restoreBodyColor(u); }, durationMs);
+}
+// Archer-only attack-acknowledgment channel -- deliberately separate from applyHitFlash/
+// restoreBodyColor above. Ownership conflict this avoids: applyHitFlash tints u.body.material
+// .color and owns u.hitFlashTimer, which is ALSO used for incoming-damage feedback on every
+// unit (including the archer, when it's hit). Reusing that same channel for the archer's own
+// attack-acknowledgment pulse meant a hit taken while an ack was showing (or vice versa) would
+// clobber the other's timer and color -- whichever fired second would silently cancel and
+// overwrite the first, and the reverted color could belong to neither event. This channel
+// instead drives its own object (archerAckGlow, a small standalone glow mesh, not body), its
+// own material/color (never touches body.material.color), and its own timer field
+// (archerAckFlashTimer, never touches hitFlashTimer) -- the two channels cannot observe or
+// interfere with each other under any interleaving, including simultaneous firing.
+function restoreArcherAckGlow(u) {
+  if (u.archerAckFlashTimer) { clearTimeout(u.archerAckFlashTimer); u.archerAckFlashTimer = null; }
+  if (u.archerAckGlow) u.archerAckGlow.material.opacity = 0;
+}
+function applyArcherAckFlash(u, durationMs) {
+  if (!u.archerAckGlow) return;
+  if (u.archerAckFlashTimer) clearTimeout(u.archerAckFlashTimer); // ack ซ้อน: เหมือน applyHitFlash แต่เป็น channel แยก
+  u.archerAckGlow.material.opacity = 0.9;
+  u.archerAckFlashTimer = setTimeout(() => { u.archerAckFlashTimer = null; restoreArcherAckGlow(u); }, durationMs);
 }
 function applyTrait(u, target, dmg) {
   if (u.trait === 'crit' && Math.random() < 0.2) {
@@ -3040,7 +3208,46 @@ function updateUnit(u, dt) {
       // buildCombatStats() (heroes only) — getEffectiveAttackSpeed() covers enemies/summons too.
       const baseAtkSpeed = getEffectiveAttackSpeed(u);
       u.atkCooldown = 1/baseAtkSpeed;
-      u.animState='attack'; u.animTimer=0;
+      // Archer-only visual acknowledgment: hero.archer's approved 127cs (1.27s) Attack v3.2
+      // sequence outlasts its own base cooldown (71.43cs=0.7143s at attack_speed 1.4), so a
+      // second valid attack can fire while the first is still visually mid-cycle. Damage/
+      // cooldown below are always applied exactly as before, on schedule, for every event.
+      //
+      // Two-tier acknowledgment (v2 -- raising the queue cap alone cannot work here, see below):
+      //  1) If no replay is already queued (archerPendingAcks < 1): queue one. It plays from its
+      //     own natural completion boundary -- never mid-frame -- as a full replay of the exact
+      //     approved sequence, so it still shows Full Draw (007) and Release (008) in full.
+      //  2) If a replay is already queued (queue saturated): this event still gets an immediate,
+      //     distinct, visible acknowledgment via applyArcherAckFlash() -- a standalone glow
+      //     channel, fully independent from applyHitFlash()'s incoming-damage feedback (own
+      //     object, own material/color, own timer; see applyArcherAckFlash's own comment for why
+      //     sharing applyHitFlash's channel was rejected: a hit-taken flash and an attack-ack
+      //     flash competing for the same timer/color could clobber each other). Purely a small
+      //     glow-mesh opacity tint+revert, touching neither archerFrameTimer/archerFrameIdx nor
+      //     any texture, so it cannot alter frame order/timing or suppress/duplicate Full
+      //     Draw/Release in the cycle already playing.
+      //
+      // Why not just raise the cap (e.g. to 2)? Because the structural rate is fixed: attacks
+      // fire at 1/0.7143 = 1.4/s, but a full 1.27s replay can complete at most 1/1.27 = 0.787/s
+      // -- attacks are inherently faster than any full-cycle replay can keep up with. Under
+      // sustained base-speed fire, AT MOST 0.7143/1.27 = 56% of events could ever receive a
+      // dedicated full replay, for ANY finite queue cap -- confirmed by trace (cap=2 still lost
+      // events within a 4s burst). No cap size closes this gap; the flash tier does, since it's
+      // instant and untied to animation-cycle length, giving literally every event a visible ack.
+      if (u.archerSeqs && u.animState === 'attack') {
+        if ((u.archerPendingAcks || 0) < 1) {
+          u.archerPendingAcks = 1;
+        } else {
+          applyArcherAckFlash(u, 70); // instant self-ack for a queue-saturated extra hit
+          // Evidence-only counter (additive, not read by any gameplay code) -- real-time
+          // setTimeout-based flash reversion can't be observed reliably by a synchronous,
+          // dt-driven deterministic test harness, so this exists purely so automated evidence
+          // capture can prove every attack event received exactly one acknowledgment call.
+          u.archerFlashAckCount = (u.archerFlashAckCount || 0) + 1;
+        }
+      } else {
+        u.animState='attack'; u.animTimer=0;
+      }
       let dmg = applyTrait(u, target, attackerRawAtk(u));
       dmg = applySynergyDamageModifiers(dmg, u, target);
       dmg = (target.statuses || []).some((s) => s.invulnerable) ? 0 : absorbWithShield(target, dmg);
@@ -4152,13 +4359,71 @@ function animate(now) {
 }
 
 // ============================================================
+// TEST/REVIEW HOOK (Archer Runtime Integration v1)
+// ============================================================
+// Read-only-ish debug surface for automated actual-board evidence capture (Playwright).
+// Reuses the real production placement path (createUnitFromInstance) and real per-frame
+// animation code (updateAnim/updateArcherAnim via the normal animate() loop) -- adds no new
+// gameplay behavior, just exposes already-existing internals that this classic script (no
+// modules/exports) otherwise keeps closure-private. Not referenced by any gameplay code path.
+window.__archerRuntimeTestHook = {
+  placeTestUnit: (heroKey, c, r) => createUnitFromInstance({ heroKey, instanceId: 'test-' + heroKey + '-' + c + '-' + r, starLevel: 1, equipment: [] }, c, r),
+  getUnits: () => units,
+  setSpeedMul: (m) => { speedMul = m; },
+  getSpeedMul: () => speedMul,
+  setPhase: (p) => { phase = p; },
+  getPhase: () => phase,
+  archerLoaded: () => archerLoaded,
+  // Enters real Combat via the same spawnWave() production path startBattleBtn.onclick uses,
+  // so the animate() loop's `phase==='battle' && eAlive>0` condition holds across frames like
+  // it would in an actual playthrough -- without this, a test unit placed with no real enemies
+  // on the board triggers onWaveCleared() (eAlive===0) on the very first frame and phase flips
+  // back to 'result', silently starving updateUnit() of any further per-frame calls.
+  startTestBattle: () => { phase = 'battle'; waveTimer = 0; spawnWave(wave); },
+  // Deterministic single-unit time-step: calls the exact same updateUnit(u,dt) the real
+  // animate() loop calls every rAF frame, just decoupled from wall-clock/rAF timing so
+  // Idle-loop and exact-frame (Full Draw/Release) evidence capture doesn't depend on
+  // guessing real-time delays against a headless browser's actual frame rate.
+  stepUnit: (heroKey, dt) => { const u = units.find((x) => x.heroKey === heroKey); if (u) updateUnit(u, dt); },
+  renderFrame: () => { for (const u of units) u.group.quaternion.copy(camera.quaternion); renderer.render(scene, camera); },
+  getWave: () => wave,
+  // Invokes the exact same onWaveCleared() the real animate() loop calls once eAlive===0 --
+  // not a fake/simplified reset, the real production function (grantWaveIncome, clearEnemies,
+  // despawnSummons, clearAllVFX, showResult/result-modal wiring), just triggered directly so a
+  // wave-transition evidence capture doesn't depend on driving genuine wall-clock combat to a
+  // kill. The real result-modal Continue button (#resultBtn) still has to be clicked afterward
+  // to reach healPlayerTeam()/resetForWave(), exactly as a real player would.
+  triggerWaveCleared: () => onWaveCleared(),
+  // Exposes the two real visual-feedback functions directly (not re-implementations) so an
+  // evidence capture can trigger both channels at precise, controlled moments and observe real
+  // setTimeout-driven independence -- the whole point of this specific test is real timers, so
+  // it deliberately does NOT go through stepUnit's synchronous dt path for this one.
+  applyHitFlash: (u, colorHex, durationMs) => applyHitFlash(u, colorHex, durationMs),
+  applyArcherAckFlash: (u, durationMs) => applyArcherAckFlash(u, durationMs),
+  // placeTestUnit() (above) calls createUnitFromInstance() directly, which -- unlike the real
+  // moveUnitTo() placement path a shop-phase player actually uses -- never registers the new
+  // unit into placedUnits[]. That's fine for combat/animation evidence (units[] is all
+  // updateUnit()/animate() need), but healPlayerTeam()'s wave-transition reset iterates
+  // placedUnits[] specifically, so a wave-transition evidence capture needs this one extra step
+  // to put a test unit through the exact same real reset a genuinely-placed hero gets.
+  registerAsPlaced: (heroKey) => { const u = units.find((x) => x.heroKey === heroKey); if (u && !placedUnits.includes(u)) placedUnits.push(u); },
+};
+
+// ============================================================
 // START
 // ============================================================
-loadAllSprites(() => {
+// Both loaders must finish before gameplay starts (shop offers reference sprite/frame state);
+// order between the two doesn't matter, so they run in parallel and the second to finish
+// triggers init -- same "wait for everything, then go" shape as loadAllSprites' own settle().
+let coreSpritesReady = false, archerFramesReady = false;
+function tryStartGame() {
+  if (!coreSpritesReady || !archerFramesReady) return;
   document.getElementById('loading').style.display = 'none';
   pickShopOffers();
   renderUI();
   requestAnimationFrame(animate);
-});
+}
+loadAllSprites(() => { coreSpritesReady = true; tryStartGame(); });
+loadArcherFrames(() => { archerFramesReady = true; tryStartGame(); });
 
 window.addEventListener('resize', layoutBoard);

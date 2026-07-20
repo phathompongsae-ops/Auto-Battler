@@ -1,0 +1,62 @@
+{
+ "setup1": {
+  "hasAckGlow": true,
+  "ackGlowInitialOpacity": 0,
+  "bodyInitialColor": 16777215
+ },
+ "dual": {
+  "before": {
+   "bodyColor": 16777215,
+   "ackOpacity": 0,
+   "hitFlashTimerActive": false,
+   "ackFlashTimerActive": false
+  },
+  "immediatelyAfter": {
+   "bodyColor": 16746598,
+   "ackOpacity": 0.9,
+   "hitFlashTimerActive": true,
+   "ackFlashTimerActive": true,
+   "bothVisibleSimultaneously": true,
+   "distinctTimers": true
+  },
+  "midFlight": {
+   "bodyColor": 16746598,
+   "ackOpacity": 0.9,
+   "hitFlashTimerActive": true,
+   "ackFlashTimerActive": true
+  },
+  "afterAckShouldHaveReverted": {
+   "bodyColor": 16777215,
+   "ackOpacity": 0,
+   "ackReverted": true,
+   "ackTimerCleared": true
+  },
+  "finalState": {
+   "bodyColor": 16777215,
+   "ackOpacity": 0,
+   "bothReverted": true,
+   "hitFlashTimerActive": false,
+   "ackFlashTimerActive": false
+  }
+ },
+ "dualReversed": {
+  "ackStillActiveBeforeHit": {
+   "ackOpacity": 0.9,
+   "bodyColor": 16777215
+  },
+  "immediatelyAfterHit": {
+   "ackOpacity": 0.9,
+   "bodyColor": 16746598,
+   "ackUnaffectedByHitFlash": true
+  },
+  "finalState": {
+   "ackOpacity": 0,
+   "bodyColor": 16777215,
+   "bothReverted": true
+  }
+ },
+ "errors": {
+  "consoleErrors": [],
+  "pageErrors": []
+ }
+}
