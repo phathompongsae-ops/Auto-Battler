@@ -1,6 +1,27 @@
 # Board / Camera / Art Direction / Lighting Polish v1
 
-**Status: READY_FOR_VISUAL_HUMAN_REVIEW**
+**Status: BOARD_CAMERA_ART_LIGHTING_POLISH_APPROVED**
+
+## Visual Human Approval (user decision)
+
+The user reviewed the mobile-friendly visual evidence for PR #89 and explicitly stated:
+
+> โอเครครับ
+> (Thai: "Okay" / "I'm fine with it")
+
+This is recorded as explicit **Visual Human Approval** for the exact reviewed candidate at PR #89
+head `b3241fae9a13ab07d4657bf2c691a3ee973950b1` (branch `cc/board-camera-art-lighting-polish-v1`),
+covering: board presentation, camera angle/framing, board proportion/compactness, environment
+cohesion, lighting direction, shadow/grounding treatment, color grading, UI tone/composition,
+desktop framing, narrow/mobile-like framing, and the overall visual direction.
+**Record updated (UTC)**: `2026-07-20T16:34:54Z` — this is the record-update time, not the time of
+the user's original spoken decision.
+
+**Not approved by this decision**: gameplay, Combat ordering, balance, board topology,
+pathfinding, deploy rules, motion timing, motion binaries, Skill/Cast, projectile, VFX, Melee
+Runtime, Monster Runtime, final canonical game art, or merge authorization. `canonicalApproved`
+remains `false`; this is the approved **current demo** visual direction — post-demo revision
+remains possible, and canonical final presentation remains a separate, later gate.
 
 Visual-presentation-only polish of the demo Runtime, built on the Runtime-Human-Approved Caster
 build (PR #88 head `75e735d9777845b42c85d5884262611a909e7f91`, verified live: open, Draft,
@@ -89,23 +110,26 @@ key-light direction), and **no baked shadow was added to any approved motion fra
 
 ## Board Preview status
 
-Previously `DEFERRED_UNTIL_AFTER_DEMO`. This task adds an **in-Runtime visual-polish candidate,
-pending Human Review** — it is *not* marked final or canonical, and the full game art direction
-is *not* claimed final.
+Previously `DEFERRED_UNTIL_AFTER_DEMO`. PR #89 is now the **user-approved current demo visual
+direction** (in-Runtime). This does not permanently lock the post-demo Board Preview or the full
+game art direction — post-demo revision remains allowed, and canonical final presentation remains
+a separate, later gate.
 
-## Human Decision Sheet (all pending — no approval preselected)
+## Human Decision Sheet (resolved — Visual Human Approved)
 
-- [ ] Board framing acceptable — **pending**
-- [ ] Camera angle acceptable — **pending**
-- [ ] Board proportion acceptable — **pending**
-- [ ] Environment cohesion acceptable — **pending**
-- [ ] Lighting acceptable — **pending**
-- [ ] Shadow/grounding acceptable — **pending**
-- [ ] Color grading acceptable — **pending**
-- [ ] UI tone acceptable — **pending**
-- [ ] Desktop layout acceptable — **pending**
-- [ ] Narrow/mobile-like layout acceptable — **pending**
-- [ ] Overall visual direction acceptable — **pending**
+- [x] Board framing acceptable — **approved**
+- [x] Camera angle acceptable — **approved**
+- [x] Board proportion acceptable — **approved**
+- [x] Environment cohesion acceptable — **approved**
+- [x] Lighting acceptable — **approved**
+- [x] Shadow/grounding acceptable — **approved**
+- [x] Color grading acceptable — **approved**
+- [x] UI tone acceptable — **approved**
+- [x] Desktop layout acceptable — **approved**
+- [x] Narrow/mobile-like layout acceptable — **approved**
+- [x] Overall visual direction acceptable — **approved**
+
+No gameplay, topology, motion, Skill/Cast, projectile, or VFX approval is added by this sheet.
 
 ## Known limitations
 

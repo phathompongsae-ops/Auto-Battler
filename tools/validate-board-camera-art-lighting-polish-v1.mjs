@@ -36,23 +36,41 @@ const gameJs = fs.readFileSync(GAME_JS_PATH, 'utf8');
 const html = fs.readFileSync(HTML_PATH, 'utf8');
 
 // 1) status / approval flags / source head recorded
-assert(record.status === 'READY_FOR_VISUAL_HUMAN_REVIEW', `status must be READY_FOR_VISUAL_HUMAN_REVIEW, got ${record.status}`);
+assert(record.status === 'BOARD_CAMERA_ART_LIGHTING_POLISH_APPROVED', `status must be BOARD_CAMERA_ART_LIGHTING_POLISH_APPROVED, got ${record.status}`);
 assert(record.sourceLineage.sourceHeadExpected === EXPECTED_SOURCE_HEAD, 'sourceLineage.sourceHeadExpected mismatch');
 assert(record.sourceLineage.sourceHeadVerifiedLive === EXPECTED_SOURCE_HEAD, 'sourceLineage.sourceHeadVerifiedLive mismatch');
 assert(record.sourceLineage.sourcePr === 88, 'sourceLineage.sourcePr must be 88');
-assert(record.approvalFlags.visualHumanApproval === 'pending', 'approvalFlags.visualHumanApproval must be pending — approval must not be preselected');
-assert(record.approvalFlags.canonicalApproved === false, 'approvalFlags.canonicalApproved must be false');
-assert(record.approvalFlags.merged === false, 'approvalFlags.merged must be false');
-if (!errors.length) ok('record status READY_FOR_VISUAL_HUMAN_REVIEW; source head recorded; visualHumanApproval=pending, canonicalApproved/merged=false');
+assert(record.approvalFlags.visualHumanApproval === true, 'approvalFlags.visualHumanApproval must be true (recorded user decision)');
+assert(record.approvalFlags.canonicalApproved === false, 'approvalFlags.canonicalApproved must remain false — no canonical claim');
+assert(record.approvalFlags.merged === false, 'approvalFlags.merged must remain false — no merge claim');
+if (!errors.length) ok('record status BOARD_CAMERA_ART_LIGHTING_POLISH_APPROVED; source head recorded; visualHumanApproval=true, canonicalApproved/merged=false');
 
-// 2) Human Decision Sheet: every field pending, in both the JSON record and the Markdown sheet
+// 1b) Visual Human Approval decision — explicit, tied to the exact reviewed PR #89 head, with
+// the covered areas and the mandatory exclusions all recorded (no canonical/merge extension)
+const vhd = record.visualHumanDecision;
+assert(!!vhd, 'record.visualHumanDecision is required once status is BOARD_CAMERA_ART_LIGHTING_POLISH_APPROVED');
+if (vhd) {
+  assert(vhd.verdict === 'VISUAL_HUMAN_APPROVED', `visualHumanDecision.verdict must be VISUAL_HUMAN_APPROVED, got ${vhd.verdict}`);
+  assert(vhd.approvedAtExactHead && vhd.approvedAtExactHead.pr === 89 && vhd.approvedAtExactHead.headSha === 'b3241fae9a13ab07d4657bf2c691a3ee973950b1',
+    'visualHumanDecision.approvedAtExactHead must pin PR 89 @ b3241fae9a13ab07d4657bf2c691a3ee973950b1');
+  assert(Array.isArray(vhd.approvedAreas) && vhd.approvedAreas.length === 11, 'visualHumanDecision.approvedAreas must list all 11 reviewed areas');
+  const mustExclude = ['gameplay', 'combatOrdering', 'balance', 'boardTopology', 'pathfinding', 'deployRules', 'motionTiming', 'motionBinaries', 'skillCast', 'projectile', 'vfx', 'meleeRuntime', 'monsterRuntime', 'finalCanonicalGameArt', 'mergeAuthorization'];
+  assert(Array.isArray(vhd.explicitlyNotApproved) && mustExclude.every((x) => vhd.explicitlyNotApproved.includes(x)),
+    'visualHumanDecision.explicitlyNotApproved must list every required exclusion');
+}
+if (!errors.length) ok('visualHumanDecision present: verdict=VISUAL_HUMAN_APPROVED pinned to PR 89 @ b3241fae…, 11 areas covered, all required exclusions recorded');
+
+// 2) Human Decision Sheet: every field approved (consistent with the recorded decision), in both
+// the JSON record and the Markdown sheet — no field may be left pending or silently disagree
 for (const [k, v] of Object.entries(record.humanDecisionSheet)) {
-  assert(v === 'pending', `humanDecisionSheet.${k} must be 'pending', got ${v}`);
+  assert(v === 'approved', `humanDecisionSheet.${k} must be 'approved', got ${v}`);
 }
 assert(Object.keys(record.humanDecisionSheet).length === 11, 'humanDecisionSheet must have all 11 required fields');
 const mdSheet = fs.readFileSync(MD_PATH, 'utf8');
-assert(!/- \[x\]/i.test(mdSheet.split('## Human Decision Sheet')[1].split('## ')[0]), 'Markdown Human Decision Sheet must have no checked item');
-if (!errors.length) ok('Human Decision Sheet: 11/11 fields pending in JSON and Markdown — no approval preselected');
+const mdSheetSection = mdSheet.split('## Human Decision Sheet')[1].split('## ')[0];
+assert(!/- \[ \]/.test(mdSheetSection), 'Markdown Human Decision Sheet must have no unchecked (pending) item left');
+assert((mdSheetSection.match(/- \[x\]/gi) || []).length === 11, 'Markdown Human Decision Sheet must have exactly 11 checked items');
+if (!errors.length) ok('Human Decision Sheet: 11/11 fields approved in JSON and Markdown, consistent with the recorded decision');
 
 // 3) approved motion binaries unchanged: Neutral Masters + every sidecar-referenced frame re-hashed
 for (const cls of ROSTER) {
@@ -123,4 +141,4 @@ if (errors.length) {
   for (const e of errors) console.error('  ✗ ' + e);
   process.exit(1);
 }
-console.log('\nALL CHECKS PASSED — board-camera-art-lighting-polish-v1 is consistent with source and evidence. READY_FOR_VISUAL_HUMAN_REVIEW (no approval preselected, no merge/canonical claim).');
+console.log('\nALL CHECKS PASSED — board-camera-art-lighting-polish-v1 is consistent with source and evidence. BOARD_CAMERA_ART_LIGHTING_POLISH_APPROVED (current demo visual direction approved; no canonical/merge claim).');
