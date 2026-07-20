@@ -1,0 +1,81 @@
+{
+  "schemaVersion": 1,
+  "logicalId": "hero.merchant.idle.human-review-candidate.v1",
+  "class": "merchant",
+  "action": "idle",
+  "sourceNeutralMasterSha256": "053785f1283a02c49897445edf038e3f95b30cb2733b81c206f648e986b157d3",
+  "sourceNeutralMasterPath": "merchant/neutral/hero.merchant_neutral_master.png",
+  "canvas": [
+    640,
+    960
+  ],
+  "mode": "RGBA",
+  "bitDepthPerChannel": 8,
+  "transparentBackground": true,
+  "anchor": [
+    0.5,
+    0.92
+  ],
+  "footBaselineHalfOpen": 855,
+  "inPlaceRootMotion": true,
+  "runtimeFlipXCompatible": true,
+  "frameOrder": [
+    "merchant/idle/frames/hero.merchant_idle_candidate_v1_000.png",
+    "merchant/idle/frames/hero.merchant_idle_candidate_v1_001.png",
+    "merchant/idle/frames/hero.merchant_idle_candidate_v1_002.png",
+    "merchant/idle/frames/hero.merchant_idle_candidate_v1_003.png",
+    "merchant/idle/frames/hero.merchant_idle_candidate_v1_004.png",
+    "merchant/idle/frames/hero.merchant_idle_candidate_v1_005.png",
+    "merchant/idle/frames/hero.merchant_idle_candidate_v1_006.png",
+    "merchant/idle/frames/hero.merchant_idle_candidate_v1_007.png"
+  ],
+  "perFrameDurationCentiseconds": [
+    18,
+    16,
+    14,
+    12,
+    12,
+    14,
+    16,
+    18
+  ],
+  "totalDurationCentiseconds": 120,
+  "loop": true,
+  "impactMarker": null,
+  "perFrameSha256": [
+    "243f07970bf17473760856eb0163dfc6beac49b20bce0b4895fe09af4da003d9",
+    "80ed0f1654616af9bfbc9430ae7035dd5b7a76e686f9416ae11b7eb1fe9b1dc2",
+    "e74dc53921f771c6dfa91853c89d6dbb714c838d3296c8268e023eacd810a589",
+    "d9121e629296a1285c270b302623567b0a864e20171e7168f3114a72eb912e0e",
+    "51a17574ae36d90226e742ed3f61c1247c2026e972af8df78f3cb8b3e448b7a0",
+    "843c9c4926f438417ff08a85b639f24917ceef9428f03b07fd456fa94c14d4b6",
+    "916231a657d102906bfa68f893f6dde9af15093135eb8bdef22b4d55d13d1878",
+    "5dbef4a0d6e26fc575cb66cef1efe1b90b92131973f6573b4aa3d47d24360f8e"
+  ],
+  "motionIntent": "alert merchant-adventurer stance with restrained gear settling",
+  "productionNotes": [
+    "Archer was used only as a rendering-quality benchmark; no Archer pose, timing, frame-count rule, costume, anatomy, color, face, or silhouette was copied.",
+    "No baked VFX, shadow plate, background, gameplay marker implementation, or runtime behavior is included.",
+    "Review GIFs loop for inspection; this sidecar loop flag is the intended action behavior."
+  ],
+  "internalQa": {
+    "identity": "PASS",
+    "faceAndProportions": "PASS",
+    "anatomy": "PASS",
+    "weaponAndPropContinuity": "PASS",
+    "baselineAndAnchor": "PASS",
+    "transparentEdges": "PASS",
+    "normalSpeedReadability": "PASS",
+    "slowQaInspection": "PASS",
+    "humanVisualApproval": "pending"
+  },
+  "approval": {
+    "humanVisualApproval": "pending",
+    "exactPackageApproved": false,
+    "canonicalApproved": false,
+    "motionProductionApproved": false,
+    "runtimeIntegrationAuthorized": false,
+    "runtimeIntegrated": false,
+    "merged": false
+  }
+}

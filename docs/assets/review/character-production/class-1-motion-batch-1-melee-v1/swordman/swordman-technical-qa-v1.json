@@ -1,0 +1,676 @@
+{
+  "schemaVersion": 1,
+  "class": "swordman",
+  "result": "INTERNAL_QA_PASS_HUMAN_DECISION_PENDING",
+  "exactNeutralMasterSha256": "2a1fc6f93f384fbc92486a8e42975a10bb84d8f9cd35b13b155a9668638861ed",
+  "exactNeutralByteIdentity": true,
+  "motionFrameCount": 24,
+  "pngRgba640x9608Bit": true,
+  "baselineHalfOpen855": true,
+  "transparentBorders": true,
+  "duplicateFrameHashes": [],
+  "identity": "PASS",
+  "anatomyAndHands": "PASS",
+  "weaponAndProps": "PASS",
+  "normalSpeedReadability": "PASS",
+  "humanVisualApproval": "pending",
+  "perFrame": [
+    {
+      "path": "swordman/idle/frames/hero.swordman_idle_candidate_v1_000.png",
+      "sha256": "634424c56243a6c4167dbd91dbfad0328f7c52658266200d430be136ead196e6",
+      "fileSizeBytes": 312502,
+      "dimensions": [
+        640,
+        960
+      ],
+      "mode": "RGBA",
+      "bitDepthPerChannel": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        63,
+        211,
+        505,
+        855
+      ],
+      "alphaBoundsGeometry": {
+        "width": 442,
+        "height": 644,
+        "x": 63,
+        "y": 211
+      },
+      "footBaselineHalfOpen": 855,
+      "fullyTransparentBorder": true,
+      "decodePass": true
+    },
+    {
+      "path": "swordman/idle/frames/hero.swordman_idle_candidate_v1_001.png",
+      "sha256": "991505610a0057a6b4191f85d8538ceb42946dc59841f58ed568435190abd59d",
+      "fileSizeBytes": 312697,
+      "dimensions": [
+        640,
+        960
+      ],
+      "mode": "RGBA",
+      "bitDepthPerChannel": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        56,
+        211,
+        497,
+        855
+      ],
+      "alphaBoundsGeometry": {
+        "width": 441,
+        "height": 644,
+        "x": 56,
+        "y": 211
+      },
+      "footBaselineHalfOpen": 855,
+      "fullyTransparentBorder": true,
+      "decodePass": true
+    },
+    {
+      "path": "swordman/idle/frames/hero.swordman_idle_candidate_v1_002.png",
+      "sha256": "50da05b31b349791442de605f02d2b02785651244e874fac0a6d4633c1f6e57b",
+      "fileSizeBytes": 307223,
+      "dimensions": [
+        640,
+        960
+      ],
+      "mode": "RGBA",
+      "bitDepthPerChannel": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        80,
+        211,
+        493,
+        855
+      ],
+      "alphaBoundsGeometry": {
+        "width": 413,
+        "height": 644,
+        "x": 80,
+        "y": 211
+      },
+      "footBaselineHalfOpen": 855,
+      "fullyTransparentBorder": true,
+      "decodePass": true
+    },
+    {
+      "path": "swordman/idle/frames/hero.swordman_idle_candidate_v1_003.png",
+      "sha256": "45ce9558b260679713d2adc3df1518ab6decc2f06755db3d5e7cf6d8da72441a",
+      "fileSizeBytes": 307022,
+      "dimensions": [
+        640,
+        960
+      ],
+      "mode": "RGBA",
+      "bitDepthPerChannel": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        112,
+        211,
+        501,
+        855
+      ],
+      "alphaBoundsGeometry": {
+        "width": 389,
+        "height": 644,
+        "x": 112,
+        "y": 211
+      },
+      "footBaselineHalfOpen": 855,
+      "fullyTransparentBorder": true,
+      "decodePass": true
+    },
+    {
+      "path": "swordman/idle/frames/hero.swordman_idle_candidate_v1_004.png",
+      "sha256": "58bd0adbdf92ea1004837528db94286f99ce07ae09b1c5f269f34e50fa6926b7",
+      "fileSizeBytes": 306608,
+      "dimensions": [
+        640,
+        960
+      ],
+      "mode": "RGBA",
+      "bitDepthPerChannel": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        75,
+        211,
+        502,
+        855
+      ],
+      "alphaBoundsGeometry": {
+        "width": 427,
+        "height": 644,
+        "x": 75,
+        "y": 211
+      },
+      "footBaselineHalfOpen": 855,
+      "fullyTransparentBorder": true,
+      "decodePass": true
+    },
+    {
+      "path": "swordman/idle/frames/hero.swordman_idle_candidate_v1_005.png",
+      "sha256": "e11f9cccec9131b401f7f571188db4eeddf12b2e314f8e2f791068e916962b16",
+      "fileSizeBytes": 306946,
+      "dimensions": [
+        640,
+        960
+      ],
+      "mode": "RGBA",
+      "bitDepthPerChannel": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        53,
+        211,
+        497,
+        855
+      ],
+      "alphaBoundsGeometry": {
+        "width": 444,
+        "height": 644,
+        "x": 53,
+        "y": 211
+      },
+      "footBaselineHalfOpen": 855,
+      "fullyTransparentBorder": true,
+      "decodePass": true
+    },
+    {
+      "path": "swordman/idle/frames/hero.swordman_idle_candidate_v1_006.png",
+      "sha256": "719bc44563a46f70171ad84801066782eff156c4cde15a23539bd13aa9d9e84e",
+      "fileSizeBytes": 309361,
+      "dimensions": [
+        640,
+        960
+      ],
+      "mode": "RGBA",
+      "bitDepthPerChannel": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        63,
+        211,
+        498,
+        855
+      ],
+      "alphaBoundsGeometry": {
+        "width": 435,
+        "height": 644,
+        "x": 63,
+        "y": 211
+      },
+      "footBaselineHalfOpen": 855,
+      "fullyTransparentBorder": true,
+      "decodePass": true
+    },
+    {
+      "path": "swordman/idle/frames/hero.swordman_idle_candidate_v1_007.png",
+      "sha256": "2afc06606fe5d88bceb15cdee4d442ac103965145f3bb444707e1684e533cb4b",
+      "fileSizeBytes": 305726,
+      "dimensions": [
+        640,
+        960
+      ],
+      "mode": "RGBA",
+      "bitDepthPerChannel": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        105,
+        211,
+        500,
+        855
+      ],
+      "alphaBoundsGeometry": {
+        "width": 395,
+        "height": 644,
+        "x": 105,
+        "y": 211
+      },
+      "footBaselineHalfOpen": 855,
+      "fullyTransparentBorder": true,
+      "decodePass": true
+    },
+    {
+      "path": "swordman/move/frames/hero.swordman_move_candidate_v1_000.png",
+      "sha256": "19ee16747412afc633d4843c45248ad94c584b3acf0315f86bfb1a2107882659",
+      "fileSizeBytes": 268561,
+      "dimensions": [
+        640,
+        960
+      ],
+      "mode": "RGBA",
+      "bitDepthPerChannel": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        41,
+        258,
+        495,
+        855
+      ],
+      "alphaBoundsGeometry": {
+        "width": 454,
+        "height": 597,
+        "x": 41,
+        "y": 258
+      },
+      "footBaselineHalfOpen": 855,
+      "fullyTransparentBorder": true,
+      "decodePass": true
+    },
+    {
+      "path": "swordman/move/frames/hero.swordman_move_candidate_v1_001.png",
+      "sha256": "aef25548b696c29ee72a7dfe27aa73e38c364e126def9067cca1695f9714c147",
+      "fileSizeBytes": 265089,
+      "dimensions": [
+        640,
+        960
+      ],
+      "mode": "RGBA",
+      "bitDepthPerChannel": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        42,
+        260,
+        505,
+        855
+      ],
+      "alphaBoundsGeometry": {
+        "width": 463,
+        "height": 595,
+        "x": 42,
+        "y": 260
+      },
+      "footBaselineHalfOpen": 855,
+      "fullyTransparentBorder": true,
+      "decodePass": true
+    },
+    {
+      "path": "swordman/move/frames/hero.swordman_move_candidate_v1_002.png",
+      "sha256": "524bc21d4ce3a3c2fb05022ae394e0402669e3ebe3fbed86ec935d62bd3bcd7b",
+      "fileSizeBytes": 273121,
+      "dimensions": [
+        640,
+        960
+      ],
+      "mode": "RGBA",
+      "bitDepthPerChannel": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        94,
+        260,
+        527,
+        855
+      ],
+      "alphaBoundsGeometry": {
+        "width": 433,
+        "height": 595,
+        "x": 94,
+        "y": 260
+      },
+      "footBaselineHalfOpen": 855,
+      "fullyTransparentBorder": true,
+      "decodePass": true
+    },
+    {
+      "path": "swordman/move/frames/hero.swordman_move_candidate_v1_003.png",
+      "sha256": "fde82b732805ea67e1ef5c5e33c80ddd779783314d10e465d8c2fdddfb669050",
+      "fileSizeBytes": 257395,
+      "dimensions": [
+        640,
+        960
+      ],
+      "mode": "RGBA",
+      "bitDepthPerChannel": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        139,
+        256,
+        513,
+        855
+      ],
+      "alphaBoundsGeometry": {
+        "width": 374,
+        "height": 599,
+        "x": 139,
+        "y": 256
+      },
+      "footBaselineHalfOpen": 855,
+      "fullyTransparentBorder": true,
+      "decodePass": true
+    },
+    {
+      "path": "swordman/move/frames/hero.swordman_move_candidate_v1_004.png",
+      "sha256": "4ab5b1d6d2914c1a940b376f5811e38db4e0c53575a0b300f4634c46541eb1bb",
+      "fileSizeBytes": 276892,
+      "dimensions": [
+        640,
+        960
+      ],
+      "mode": "RGBA",
+      "bitDepthPerChannel": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        41,
+        258,
+        504,
+        855
+      ],
+      "alphaBoundsGeometry": {
+        "width": 463,
+        "height": 597,
+        "x": 41,
+        "y": 258
+      },
+      "footBaselineHalfOpen": 855,
+      "fullyTransparentBorder": true,
+      "decodePass": true
+    },
+    {
+      "path": "swordman/move/frames/hero.swordman_move_candidate_v1_005.png",
+      "sha256": "ca4f1e156e7ab40cf3d572b497a0a7a9ea38542c63887ab6d496352b2d9b17e4",
+      "fileSizeBytes": 259064,
+      "dimensions": [
+        640,
+        960
+      ],
+      "mode": "RGBA",
+      "bitDepthPerChannel": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        14,
+        303,
+        498,
+        855
+      ],
+      "alphaBoundsGeometry": {
+        "width": 484,
+        "height": 552,
+        "x": 14,
+        "y": 303
+      },
+      "footBaselineHalfOpen": 855,
+      "fullyTransparentBorder": true,
+      "decodePass": true
+    },
+    {
+      "path": "swordman/move/frames/hero.swordman_move_candidate_v1_006.png",
+      "sha256": "3e60b468692ac07c4f3ba05a4de456393ebe12222d43d301aa68d0472964f236",
+      "fileSizeBytes": 259159,
+      "dimensions": [
+        640,
+        960
+      ],
+      "mode": "RGBA",
+      "bitDepthPerChannel": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        62,
+        264,
+        499,
+        855
+      ],
+      "alphaBoundsGeometry": {
+        "width": 437,
+        "height": 591,
+        "x": 62,
+        "y": 264
+      },
+      "footBaselineHalfOpen": 855,
+      "fullyTransparentBorder": true,
+      "decodePass": true
+    },
+    {
+      "path": "swordman/move/frames/hero.swordman_move_candidate_v1_007.png",
+      "sha256": "db1f6c316a43f0edcb1c724ac2a7b32b5bade29d2836e16b2525c56d9f87020e",
+      "fileSizeBytes": 256673,
+      "dimensions": [
+        640,
+        960
+      ],
+      "mode": "RGBA",
+      "bitDepthPerChannel": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        135,
+        250,
+        509,
+        855
+      ],
+      "alphaBoundsGeometry": {
+        "width": 374,
+        "height": 605,
+        "x": 135,
+        "y": 250
+      },
+      "footBaselineHalfOpen": 855,
+      "fullyTransparentBorder": true,
+      "decodePass": true
+    },
+    {
+      "path": "swordman/attack/frames/hero.swordman_attack_candidate_v1_000.png",
+      "sha256": "3a9edac24bd0c193eed33858f1df98af35b517deaad023adff6dac7e30cd5fbe",
+      "fileSizeBytes": 269483,
+      "dimensions": [
+        640,
+        960
+      ],
+      "mode": "RGBA",
+      "bitDepthPerChannel": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        41,
+        310,
+        489,
+        855
+      ],
+      "alphaBoundsGeometry": {
+        "width": 448,
+        "height": 545,
+        "x": 41,
+        "y": 310
+      },
+      "footBaselineHalfOpen": 855,
+      "fullyTransparentBorder": true,
+      "decodePass": true
+    },
+    {
+      "path": "swordman/attack/frames/hero.swordman_attack_candidate_v1_001.png",
+      "sha256": "13e4af6c587a058f17ff85e9a2204256564f95d4280fcad9c8553e6a29e7cdb4",
+      "fileSizeBytes": 245083,
+      "dimensions": [
+        640,
+        960
+      ],
+      "mode": "RGBA",
+      "bitDepthPerChannel": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        105,
+        330,
+        443,
+        855
+      ],
+      "alphaBoundsGeometry": {
+        "width": 338,
+        "height": 525,
+        "x": 105,
+        "y": 330
+      },
+      "footBaselineHalfOpen": 855,
+      "fullyTransparentBorder": true,
+      "decodePass": true
+    },
+    {
+      "path": "swordman/attack/frames/hero.swordman_attack_candidate_v1_002.png",
+      "sha256": "0c68ded1f7b80721fb98963d94600e30cea2afe27bb1a054e0fc1ca8a5519d4c",
+      "fileSizeBytes": 244602,
+      "dimensions": [
+        640,
+        960
+      ],
+      "mode": "RGBA",
+      "bitDepthPerChannel": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        40,
+        356,
+        512,
+        855
+      ],
+      "alphaBoundsGeometry": {
+        "width": 472,
+        "height": 499,
+        "x": 40,
+        "y": 356
+      },
+      "footBaselineHalfOpen": 855,
+      "fullyTransparentBorder": true,
+      "decodePass": true
+    },
+    {
+      "path": "swordman/attack/frames/hero.swordman_attack_candidate_v1_003.png",
+      "sha256": "4578c0a256cd7e100239901473d89b59082a5f8407995b01daca0b90162bb517",
+      "fileSizeBytes": 236245,
+      "dimensions": [
+        640,
+        960
+      ],
+      "mode": "RGBA",
+      "bitDepthPerChannel": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        81,
+        337,
+        481,
+        855
+      ],
+      "alphaBoundsGeometry": {
+        "width": 400,
+        "height": 518,
+        "x": 81,
+        "y": 337
+      },
+      "footBaselineHalfOpen": 855,
+      "fullyTransparentBorder": true,
+      "decodePass": true
+    },
+    {
+      "path": "swordman/attack/frames/hero.swordman_attack_candidate_v1_004.png",
+      "sha256": "fd6d35c5905d23d79606ca28cecc9acdf643ca6c257fc8e52f3b9bf6107c7582",
+      "fileSizeBytes": 250854,
+      "dimensions": [
+        640,
+        960
+      ],
+      "mode": "RGBA",
+      "bitDepthPerChannel": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        70,
+        353,
+        535,
+        855
+      ],
+      "alphaBoundsGeometry": {
+        "width": 465,
+        "height": 502,
+        "x": 70,
+        "y": 353
+      },
+      "footBaselineHalfOpen": 855,
+      "fullyTransparentBorder": true,
+      "decodePass": true
+    },
+    {
+      "path": "swordman/attack/frames/hero.swordman_attack_candidate_v1_005.png",
+      "sha256": "33b2fd19004de5f338f0fe0ef3b98392551e70440c3e87ad25fc29ffd9ff27fb",
+      "fileSizeBytes": 217628,
+      "dimensions": [
+        640,
+        960
+      ],
+      "mode": "RGBA",
+      "bitDepthPerChannel": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        8,
+        365,
+        488,
+        855
+      ],
+      "alphaBoundsGeometry": {
+        "width": 480,
+        "height": 490,
+        "x": 8,
+        "y": 365
+      },
+      "footBaselineHalfOpen": 855,
+      "fullyTransparentBorder": true,
+      "decodePass": true
+    },
+    {
+      "path": "swordman/attack/frames/hero.swordman_attack_candidate_v1_006.png",
+      "sha256": "5fa74a5b7bcfb322f8eb596b866e24ce9bab02b4f444c219b569342f6b070705",
+      "fileSizeBytes": 233302,
+      "dimensions": [
+        640,
+        960
+      ],
+      "mode": "RGBA",
+      "bitDepthPerChannel": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        60,
+        342,
+        482,
+        855
+      ],
+      "alphaBoundsGeometry": {
+        "width": 422,
+        "height": 513,
+        "x": 60,
+        "y": 342
+      },
+      "footBaselineHalfOpen": 855,
+      "fullyTransparentBorder": true,
+      "decodePass": true
+    },
+    {
+      "path": "swordman/attack/frames/hero.swordman_attack_candidate_v1_007.png",
+      "sha256": "3fc59b7593bdebaa6c4b0e09418405cb7e64f460cd1ff0a028909bbf8400a4cb",
+      "fileSizeBytes": 234219,
+      "dimensions": [
+        640,
+        960
+      ],
+      "mode": "RGBA",
+      "bitDepthPerChannel": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        97,
+        323,
+        480,
+        855
+      ],
+      "alphaBoundsGeometry": {
+        "width": 383,
+        "height": 532,
+        "x": 97,
+        "y": 323
+      },
+      "footBaselineHalfOpen": 855,
+      "fullyTransparentBorder": true,
+      "decodePass": true
+    }
+  ],
+  "approval": {
+    "humanVisualApproval": "pending",
+    "exactPackageApproved": false,
+    "canonicalApproved": false,
+    "motionProductionApproved": false,
+    "runtimeIntegrationAuthorized": false,
+    "runtimeIntegrated": false,
+    "merged": false
+  }
+}

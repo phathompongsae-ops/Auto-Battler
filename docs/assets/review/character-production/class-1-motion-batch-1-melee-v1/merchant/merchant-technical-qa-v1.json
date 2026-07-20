@@ -1,0 +1,676 @@
+{
+  "schemaVersion": 1,
+  "class": "merchant",
+  "result": "INTERNAL_QA_PASS_HUMAN_DECISION_PENDING",
+  "exactNeutralMasterSha256": "053785f1283a02c49897445edf038e3f95b30cb2733b81c206f648e986b157d3",
+  "exactNeutralByteIdentity": true,
+  "motionFrameCount": 24,
+  "pngRgba640x9608Bit": true,
+  "baselineHalfOpen855": true,
+  "transparentBorders": true,
+  "duplicateFrameHashes": [],
+  "identity": "PASS",
+  "anatomyAndHands": "PASS",
+  "weaponAndProps": "PASS",
+  "normalSpeedReadability": "PASS",
+  "humanVisualApproval": "pending",
+  "perFrame": [
+    {
+      "path": "merchant/idle/frames/hero.merchant_idle_candidate_v1_000.png",
+      "sha256": "243f07970bf17473760856eb0163dfc6beac49b20bce0b4895fe09af4da003d9",
+      "fileSizeBytes": 286178,
+      "dimensions": [
+        640,
+        960
+      ],
+      "mode": "RGBA",
+      "bitDepthPerChannel": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        101,
+        267,
+        489,
+        855
+      ],
+      "alphaBoundsGeometry": {
+        "width": 388,
+        "height": 588,
+        "x": 101,
+        "y": 267
+      },
+      "footBaselineHalfOpen": 855,
+      "fullyTransparentBorder": true,
+      "decodePass": true
+    },
+    {
+      "path": "merchant/idle/frames/hero.merchant_idle_candidate_v1_001.png",
+      "sha256": "80ed0f1654616af9bfbc9430ae7035dd5b7a76e686f9416ae11b7eb1fe9b1dc2",
+      "fileSizeBytes": 281045,
+      "dimensions": [
+        640,
+        960
+      ],
+      "mode": "RGBA",
+      "bitDepthPerChannel": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        97,
+        267,
+        479,
+        855
+      ],
+      "alphaBoundsGeometry": {
+        "width": 382,
+        "height": 588,
+        "x": 97,
+        "y": 267
+      },
+      "footBaselineHalfOpen": 855,
+      "fullyTransparentBorder": true,
+      "decodePass": true
+    },
+    {
+      "path": "merchant/idle/frames/hero.merchant_idle_candidate_v1_002.png",
+      "sha256": "e74dc53921f771c6dfa91853c89d6dbb714c838d3296c8268e023eacd810a589",
+      "fileSizeBytes": 281337,
+      "dimensions": [
+        640,
+        960
+      ],
+      "mode": "RGBA",
+      "bitDepthPerChannel": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        106,
+        267,
+        485,
+        855
+      ],
+      "alphaBoundsGeometry": {
+        "width": 379,
+        "height": 588,
+        "x": 106,
+        "y": 267
+      },
+      "footBaselineHalfOpen": 855,
+      "fullyTransparentBorder": true,
+      "decodePass": true
+    },
+    {
+      "path": "merchant/idle/frames/hero.merchant_idle_candidate_v1_003.png",
+      "sha256": "d9121e629296a1285c270b302623567b0a864e20171e7168f3114a72eb912e0e",
+      "fileSizeBytes": 275725,
+      "dimensions": [
+        640,
+        960
+      ],
+      "mode": "RGBA",
+      "bitDepthPerChannel": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        128,
+        267,
+        487,
+        855
+      ],
+      "alphaBoundsGeometry": {
+        "width": 359,
+        "height": 588,
+        "x": 128,
+        "y": 267
+      },
+      "footBaselineHalfOpen": 855,
+      "fullyTransparentBorder": true,
+      "decodePass": true
+    },
+    {
+      "path": "merchant/idle/frames/hero.merchant_idle_candidate_v1_004.png",
+      "sha256": "51a17574ae36d90226e742ed3f61c1247c2026e972af8df78f3cb8b3e448b7a0",
+      "fileSizeBytes": 275263,
+      "dimensions": [
+        640,
+        960
+      ],
+      "mode": "RGBA",
+      "bitDepthPerChannel": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        119,
+        267,
+        493,
+        855
+      ],
+      "alphaBoundsGeometry": {
+        "width": 374,
+        "height": 588,
+        "x": 119,
+        "y": 267
+      },
+      "footBaselineHalfOpen": 855,
+      "fullyTransparentBorder": true,
+      "decodePass": true
+    },
+    {
+      "path": "merchant/idle/frames/hero.merchant_idle_candidate_v1_005.png",
+      "sha256": "843c9c4926f438417ff08a85b639f24917ceef9428f03b07fd456fa94c14d4b6",
+      "fileSizeBytes": 280033,
+      "dimensions": [
+        640,
+        960
+      ],
+      "mode": "RGBA",
+      "bitDepthPerChannel": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        101,
+        267,
+        485,
+        855
+      ],
+      "alphaBoundsGeometry": {
+        "width": 384,
+        "height": 588,
+        "x": 101,
+        "y": 267
+      },
+      "footBaselineHalfOpen": 855,
+      "fullyTransparentBorder": true,
+      "decodePass": true
+    },
+    {
+      "path": "merchant/idle/frames/hero.merchant_idle_candidate_v1_006.png",
+      "sha256": "916231a657d102906bfa68f893f6dde9af15093135eb8bdef22b4d55d13d1878",
+      "fileSizeBytes": 273199,
+      "dimensions": [
+        640,
+        960
+      ],
+      "mode": "RGBA",
+      "bitDepthPerChannel": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        106,
+        267,
+        487,
+        855
+      ],
+      "alphaBoundsGeometry": {
+        "width": 381,
+        "height": 588,
+        "x": 106,
+        "y": 267
+      },
+      "footBaselineHalfOpen": 855,
+      "fullyTransparentBorder": true,
+      "decodePass": true
+    },
+    {
+      "path": "merchant/idle/frames/hero.merchant_idle_candidate_v1_007.png",
+      "sha256": "5dbef4a0d6e26fc575cb66cef1efe1b90b92131973f6573b4aa3d47d24360f8e",
+      "fileSizeBytes": 281751,
+      "dimensions": [
+        640,
+        960
+      ],
+      "mode": "RGBA",
+      "bitDepthPerChannel": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        112,
+        267,
+        490,
+        855
+      ],
+      "alphaBoundsGeometry": {
+        "width": 378,
+        "height": 588,
+        "x": 112,
+        "y": 267
+      },
+      "footBaselineHalfOpen": 855,
+      "fullyTransparentBorder": true,
+      "decodePass": true
+    },
+    {
+      "path": "merchant/move/frames/hero.merchant_move_candidate_v1_000.png",
+      "sha256": "005f736401bc9871cbc9d9576e74ea582745188b18e142578cbe28bd2823c0a1",
+      "fileSizeBytes": 306557,
+      "dimensions": [
+        640,
+        960
+      ],
+      "mode": "RGBA",
+      "bitDepthPerChannel": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        84,
+        245,
+        521,
+        855
+      ],
+      "alphaBoundsGeometry": {
+        "width": 437,
+        "height": 610,
+        "x": 84,
+        "y": 245
+      },
+      "footBaselineHalfOpen": 855,
+      "fullyTransparentBorder": true,
+      "decodePass": true
+    },
+    {
+      "path": "merchant/move/frames/hero.merchant_move_candidate_v1_001.png",
+      "sha256": "1bd86cecc62943add92643a8998d9cb518a1c5e1d09645eae219c3b02d114eed",
+      "fileSizeBytes": 302987,
+      "dimensions": [
+        640,
+        960
+      ],
+      "mode": "RGBA",
+      "bitDepthPerChannel": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        71,
+        246,
+        514,
+        855
+      ],
+      "alphaBoundsGeometry": {
+        "width": 443,
+        "height": 609,
+        "x": 71,
+        "y": 246
+      },
+      "footBaselineHalfOpen": 855,
+      "fullyTransparentBorder": true,
+      "decodePass": true
+    },
+    {
+      "path": "merchant/move/frames/hero.merchant_move_candidate_v1_002.png",
+      "sha256": "26e792e29ad0ef1ae57b132a056e2337fefd6746ed3c9e7380f6433762643ccc",
+      "fileSizeBytes": 300586,
+      "dimensions": [
+        640,
+        960
+      ],
+      "mode": "RGBA",
+      "bitDepthPerChannel": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        77,
+        239,
+        516,
+        855
+      ],
+      "alphaBoundsGeometry": {
+        "width": 439,
+        "height": 616,
+        "x": 77,
+        "y": 239
+      },
+      "footBaselineHalfOpen": 855,
+      "fullyTransparentBorder": true,
+      "decodePass": true
+    },
+    {
+      "path": "merchant/move/frames/hero.merchant_move_candidate_v1_003.png",
+      "sha256": "9dd77177f19aba10a832955b762975fb49903aebad362d7272031ab277c6dd4a",
+      "fileSizeBytes": 300240,
+      "dimensions": [
+        640,
+        960
+      ],
+      "mode": "RGBA",
+      "bitDepthPerChannel": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        104,
+        240,
+        518,
+        855
+      ],
+      "alphaBoundsGeometry": {
+        "width": 414,
+        "height": 615,
+        "x": 104,
+        "y": 240
+      },
+      "footBaselineHalfOpen": 855,
+      "fullyTransparentBorder": true,
+      "decodePass": true
+    },
+    {
+      "path": "merchant/move/frames/hero.merchant_move_candidate_v1_004.png",
+      "sha256": "30093836f76a5153beb32b8914cdb6d866380bfebbdc266c05d1f25a5fd7f0d1",
+      "fileSizeBytes": 305090,
+      "dimensions": [
+        640,
+        960
+      ],
+      "mode": "RGBA",
+      "bitDepthPerChannel": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        75,
+        250,
+        511,
+        855
+      ],
+      "alphaBoundsGeometry": {
+        "width": 436,
+        "height": 605,
+        "x": 75,
+        "y": 250
+      },
+      "footBaselineHalfOpen": 855,
+      "fullyTransparentBorder": true,
+      "decodePass": true
+    },
+    {
+      "path": "merchant/move/frames/hero.merchant_move_candidate_v1_005.png",
+      "sha256": "2633814378c14096507a10d8071c0bd3437998edbe651cac7b4da7e476a6cc00",
+      "fileSizeBytes": 298474,
+      "dimensions": [
+        640,
+        960
+      ],
+      "mode": "RGBA",
+      "bitDepthPerChannel": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        78,
+        246,
+        515,
+        855
+      ],
+      "alphaBoundsGeometry": {
+        "width": 437,
+        "height": 609,
+        "x": 78,
+        "y": 246
+      },
+      "footBaselineHalfOpen": 855,
+      "fullyTransparentBorder": true,
+      "decodePass": true
+    },
+    {
+      "path": "merchant/move/frames/hero.merchant_move_candidate_v1_006.png",
+      "sha256": "766bb8b5b7f8a3869468655dd15ff30347363dccb85849aca5dff332901cdfe4",
+      "fileSizeBytes": 299795,
+      "dimensions": [
+        640,
+        960
+      ],
+      "mode": "RGBA",
+      "bitDepthPerChannel": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        86,
+        249,
+        515,
+        855
+      ],
+      "alphaBoundsGeometry": {
+        "width": 429,
+        "height": 606,
+        "x": 86,
+        "y": 249
+      },
+      "footBaselineHalfOpen": 855,
+      "fullyTransparentBorder": true,
+      "decodePass": true
+    },
+    {
+      "path": "merchant/move/frames/hero.merchant_move_candidate_v1_007.png",
+      "sha256": "0f5a3001454fcaf2a3f054a223a95d1baec5d6b3d31e2108a132b6a66fee2a07",
+      "fileSizeBytes": 289267,
+      "dimensions": [
+        640,
+        960
+      ],
+      "mode": "RGBA",
+      "bitDepthPerChannel": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        105,
+        249,
+        510,
+        855
+      ],
+      "alphaBoundsGeometry": {
+        "width": 405,
+        "height": 606,
+        "x": 105,
+        "y": 249
+      },
+      "footBaselineHalfOpen": 855,
+      "fullyTransparentBorder": true,
+      "decodePass": true
+    },
+    {
+      "path": "merchant/attack/frames/hero.merchant_attack_candidate_v1_000.png",
+      "sha256": "f715d9ebc72f87036f10db1ef824ec6ae3aca7cf0ce401502f2b9e5745378428",
+      "fileSizeBytes": 286159,
+      "dimensions": [
+        640,
+        960
+      ],
+      "mode": "RGBA",
+      "bitDepthPerChannel": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        97,
+        260,
+        493,
+        855
+      ],
+      "alphaBoundsGeometry": {
+        "width": 396,
+        "height": 595,
+        "x": 97,
+        "y": 260
+      },
+      "footBaselineHalfOpen": 855,
+      "fullyTransparentBorder": true,
+      "decodePass": true
+    },
+    {
+      "path": "merchant/attack/frames/hero.merchant_attack_candidate_v1_001.png",
+      "sha256": "eb0f6af99b936402189ce55b5e3db3ccb49d7738e86cd104461249511124a4dd",
+      "fileSizeBytes": 269092,
+      "dimensions": [
+        640,
+        960
+      ],
+      "mode": "RGBA",
+      "bitDepthPerChannel": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        83,
+        296,
+        496,
+        855
+      ],
+      "alphaBoundsGeometry": {
+        "width": 413,
+        "height": 559,
+        "x": 83,
+        "y": 296
+      },
+      "footBaselineHalfOpen": 855,
+      "fullyTransparentBorder": true,
+      "decodePass": true
+    },
+    {
+      "path": "merchant/attack/frames/hero.merchant_attack_candidate_v1_002.png",
+      "sha256": "65768b810b914024109de7ab3890dea31547e69378744bb1c93f622089c64abc",
+      "fileSizeBytes": 279936,
+      "dimensions": [
+        640,
+        960
+      ],
+      "mode": "RGBA",
+      "bitDepthPerChannel": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        69,
+        310,
+        503,
+        855
+      ],
+      "alphaBoundsGeometry": {
+        "width": 434,
+        "height": 545,
+        "x": 69,
+        "y": 310
+      },
+      "footBaselineHalfOpen": 855,
+      "fullyTransparentBorder": true,
+      "decodePass": true
+    },
+    {
+      "path": "merchant/attack/frames/hero.merchant_attack_candidate_v1_003.png",
+      "sha256": "512c7c4a85bb8f6312fc788265fff5e2891a3eb5b6c2e8ae43f77b99e9bfee60",
+      "fileSizeBytes": 272571,
+      "dimensions": [
+        640,
+        960
+      ],
+      "mode": "RGBA",
+      "bitDepthPerChannel": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        141,
+        267,
+        497,
+        855
+      ],
+      "alphaBoundsGeometry": {
+        "width": 356,
+        "height": 588,
+        "x": 141,
+        "y": 267
+      },
+      "footBaselineHalfOpen": 855,
+      "fullyTransparentBorder": true,
+      "decodePass": true
+    },
+    {
+      "path": "merchant/attack/frames/hero.merchant_attack_candidate_v1_004.png",
+      "sha256": "b7ef557e6e4e73bbd342548972521b60e732a2ea468f3e18f164e0e7c00324e8",
+      "fileSizeBytes": 272351,
+      "dimensions": [
+        640,
+        960
+      ],
+      "mode": "RGBA",
+      "bitDepthPerChannel": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        127,
+        333,
+        522,
+        855
+      ],
+      "alphaBoundsGeometry": {
+        "width": 395,
+        "height": 522,
+        "x": 127,
+        "y": 333
+      },
+      "footBaselineHalfOpen": 855,
+      "fullyTransparentBorder": true,
+      "decodePass": true
+    },
+    {
+      "path": "merchant/attack/frames/hero.merchant_attack_candidate_v1_005.png",
+      "sha256": "e43f15e8e6ed1a1e90ab6ffa2e17e63bb10331726d1ba9432df0514972e01c47",
+      "fileSizeBytes": 264832,
+      "dimensions": [
+        640,
+        960
+      ],
+      "mode": "RGBA",
+      "bitDepthPerChannel": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        154,
+        289,
+        568,
+        855
+      ],
+      "alphaBoundsGeometry": {
+        "width": 414,
+        "height": 566,
+        "x": 154,
+        "y": 289
+      },
+      "footBaselineHalfOpen": 855,
+      "fullyTransparentBorder": true,
+      "decodePass": true
+    },
+    {
+      "path": "merchant/attack/frames/hero.merchant_attack_candidate_v1_006.png",
+      "sha256": "b6ff158aee994b88ff4081a9485a032d5ac9bf5267e4ac6376fc2afe0d04f814",
+      "fileSizeBytes": 277536,
+      "dimensions": [
+        640,
+        960
+      ],
+      "mode": "RGBA",
+      "bitDepthPerChannel": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        74,
+        296,
+        508,
+        855
+      ],
+      "alphaBoundsGeometry": {
+        "width": 434,
+        "height": 559,
+        "x": 74,
+        "y": 296
+      },
+      "footBaselineHalfOpen": 855,
+      "fullyTransparentBorder": true,
+      "decodePass": true
+    },
+    {
+      "path": "merchant/attack/frames/hero.merchant_attack_candidate_v1_007.png",
+      "sha256": "f91f15689a67eea6387ecf215088fb7c2e32dd84a164be65239e9c87fd7fd5ab",
+      "fileSizeBytes": 269189,
+      "dimensions": [
+        640,
+        960
+      ],
+      "mode": "RGBA",
+      "bitDepthPerChannel": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        105,
+        280,
+        487,
+        855
+      ],
+      "alphaBoundsGeometry": {
+        "width": 382,
+        "height": 575,
+        "x": 105,
+        "y": 280
+      },
+      "footBaselineHalfOpen": 855,
+      "fullyTransparentBorder": true,
+      "decodePass": true
+    }
+  ],
+  "approval": {
+    "humanVisualApproval": "pending",
+    "exactPackageApproved": false,
+    "canonicalApproved": false,
+    "motionProductionApproved": false,
+    "runtimeIntegrationAuthorized": false,
+    "runtimeIntegrated": false,
+    "merged": false
+  }
+}

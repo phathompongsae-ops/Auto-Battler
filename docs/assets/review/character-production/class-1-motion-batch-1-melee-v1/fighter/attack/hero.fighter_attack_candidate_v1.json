@@ -1,0 +1,101 @@
+{
+  "schemaVersion": 1,
+  "logicalId": "hero.fighter.attack.human-review-candidate.v1",
+  "class": "fighter",
+  "action": "attack",
+  "sourceNeutralMasterSha256": "4b2ec5558971c3730da352f5ba2a39d928bbf5c722d40e38256dd6b4d48a19c4",
+  "sourceNeutralMasterPath": "fighter/neutral/hero.fighter_neutral_master.png",
+  "canvas": [
+    640,
+    960
+  ],
+  "mode": "RGBA",
+  "bitDepthPerChannel": 8,
+  "transparentBackground": true,
+  "anchor": [
+    0.5,
+    0.92
+  ],
+  "footBaselineHalfOpen": 855,
+  "inPlaceRootMotion": true,
+  "runtimeFlipXCompatible": true,
+  "frameOrder": [
+    "fighter/attack/frames/hero.fighter_attack_candidate_v1_000.png",
+    "fighter/attack/frames/hero.fighter_attack_candidate_v1_001.png",
+    "fighter/attack/frames/hero.fighter_attack_candidate_v1_002.png",
+    "fighter/attack/frames/hero.fighter_attack_candidate_v1_003.png",
+    "fighter/attack/frames/hero.fighter_attack_candidate_v1_004.png",
+    "fighter/attack/frames/hero.fighter_attack_candidate_v1_005.png",
+    "fighter/attack/frames/hero.fighter_attack_candidate_v1_006.png",
+    "fighter/attack/frames/hero.fighter_attack_candidate_v1_007.png"
+  ],
+  "perFrameDurationCentiseconds": [
+    10,
+    8,
+    7,
+    6,
+    5,
+    8,
+    12,
+    16
+  ],
+  "totalDurationCentiseconds": 72,
+  "loop": false,
+  "impactMarker": {
+    "frameIndex": 4,
+    "timeFromStartCentiseconds": 31
+  },
+  "perFrameSha256": [
+    "cee33bb4f13e36ce7f55a82b65cf3bc4939b0b6ca6802675d69bfcfbb174547e",
+    "ff40c32cbcb06518ec6096b47eefabb2e7631d32245feabd33befbf1e8558688",
+    "78962954d389a2e3ebc43aa9324c53d79a28e53aa6b660027d87df488cc8ffb8",
+    "e2960b9111fc9114bf2ba295a899f7d653b9bb5527c2200414b3c41b5479f884",
+    "e58a0315461a3f9d4232ba7307dd92edc884f4268be367b37a855b971ee367d5",
+    "61de891ff758eef08b98f916602d0624f814f4d271a025b25f674a8e239256e0",
+    "7420c0ec403ed95002a1e202f0e92d2f96112dbbe11d95b51381b010124a34cd",
+    "5f4e292f36e0465af9d22164e84cb4d6a61f3b35f8434f6d31fafda40ef68999"
+  ],
+  "motionIntent": "single heavy straight punch with anticipation, extension, follow-through, recovery",
+  "productionNotes": [
+    "Archer was used only as a rendering-quality benchmark; no Archer pose, timing, frame-count rule, costume, anatomy, color, face, or silhouette was copied.",
+    "No baked VFX, shadow plate, background, gameplay marker implementation, or runtime behavior is included.",
+    "Review GIFs loop for inspection; this sidecar loop flag is the intended action behavior."
+  ],
+  "internalQa": {
+    "identity": "PASS",
+    "faceAndProportions": "PASS",
+    "anatomy": "PASS",
+    "weaponAndPropContinuity": "PASS",
+    "baselineAndAnchor": "PASS",
+    "transparentEdges": "PASS",
+    "normalSpeedReadability": "PASS",
+    "slowQaInspection": "PASS",
+    "humanVisualApproval": "pending"
+  },
+  "approval": {
+    "humanVisualApproval": "pending",
+    "exactPackageApproved": false,
+    "canonicalApproved": false,
+    "motionProductionApproved": false,
+    "runtimeIntegrationAuthorized": false,
+    "runtimeIntegrated": false,
+    "merged": false
+  },
+  "attackSpeedSafety": {
+    "currentRuntimeRecord": {
+      "path": "src/game.js",
+      "attacksPerSecond": 1.1,
+      "baseAttackIntervalCentiseconds": 90.91
+    },
+    "designRecordObserved": {
+      "path": "data/design/hero-balance-v1.json",
+      "attacksPerSecond": 0.85
+    },
+    "recordDivergenceNoted": true,
+    "visualCycleFitsCurrentBaseInterval": true,
+    "balanceValuesModified": false,
+    "runtimeSynchronizationInvented": false,
+    "futureRuntimeValidationRequired": true,
+    "futureAcknowledgmentAssessment": "Full replay fits the current base interval. Reassess queued/coalesced/class-specific acknowledgment only if buffs or runtime sampling make events overlap."
+  }
+}
