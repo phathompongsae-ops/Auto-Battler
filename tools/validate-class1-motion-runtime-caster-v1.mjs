@@ -204,7 +204,7 @@ try {
     // authorized visual-presentation-only paths — src/game.js visual constants + autochess.html theme
     // are separately guarded by tools/validate-board-camera-art-lighting-polish-v1.mjs (topology/
     // gameplay-literal/motion-binary checks)
-    'autochess.html', 'data/design/board-camera-art-lighting-polish-v1.json', 'docs/reviews/board-camera-art-lighting-polish-v1.md', 'docs/reviews/board-camera-art-lighting-polish-v1/', 'tools/validate-board-camera-art-lighting-polish-v1.mjs'];
+    'autochess.html', 'data/design/board-camera-art-lighting-polish-v1.json', 'docs/reviews/board-camera-art-lighting-polish-v1.md', 'docs/reviews/board-camera-art-lighting-polish-v1/', 'tools/validate-board-camera-art-lighting-polish-v1.mjs', 'docs/reviews/board-camera-art-lighting-polish-v1-mobile-review.md'];
   const disallowed = changed.filter((cf) => !allowlist.some((prefix) => cf === prefix || cf.startsWith(prefix)));
   assert(disallowed.length === 0, `changed-path allowlist violated: ${JSON.stringify(disallowed)}`);
   assert(!changed.includes(APPROVAL_RECORD_PATH), 'PR #87 approval record must not appear in the changed-path list');

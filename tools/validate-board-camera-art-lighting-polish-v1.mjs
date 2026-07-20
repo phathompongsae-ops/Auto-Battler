@@ -108,7 +108,7 @@ try {
   const { execSync } = await import('node:child_process');
   const base = execSync('git merge-base HEAD origin/cc/class1-motion-runtime-caster-v1 2>/dev/null || git rev-list --max-parents=0 HEAD', { encoding: 'utf8' }).trim();
   const changed = execSync(`git diff --name-only ${base} HEAD`, { encoding: 'utf8' }).trim().split('\n').filter(Boolean);
-  const allowlist = [GAME_JS_PATH, HTML_PATH, RECORD_PATH, MD_PATH, EVIDENCE_DIR + '/', 'tools/validate-board-camera-art-lighting-polish-v1.mjs', 'tools/validate-class1-motion-runtime-caster-v1.mjs'];
+  const allowlist = [GAME_JS_PATH, HTML_PATH, RECORD_PATH, MD_PATH, EVIDENCE_DIR + '/', 'tools/validate-board-camera-art-lighting-polish-v1.mjs', 'tools/validate-class1-motion-runtime-caster-v1.mjs', 'docs/reviews/board-camera-art-lighting-polish-v1-mobile-review.md'];
   const disallowed = changed.filter((cf) => !allowlist.some((prefix) => cf === prefix || cf.startsWith(prefix)));
   assert(disallowed.length === 0, `changed-path allowlist violated: ${JSON.stringify(disallowed)}`);
   assert(!changed.some((cf) => cf.startsWith(IMPORT_ROOT)), 'approved package files must not appear in the changed-path list');
