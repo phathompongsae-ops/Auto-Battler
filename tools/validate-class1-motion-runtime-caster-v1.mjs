@@ -14,6 +14,8 @@ import path from 'node:path';
 import process from 'node:process';
 
 const RECORD_PATH = 'data/design/class1-motion-runtime-caster-v1.json';
+const HUMAN_REVIEW_RECORD_PATH = 'data/design/class1-motion-runtime-caster-human-review-v1.json';
+const HUMAN_REVIEW_MD_PATH = 'docs/reviews/class1-motion-runtime-caster-human-review-v1.md';
 const APPROVAL_RECORD_PATH = 'data/design/class1-motion-batch-2-caster-exact-package-approval-v1.json';
 const NEUTRAL_RECORD_PATH = 'data/design/class1-neutral-master-batch-exact-package-approval-v1.json';
 const GAME_JS_PATH = 'src/game.js';
@@ -158,13 +160,28 @@ if (fs.existsSync(evidencePath)) {
 }
 if (!errors.length) ok('x4/normal-speed Runtime evidence present (screenshots + structured JSON), casterLoaded=true, 0 console errors');
 
+// 8b) Human Review evidence record (if present): must not preselect approval — every checklist
+// item and the batch-level runtimeMotionApproved verdict must remain 'pending'
+if (fs.existsSync(HUMAN_REVIEW_RECORD_PATH)) {
+  const hr = JSON.parse(fs.readFileSync(HUMAN_REVIEW_RECORD_PATH, 'utf8'));
+  for (const cls of ROSTER) {
+    const c = hr.humanReviewChecklist && hr.humanReviewChecklist[cls];
+    assert(!!c, `human review checklist missing section for ${cls}`);
+    if (c) for (const [k, v] of Object.entries(c)) assert(v === 'pending', `human review checklist ${cls}.${k} must be 'pending', got ${v} — approval must not be preselected`);
+  }
+  const batch = hr.humanReviewChecklist && hr.humanReviewChecklist.batch;
+  assert(!!batch, 'human review checklist missing batch section');
+  if (batch) for (const [k, v] of Object.entries(batch)) assert(v === 'pending', `human review checklist batch.${k} must be 'pending', got ${v} — approval must not be preselected`);
+  if (!errors.length) ok('Human Review checklist present and no item preselected (every field, including batch.runtimeMotionApproved, is \'pending\')');
+}
+
 // 9) changed-path allowlist — this branch must not touch the imported package, PR #87's own
 //    approval record, or any unrelated Runtime/Combat/gameplay code
 try {
   const { execSync } = await import('node:child_process');
   const base = execSync('git merge-base HEAD origin/cc/class1-motion-batch-2-caster-production-v1 2>/dev/null || git rev-list --max-parents=0 HEAD', { encoding: 'utf8' }).trim();
   const changed = execSync(`git diff --name-only ${base} HEAD`, { encoding: 'utf8' }).trim().split('\n').filter(Boolean);
-  const allowlist = [GAME_JS_PATH, RECORD_PATH, 'docs/reviews/class1-motion-runtime-caster-v1.md', 'docs/reviews/class1-motion-runtime-caster-v1/', 'tools/validate-class1-motion-runtime-caster-v1.mjs'];
+  const allowlist = [GAME_JS_PATH, RECORD_PATH, 'docs/reviews/class1-motion-runtime-caster-v1.md', 'docs/reviews/class1-motion-runtime-caster-v1/', 'tools/validate-class1-motion-runtime-caster-v1.mjs', HUMAN_REVIEW_RECORD_PATH, HUMAN_REVIEW_MD_PATH];
   const disallowed = changed.filter((cf) => !allowlist.some((prefix) => cf === prefix || cf.startsWith(prefix)));
   assert(disallowed.length === 0, `changed-path allowlist violated: ${JSON.stringify(disallowed)}`);
   assert(!changed.includes(APPROVAL_RECORD_PATH), 'PR #87 approval record must not appear in the changed-path list');

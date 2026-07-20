@@ -1,0 +1,108 @@
+{
+  "record": "class1-motion-runtime-caster-human-review-v1",
+  "schemaVersion": 1,
+  "project": "phathompongsae-ops/Auto-Battler",
+  "status": "READY_FOR_RUNTIME_HUMAN_REVIEW",
+  "scope": "Human Review evidence package for the Class 1 Caster Family (Mage, Summoner, Acolyte) Runtime Integration in PR #88. Evidence capture and review preparation only -- does not record any approval decision, does not modify Runtime behavior, does not touch approved PNG/GIF binaries, does not touch gameplay/balance/Combat/Skill-Cast/projectile/VFX/Board-Preview.",
+
+  "sourceVerifiedBeforeCapture": {
+    "repository": "phathompongsae-ops/Auto-Battler",
+    "branch": "cc/class1-motion-runtime-caster-v1",
+    "startingHeadExpected": "5cae69c954beb27a5927ce977bc664179c73b033",
+    "startingHeadVerifiedLive": "5cae69c954beb27a5927ce977bc664179c73b033",
+    "match": true,
+    "workingTreeClean": true,
+    "pr88StateVerifiedLive": "open, draft, unmerged, mergeable_state=clean",
+    "existingValidatorResult": "PASS (tools/validate-class1-motion-runtime-caster-v1.mjs, exit 0, all 9 checks)",
+    "packageIntegrity": "134/134 imported files unchanged; 3/3 Neutral Master hashes re-confirmed"
+  },
+
+  "captureMethod": {
+    "harnessUsed": "existing window.__casterRuntimeTestHook (no game.js/validator change needed)",
+    "renderPath": "real production functions -- updateUnit()/updateCasterAnim() via hook.stepUnitRef(), rendered via hook.renderFrame() -- driven by a test-side setInterval ticker at a fixed 33ms real-wall-clock cadence with dt scaled by speedMul exactly like the production animate() loop (`dt *= speedMul`), so timing fidelity matches actual gameplay at both x1 and x4",
+    "whyNotThePhaseGatedLoop": "The production animate() loop only calls updateUnit() when phase==='battle', and immediately fires the real onWaveCleared() victory dialog whenever no enemy units exist in the live `units` array -- which would have covered the board mid-capture for pure Idle/Move segments with no enemy present. The test-side ticker calls the identical updateUnit()/updateCasterAnim() functions directly, bypassing only the phase-gate wrapper, not any animation logic.",
+    "renderer": "the real THREE.js renderer.render(scene, camera) call (exposed via hook.renderFrame()) -- not a synthetic canvas or mock",
+    "browserEngine": "actual headless Chromium (Playwright) against the real autochess.html/src/game.js over a local static file server",
+    "manaIsolationNote": "u.max_mana set to Infinity on Basic Attack test units only, to keep the pre-existing Skill/Cast system (out of scope) from hijacking the animState='attack' value mid-capture -- same isolation used for PR #88's own automated attack-cadence assertions"
+  },
+
+  "captureScenarios": {
+    "perCharacter": ["idle_x1", "idle_x4", "move_x1", "move_x4", "attack_isolated_x1", "attack_isolated_x4", "attack_repeated_x1", "attack_repeated_x4", "facing_and_transitions"],
+    "note": "Each character's x1/x4 video is a single continuous clip covering Idle(>=2 loops) -> Move right -> Move left (direction change/facing flip) -> return to Idle -> isolated Basic Attack -> return to Idle -> repeated Basic Attack (>=5) -> return to Idle, on-screen-labeled per phase.",
+    "batch": ["four_unit_simultaneous_idle", "independent_move_opposing_facing", "simultaneous_basic_attack_all_four", "unit_disposal_lifecycle_check"]
+  },
+
+  "evidenceFiles": {
+    "videos": [
+      "evidence/human-review-v1/videos/mage-x1.webm", "evidence/human-review-v1/videos/mage-x4.webm",
+      "evidence/human-review-v1/videos/summoner-x1.webm", "evidence/human-review-v1/videos/summoner-x4.webm",
+      "evidence/human-review-v1/videos/acolyte-x1.webm", "evidence/human-review-v1/videos/acolyte-x4.webm",
+      "evidence/human-review-v1/videos/batch-x1.webm", "evidence/human-review-v1/videos/batch-x4.webm"
+    ],
+    "screenshots": [
+      "evidence/human-review-v1/shots/mage-x1-final.png", "evidence/human-review-v1/shots/mage-x4-final.png",
+      "evidence/human-review-v1/shots/summoner-x1-final.png", "evidence/human-review-v1/shots/summoner-x4-final.png",
+      "evidence/human-review-v1/shots/acolyte-x1-final.png", "evidence/human-review-v1/shots/acolyte-x4-final.png",
+      "evidence/human-review-v1/shots/batch-x1-final.png", "evidence/human-review-v1/shots/batch-x4-final.png"
+    ],
+    "structuredLog": "evidence/human-review-v1/capture-summary.json"
+  },
+
+  "runtimeExecutionFindings": {
+    "consoleErrorsAcrossAllClips": 0,
+    "assetLoadFailures": 0,
+    "characterIsolationDuringCapture": "confirmed -- each character clip used only its own casterCls; batch clip's post-disposal readback shows each remaining unit's own distinct heroKey/animation state",
+    "repeatedAttackBehavior": "full replay observed consistently at both x1 and x4 -- no stuck Attack state, no unbounded queue, clean return to Idle after the target was removed in every clip",
+    "lifecycleDisposalResult": {
+      "x1": "3 remaining units (summoner/acolyte/mage) all retained hasMap=true and an active seqKey after disposing unit #1 -- no shared-texture corruption",
+      "x4": "same result at x4 -- 3 remaining units all retained hasMap=true and an active seqKey"
+    },
+    "knownRuntimeDefectsFound": []
+  },
+
+  "boardPreviewStatus": "DEFERRED_UNTIL_AFTER_DEMO -- unchanged, not created or replaced by this task",
+  "boardUiCameraColorGrading": "not reviewed or altered by this task -- this evidence package covers Caster Runtime motion behavior only",
+
+  "humanReviewChecklist": {
+    "mage": { "idleAcceptable": "pending", "moveAcceptable": "pending", "basicAttackAcceptable": "pending", "x4ReadabilityAcceptable": "pending", "facingAcceptable": "pending", "returnToIdleAcceptable": "pending" },
+    "summoner": { "idleAcceptable": "pending", "moveAcceptable": "pending", "basicAttackAcceptable": "pending", "x4ReadabilityAcceptable": "pending", "facingAcceptable": "pending", "returnToIdleAcceptable": "pending" },
+    "acolyte": { "idleAcceptable": "pending", "moveAcceptable": "pending", "basicAttackAcceptable": "pending", "x4ReadabilityAcceptable": "pending", "facingAcceptable": "pending", "returnToIdleAcceptable": "pending" },
+    "batch": { "characterDistinctionAcceptable": "pending", "simultaneousPlaybackAcceptable": "pending", "noObviousVisualCollision": "pending", "runtimeMotionApproved": "pending" }
+  },
+
+  "knownLimitations": [
+    "This evidence package does not exercise the real production wave/AI-pathing system (stepToward/A*) -- Move segments were driven via directly-scripted moveFrom/moveTo waypoints through the same real moveT/lerp mechanism, to keep the capture deterministic and avoid the wave-cleared victory dialog contaminating Idle/Move footage. Basic Attack used a fixed in-range dummy target for the same reason. Both use the exact real per-frame update/render functions.",
+    "Equipment-derived attack-speed scenarios were not captured (matches the known limitation already recorded in PR #88's own Runtime Integration record).",
+    "Board/UI/camera/color-grading visual polish is explicitly out of scope and not reviewed here.",
+    "ATTACK_SPEED_RUNTIME_VALIDATION_PENDING and PENDING_SEPARATE_RUNTIME_INTEGRATION_VALIDATION remain unresolved -- unchanged by this evidence-only task."
+  ],
+
+  "prohibitionsHeld": {
+    "pngOrGifBinaryModified": false,
+    "motionRegeneratedOrFrameCountChanged": false,
+    "frameDurationsAltered": false,
+    "runtimeAnimationBehaviorChanged": false,
+    "combatOrderingChanged": false,
+    "damageChanged": false,
+    "attackSpeedChanged": false,
+    "movementSpeedChanged": false,
+    "manaRuleChanged": false,
+    "targetingChanged": false,
+    "balanceChanged": false,
+    "skillCastStarted": false,
+    "projectileAdded": false,
+    "vfxAdded": false,
+    "boardPreviewModified": false,
+    "boardLayoutCameraOrUiToneChanged": false,
+    "meleeIntegrated": false,
+    "archerIntegrated": false,
+    "humanVisualApprovalRecorded": false,
+    "runtimeSelfApproved": false,
+    "prMerged": false,
+    "autoMergeEnabled": false,
+    "pr87Modified": false
+  },
+
+  "validator": "tools/validate-class1-motion-runtime-caster-v1.mjs (unchanged, re-run and passing)",
+  "nextStep": "User's Human Visual Review decision on the evidence in this package. Not performed by this record: approval recording, canonical promotion, Melee integration, Skill/Cast, merge."
+}

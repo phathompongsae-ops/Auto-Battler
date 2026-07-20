@@ -1,0 +1,90 @@
+{
+  "capturedAt": "2026-07-20T13:18:04.707Z",
+  "clips": [
+    {
+      "clip": "mage-x1",
+      "video": "mage-x1.webm",
+      "consoleErrorCount": 0,
+      "consoleErrors": []
+    },
+    {
+      "clip": "mage-x4",
+      "video": "mage-x4.webm",
+      "consoleErrorCount": 0,
+      "consoleErrors": []
+    },
+    {
+      "clip": "summoner-x1",
+      "video": "summoner-x1.webm",
+      "consoleErrorCount": 0,
+      "consoleErrors": []
+    },
+    {
+      "clip": "summoner-x4",
+      "video": "summoner-x4.webm",
+      "consoleErrorCount": 0,
+      "consoleErrors": []
+    },
+    {
+      "clip": "acolyte-x1",
+      "video": "acolyte-x1.webm",
+      "consoleErrorCount": 0,
+      "consoleErrors": []
+    },
+    {
+      "clip": "acolyte-x4",
+      "video": "acolyte-x4.webm",
+      "consoleErrorCount": 0,
+      "consoleErrors": []
+    },
+    {
+      "clip": "batch-x1",
+      "video": "batch-x1.webm",
+      "consoleErrorCount": 0,
+      "consoleErrors": []
+    },
+    {
+      "clip": "batch-x4",
+      "video": "batch-x4.webm",
+      "consoleErrorCount": 0,
+      "consoleErrors": []
+    }
+  ],
+  "errors": [],
+  "batchPostDisposeState": {
+    "x1": [
+      {
+        "heroKey": "summoner",
+        "hasMap": true,
+        "seqKey": null
+      },
+      {
+        "heroKey": "acolyte",
+        "hasMap": true,
+        "seqKey": "attack"
+      },
+      {
+        "heroKey": "mage",
+        "hasMap": true,
+        "seqKey": "attack"
+      }
+    ],
+    "x4": [
+      {
+        "heroKey": "summoner",
+        "hasMap": true,
+        "seqKey": "attack"
+      },
+      {
+        "heroKey": "acolyte",
+        "hasMap": true,
+        "seqKey": "attack"
+      },
+      {
+        "heroKey": "mage",
+        "hasMap": true,
+        "seqKey": "attack"
+      }
+    ]
+  }
+}
