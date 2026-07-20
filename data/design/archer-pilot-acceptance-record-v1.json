@@ -1,0 +1,91 @@
+{
+  "schemaVersion": 1,
+  "recordId": "archer-pilot-acceptance-record-v1",
+  "recordType": "pilot-acceptance-overlay",
+  "repository": "phathompongsae-ops/Auto-Battler",
+  "characterId": "hero.archer",
+  "runtimeCandidate": "archer-v3.2-runtime-integration-v1",
+  "sourcePullRequest": {
+    "number": 82,
+    "url": "https://github.com/phathompongsae-ops/Auto-Battler/pull/82",
+    "title": "Archer v3.2 — Runtime Integration, x4 Validation & Pilot Acceptance Candidate",
+    "headBranch": "cc/archer-v3-2-runtime-integration-v1",
+    "headSha": "19f8ffe0d5c7d9970b1e3435697efb84885535ec",
+    "baseBranch": "cc/archer-attack-v3-2-16bit-compatibility-check-v1",
+    "baseSha": "5a42b921f3371bfdaf1c5f22e5bbf750b296818d",
+    "stateAtRecordCreation": {
+      "open": true,
+      "draft": true,
+      "merged": false,
+      "lineageDriftDetected": false,
+      "verifiedAtUtc": "2026-07-20T07:02:35Z"
+    }
+  },
+  "humanDecision": {
+    "verdict": "HUMAN_PILOT_ACCEPTED",
+    "source": "explicit user instruction",
+    "context": [
+      "Independent Final Delta Re-Audit completed for PR #82 at exact head 19f8ffe0d5c7d9970b1e3435697efb84885535ec.",
+      "Independent recommendation was READY_FOR_HUMAN_PILOT_ACCEPTANCE.",
+      "The user then explicitly issued HUMAN_PILOT_ACCEPTED for this exact pilot candidate."
+    ],
+    "scope": "Pilot acceptance of the exact PR #82 candidate at the recorded head SHA only.",
+    "doesNotAuthorize": [
+      "merging PR #82 or this record PR",
+      "enabling auto-merge",
+      "canonical approval",
+      "final runtime approval",
+      "runtime, gameplay, Combat, Core Logic, or asset changes"
+    ]
+  },
+  "retainedLimitations": [
+    {
+      "id": "no-projectile-vfx-system",
+      "status": "retained",
+      "description": "No projectile/VFX system exists; projectile-specific verification remains NOT_APPLICABLE."
+    },
+    {
+      "id": "representative-regression-only",
+      "status": "retained",
+      "description": "Regression evidence covers a representative non-Archer unit, not the full roster."
+    },
+    {
+      "id": "browser-device-coverage",
+      "status": "retained",
+      "description": "Browser and device coverage remains limited to the environments recorded by PR #82."
+    },
+    {
+      "id": "board-preview-runtime-representativeness",
+      "status": "DEFERRED_UNTIL_AFTER_DEMO",
+      "description": "The current Board Preview appears too wide/stretched and is not fully representative of the intended 8×8 2.5D isometric runtime board. Later follow-up must use an 8×8 isometric runtime-scale board preview with a real 3–5 unit formation rather than all seven characters in one horizontal row.",
+      "pilotAcceptanceBlocker": false
+    },
+    {
+      "id": "canonical-approval-not-granted",
+      "status": "retained",
+      "description": "Canonical approval has not been granted."
+    },
+    {
+      "id": "final-runtime-approval-not-granted",
+      "status": "retained",
+      "description": "Final runtime approval has not been granted."
+    }
+  ],
+  "approvalFlags": {
+    "pilotAccepted": true,
+    "canonicalApproved": false,
+    "finalRuntimeApproved": false,
+    "merged": false
+  },
+  "scopeVerification": {
+    "runtimeModified": false,
+    "assetsModified": false,
+    "animationRegenerated": false,
+    "evidenceRegenerated": false,
+    "gameplayModified": false,
+    "replacementPrCreated": false,
+    "sourcePrMerged": false,
+    "autoMergeEnabled": false
+  },
+  "recordedAtUtc": "2026-07-20T07:02:35Z"
+}
