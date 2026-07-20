@@ -1,0 +1,20 @@
+{
+ "regression": {
+  "preEdit": {
+   "archerSeqsIsNull": true,
+   "framesGt1": true,
+   "usesTexOffset": true
+  },
+  "attackEventCount": 3,
+  "damageEventCountProxy": 3,
+  "attackEventsEqualDamageEvents": true,
+  "sawFullAttackSeq": true,
+  "archerPendingAcksAlwaysZero": true,
+  "archerFlashAckCountAlwaysUndefined": true,
+  "finalAnimState": "idle"
+ },
+ "errors": {
+  "consoleErrors": [],
+  "pageErrors": []
+ }
+}

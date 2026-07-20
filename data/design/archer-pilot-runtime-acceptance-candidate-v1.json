@@ -125,7 +125,8 @@
     "Facing/flip is satisfied automatically during Attack via a pre-existing generic mechanism, but not during Idle/Move for any sprite-based unit (pre-existing, not Archer-specific).",
     "Wave 1's 'Slime' enemy type has no ASSET_META sprite entry (pre-existing, unrelated to Archer) and renders as a placeholder box in both this test and real production; visible in one secondary evidence screenshot, disclosed in its caption.",
     "Only Chromium/Blink was exercised; WebKit/Gecko were not tested in this environment (same disclosed limitation as PR #81).",
-    "(Added by repeatedAttackTimingReworkV1) Under sustained attack-speed buffs pushing the cooldown/cycle ratio well past the base ~1.78x, the cap=1 replay queue means not every individual attack event gets its own unique visual Full-Draw/Release acknowledgment -- damage and cooldown still apply exactly on schedule for every event regardless. This is an intentional, disclosed bound (chosen over an unbounded queue, which was calculated to cause up to ~23s of extra post-combat visual attacking after ~30s of continuous fire). Base-stat cadence never exceeds the cap in practice."
+    "(Added by repeatedAttackTimingReworkV1, SUPERSEDED by repeatedAttackTimingReworkV2 -- see next entry) Under sustained attack-speed buffs pushing the cooldown/cycle ratio well past the base ~1.78x, the cap=1 replay queue means not every individual attack event gets its own unique visual Full-Draw/Release acknowledgment -- damage and cooldown still apply exactly on schedule for every event regardless. This was believed to be non-binding at base stats; a re-audit found it is NOT, see the v2 entry below.",
+    "(Added by repeatedAttackTimingReworkV2) Because Attack v3.2's cycle (1.27s) is structurally slower than the base attack cooldown (0.7143s) -- attacks fire at 1.4/s but a full replay can complete at most 0.787/s -- no queue cap of any finite size can give every event its own dedicated FULL-REPLAY acknowledgment at base speed (proven mathematically and by trace, including a rejected cap=2 attempt). Fixed via a two-tier model: cap=1 full replay plus an instant self-flash for queue-saturated overflow, so every event still gets SOME visible acknowledgment (full replay or flash), proven exactly by trace. This closes the gap left by v1's limitation above."
   ],
 
   "regressionResults": {
@@ -197,6 +198,51 @@
       "nonArcherRegression": { "unitTested": "swordman", "archerSeqsNull": true, "attackEventsEqualDamageEvents": true, "sawFullOriginalAttackSeq": true, "returnsToIdleCleanly": true, "noErrors": true }
     },
     "testHarnessDefectFoundAndFixedDuringThisRework": "A synthetic partial-shape 'dummy' target object (first approach) crashed when the game's own concurrently-running animate() rAF loop tried to move/render it (missing .body etc.) -- fixed by using a real spawned enemy instead. A second contamination source was then found: real wall-clock time between separate page.evaluate() round trips let the concurrent animate() loop's dt-independent atkCooldown<=0 check fire before the deterministic loop's own first step -- fixed by running setup+trace+recovery inside one synchronous page.evaluate() call plus forcing speedMul=0. Both were test-harness issues, not src/game.js defects; disclosed here rather than silently discarding the first (wrong) result.",
+    "approvalFlagsUnchanged": { "pilotAccepted": false, "canonicalApproved": false, "finalRuntimeApproved": false, "merged": false },
+    "supersededBy": "repeatedAttackTimingReworkV2"
+  },
+
+  "repeatedAttackTimingReworkV2": {
+    "status": "TARGETED_RUNTIME_REWORK_READY_FOR_INDEPENDENT_REAUDIT",
+    "fullRecord": "docs/reviews/archer-runtime-integration-v1/repeated-attack-timing-rework-v2.md",
+    "auditSourceDefect": "Independent re-audit of v1: cap=1 replay queue silently dropped acknowledgment for some valid attack events even at base attack speed (audited: 6 attack events, only 4 visual cycles). Combat correctness (damage/cooldown/mana/lifesteal/targeting/protected-assets/regression) was reconfirmed PASS by the same re-audit -- this was purely a visual-completeness gap in v1's own fix.",
+    "structuralRootCause": "Attack v3.2's cycle (D=1.27s) is structurally slower than the base attack cooldown (C=1/1.4=0.7143s): attack rate 1/C=1.400 events/s exceeds the max full-replay completion rate 1/D=0.787 cycles/s. Because arrivals permanently outpace departures, NO finite queue cap can give every event its own dedicated full-cycle replay under sustained fire -- at most C/D=~56% of events ever could, for any cap. Verified both mathematically and empirically (cap=2 was implemented, traced, and still lost events within an 8s sustained-fire window before being rejected).",
+    "designComparison": {
+      "A_cap1_v1_current": "rejected -- misses ~1 in 3 events under sustained fire (the audited defect)",
+      "B_unboundedQueue": "rejected -- arrival rate (1.4/s) permanently exceeds drain rate (0.787/s), so backlog grows without bound under sustained fire; same ~23s post-combat drift risk previously identified",
+      "C_boundedQueueCapGreaterThan1": "rejected -- tested at cap=2 and still lost events under sustained fire (proven by trace, not just reasoned); any larger fixed cap only delays saturation, never eliminates the structural gap, and increases worst-case post-combat drift proportionally",
+      "D_coalescedAcknowledgment_selected": "cap=1 full-replay queue kept (Full Draw/Release still shown in full whenever a slot is free) PLUS an instant self-flash (reusing the existing generic applyHitFlash() helper) for any event that arrives while the queue is already saturated -- gives literally every event some visible acknowledgment, touches no animation-frame state, zero new assets",
+      "E_alternativeSyncMethod": "out of scope -- would require changing frame timing/Full Draw/Release semantics to keep pace with cooldown, explicitly forbidden"
+    },
+    "fixSelected": "two-tier acknowledgment: tier 1 = existing cap=1 natural-boundary replay queue (archerPendingAcks, unchanged from v1); tier 2 = applyHitFlash(u, 0xfff2a8, 70) self-flash on the archer for any event arriving while tier 1 is saturated. Both gated strictly on u.archerSeqs truthiness.",
+    "evidenceOnlyInstrumentationAdded": "u.archerFlashAckCount -- an additive counter incremented at the flash call site, read by no gameplay code, added because a synchronous dt-driven test harness cannot reliably observe setTimeout-based flash reversion (the browser's real clock does not advance between steps inside one synchronous page.evaluate() call).",
+    "changedRuntimePaths": ["src/game.js"],
+    "assetBinariesChanged": false,
+    "protectedAssetReHashBeforeAfter": "ALL_29_BYTE_IDENTICAL_NO_DRIFT",
+    "newEvidenceFiles": [
+      "docs/reviews/archer-runtime-integration-v1/repeated-attack-timing-rework-v2.md",
+      "docs/reviews/archer-runtime-integration-v1/repeated-attack-timing-trace-raw-x1-v2.json",
+      "docs/reviews/archer-runtime-integration-v1/combat-x4-timing-trace-raw-v2.json",
+      "docs/reviews/archer-runtime-integration-v1/non-archer-regression-raw-v2.json"
+    ],
+    "validationRun": {
+      "nodeCheckSrcGameJs": "PASS",
+      "gitDiffCheck": "clean",
+      "validateArcherAttackV3_2ReviewCandidate": "exit 0, PASS",
+      "repeatedAttackTimingTraceX1_8sWindow": { "attackEventCount": 11, "damageEventCountProxy": 11, "attackEventsEqualDamageEvents": true, "completedReplays": 7, "flashAcknowledgments": 3, "stillQueuedAtWindowClose": 1, "accountedForExactlyOnce": "7+3+1==11, true", "fullDrawHits": 6, "releaseHits": 6, "noReleaseSuppression": true, "recoveryReachedIdle": true, "noErrors": true },
+      "combatX4EquivalentTrace_8sGameTime": { "attackEventCount": 10, "damageEventCountProxy": 10, "restartCount": 6, "flashAckCount": 4, "finalPendingAcks": 0, "accountedForExactlyOnce": "6+4+0==10, true", "fullDrawReached": true, "releaseReached": true },
+      "nonArcherRegression": { "unitTested": "swordman", "archerSeqsNull": true, "attackEventsEqualDamageEvents": true, "sawFullOriginalAttackSeq": true, "archerPendingAcksAlwaysZero": true, "archerFlashAckCountAlwaysUndefined": true, "returnsToIdleCleanly": true, "noErrors": true }
+    },
+    "requirementsConfirmed": {
+      "everyBaseSpeedAttackEventGetsVisibleAcknowledgment": true,
+      "noPermanentVisualBacklog": true,
+      "noTwentySecondPostCombatReplay": true,
+      "noRestartSpam": true,
+      "noReleaseSuppression": true,
+      "combatMathUnchanged": true,
+      "archerOnly": true,
+      "noAssetModification": true
+    },
     "approvalFlagsUnchanged": { "pilotAccepted": false, "canonicalApproved": false, "finalRuntimeApproved": false, "merged": false }
   }
 }

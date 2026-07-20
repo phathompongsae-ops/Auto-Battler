@@ -3155,18 +3155,40 @@ function updateUnit(u, dt) {
       // buildCombatStats() (heroes only) — getEffectiveAttackSpeed() covers enemies/summons too.
       const baseAtkSpeed = getEffectiveAttackSpeed(u);
       u.atkCooldown = 1/baseAtkSpeed;
-      // Archer-only visual acknowledgment: hero.archer's approved 127cs Attack v3.2 sequence
-      // outlasts its own base cooldown (71.43cs at attack_speed 1.4), so a second valid attack
-      // can fire while the first is still visually mid-cycle. Damage/cooldown below are always
-      // applied exactly as before, on schedule, for every event -- only the VISUAL restart is
-      // deferred: instead of resetting archerFrameTimer immediately (which would land inside the
-      // Full Draw window ~1cs before Release and could suppress Release from ever being shown
-      // under sustained fire), the extra hit is queued and replays the exact same approved
-      // sequence once more from its own natural completion boundary, so every played cycle still
-      // shows Full Draw (007) and Release (008) in full. Queue is capped at 1 to bound worst-case
-      // post-combat visual drift (see docs/reviews/archer-runtime-integration-v1/ for detail).
+      // Archer-only visual acknowledgment: hero.archer's approved 127cs (1.27s) Attack v3.2
+      // sequence outlasts its own base cooldown (71.43cs=0.7143s at attack_speed 1.4), so a
+      // second valid attack can fire while the first is still visually mid-cycle. Damage/
+      // cooldown below are always applied exactly as before, on schedule, for every event.
+      //
+      // Two-tier acknowledgment (v2 -- raising the queue cap alone cannot work here, see below):
+      //  1) If no replay is already queued (archerPendingAcks < 1): queue one. It plays from its
+      //     own natural completion boundary -- never mid-frame -- as a full replay of the exact
+      //     approved sequence, so it still shows Full Draw (007) and Release (008) in full.
+      //  2) If a replay is already queued (queue saturated): this event still gets an immediate,
+      //     distinct, visible acknowledgment via a brief self-flash (reusing the existing generic
+      //     applyHitFlash() hit-reaction mechanism used elsewhere for damage taken, here applied
+      //     to the archer itself on firing) -- purely a body.material.color tint+revert, touching
+      //     neither archerFrameTimer/archerFrameIdx nor any texture, so it cannot alter frame
+      //     order/timing or suppress/duplicate Full Draw/Release in the cycle already playing.
+      //
+      // Why not just raise the cap (e.g. to 2)? Because the structural rate is fixed: attacks
+      // fire at 1/0.7143 = 1.4/s, but a full 1.27s replay can complete at most 1/1.27 = 0.787/s
+      // -- attacks are inherently faster than any full-cycle replay can keep up with. Under
+      // sustained base-speed fire, AT MOST 0.7143/1.27 = 56% of events could ever receive a
+      // dedicated full replay, for ANY finite queue cap -- confirmed by trace (cap=2 still lost
+      // events within a 4s burst). No cap size closes this gap; the flash tier does, since it's
+      // instant and untied to animation-cycle length, giving literally every event a visible ack.
       if (u.archerSeqs && u.animState === 'attack') {
-        u.archerPendingAcks = Math.min(1, (u.archerPendingAcks || 0) + 1);
+        if ((u.archerPendingAcks || 0) < 1) {
+          u.archerPendingAcks = 1;
+        } else {
+          applyHitFlash(u, 0xfff2a8, 70); // instant self-ack for a queue-saturated extra hit
+          // Evidence-only counter (additive, not read by any gameplay code) -- real-time
+          // setTimeout-based flash reversion can't be observed reliably by a synchronous,
+          // dt-driven deterministic test harness, so this exists purely so automated evidence
+          // capture can prove every attack event received exactly one acknowledgment call.
+          u.archerFlashAckCount = (u.archerFlashAckCount || 0) + 1;
+        }
       } else {
         u.animState='attack'; u.animTimer=0;
       }

@@ -167,6 +167,41 @@ attack-speed buffs pushing the cooldown/cycle ratio well past base, the cap=1 qu
 every individual attack gets its own unique visual replay — damage/cooldown still apply exactly
 on schedule for every event. Base-stat cadence never exceeds the cap.
 
+**Superseded by §21 below** — an independent re-audit found that v1's cap=1 queue silently
+dropped acknowledgment for some events even at *base* attack speed (audited: 6 attack events,
+only 4 visual cycles). v1's queue mechanism is retained but is no longer the complete picture;
+see the rework v2 section for the fix that closes this gap.
+
+## 21. Targeted Timing Rework v2 (additive follow-up, same Draft PR)
+
+Re-audit of v1 found its cap=1 replay queue could still silently drop acknowledgment for a valid
+attack event under sustained base-speed fire (not just under attack-speed buffs, as v1's
+disclosed limitation assumed). Root cause, proven mathematically and confirmed by trace: Attack
+v3.2's cycle (1.27s) is structurally slower than the base attack cooldown (0.7143s) — attacks
+fire at 1.4/s but a full replay can complete at most 0.787/s — so **no queue cap, of any finite
+size, can give every event its own dedicated full-cycle replay** under sustained fire (at most
+~56% of events ever could, for any cap). Raising the cap (tested at cap=2) was proven
+insufficient by trace, not just reasoned about, before being rejected.
+
+Fixed with a two-tier acknowledgment model: the existing cap=1 full-replay queue is kept
+(Full Draw/Release still shown in full whenever a slot is free), and any attack event that
+arrives while the queue is already saturated instead gets an instant, visually distinct
+self-flash — reusing the codebase's existing generic `applyHitFlash()` hit-reaction helper,
+applied to the archer itself on firing. The flash touches only `body.material.color` and a
+timer; it never reads or writes any animation-frame state, so it cannot alter frame order/timing
+or suppress/duplicate Full Draw/Release. Full design comparison (5 options evaluated), root
+cause, and new deterministic evidence are in
+`docs/reviews/archer-runtime-integration-v1/repeated-attack-timing-rework-v2.md`.
+
+Result: every valid attack event at base Archer attack speed now receives *some* visible
+acknowledgment (a full replay or a flash), proven exactly by trace
+(`7 completed replays + 3 flashes + 1 still-in-flight at window close == 11 attack events`, and
+similarly `6 + 4 + 0 == 10` at x4). Worst-case post-combat drift is unchanged from v1 (≤1.27s).
+29/29 protected assets re-confirmed byte-identical.
+
+`pilotAccepted`, `canonicalApproved`, `finalRuntimeApproved`, and `merged` all remain `false`,
+unchanged by this rework.
+
 Result: **TARGETED_RUNTIME_REWORK_READY_FOR_INDEPENDENT_REAUDIT**. `pilotAccepted`,
 `canonicalApproved`, `finalRuntimeApproved`, and `merged` remain `false`, unchanged by this
 rework.

@@ -1,0 +1,1102 @@
+{
+ "x4": {
+  "rows": [
+   {
+    "tMs": 67,
+    "animState": "attack",
+    "archerFrameIdx": 0,
+    "archerPendingAcks": 0,
+    "attackEventOccurred": true,
+    "restartOrAck": true,
+    "flashAck": false
+   },
+   {
+    "tMs": 133,
+    "animState": "attack",
+    "archerFrameIdx": 0,
+    "archerPendingAcks": 0,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 200,
+    "animState": "attack",
+    "archerFrameIdx": 1,
+    "archerPendingAcks": 0,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 267,
+    "animState": "attack",
+    "archerFrameIdx": 1,
+    "archerPendingAcks": 0,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 333,
+    "animState": "attack",
+    "archerFrameIdx": 2,
+    "archerPendingAcks": 0,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 400,
+    "animState": "attack",
+    "archerFrameIdx": 3,
+    "archerPendingAcks": 0,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 467,
+    "animState": "attack",
+    "archerFrameIdx": 4,
+    "archerPendingAcks": 0,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 533,
+    "animState": "attack",
+    "archerFrameIdx": 5,
+    "archerPendingAcks": 0,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 600,
+    "animState": "attack",
+    "archerFrameIdx": 6,
+    "archerPendingAcks": 0,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 667,
+    "animState": "attack",
+    "archerFrameIdx": 7,
+    "archerPendingAcks": 0,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 733,
+    "animState": "attack",
+    "archerFrameIdx": 8,
+    "archerPendingAcks": 0,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 800,
+    "animState": "attack",
+    "archerFrameIdx": 9,
+    "archerPendingAcks": 1,
+    "attackEventOccurred": true,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 867,
+    "animState": "attack",
+    "archerFrameIdx": 9,
+    "archerPendingAcks": 1,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 933,
+    "animState": "attack",
+    "archerFrameIdx": 10,
+    "archerPendingAcks": 1,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 1000,
+    "animState": "attack",
+    "archerFrameIdx": 10,
+    "archerPendingAcks": 1,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 1067,
+    "animState": "attack",
+    "archerFrameIdx": 11,
+    "archerPendingAcks": 1,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 1133,
+    "animState": "attack",
+    "archerFrameIdx": 11,
+    "archerPendingAcks": 1,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 1200,
+    "animState": "attack",
+    "archerFrameIdx": 11,
+    "archerPendingAcks": 1,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 1267,
+    "animState": "attack",
+    "archerFrameIdx": 11,
+    "archerPendingAcks": 1,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 1333,
+    "animState": "attack",
+    "archerFrameIdx": 0,
+    "archerPendingAcks": 0,
+    "attackEventOccurred": false,
+    "restartOrAck": true,
+    "flashAck": false
+   },
+   {
+    "tMs": 1400,
+    "animState": "attack",
+    "archerFrameIdx": 0,
+    "archerPendingAcks": 0,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 1467,
+    "animState": "attack",
+    "archerFrameIdx": 0,
+    "archerPendingAcks": 0,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 1533,
+    "animState": "attack",
+    "archerFrameIdx": 1,
+    "archerPendingAcks": 1,
+    "attackEventOccurred": true,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 1600,
+    "animState": "attack",
+    "archerFrameIdx": 1,
+    "archerPendingAcks": 1,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 1667,
+    "animState": "attack",
+    "archerFrameIdx": 2,
+    "archerPendingAcks": 1,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 1733,
+    "animState": "attack",
+    "archerFrameIdx": 3,
+    "archerPendingAcks": 1,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 1800,
+    "animState": "attack",
+    "archerFrameIdx": 4,
+    "archerPendingAcks": 1,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 1867,
+    "animState": "attack",
+    "archerFrameIdx": 5,
+    "archerPendingAcks": 1,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 1933,
+    "animState": "attack",
+    "archerFrameIdx": 6,
+    "archerPendingAcks": 1,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 2000,
+    "animState": "attack",
+    "archerFrameIdx": 7,
+    "archerPendingAcks": 1,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 2067,
+    "animState": "attack",
+    "archerFrameIdx": 8,
+    "archerPendingAcks": 1,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 2133,
+    "animState": "attack",
+    "archerFrameIdx": 9,
+    "archerPendingAcks": 1,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 2200,
+    "animState": "attack",
+    "archerFrameIdx": 9,
+    "archerPendingAcks": 1,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 2267,
+    "animState": "attack",
+    "archerFrameIdx": 10,
+    "archerPendingAcks": 1,
+    "attackEventOccurred": true,
+    "restartOrAck": false,
+    "flashAck": true
+   },
+   {
+    "tMs": 2333,
+    "animState": "attack",
+    "archerFrameIdx": 10,
+    "archerPendingAcks": 1,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 2400,
+    "animState": "attack",
+    "archerFrameIdx": 11,
+    "archerPendingAcks": 1,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 2467,
+    "animState": "attack",
+    "archerFrameIdx": 11,
+    "archerPendingAcks": 1,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 2533,
+    "animState": "attack",
+    "archerFrameIdx": 11,
+    "archerPendingAcks": 1,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 2600,
+    "animState": "attack",
+    "archerFrameIdx": 11,
+    "archerPendingAcks": 1,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 2667,
+    "animState": "attack",
+    "archerFrameIdx": 0,
+    "archerPendingAcks": 0,
+    "attackEventOccurred": false,
+    "restartOrAck": true,
+    "flashAck": false
+   },
+   {
+    "tMs": 2733,
+    "animState": "attack",
+    "archerFrameIdx": 0,
+    "archerPendingAcks": 0,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 2800,
+    "animState": "attack",
+    "archerFrameIdx": 0,
+    "archerPendingAcks": 0,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 2867,
+    "animState": "attack",
+    "archerFrameIdx": 1,
+    "archerPendingAcks": 0,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 2933,
+    "animState": "attack",
+    "archerFrameIdx": 1,
+    "archerPendingAcks": 0,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 3000,
+    "animState": "attack",
+    "archerFrameIdx": 2,
+    "archerPendingAcks": 1,
+    "attackEventOccurred": true,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 3067,
+    "animState": "attack",
+    "archerFrameIdx": 3,
+    "archerPendingAcks": 1,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 3133,
+    "animState": "attack",
+    "archerFrameIdx": 4,
+    "archerPendingAcks": 1,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 3200,
+    "animState": "attack",
+    "archerFrameIdx": 5,
+    "archerPendingAcks": 1,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 3267,
+    "animState": "attack",
+    "archerFrameIdx": 6,
+    "archerPendingAcks": 1,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 3333,
+    "animState": "attack",
+    "archerFrameIdx": 7,
+    "archerPendingAcks": 1,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 3400,
+    "animState": "attack",
+    "archerFrameIdx": 8,
+    "archerPendingAcks": 1,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 3467,
+    "animState": "attack",
+    "archerFrameIdx": 9,
+    "archerPendingAcks": 1,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 3533,
+    "animState": "attack",
+    "archerFrameIdx": 9,
+    "archerPendingAcks": 1,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 3600,
+    "animState": "attack",
+    "archerFrameIdx": 10,
+    "archerPendingAcks": 1,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 3667,
+    "animState": "attack",
+    "archerFrameIdx": 10,
+    "archerPendingAcks": 1,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 3733,
+    "animState": "attack",
+    "archerFrameIdx": 11,
+    "archerPendingAcks": 1,
+    "attackEventOccurred": true,
+    "restartOrAck": false,
+    "flashAck": true
+   },
+   {
+    "tMs": 3800,
+    "animState": "attack",
+    "archerFrameIdx": 11,
+    "archerPendingAcks": 1,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 3867,
+    "animState": "attack",
+    "archerFrameIdx": 11,
+    "archerPendingAcks": 1,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 3933,
+    "animState": "attack",
+    "archerFrameIdx": 11,
+    "archerPendingAcks": 1,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 4000,
+    "animState": "attack",
+    "archerFrameIdx": 0,
+    "archerPendingAcks": 0,
+    "attackEventOccurred": false,
+    "restartOrAck": true,
+    "flashAck": false
+   },
+   {
+    "tMs": 4067,
+    "animState": "attack",
+    "archerFrameIdx": 0,
+    "archerPendingAcks": 0,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 4133,
+    "animState": "attack",
+    "archerFrameIdx": 0,
+    "archerPendingAcks": 0,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 4200,
+    "animState": "attack",
+    "archerFrameIdx": 1,
+    "archerPendingAcks": 0,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 4267,
+    "animState": "attack",
+    "archerFrameIdx": 1,
+    "archerPendingAcks": 0,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 4333,
+    "animState": "attack",
+    "archerFrameIdx": 2,
+    "archerPendingAcks": 0,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 4400,
+    "animState": "attack",
+    "archerFrameIdx": 3,
+    "archerPendingAcks": 0,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 4467,
+    "animState": "attack",
+    "archerFrameIdx": 4,
+    "archerPendingAcks": 1,
+    "attackEventOccurred": true,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 4533,
+    "animState": "attack",
+    "archerFrameIdx": 5,
+    "archerPendingAcks": 1,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 4600,
+    "animState": "attack",
+    "archerFrameIdx": 6,
+    "archerPendingAcks": 1,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 4667,
+    "animState": "attack",
+    "archerFrameIdx": 7,
+    "archerPendingAcks": 1,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 4733,
+    "animState": "attack",
+    "archerFrameIdx": 8,
+    "archerPendingAcks": 1,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 4800,
+    "animState": "attack",
+    "archerFrameIdx": 9,
+    "archerPendingAcks": 1,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 4867,
+    "animState": "attack",
+    "archerFrameIdx": 9,
+    "archerPendingAcks": 1,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 4933,
+    "animState": "attack",
+    "archerFrameIdx": 10,
+    "archerPendingAcks": 1,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 5000,
+    "animState": "attack",
+    "archerFrameIdx": 10,
+    "archerPendingAcks": 1,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 5067,
+    "animState": "attack",
+    "archerFrameIdx": 11,
+    "archerPendingAcks": 1,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 5133,
+    "animState": "attack",
+    "archerFrameIdx": 11,
+    "archerPendingAcks": 1,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 5200,
+    "animState": "attack",
+    "archerFrameIdx": 11,
+    "archerPendingAcks": 1,
+    "attackEventOccurred": true,
+    "restartOrAck": false,
+    "flashAck": true
+   },
+   {
+    "tMs": 5267,
+    "animState": "attack",
+    "archerFrameIdx": 11,
+    "archerPendingAcks": 1,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 5333,
+    "animState": "attack",
+    "archerFrameIdx": 0,
+    "archerPendingAcks": 0,
+    "attackEventOccurred": false,
+    "restartOrAck": true,
+    "flashAck": false
+   },
+   {
+    "tMs": 5400,
+    "animState": "attack",
+    "archerFrameIdx": 0,
+    "archerPendingAcks": 0,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 5467,
+    "animState": "attack",
+    "archerFrameIdx": 0,
+    "archerPendingAcks": 0,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 5533,
+    "animState": "attack",
+    "archerFrameIdx": 1,
+    "archerPendingAcks": 0,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 5600,
+    "animState": "attack",
+    "archerFrameIdx": 1,
+    "archerPendingAcks": 0,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 5667,
+    "animState": "attack",
+    "archerFrameIdx": 2,
+    "archerPendingAcks": 0,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 5733,
+    "animState": "attack",
+    "archerFrameIdx": 3,
+    "archerPendingAcks": 0,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 5800,
+    "animState": "attack",
+    "archerFrameIdx": 4,
+    "archerPendingAcks": 0,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 5867,
+    "animState": "attack",
+    "archerFrameIdx": 5,
+    "archerPendingAcks": 0,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 5933,
+    "animState": "attack",
+    "archerFrameIdx": 6,
+    "archerPendingAcks": 1,
+    "attackEventOccurred": true,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 6000,
+    "animState": "attack",
+    "archerFrameIdx": 7,
+    "archerPendingAcks": 1,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 6067,
+    "animState": "attack",
+    "archerFrameIdx": 8,
+    "archerPendingAcks": 1,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 6133,
+    "animState": "attack",
+    "archerFrameIdx": 9,
+    "archerPendingAcks": 1,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 6200,
+    "animState": "attack",
+    "archerFrameIdx": 9,
+    "archerPendingAcks": 1,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 6267,
+    "animState": "attack",
+    "archerFrameIdx": 10,
+    "archerPendingAcks": 1,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 6333,
+    "animState": "attack",
+    "archerFrameIdx": 10,
+    "archerPendingAcks": 1,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 6400,
+    "animState": "attack",
+    "archerFrameIdx": 11,
+    "archerPendingAcks": 1,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 6467,
+    "animState": "attack",
+    "archerFrameIdx": 11,
+    "archerPendingAcks": 1,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 6533,
+    "animState": "attack",
+    "archerFrameIdx": 11,
+    "archerPendingAcks": 1,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 6600,
+    "animState": "attack",
+    "archerFrameIdx": 11,
+    "archerPendingAcks": 1,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 6667,
+    "animState": "attack",
+    "archerFrameIdx": 0,
+    "archerPendingAcks": 0,
+    "attackEventOccurred": true,
+    "restartOrAck": true,
+    "flashAck": true
+   },
+   {
+    "tMs": 6733,
+    "animState": "attack",
+    "archerFrameIdx": 0,
+    "archerPendingAcks": 0,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 6800,
+    "animState": "attack",
+    "archerFrameIdx": 0,
+    "archerPendingAcks": 0,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 6867,
+    "animState": "attack",
+    "archerFrameIdx": 1,
+    "archerPendingAcks": 0,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 6933,
+    "animState": "attack",
+    "archerFrameIdx": 1,
+    "archerPendingAcks": 0,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 7000,
+    "animState": "attack",
+    "archerFrameIdx": 2,
+    "archerPendingAcks": 0,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 7067,
+    "animState": "attack",
+    "archerFrameIdx": 3,
+    "archerPendingAcks": 0,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 7133,
+    "animState": "attack",
+    "archerFrameIdx": 4,
+    "archerPendingAcks": 0,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 7200,
+    "animState": "attack",
+    "archerFrameIdx": 5,
+    "archerPendingAcks": 0,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 7267,
+    "animState": "attack",
+    "archerFrameIdx": 6,
+    "archerPendingAcks": 0,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 7333,
+    "animState": "attack",
+    "archerFrameIdx": 7,
+    "archerPendingAcks": 0,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 7400,
+    "animState": "attack",
+    "archerFrameIdx": 8,
+    "archerPendingAcks": 0,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 7467,
+    "animState": "attack",
+    "archerFrameIdx": 9,
+    "archerPendingAcks": 0,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 7533,
+    "animState": "attack",
+    "archerFrameIdx": 9,
+    "archerPendingAcks": 0,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 7600,
+    "animState": "attack",
+    "archerFrameIdx": 10,
+    "archerPendingAcks": 0,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 7667,
+    "animState": "attack",
+    "archerFrameIdx": 10,
+    "archerPendingAcks": 0,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 7733,
+    "animState": "attack",
+    "archerFrameIdx": 11,
+    "archerPendingAcks": 0,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 7800,
+    "animState": "attack",
+    "archerFrameIdx": 11,
+    "archerPendingAcks": 0,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 7867,
+    "animState": "attack",
+    "archerFrameIdx": 11,
+    "archerPendingAcks": 0,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 7933,
+    "animState": "attack",
+    "archerFrameIdx": 11,
+    "archerPendingAcks": 0,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   },
+   {
+    "tMs": 8000,
+    "animState": "idle",
+    "archerFrameIdx": 11,
+    "archerPendingAcks": 0,
+    "attackEventOccurred": false,
+    "restartOrAck": false,
+    "flashAck": false
+   }
+  ],
+  "summary": {
+   "attackEventCount": 10,
+   "damageEventCountProxy": 10,
+   "fullDrawHits": 6,
+   "releaseHits": 6,
+   "restartCount": 6,
+   "flashAckCount": 4,
+   "finalPendingAcks": 0,
+   "accountedFor": 10,
+   "everyAttackEventAccountedForExactlyOnce": true,
+   "finalAnimState": "idle"
+  }
+ },
+ "errors": {
+  "consoleErrors": [],
+  "pageErrors": []
+ }
+}
