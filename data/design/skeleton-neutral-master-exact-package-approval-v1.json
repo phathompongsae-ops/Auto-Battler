@@ -1,0 +1,141 @@
+{
+  "record": "skeleton-neutral-master-exact-package-approval-v1",
+  "schemaVersion": 1,
+  "project": "phathompongsae-ops/Auto-Battler",
+  "monsterId": "skeleton",
+  "displayName": "Skeleton",
+  "status": "PENDING_PACKAGE_DELIVERY",
+  "scope": "Production scaffold for the future independent verification and Exact Package Approval of the Skeleton Neutral Master Human Review Candidate v1. No package has been delivered to CC, no binary imported, no QA run, no approval recorded. Every 'expected*' field below is an unverified production-handoff reference, NOT a measured result.",
+
+  "sourceLineage": {
+    "repository": "phathompongsae-ops/Auto-Battler",
+    "sourceBranch": "cc/board-camera-art-lighting-polish-v1",
+    "sourcePr": 89,
+    "sourceHeadExpected": "f0c3e8161e9cdf61477886f9a2016b41f97abc93",
+    "sourceHeadVerifiedLive": "f0c3e8161e9cdf61477886f9a2016b41f97abc93",
+    "match": true,
+    "sourcePr89StateVerifiedLive": "open, draft, unmerged, mergeable_state=clean"
+  },
+
+  "identityReference": {
+    "path": "assets/mon_skeleton.png",
+    "sha256Measured": "6484dd238083f6209732359b3f1b37d311fbc6644bd50e18ab079c20d8c76d1c",
+    "measuredIndependentlyThisTask": true,
+    "matchesReportedReferenceHash": true,
+    "role": "identity evidence only -- the current procedural placeholder, NOT an approved Neutral Master",
+    "identityFactsFromRepoRecords": {
+      "source": "src/game.js ENEMY_BASE.Skeleton + ASSET_META.Skeleton + STAGE_PLAN (read-only inspection)",
+      "monsterId": "skeleton",
+      "displayName": "Skeleton",
+      "combatRole": "normal melee enemy (range 1)",
+      "targeting": "nearest (no specialBehavior override)",
+      "earlyDemoMonster": "appears from waves 2-3 and as ordinary miniboss-escort guards",
+      "theme": "humanoid undead",
+      "propCue": "simple blunt staff/club or mallet cue (per production identity handoff)",
+      "notElite": true, "notMiniboss": true, "notBoss": true, "notRanged": true, "notCaster": true
+    }
+  },
+
+  "expectedHandoffUnverified": {
+    "note": "Values reported by the offline production handoff (Coco). ALL of these are unverified references -- the downloadable files are being redelivered separately and no package has reached CC, so nothing here has been independently measured. These are expectations to check AGAINST at delivery time, never results.",
+    "candidatePngSha256Reported": "a4b431f9abce65dbf15114314b8ddd0e4949a0e73966b999f8eb340fdeb39f70",
+    "humanReviewZipSha256Reported": "e4d7dcc2e42bbe66e8581d65e4685815a63d2a4196ccb0abfe9604373c0d9369",
+    "zipSizeBytesReported": 2112240,
+    "zipEntryCountReported": 28,
+    "expectedCandidateMetadataReported": {
+      "alphaBounds": "445x672 +97+183",
+      "maxAlphaY": 854,
+      "halfOpenBaselineY": 855,
+      "anchorCandidate": [0.5, 0.92],
+      "runtimeFlipXCompatible": true,
+      "recommendedScale": "approximately 0.92 of Class 1 hero alpha height",
+      "correctionRounds": 1
+    },
+    "verified": false
+  },
+
+  "expectedTechnicalContract": {
+    "format": "PNG", "mode": "RGBA", "bitDepth": 8, "canvas": [640, 960],
+    "transparentBackground": true, "fullyTransparentOuterBorders": true,
+    "noBackground": true, "noShadowPlate": true, "noBakedVfx": true, "noCropping": true
+  },
+
+  "expectedPackageFiles": [
+    "Skeleton Neutral Master candidate PNG",
+    "procedural identity reference record",
+    "identity-lock sheet",
+    "full-resolution review",
+    "board-scale proxy",
+    "warm-board readability review",
+    "silhouette comparison",
+    "grayscale comparison",
+    "anatomy/prop QA sheet",
+    "transparent-edge QA",
+    "source map",
+    "technical QA record",
+    "candidate metadata sidecar",
+    "known limitations",
+    "production notes",
+    "Human Decision Sheet"
+  ],
+
+  "importRoot": "docs/assets/review/monster-production/skeleton-neutral-master-v1",
+  "packageInventory": null,
+  "measuredCandidateProperties": null,
+  "qaResults": "NOT_YET_RUN",
+
+  "humanDecision": {
+    "state": "pending",
+    "pendingDecisions": {
+      "skeletonIdentityAcceptable": "pending",
+      "ordinaryNormalMonsterRoleReadable": "pending",
+      "anatomyAcceptable": "pending",
+      "skullRibcagePelvisContinuityAcceptable": "pending",
+      "handsFeetAcceptable": "pending",
+      "propAcceptable": "pending",
+      "boardScaleReadabilityAcceptable": "pending",
+      "warmBoardContrastAcceptable": "pending",
+      "silhouetteDistinctionAcceptable": "pending",
+      "productionQualityAcceptable": "pending",
+      "approvedAsSkeletonNeutralMaster": "pending",
+      "authorizeSkeletonMotionPilot": "pending"
+    }
+  },
+
+  "approvalFlags": {
+    "humanVisualApproval": "pending",
+    "neutralMasterApproved": false,
+    "exactPackageApproved": false,
+    "canonicalApproved": false,
+    "motionProductionAuthorized": false,
+    "runtimeIntegrationAuthorized": false,
+    "runtimeIntegrated": false,
+    "merged": false
+  },
+
+  "prohibitionsHeld": {
+    "imageGenerated": false,
+    "skeletonRegenerated": false,
+    "candidatePngImported": false,
+    "zipImported": false,
+    "packageContentsFabricated": false,
+    "hashesFabricated": false,
+    "qaResultsFabricated": false,
+    "humanVisualApprovalRecorded": false,
+    "exactPackageApprovalRecorded": false,
+    "motionProductionAuthorized": false,
+    "skeletonMotionStarted": false,
+    "monsterRuntimeIntegrationStarted": false,
+    "runtimeModified": false,
+    "combatGameplayBalanceModified": false,
+    "boardCameraLightingUiModified": false,
+    "projectileVfxAdded": false,
+    "bossMinibossWorkStarted": false,
+    "prMerged": false,
+    "autoMergeEnabled": false,
+    "pr88OrPr89Modified": false
+  },
+
+  "validator": "tools/validate-skeleton-neutral-master-exact-package-approval-v1.mjs",
+  "nextAuthorizedGate": "Actual package delivery to CC, followed by independent reassembly/verification/import (a separate task). Only after that: user Human Visual Review, then Exact Package Approval, then (separately) Skeleton Motion Pilot authorization. None of these are performed by this scaffold."
+}
