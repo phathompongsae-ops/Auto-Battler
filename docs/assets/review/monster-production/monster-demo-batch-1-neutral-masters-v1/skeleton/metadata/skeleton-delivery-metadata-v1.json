@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "project": "phathompongsae-ops/Auto-Battler",
+  "recordId": "monster-demo-batch-1-skeleton-delivery-v1",
+  "monsterId": "skeleton",
+  "displayName": "Skeleton",
+  "deliveryType": "locked-neutral-master",
+  "masterPath": "docs/assets/review/monster-production/monster-demo-batch-1-neutral-masters-v1/skeleton/neutral/skeleton-neutral-master.png",
+  "masterSha256": "861369dbe72bd1742af7e1ff3aa4e4bf49de9ee216ff59b4723aab4add0a99a8",
+  "canvas": [640, 960],
+  "format": "PNG",
+  "colorMode": "RGBA",
+  "bitDepth": 8,
+  "alphaBounds": [46, 154, 550, 855],
+  "maxAlphaY": 854,
+  "footBaselineHalfOpenY": 855,
+  "fullyTransparentOuterBorders": true,
+  "reviewPackage": "docs/assets/review/monster-production/monster-demo-batch-1-neutral-masters-v1/skeleton/review-package/monster_demo_batch_1_skeleton_neutral_master_style_polish_v3_human_review_package.zip",
+  "reviewPackageSha256": "9c311c9055e888a4c9165a97666f9e3efefdf317d54b66e3f714323f280a9d96",
+  "approval": {
+    "humanVisualApproval": "approved",
+    "exactPackageApproved": false,
+    "canonicalApproved": false,
+    "motionProductionAuthorized": false,
+    "runtimeIntegrationAuthorized": false,
+    "merged": false
+  }
+}

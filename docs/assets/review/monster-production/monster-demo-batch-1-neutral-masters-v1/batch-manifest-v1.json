@@ -1,0 +1,126 @@
+{
+  "schemaVersion": 1,
+  "project": "phathompongsae-ops/Auto-Battler",
+  "recordId": "monster-demo-batch-1-neutral-master-repository-delivery-v1",
+  "status": "DELIVERED_FOR_INDEPENDENT_CC_VERIFICATION",
+  "importRoot": "docs/assets/review/monster-production/monster-demo-batch-1-neutral-masters-v1",
+  "deliveryScope": "Approved Neutral Master assets and verification evidence only",
+  "sourceBinariesPreserved": true,
+  "artworkGeneratedOrRegenerated": false,
+  "monsters": [
+    {
+      "id": "skeleton",
+      "displayName": "Skeleton",
+      "humanVisualApproval": "approved",
+      "masterPath": "skeleton/neutral/skeleton-neutral-master.png",
+      "masterSha256": "861369dbe72bd1742af7e1ff3aa4e4bf49de9ee216ff59b4723aab4add0a99a8",
+      "metadataPath": "skeleton/metadata/skeleton-delivery-metadata-v1.json",
+      "humanDecisionPath": "skeleton/docs/human-decision-sheet-v1.md",
+      "technicalQaPath": "skeleton/qa/technical-qa-v1.json",
+      "sha256SumsPath": "skeleton/SHA256SUMS",
+      "reviewPackagePath": "skeleton/review-package/monster_demo_batch_1_skeleton_neutral_master_style_polish_v3_human_review_package.zip",
+      "reviewPackageSha256": "9c311c9055e888a4c9165a97666f9e3efefdf317d54b66e3f714323f280a9d96"
+    },
+    {
+      "id": "slime",
+      "displayName": "Slime",
+      "humanVisualApproval": "approved",
+      "masterPath": "slime/neutral/slime-neutral-master.png",
+      "masterSha256": "ace0b378a3b716f7f812a540d375cc8ac1c6b83a2a9e01061e46dc3158ba0ea2",
+      "metadataPath": "slime/metadata/slime-delivery-metadata-v1.json",
+      "humanDecisionPath": "slime/docs/human-decision-sheet-v1.md",
+      "technicalQaPath": "slime/qa/technical-qa-v1.json",
+      "sha256SumsPath": "slime/SHA256SUMS",
+      "reviewPackagePath": "slime/review-package/monster_demo_batch_1_new_art_direction_batch_review_v1.zip",
+      "reviewPackageSha256": "3aae92ec66a38279532ee0b2b0878d5474f6ab910e19de76af8e7f3f44fb22f1"
+    },
+    {
+      "id": "orc",
+      "displayName": "Orc",
+      "humanVisualApproval": "approved",
+      "masterPath": "orc/neutral/orc-neutral-master.png",
+      "masterSha256": "fb873b5f74f964b5e93bd61819035fbde80f5496b7be786144ddd4ee612fda1f",
+      "metadataPath": "orc/metadata/orc-delivery-metadata-v1.json",
+      "humanDecisionPath": "orc/docs/human-decision-sheet-v1.md",
+      "technicalQaPath": "orc/qa/technical-qa-v1.json",
+      "sha256SumsPath": "orc/SHA256SUMS",
+      "reviewPackagePath": "orc/review-package/monster_demo_batch_1_new_art_direction_batch_review_v1.zip",
+      "reviewPackageSha256": "3aae92ec66a38279532ee0b2b0878d5474f6ab910e19de76af8e7f3f44fb22f1"
+    },
+    {
+      "id": "stone-wolf",
+      "displayName": "Stone Wolf",
+      "humanVisualApproval": "approved",
+      "masterPath": "stone-wolf/neutral/stone-wolf-neutral-master.png",
+      "masterSha256": "4f8c4bcf5555f76cac5463ef796a92d1a5cccf0daec4b7a4f0b064d2cacc2f08",
+      "metadataPath": "stone-wolf/metadata/stone-wolf-delivery-metadata-v1.json",
+      "humanDecisionPath": "stone-wolf/docs/human-decision-sheet-v1.md",
+      "technicalQaPath": "stone-wolf/qa/technical-qa-v1.json",
+      "sha256SumsPath": "stone-wolf/SHA256SUMS",
+      "reviewPackagePath": "stone-wolf/review-package/monster_demo_batch_1_stone_wolf_final_targeted_rework_v3_human_review_package.zip",
+      "reviewPackageSha256": "3ec9f8c1f6ce4c8bd6f10e264339c07377d51d27f4980c8a381da2f5574b84b3"
+    },
+    {
+      "id": "spirit-archer",
+      "displayName": "Spirit Archer",
+      "humanVisualApproval": "approved",
+      "masterPath": "spirit-archer/neutral/spirit-archer-neutral-master.png",
+      "masterSha256": "2438dfc1047106bc51549cda4cdb60c9cf450d7b1cb1ed38785ffac533ed479e",
+      "metadataPath": "spirit-archer/metadata/spirit-archer-delivery-metadata-v1.json",
+      "humanDecisionPath": "spirit-archer/docs/human-decision-sheet-v1.md",
+      "technicalQaPath": "spirit-archer/qa/technical-qa-v1.json",
+      "sha256SumsPath": "spirit-archer/SHA256SUMS",
+      "reviewPackagePath": "spirit-archer/review-package/monster_demo_batch_1_spirit_archer_new_art_direction_v1_human_review_package.zip",
+      "reviewPackageSha256": "9ed949f1317aa3d5122faf3f528d8d80eaf1caf88fe898fe83fc9185de3f782d"
+    },
+    {
+      "id": "golem",
+      "displayName": "Golem",
+      "humanVisualApproval": "approved",
+      "masterPath": "golem/neutral/golem-neutral-master.png",
+      "masterSha256": "a6f25abed97388c2f2d1572ed95581ef2a5dcb9b43b49d816fb4ed3e132af36a",
+      "metadataPath": "golem/metadata/golem-delivery-metadata-v1.json",
+      "humanDecisionPath": "golem/docs/human-decision-sheet-v1.md",
+      "technicalQaPath": "golem/qa/technical-qa-v1.json",
+      "sha256SumsPath": "golem/SHA256SUMS",
+      "reviewPackagePath": "golem/review-package/monster_demo_batch_1_golem_final_targeted_rework_v3_human_review_package.zip",
+      "reviewPackageSha256": "d862fb25a270f2615c20dd395e9cc593aa9a1b9069fe626a9840473e5953f82c"
+    }
+  ],
+  "technicalContract": {
+    "png": true,
+    "rgba8": true,
+    "canvas": [640, 960],
+    "fullyTransparentOuterBorders": true,
+    "maxAlphaY": 854,
+    "baselineHalfOpenY": 855
+  },
+  "qa": {
+    "masterCount": 6,
+    "masterHashMatches": 6,
+    "pngContractPass": 6,
+    "reviewArchiveDistinctCount": 5,
+    "reviewArchiveCrcPass": 5,
+    "reviewArchivePathSafetyPass": 5,
+    "jsonParsePass": true,
+    "gitDiffCheck": "PASS"
+  },
+  "approvalBoundaries": {
+    "exactPackageApproved": false,
+    "canonicalApproved": false,
+    "motionProductionAuthorized": false,
+    "runtimeIntegrationAuthorized": false,
+    "runtimeIntegrated": false,
+    "merged": false
+  },
+  "prohibitedWorkPerformed": {
+    "runtime": false,
+    "motion": false,
+    "gameplay": false,
+    "combat": false,
+    "balance": false,
+    "assetRegeneration": false,
+    "merge": false,
+    "autoMerge": false
+  }
+}
