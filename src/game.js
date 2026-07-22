@@ -1026,6 +1026,22 @@ const ITEM_BASE = {
     }
   ]
 };
+// ----- Item shop (Demo-1 schedule) — deterministic constants; no repository pricing spec
+// exists (docs checked), so this is the minimal documented schedule: base items cost 6,
+// combined items cost 14; waves 1–5 offer base only, 6–10 mostly base with a 25% combined
+// chance per slot, 11–15 a 50% combined chance. Offers are item DEF IDs only — an item
+// INSTANCE is created exclusively at purchase (buyShopItem -> createItemInstance), so
+// rerolling/refreshing offers can never consume or duplicate owned instances. -----
+const ITEM_SHOP = {
+  slots: 2,
+  base_cost: 6,
+  combined_cost: 14,
+  bands: [
+    { min_wave: 1,  max_wave: 5,  combined_chance: 0 },
+    { min_wave: 6,  max_wave: 10, combined_chance: 0.25 },
+    { min_wave: 11, max_wave: 15, combined_chance: 0.5 },
+  ],
+};
 // flat id -> item def lookup across base_items + combined_items, for equip/buildCombatStats
 const ITEM_DEFS_BY_ID = {};
 [...ITEM_BASE.base_items, ...ITEM_BASE.combined_items].forEach((def) => { ITEM_DEFS_BY_ID[def.id] = def; });
@@ -1551,6 +1567,7 @@ let benchHeroes = [];
 let placedUnits = [];                      // unit[] ฝั่งผู้เล่นที่วางลงรบแล้ว (อ้างอิงตัวยูนิตตรงๆ ไม่ใช่ตำแหน่ง
                                             // เพราะยูนิตขยับระหว่างต่อสู้ได้ ผูกกับพิกัดจะหลุดการติดตาม)
 let shopOffers = [];
+let itemShopOffers = []; // item DEF ids on offer (instances exist only after purchase — see ITEM_SHOP note)
 let selectedUnit = null;                   // ฮีโร่ (ม้านั่งหรือสนามรบ) ที่แตะเลือกไว้ — รอแตะช่องปลายทางเพื่อย้าย
 
 const units = [];
@@ -1576,6 +1593,34 @@ const LINK_BADGE_TEX = (() => {
   ctx.fillText('🔗', 16, 17);
   return new THREE.CanvasTexture(c);
 })();
+// Foot-anchor correction: sprite frames carry transparent padding below the character (heroes
+// ~20% of frame height, Slime/Orc ~11%). The body plane is anchored with its geometric bottom at
+// the tile center (ground), so that padding lifts the *visible* feet up onto the back grid line —
+// the reported "unit not standing centered in its cell" defect. We sample each sprite's opaque
+// bottom padding ONCE (frame 0, cached per sprite key) and lower the plane by that fraction of its
+// height so the drawn feet meet the tile center. Purely a visual anchor: board, tiles, camera,
+// occupied/logic and the group root (still exactly at the cell center) are untouched. Box
+// placeholders have no art and get zero lift.
+const SPRITE_FOOT_LIFT_FRAC = {};
+function spriteFootLift(key, image, framesInImage, h) {
+  if (key in SPRITE_FOOT_LIFT_FRAC) return SPRITE_FOOT_LIFT_FRAC[key] * h;
+  if (!image || !image.width || !image.height) return 0; // texture not decoded yet — retry next spawn
+  try {
+    const fw = Math.max(1, Math.floor(image.width / (framesInImage || 1)));
+    const cv = document.createElement('canvas'); cv.width = fw; cv.height = image.height;
+    const g = cv.getContext('2d'); g.drawImage(image, 0, 0, fw, image.height, 0, 0, fw, image.height);
+    const d = g.getImageData(0, 0, fw, image.height).data;
+    let bot = -1;
+    for (let y = image.height - 1; y >= 0; y--) {
+      let any = false;
+      for (let x = 0; x < fw; x++) { if (d[(y * fw + x) * 4 + 3] > 16) { any = true; break; } }
+      if (any) { bot = y; break; }
+    }
+    const frac = bot < 0 ? 0 : (image.height - 1 - bot) / image.height;
+    SPRITE_FOOT_LIFT_FRAC[key] = frac;
+    return frac * h;
+  } catch (e) { return 0; } // tainted canvas / no context — no lift, safe fallback
+}
 function makeUnit(cfg) {
   const group = new THREE.Group();
   const meta = ASSET_META[cfg.sprite];
@@ -1590,6 +1635,17 @@ function makeUnit(cfg) {
     shadowRefW = defaultW;
     body = new THREE.Mesh(new THREE.PlaneGeometry(w, h),
       new THREE.MeshBasicMaterial({ map: tex, side: THREE.DoubleSide, transparent: true, alphaTest: 0.5 }));
+  } else if (MONSTER_MOTION_DEFS[cfg.sprite] && MONSTER_MOTION_READY[cfg.sprite]) {
+    // Motion-enabled monster with no static ASSET_META entry (Slime/OrcBrute): same transparent
+    // billboard plane as the textured branch, seeded with idle frame 0. Without this branch the
+    // opaque box below became the body and setMonsterFrame() mapped transparent motion PNGs onto
+    // that placeholder-tinted BoxGeometry — the black-rectangle/tinted-sprite defect. The box
+    // stays as the fallback only when this monster's motion frames genuinely failed to load.
+    w = cfg.frameSize ? cfg.frameSize.w : 1.1;
+    h = cfg.frameSize ? cfg.frameSize.h : 1.6;
+    tex = MONSTER_TEXTURES[cfg.sprite].idle[0];
+    body = new THREE.Mesh(new THREE.PlaneGeometry(w, h),
+      new THREE.MeshBasicMaterial({ map: tex, side: THREE.DoubleSide, transparent: true, alphaTest: 0.5 }));
   } else {
     // Geometric placeholder (no sprite art yet — per game_assets policy, a plain colored box
     // stands in until real art lands, instead of spending time generating character art).
@@ -1598,12 +1654,17 @@ function makeUnit(cfg) {
     body = new THREE.Mesh(new THREE.BoxGeometry(w, h, w * 0.6),
       new THREE.MeshBasicMaterial({ color: cfg.placeholderColor || 0x888888 }));
   }
-  body.position.y = h/2;
+  // Lower the plane by its sprite's opaque bottom padding so the drawn feet sit at the tile center
+  // (the shadow, below, stays at ground / cell center — feet and shadow now coincide). tex is null
+  // for the box placeholder branch, so footLift is 0 there.
+  const footLift = spriteFootLift(cfg.sprite, tex && tex.image, frames, h);
+  body.position.y = h/2 - footLift;
   body.userData = { isUnit: true };
   group.add(body);
   const shadow = new THREE.Mesh(new THREE.CircleGeometry(0.26 * (w/shadowRefW), 12), new THREE.MeshBasicMaterial({ color:0x000000, transparent:true, opacity:0.35 }));
   shadow.rotation.x = -Math.PI/2; shadow.position.y = 0.01; group.add(shadow);
-  const barY = h + 0.14;
+  // HP/mana/badge stack rides with the lowered sprite (same gap above the head as before).
+  const barY = h + 0.14 - footLift;
   const hpBg = new THREE.Mesh(new THREE.PlaneGeometry(0.72,0.08), new THREE.MeshBasicMaterial({ color:0x2a1410, side:THREE.DoubleSide }));
   hpBg.position.y = barY; group.add(hpBg);
   const hpBar = new THREE.Mesh(new THREE.PlaneGeometry(0.72,0.08), new THREE.MeshBasicMaterial({ color: cfg.team==='player'?0x66c25a:0xc25a44, side:THREE.DoubleSide }));
@@ -1658,7 +1719,7 @@ function makeUnit(cfg) {
   group.position.set(p.x, 0, p.z);
   scene.add(group);
   occupied.add(key(cfg.c, cfg.r));
-  const u = { ...cfg, group, body, hpBar, manaBar, starBadge, shadow, tex, frames, halfH: h/2, equipBadge,
+  const u = { ...cfg, group, body, hpBar, manaBar, starBadge, shadow, tex, frames, halfH: h/2, footLift, equipBadge,
     linkRing, linkBadge,
     maxHp: cfg.hp, alive: true, atkCooldown: 0,
     moving: false, moveFrom: null, moveTo: null, moveT: 0,
@@ -2414,7 +2475,12 @@ function mitigateDamage(rawDmg, attacker, target, armorPenPct) {
   const isMagic = attacker.attackType === 'magic';
   const ts = target.combatStats;
   const def = ts ? (isMagic ? (ts.m_def || 0) : (ts.p_def || 0)) : (isMagic ? (target.mDef || 0) : (target.pDef || 0));
-  return Math.max(0, rawDmg - def);
+  // Diminishing-return mitigation: def 30 blocks ~23%, def 100 blocks 50%, def can never
+  // reduce a positive attack to zero. The old flat `max(0, raw - def)` made every early
+  // monster (Slime 9, Skeleton 13, OrcBrute 20, Golem 24 P.ATK) deal literally 0 to any
+  // hero with equal-or-higher defense, which is most of the roster. Enemy `armor` keeps its
+  // separate percentage path above — heroes attacking monsters are unaffected by this line.
+  return rawDmg * 100 / (100 + Math.max(0, def));
 }
 // ----- hit-flash กลาง: เก็บ timer handle ไว้บนยูนิต เพื่อคืนสี/ยกเลิกได้จากทุกจุดใน lifecycle -----
 // แก้บั๊กศพค้างสี flash: เดิม callback restore เช็ค `target.alive` → ยูนิตที่ตายกลาง flash ไม่ถูกคืนสี
@@ -2422,7 +2488,10 @@ function mitigateDamage(rawDmg, attacker, target, armorPenPct) {
 // (2) removeUnit ยกเลิก timer ค้าง ไม่ให้ callback เก่าไปแตะ material ที่ dispose แล้ว
 function restoreBodyColor(u) {
   if (u.hitFlashTimer) { clearTimeout(u.hitFlashTimer); u.hitFlashTimer = null; }
-  if (u.body) u.body.material.color.set(u.placeholderColor || 0xffffff);
+  // A textured body must return to WHITE (no tint) — placeholderColor only applies to the
+  // untextured box fallback. Slime/OrcBrute carry a placeholderColor AND (normally) a motion
+  // texture, so keying on the material's map, not the config, picks the right base per unit.
+  if (u.body) u.body.material.color.set(u.body.material.map ? 0xffffff : (u.placeholderColor || 0xffffff));
 }
 function applyHitFlash(u, colorHex, durationMs) {
   if (!u.body) return;
@@ -2509,6 +2578,16 @@ function selectTarget(u) {
   for (const o of enemies) { const d=gridDist(u,o); if (d<bd){bd=d;best=o;} }
   return best;
 }
+// ----- Facing: single helper for every horizontal-flip decision (movement + basic attack). -----
+// Canonical facing multiplier per motion sprite: 1 = the source art reads as facing right at
+// scale.x=+1 (true for every current hero sheet and monster motion set). If a future art set is
+// authored facing left, register it here as -1 and it flips in data, not scattered code.
+const SPRITE_BASE_FACING = {};
+function setUnitFacing(u, dirX) {
+  if (!dirX || !u.body) return; // horizontal tie / pure-vertical: keep the last valid facing
+  const want = (dirX > 0 ? 1 : -1) * (SPRITE_BASE_FACING[u.sprite] || 1);
+  if (u.body.scale.x !== want) u.body.scale.x = want; // only flips on a real side change — never churns per frame
+}
 // The target's pending destination (not its live tile) when it's already mid-step — two mutually-
 // chasing melee units both reading each other's live position would each arrive to find the other
 // has just relocated, forever "just missing" in a stable back-and-forth loop. Aiming at the
@@ -2534,6 +2613,38 @@ function findMeleeApproachTile(u, target) {
   }
   return best;
 }
+// Ring-2 staging picker: every free, reachable tile at Manhattan distance exactly 2 from the
+// target's approach reference. When all four attack tiles are taken (typical around a lone boss),
+// a melee unit queues here — close enough to slide into an attack tile the moment one opens —
+// instead of holding position across the board. Grants no attack range (d==2 never satisfies the
+// d<=1 range check); shares astar() and first-found-wins-on-tie with findMeleeApproachTile, so
+// tie-breaking stays deterministic. Fixed enumeration order: dc from -2..2, negative dr first.
+function findMeleeStagingTile(u, target) {
+  const ref = meleeApproachRef(target);
+  let best = null, bestLen = Infinity;
+  for (let dc = -2; dc <= 2; dc++) {
+    const adr = 2 - Math.abs(dc);
+    for (const dr of (adr === 0 ? [0] : [-adr, adr])) {
+      const c = ref.c+dc, r = ref.r+dr;
+      if (c<0||r<0||c>=GRID_COLS||r>=GRID_ROWS||r===BENCH_ROW) continue;
+      if (c === u.c && r === u.r) return { c, r }; // already staged on a ring tile (own tile reads as occupied) — stay put
+      if (occupied.has(key(c,r))) continue;
+      const path = astar(u.c, u.r, c, r, key(u.c,u.r));
+      if (path && path.length < bestLen) { bestLen = path.length; best = { c, r }; }
+    }
+  }
+  return best;
+}
+// Retarget fallback when the current melee target is fully unreachable (no free attack tile AND
+// no free staging tile): nearest living enemy that IS reachable by either ring. Stable sort keeps
+// insertion order on equal distances, so the pick is deterministic.
+function findBestReachableEnemy(u) {
+  const foes = units.filter((o) => o.alive && o.team !== u.team).sort((a, b) => gridDist(u, a) - gridDist(u, b));
+  for (const foe of foes) {
+    if (findMeleeApproachTile(u, foe) || findMeleeStagingTile(u, foe)) return foe;
+  }
+  return null;
+}
 function stepToward(u, target) {
   // A unit already mid-step must finish that step before picking a new destination.
   if (u.moving) return;
@@ -2552,7 +2663,19 @@ function stepToward(u, target) {
     // target changed or the cached tile is no longer within melee range of the target.
     let goal = u.approachGoal;
     if (!goal || u.approachGoalFor !== target || gridDist(goal, meleeApproachRef(target)) > 1) goal = findMeleeApproachTile(u, target);
-    if (!goal) { u.approachGoal = null; u.approachGoalFor = null; return; } // no reachable free tile borders the target right now — hold position
+    // All four attack tiles taken/unreachable -> queue on the ring-2 staging band instead of
+    // holding position far away. A staging goal is never cached past this call: its gridDist to
+    // the ref is 2, so the re-pick condition above re-runs findMeleeApproachTile next time and
+    // the staged unit advances into a real attack tile the moment one opens (e.g. a unit died).
+    if (!goal) goal = findMeleeStagingTile(u, target);
+    if (!goal) {
+      u.approachGoal = null; u.approachGoalFor = null;
+      // Target fully unreachable (boxed in) — if some other living enemy IS reachable, switch to
+      // it rather than idling forever against a wall; the lock in updateUnit keeps the new target.
+      const alt = findBestReachableEnemy(u);
+      if (alt && alt !== target) u.current_target = alt;
+      return;
+    }
     u.approachGoal = goal; u.approachGoalFor = target;
     goalC = goal.c; goalR = goal.r;
   } else {
@@ -2564,7 +2687,7 @@ function stepToward(u, target) {
     if (!occupied.has(nk)) {
       occupied.delete(key(u.c,u.r)); occupied.add(nk);
       u.moving=true; u.moveT=0; u.moveFrom={c:u.c,r:u.r}; u.moveTo=next;
-      u.body.scale.x = (next.c<u.c)?-1:(next.c>u.c?1:u.body.scale.x);
+      setUnitFacing(u, next.c - u.c); // vertical step (dirX 0) keeps the last valid facing
     }
   }
 }
@@ -3262,10 +3385,10 @@ function updateUnit(u, dt) {
     if (u.moveT>=1) { u.moveT=1; u.moving=false; u.c=u.moveTo.c; u.r=u.moveTo.r; }
     const a=gridToWorld(u.moveFrom.c,u.moveFrom.r), b=gridToWorld(u.moveTo.c,u.moveTo.r);
     u.group.position.lerpVectors(a,b,u.moveT);
-    u.body.position.y = u.halfH + Math.abs(Math.sin(u.moveT*Math.PI*2))*0.06;
+    u.body.position.y = u.halfH - (u.footLift||0) + Math.abs(Math.sin(u.moveT*Math.PI*2))*0.06;
     updateAnim(u,dt); return;
   }
-  u.body.position.y = u.halfH;
+  u.body.position.y = u.halfH - (u.footLift||0);
 
   // 2) Hard CC Check (Stun/Freeze)
   if (hasHardCC(u)) {
@@ -3377,7 +3500,9 @@ function updateUnit(u, dt) {
         }
       }
     }
-    u.body.scale.x = (gridToWorld(target.c,target.r).x < u.group.position.x) ? -1 : 1;
+    // Same facing contract as movement: face the target's horizontal side; on a same-column tie
+    // keep the last valid facing (the old ternary forced +1, snapping units to an arbitrary side).
+    setUnitFacing(u, gridToWorld(target.c,target.r).x - u.group.position.x);
   } else stepToward(u, target); // 5) Movement
   updateAnim(u, dt);
 }
@@ -3431,6 +3556,32 @@ function pickShopOffers() {
     offers.push(pool.splice(i,1)[0]);
   }
   shopOffers = offers;
+  pickItemShopOffers(); // item offers refresh with the hero offers (new wave + reroll) — def ids only, never instances
+}
+function itemShopCost(itemDefId) {
+  return ITEM_DEFS_BY_ID[itemDefId].recipe ? ITEM_SHOP.combined_cost : ITEM_SHOP.base_cost;
+}
+function pickItemShopOffers() {
+  const band = ITEM_SHOP.bands.find((b) => wave >= b.min_wave && wave <= b.max_wave)
+    || ITEM_SHOP.bands[ITEM_SHOP.bands.length - 1]; // waves past the table keep the last band's odds
+  itemShopOffers = [];
+  for (let i = 0; i < ITEM_SHOP.slots; i++) {
+    const pool = Math.random() < band.combined_chance ? ITEM_BASE.combined_items : ITEM_BASE.base_items;
+    itemShopOffers.push(pool[Math.floor(Math.random() * pool.length)].id);
+  }
+}
+function buyShopItem(offerIdx) {
+  if (phase !== 'shop') return false;
+  const itemDefId = itemShopOffers[offerIdx];
+  if (!itemDefId) return false;
+  const cost = itemShopCost(itemDefId);
+  if (gold < cost) return false;
+  if (playerState.inventory.itemInstanceIds.length >= playerState.inventory.capacity) return false;
+  gold -= cost;
+  itemShopOffers.splice(offerIdx, 1); // sold-out slot — the single gold deduction above is the only one
+  createItemInstance(itemDefId); // existing factory: instance lands in inventory, equippable via the existing flow
+  renderUI();
+  return true;
 }
 
 // ไทยชื่อย่อของ effect key แต่ละตัว ใช้แสดงผลในกล่อง Synergy panel เท่านั้น (ไม่กระทบ logic)
@@ -3675,6 +3826,22 @@ function renderUI() {
   const rerollCost = getRerollCost();
   rerollBtn.disabled = gold < rerollCost || ownedPool.length === 0 || !!pendingEvolution;
   rerollBtn.textContent = freeRerollsRemaining > 0 ? `รีโรล (ฟรี)` : `รีโรล 💰${rerollCost}`;
+
+  // Item/weapon shop section — separate offer list under the hero cards (see ITEM_SHOP note)
+  const itemShopCardsEl = document.getElementById('itemShopCards');
+  const invFull = playerState.inventory.itemInstanceIds.length >= playerState.inventory.capacity;
+  itemShopCardsEl.innerHTML = '';
+  itemShopOffers.forEach((itemDefId, idx) => {
+    const idef = ITEM_DEFS_BY_ID[itemDefId];
+    const cost = itemShopCost(itemDefId);
+    const div = document.createElement('div');
+    div.className = 'card itemShopCard' + (gold < cost || invFull ? ' disabled' : '');
+    div.innerHTML = `<div class="itemIcon">${itemIcon(itemDefId)}</div><div class="name">${idef.name}</div><div class="cost">💰${cost}</div>`;
+    div.title = idef.passive || '';
+    div.onclick = () => buyShopItem(idx);
+    itemShopCardsEl.appendChild(div);
+  });
+  document.getElementById('itemShopHeader').style.display = itemShopOffers.length ? '' : 'none';
 
   // ม้านั่งสำรองอยู่บนกระดาน 3D เนื้อเดียวกันแล้ว (แถวสีเข้มล่างสุด) ไม่มีการ์ด DOM ให้ render อีกต่อไป —
   // เหลือแค่แถบ hint/selectedUnit ลอยอยู่กึ่งกลางล่างจอบอกสถานะ/ปุ่มไอเทม-ขาย ของฮีโร่ที่เลือกอยู่
@@ -3977,9 +4144,9 @@ function moveUnitTo(u, c, r) {
 // ============================================================
 const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
-// #boardContainer is no longer full-viewport (it's a centered square that's ~60% of the
-// screen), so mouse coords must be normalized against the CANVAS's own bounding rect, not
-// window.innerWidth/Height — this is the single source every raycast call site below uses.
+// #boardContainer is a full-viewport fixed layer again (inset:0 — the old "centered ~60%
+// square" note was stale), but normalizing against the CANVAS's own bounding rect stays
+// correct for any layout — this is the single source every raycast call site below uses.
 function setMouseFromClient(clientX, clientY) {
   const rect = renderer.domElement.getBoundingClientRect();
   mouse.x = ((clientX - rect.left) / rect.width) * 2 - 1;
@@ -4005,22 +4172,30 @@ function pickPlayerUnitAtScreenPoint(clientX, clientY) {
 // ต่างหาก แตะยูนิตของผู้เล่น (ม้านั่งหรือสนามรบก็ได้) เพื่อเลือก แล้วแตะช่องปลายทางเพื่อย้าย — หรือ
 // ลากตรงๆ ด้วยผี sprite ลอยเหนือนิ้ว (GHOST_Y_OFFSET) แบบเดียวกับระบบม้านั่งเดิม
 // ============================================================
-const GHOST_Y_OFFSET = 56; // px lifted above the pointer
-let unitDrag = null; // {unit, startX, startY, moved, pointerId, ghostEl}
+const GHOST_Y_OFFSET = 56; // px the drag TARGET POINT is lifted above a finger (0 for mouse — no occlusion)
+let unitDrag = null; // {unit, startX, startY, moved, pointerId, ghostEl, hoverTile, liftY}
 
 document.addEventListener('dragstart', (e) => e.preventDefault()); // native drag/selection can fire mid-gesture on some browsers
 
+// ONE shared drag target point drives everything: ghost anchor, tile raycast, tile highlight,
+// and (via hoverTile) the pointer-up drop. dragTargetPoint lifts the point above a finger so the
+// destination tile is never hidden under the touch; the ghost's FEET are anchored exactly at
+// this same point (CSS translate(-50%,-100%)), so the tile the ghost stands on, the highlighted
+// tile, and the drop tile are always the same tile. Previously the ghost floated at
+// clientY-56 while the raycast used the unshifted clientY — one tile visually under the ghost,
+// a different tile highlighted and receiving the unit.
+function dragTargetPoint(ds, e) { return { x: e.clientX, y: e.clientY - ds.liftY }; }
 function startBenchGhost(ds, x, y) {
   const ghost = document.createElement('div');
   ghost.className = 'benchGhost';
   ghost.innerHTML = `<img src="${heroPortraitSrc(ds.unit.heroKey)}">`;
   document.body.appendChild(ghost);
   ghost.style.left = x + 'px';
-  ghost.style.top = (y - GHOST_Y_OFFSET) + 'px';
+  ghost.style.top = y + 'px';
   ds.ghostEl = ghost;
 }
 function moveBenchGhost(ds, x, y) {
-  if (ds.ghostEl) { ds.ghostEl.style.left = x + 'px'; ds.ghostEl.style.top = (y - GHOST_Y_OFFSET) + 'px'; }
+  if (ds.ghostEl) { ds.ghostEl.style.left = x + 'px'; ds.ghostEl.style.top = y + 'px'; }
 }
 function endBenchGhost(ds) {
   if (ds.ghostEl && ds.ghostEl.parentNode) ds.ghostEl.parentNode.removeChild(ds.ghostEl);
@@ -4031,21 +4206,23 @@ renderer.domElement.addEventListener('pointerdown', (e) => {
   const u = pickPlayerUnitAtScreenPoint(e.clientX, e.clientY);
   if (!u) return; // ปล่อยให้ pointerup ด้านล่างจัดการ "แตะช่องว่างเพื่อย้าย" กรณีนี้แทน
   e.preventDefault();
-  unitDrag = { unit: u, startX: e.clientX, startY: e.clientY, moved: false, pointerId: e.pointerId, ghostEl: null, hoverTile: null };
+  unitDrag = { unit: u, startX: e.clientX, startY: e.clientY, moved: false, pointerId: e.pointerId, ghostEl: null, hoverTile: null,
+    liftY: e.pointerType === 'mouse' ? 0 : GHOST_Y_OFFSET };
 });
 document.addEventListener('pointermove', (e) => {
   if (!unitDrag || e.pointerId !== unitDrag.pointerId) return;
   const dx = e.clientX - unitDrag.startX, dy = e.clientY - unitDrag.startY;
+  const pt = dragTargetPoint(unitDrag, e); // shared point: ghost anchor == raycast == highlight == drop
   if (!unitDrag.moved && Math.hypot(dx, dy) > 6) {
     unitDrag.moved = true;
-    startBenchGhost(unitDrag, e.clientX, e.clientY);
+    startBenchGhost(unitDrag, pt.x, pt.y);
   }
   if (unitDrag.moved) {
-    moveBenchGhost(unitDrag, e.clientX, e.clientY);
-    // ตรวจช่องใต้ pointer ตอนนี้ด้วย raycast เดิม (pickTileAtScreenPoint) แบบ real-time — อัปเดต
-    // ไฮไลต์เฉพาะตอนช่องที่ชี้อยู่เปลี่ยนจริง (ไม่ใช่ทุก pixel) ประหยัด repaint โดยยังใช้
+    moveBenchGhost(unitDrag, pt.x, pt.y);
+    // ตรวจช่องที่จุดเป้าหมายเดียวกับผี (pt) ด้วย raycast เดิม (pickTileAtScreenPoint) แบบ real-time —
+    // อัปเดตไฮไลต์เฉพาะตอนช่องที่ชี้อยู่เปลี่ยนจริง (ไม่ใช่ทุก pixel) ประหยัด repaint โดยยังใช้
     // material/mesh เดิมของ tileMeshes ซ้ำเสมอ ไม่สร้าง/ลบอะไรใหม่
-    const tile = pickTileAtScreenPoint(e.clientX, e.clientY);
+    const tile = pickTileAtScreenPoint(pt.x, pt.y);
     const next = (tile && tile.isTile && tile.playerZone) ? { c: tile.c, r: tile.r } : null;
     const prev = unitDrag.hoverTile;
     if ((next?.c !== prev?.c) || (next?.r !== prev?.r)) {
@@ -4312,8 +4489,27 @@ const resultBtn = document.getElementById('resultBtn');
 let waveTimer = 0;
 const WAVE_TIMEOUT = 150;
 
+// ----- Measured per-stage enemy scaling (Live Gameplay QA balance pass) -----
+// Enemy base stats never grow across the run while the player stacks heroes, levels, Links,
+// and (now) purchasable equipment; after the diminishing-return mitigation fix, three scripted
+// x4 playthroughs still cleared all 15 waves at 58–96% surviving team HP. This fixed lookup
+// table (applied exactly once, at spawn — no compounding, unlike the removed +12%/wave double
+// scaling) restores pressure per stage band. Boss/miniboss identity, skills, and compositions
+// are unchanged — only spawn-time hp/pAtk are multiplied, escorts and bosses alike, so the
+// difficulty rise is systemic rather than a lone inflated final boss. Stages 1–2 are untouched
+// so the opening never depends on lucky shop RNG.
+const STAGE_ENEMY_SCALE = {
+  1:{hp:1.0,atk:1.0}, 2:{hp:1.0,atk:1.0}, 3:{hp:1.05,atk:1.05},
+  4:{hp:1.15,atk:1.1}, 5:{hp:1.2,atk:1.15},
+  6:{hp:1.35,atk:1.2}, 7:{hp:1.45,atk:1.25}, 8:{hp:1.55,atk:1.3},
+  9:{hp:1.65,atk:1.35}, 10:{hp:1.7,atk:1.4},
+  11:{hp:1.9,atk:1.5}, 12:{hp:2.0,atk:1.55}, 13:{hp:2.15,atk:1.6},
+  14:{hp:2.3,atk:1.65}, 15:{hp:2.45,atk:1.7},
+};
 function spawnWave(n) {
-  buildWave(n).forEach((cfg) => makeUnit({ team:'enemy', ...cfg }));
+  const scale = STAGE_ENEMY_SCALE[n] || STAGE_ENEMY_SCALE[15];
+  buildWave(n).forEach((cfg) => makeUnit({ team:'enemy', ...cfg,
+    hp: Math.round(cfg.hp * scale.hp), pAtk: Math.round(cfg.pAtk * scale.atk) }));
 }
 function clearEnemies() {
   units.filter(u => u.team==='enemy').forEach(removeUnit);

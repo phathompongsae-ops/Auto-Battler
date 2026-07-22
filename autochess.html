@@ -193,6 +193,10 @@
   #shopDrawer h3 button:disabled { background: #444; border-color: #555; color: #999; cursor: not-allowed; }
   #shopCloseBtn { background: #262a33 !important; color: var(--text) !important; border-color: var(--panel-border) !important; }
   #shopCards { display: flex; gap: 6px; flex-wrap: wrap; }
+  /* ----- Item/weapon shop section: separate row under the hero cards, reuses .card ----- */
+  #itemShopHeader { margin: 8px 0 4px; font-size: 12px; color: var(--text-dim); border-top: 1px solid var(--card-border); padding-top: 6px; }
+  #itemShopCards { display: flex; gap: 6px; flex-wrap: wrap; }
+  .itemShopCard .itemIcon { font-size: 30px; line-height: 48px; height: 48px; background: #2a2420; }
   .subcount { font-weight: normal; color: var(--text-dim); font-size: 11px; }
   .card {
     width: 62px; background: var(--card-bg); border: 2px solid var(--card-border); border-radius: 6px; overflow: hidden;
@@ -292,7 +296,11 @@
      sprite doesn't cover the tile the player is about to drop on, and reads a touch
      smaller than the bench card it came from */
   .benchGhost { position: fixed; width: 50px; height: 50px; pointer-events: none; z-index: 80;
-    transform: translate(-50%, -50%) scale(0.86); border-radius: 10px; overflow: hidden;
+    /* feet-anchored: the ghost's bottom-center sits exactly on the shared drag target point
+       (the same point the tile raycast/highlight/drop use), so the ghost visually stands on
+       the tile that will actually receive the unit */
+    transform: translate(-50%, -100%) scale(0.86); transform-origin: bottom center;
+    border-radius: 10px; overflow: hidden;
     background: #333; box-shadow: 0 4px 10px #0008, 0 0 0 2px var(--accent); }
   .benchGhost img { width: 100%; height: 100%; object-fit: cover; display: block; }
   /* ----- มุมล่างขวา (Toggle Shop / เริ่มการต่อสู้) — Lv./EXP ย้ายขึ้นแถบบนแล้ว ----- */
@@ -443,6 +451,8 @@
 <div class="panel" id="shopDrawer">
   <h3>ร้านค้า <span><button id="rerollBtn">รีโรล (2💰)</button> <button id="shopCloseBtn">✕</button></span></h3>
   <div id="shopCards"></div>
+  <div id="itemShopHeader">อาวุธ/ไอเทม</div>
+  <div id="itemShopCards"></div>
 </div>
 
 <div id="bottomRight" class="hudCorner">
