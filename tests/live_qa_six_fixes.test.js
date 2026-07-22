@@ -292,6 +292,74 @@ async function newPage(browser, viewport) {
     await page.close();
   }
 
+  // ---------- Follow-up: unit foot-anchor (sprite stands centered in its cell) ----------
+  // Sprite frames carry transparent bottom padding, so anchoring the plane's geometric bottom at
+  // the tile center left the drawn feet floating onto the back grid line. The foot-anchor lowers
+  // the plane by that padding so the OPAQUE feet land at the cell center. Verify: logical root
+  // exactly at center, opaque feet project to the cell center within a strict pixel tolerance,
+  // the anchor is actually lowered for padded sprites, box placeholders get zero lift, and the
+  // anchor survives a move step.
+  {
+    const page = await newPage(browser, { width: 360, height: 800 });
+    const r = await page.evaluate(() => {
+      const out = {};
+      const rect = renderer.domElement.getBoundingClientRect();
+      const toScreen = (v) => { const p = v.clone().project(camera); return { x: rect.left + (p.x + 1) / 2 * rect.width, y: rect.top + (1 - p.y) / 2 * rect.height }; };
+      const opaqueFeetWorld = (u) => {
+        // opaque feet = plane geometric bottom (group-local y=0) raised by the sprite's bottom
+        // padding, i.e. exactly the amount the plane was lowered (footLift) -> back at group origin.
+        // Measure directly: body bottom edge + footLift along body-up == group origin by design.
+        u.group.updateMatrixWorld(true);
+        const bottom = u.body.localToWorld(new THREE.Vector3(0, -u.halfH, 0));         // plane bottom
+        const feet = u.body.localToWorld(new THREE.Vector3(0, -u.halfH + u.footLift, 0)); // opaque feet
+        return { bottom, feet };
+      };
+      // place a hero on the center tile
+      const idx = shopOffers.findIndex((k) => gold >= HERO_DEFS[k].cost);
+      if (idx >= 0) buyHero(idx);
+      const hero = benchHeroes[0];
+      moveUnitTo(hero, 4, 5);
+      const p = placedUnits.find((x) => x.c === 4 && x.r === 5);
+      for (const un of units) un.group.quaternion.copy(camera.quaternion);
+      const tm = tileMeshes.find((m) => m.userData.c === 4 && m.userData.r === 5);
+      const tc = new THREE.Vector3(); tm.getWorldPosition(tc);
+      const rootW = new THREE.Vector3(); p.group.getWorldPosition(rootW);
+      const { feet } = opaqueFeetWorld(p);
+      out.heroFootLiftPositive = p.footLift > 0.05;                     // padded hero got a real lift
+      out.heroAnchorLowered = Math.abs(p.body.position.y - (p.halfH - p.footLift)) < 1e-6;
+      out.rootAtCenterXZ = Math.hypot(rootW.x - tc.x, rootW.z - tc.z) < 1e-6;
+      const sf = toScreen(feet), stc = toScreen(tc);
+      out.px_feet_vs_center = Math.round(Math.hypot(sf.x - stc.x, sf.y - stc.y) * 10) / 10;
+      out.feetCentered = out.px_feet_vs_center < 4;                     // opaque feet at cell center
+      // anchor survives a move step: drive one updateUnit move frame and re-check body.position.y
+      const from = { c: p.c, r: p.r };
+      p.moving = true; p.moveT = 0.5; p.moveFrom = { c: from.c, r: from.r }; p.moveTo = { c: from.c, r: from.r - 1 };
+      updateUnit(p, 0);   // sets body.position.y for the moving branch
+      out.moveAnchorLowered = p.body.position.y < p.halfH;              // still lowered (plus tiny bob)
+      p.moving = false; p.moveT = 0; p.moveTo = null; p.moveFrom = null;
+      // box placeholder (no art) must get zero lift
+      const saved = MONSTER_MOTION_READY.Slime; MONSTER_MOTION_READY.Slime = false;
+      const box = makeUnit({ team: 'enemy', name: 'Box', sprite: 'Slime', c: 0, r: 0, hp: 40, pAtk: 5, atkSpeed: 1, range: 1, moveSpeed: 1, armor: 5, placeholderColor: 0x6fcf5a });
+      out.boxGeo = box.body.geometry.type === 'BoxGeometry';
+      out.boxZeroLift = box.footLift === 0 && box.body.position.y === box.halfH;
+      removeUnit(box); MONSTER_MOTION_READY.Slime = saved;
+      // a motion monster (Slime) also carries a foot lift
+      const sl = makeUnit({ team: 'enemy', name: 'Sl', sprite: 'Slime', c: 0, r: 0, hp: 40, pAtk: 5, atkSpeed: 1, range: 1, moveSpeed: 1, armor: 5, placeholderColor: 0x6fcf5a });
+      out.monsterFootLiftPositive = sl.footLift > 0;
+      removeUnit(sl);
+      return out;
+    });
+    check('footanchor hero logical root exactly at cell center', r.rootAtCenterXZ, r);
+    check('footanchor hero anchor lowered by footLift', r.heroAnchorLowered, r);
+    check('footanchor hero footLift is a real (>0.05) lift', r.heroFootLiftPositive, r);
+    check('footanchor opaque feet land at cell center (px)', r.feetCentered, r);
+    check('footanchor anchor survives a move step', r.moveAnchorLowered, r);
+    check('footanchor box placeholder gets zero lift', r.boxZeroLift && r.boxGeo, r);
+    check('footanchor motion monster (Slime) also lifted', r.monsterFootLiftPositive, r);
+    check('footanchor no page errors', page.pageErrors.length === 0, page.pageErrors);
+    await page.close();
+  }
+
   await browser.close();
   console.log(`\n${passed} passed, ${failed} failed`);
   process.exit(failed ? 1 : 0);

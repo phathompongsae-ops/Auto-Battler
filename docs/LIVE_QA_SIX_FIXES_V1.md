@@ -142,7 +142,8 @@ drop by construction. The ghost is feet-anchored to that point (`.benchGhost` tr
 ## Validation
 
 - **Existing tests:** the repository has no test suite or runner; none existed to run.
-- **New regression suite:** `tests/live_qa_six_fixes.test.js` — 62 checks, all passing.
+- **New regression suite:** `tests/live_qa_six_fixes.test.js` — 70 checks, all passing
+  (62 for the six fixes + 8 for the follow-up foot-anchor; see the follow-up section below).
   Run: serve the repo root over HTTP (Three.js CDN substituted locally if egress-blocked),
   then `BASE_URL=http://127.0.0.1:PORT/autochess.html node tests/live_qa_six_fixes.test.js`
   (env overrides: `PLAYWRIGHT_MODULE`, `CHROMIUM_PATH`).
@@ -157,3 +158,41 @@ drop by construction. The ghost is feet-anchored to that point (`.benchGhost` tr
 - **Scope:** diff touches only `src/game.js` and `autochess.html` (+ tests/docs). No
   Motion PNGs, metadata sidecars, animation timings, workflows, camera, lighting, or
   unrelated hero skills were modified.
+
+---
+
+## Follow-up — Real-device visual QA (unit cell alignment + black background)
+
+Two defects were re-reported from the deployed **live main** build and re-verified against both
+live main and this PR branch, independently.
+
+### Black background (Slime/Orc) — already fixed by Fix 1
+
+Confirmed via direct render on both builds: live main spawns Slime/Orc as an opaque
+`BoxGeometry` (`transparent:false`, tinted) with the motion PNG mapped on → black rectangle; this
+PR branch spawns them as a transparent alpha-tested `PlaneGeometry` (`0xffffff`) → clean sprite.
+Live main is simply outdated relative to this PR. **No additional change.**
+
+### Unit not centered in its cell — foot-anchor fix
+
+Reproduced on **both** builds (identical art + anchor; not a PR-#95 regression). The unit's
+logical grid coordinate and group **root are exactly at the cell center** on both builds
+(measured 0 px). The problem was purely the sprite's **vertical visual anchor**: `body.position.y
+= h/2` placed the billboard plane's geometric bottom at the ground, but sprite frames carry
+transparent bottom padding (heroes ≈20.6% of frame height, Slime/Orc ≈10.9%), lifting the
+*visible* feet ≈`padFrac × planeHeight` above the cell center (heroes ≈0.29 world units ≈ ⅓ of a
+cell) so the drawn feet landed on the back grid line.
+
+**Fix (`spriteFootLift`):** sample each sprite's opaque bottom padding once (frame 0, cached per
+sprite key) and lower the plane by that fraction of its height
+(`body.position.y = h/2 - footLift`), so the drawn feet meet the cell center. The HP/mana/badge
+stack rides down with it (`barY = h + 0.14 - footLift`); the shadow and link-ring stay at ground
+(now coincident with the feet). Box placeholders get zero lift. The lowered anchor is re-applied
+on the moving/idle body-Y updates so it survives movement. Board, tiles, camera, `occupied`/logic,
+movement/pathfinding, drag target point, tap-select, balance, and combat are untouched.
+
+Measured after fix: `rootVsCenter_px = 0` and opaque `feetVsCenter_px = 0` on center and edge
+tiles; pre-fix visible-feet error was ≈12 screen px. Regression suite: **70/70 pass** (62 prior +
+8 new foot-anchor checks). Verified at 360×800, 800×360, 844×390 (touch) and 1280×720 (mouse) —
+emulated Playwright Chromium; no real Android hardware was available, so no real-device
+verification is claimed.

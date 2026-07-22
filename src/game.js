@@ -1593,6 +1593,34 @@ const LINK_BADGE_TEX = (() => {
   ctx.fillText('🔗', 16, 17);
   return new THREE.CanvasTexture(c);
 })();
+// Foot-anchor correction: sprite frames carry transparent padding below the character (heroes
+// ~20% of frame height, Slime/Orc ~11%). The body plane is anchored with its geometric bottom at
+// the tile center (ground), so that padding lifts the *visible* feet up onto the back grid line —
+// the reported "unit not standing centered in its cell" defect. We sample each sprite's opaque
+// bottom padding ONCE (frame 0, cached per sprite key) and lower the plane by that fraction of its
+// height so the drawn feet meet the tile center. Purely a visual anchor: board, tiles, camera,
+// occupied/logic and the group root (still exactly at the cell center) are untouched. Box
+// placeholders have no art and get zero lift.
+const SPRITE_FOOT_LIFT_FRAC = {};
+function spriteFootLift(key, image, framesInImage, h) {
+  if (key in SPRITE_FOOT_LIFT_FRAC) return SPRITE_FOOT_LIFT_FRAC[key] * h;
+  if (!image || !image.width || !image.height) return 0; // texture not decoded yet — retry next spawn
+  try {
+    const fw = Math.max(1, Math.floor(image.width / (framesInImage || 1)));
+    const cv = document.createElement('canvas'); cv.width = fw; cv.height = image.height;
+    const g = cv.getContext('2d'); g.drawImage(image, 0, 0, fw, image.height, 0, 0, fw, image.height);
+    const d = g.getImageData(0, 0, fw, image.height).data;
+    let bot = -1;
+    for (let y = image.height - 1; y >= 0; y--) {
+      let any = false;
+      for (let x = 0; x < fw; x++) { if (d[(y * fw + x) * 4 + 3] > 16) { any = true; break; } }
+      if (any) { bot = y; break; }
+    }
+    const frac = bot < 0 ? 0 : (image.height - 1 - bot) / image.height;
+    SPRITE_FOOT_LIFT_FRAC[key] = frac;
+    return frac * h;
+  } catch (e) { return 0; } // tainted canvas / no context — no lift, safe fallback
+}
 function makeUnit(cfg) {
   const group = new THREE.Group();
   const meta = ASSET_META[cfg.sprite];
@@ -1626,12 +1654,17 @@ function makeUnit(cfg) {
     body = new THREE.Mesh(new THREE.BoxGeometry(w, h, w * 0.6),
       new THREE.MeshBasicMaterial({ color: cfg.placeholderColor || 0x888888 }));
   }
-  body.position.y = h/2;
+  // Lower the plane by its sprite's opaque bottom padding so the drawn feet sit at the tile center
+  // (the shadow, below, stays at ground / cell center — feet and shadow now coincide). tex is null
+  // for the box placeholder branch, so footLift is 0 there.
+  const footLift = spriteFootLift(cfg.sprite, tex && tex.image, frames, h);
+  body.position.y = h/2 - footLift;
   body.userData = { isUnit: true };
   group.add(body);
   const shadow = new THREE.Mesh(new THREE.CircleGeometry(0.26 * (w/shadowRefW), 12), new THREE.MeshBasicMaterial({ color:0x000000, transparent:true, opacity:0.35 }));
   shadow.rotation.x = -Math.PI/2; shadow.position.y = 0.01; group.add(shadow);
-  const barY = h + 0.14;
+  // HP/mana/badge stack rides with the lowered sprite (same gap above the head as before).
+  const barY = h + 0.14 - footLift;
   const hpBg = new THREE.Mesh(new THREE.PlaneGeometry(0.72,0.08), new THREE.MeshBasicMaterial({ color:0x2a1410, side:THREE.DoubleSide }));
   hpBg.position.y = barY; group.add(hpBg);
   const hpBar = new THREE.Mesh(new THREE.PlaneGeometry(0.72,0.08), new THREE.MeshBasicMaterial({ color: cfg.team==='player'?0x66c25a:0xc25a44, side:THREE.DoubleSide }));
@@ -1686,7 +1719,7 @@ function makeUnit(cfg) {
   group.position.set(p.x, 0, p.z);
   scene.add(group);
   occupied.add(key(cfg.c, cfg.r));
-  const u = { ...cfg, group, body, hpBar, manaBar, starBadge, shadow, tex, frames, halfH: h/2, equipBadge,
+  const u = { ...cfg, group, body, hpBar, manaBar, starBadge, shadow, tex, frames, halfH: h/2, footLift, equipBadge,
     linkRing, linkBadge,
     maxHp: cfg.hp, alive: true, atkCooldown: 0,
     moving: false, moveFrom: null, moveTo: null, moveT: 0,
@@ -3352,10 +3385,10 @@ function updateUnit(u, dt) {
     if (u.moveT>=1) { u.moveT=1; u.moving=false; u.c=u.moveTo.c; u.r=u.moveTo.r; }
     const a=gridToWorld(u.moveFrom.c,u.moveFrom.r), b=gridToWorld(u.moveTo.c,u.moveTo.r);
     u.group.position.lerpVectors(a,b,u.moveT);
-    u.body.position.y = u.halfH + Math.abs(Math.sin(u.moveT*Math.PI*2))*0.06;
+    u.body.position.y = u.halfH - (u.footLift||0) + Math.abs(Math.sin(u.moveT*Math.PI*2))*0.06;
     updateAnim(u,dt); return;
   }
-  u.body.position.y = u.halfH;
+  u.body.position.y = u.halfH - (u.footLift||0);
 
   // 2) Hard CC Check (Stun/Freeze)
   if (hasHardCC(u)) {
