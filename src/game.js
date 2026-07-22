@@ -410,6 +410,103 @@ function loadSkeletonMotionSprites() {
     }
   });
 }
+// ============================================================
+// Monster Demo Batch 1 — Remaining Five Runtime Integration v1 — PRESENTATION ONLY.
+// Shared, data-driven extension of the Skeleton Runtime Pilot's contract to Slime, OrcBrute,
+// StoneWolf, SpiritArcher, and Golem. Reuses the exact same generic functions below
+// (setMonsterFrame/triggerMonsterAnim/updateMonsterMotionAnim/advanceMonsterDeathAnim/
+// monsterFramePath) across all five monsters via one shared MONSTER_MOTION_DEFS table,
+// instead of five bespoke per-monster systems. Skeleton's own SKELETON_ANIM_DEF/
+// SKELETON_TEXTURES/etc. above are untouched — this is an additive sibling data source
+// feeding a second, equally generic, set of functions (skeletonFrameIndexForTime is reused
+// as-is below since it was already fully generic).
+//
+// Every frame is a byte-identical copy of the Exact-Motion-Package-Approved v1.1 production
+// frame (see docs/assets/review/monster-production/monster-demo-batch-1-remaining-five-runtime-v1/).
+// Durations below are copied unmodified (cs -> seconds) from each monster's approved metadata
+// sidecar. basic_attack markers are carried only as inert documentation of the approved
+// presentational timing contract; they are never read by any combat/damage code path.
+// RuntimeFlipX is recommended by every one of these monsters' metadata (identical text to
+// Skeleton's own package) but, matching the Skeleton Runtime Pilot's own decision, is not
+// applied — this Runtime has no flip logic anywhere (units are camera-facing billboards),
+// so this is a recommendation-only note, not a regression.
+const MONSTER_MOTION_DEFS = {
+  Slime: { packageDir: 'slime', filePrefix: 'slime', states: {
+    idle: { frameCount: 6, durations: [0.18, 0.16, 0.16, 0.18, 0.16, 0.16], loop: true },
+    move: { frameCount: 8, durations: [0.1, 0.09, 0.09, 0.1, 0.1, 0.09, 0.09, 0.1], loop: true },
+    basic_attack: { frameCount: 8, durations: [0.14, 0.12, 0.1, 0.07, 0.08, 0.09, 0.1, 0.14], loop: false,
+      markers: { release_frame: 3, release_time_cs: 36, impact_frame: 4, impact_time_cs: 43 } },
+    hit: { frameCount: 4, durations: [0.09, 0.09, 0.1, 0.14], loop: false },
+    death: { frameCount: 8, durations: [0.1, 0.1, 0.11, 0.12, 0.13, 0.14, 0.16, 0.18], loop: false },
+  } },
+  OrcBrute: { packageDir: 'orc', filePrefix: 'orc', states: {
+    idle: { frameCount: 6, durations: [0.18, 0.17, 0.18, 0.18, 0.17, 0.18], loop: true },
+    move: { frameCount: 8, durations: [0.12, 0.11, 0.12, 0.11, 0.12, 0.11, 0.12, 0.11], loop: true },
+    basic_attack: { frameCount: 9, durations: [0.14, 0.12, 0.12, 0.08, 0.07, 0.09, 0.1, 0.12, 0.14], loop: false,
+      markers: { release_frame: 3, release_time_cs: 38, impact_frame: 4, impact_time_cs: 46 } },
+    hit: { frameCount: 4, durations: [0.1, 0.1, 0.12, 0.15], loop: false },
+    death: { frameCount: 9, durations: [0.11, 0.11, 0.12, 0.12, 0.13, 0.14, 0.15, 0.16, 0.18], loop: false },
+  } },
+  StoneWolf: { packageDir: 'stone-wolf', filePrefix: 'stone_wolf', states: {
+    idle: { frameCount: 6, durations: [0.17, 0.16, 0.17, 0.17, 0.16, 0.17], loop: true },
+    move: { frameCount: 8, durations: [0.08, 0.08, 0.08, 0.08, 0.08, 0.08, 0.08, 0.08], loop: true },
+    basic_attack: { frameCount: 8, durations: [0.12, 0.1, 0.08, 0.07, 0.08, 0.09, 0.1, 0.12], loop: false,
+      markers: { release_frame: 3, release_time_cs: 30, impact_frame: 4, impact_time_cs: 37 } },
+    hit: { frameCount: 4, durations: [0.08, 0.08, 0.09, 0.12], loop: false },
+    death: { frameCount: 8, durations: [0.1, 0.1, 0.11, 0.12, 0.13, 0.14, 0.16, 0.18], loop: false },
+  } },
+  SpiritArcher: { packageDir: 'spirit-archer', filePrefix: 'spirit_archer', states: {
+    idle: { frameCount: 6, durations: [0.18, 0.17, 0.18, 0.18, 0.17, 0.18], loop: true },
+    move: { frameCount: 8, durations: [0.09, 0.09, 0.09, 0.09, 0.09, 0.09, 0.09, 0.09], loop: true },
+    // impact is intentionally absent: Spirit Archer's basic attack is ranged (range:4 in
+    // ENEMY_BASE), so its own sprite never shows an "impact" pose - impact happens at the
+    // target, off-screen from the attacker. This is not a projectile (none is created here);
+    // release is the only marker this state carries, matching the approved metadata exactly.
+    basic_attack: { frameCount: 9, durations: [0.13, 0.11, 0.1, 0.09, 0.08, 0.07, 0.08, 0.11, 0.13], loop: false,
+      markers: { release_frame: 5, release_time_cs: 51 } },
+    hit: { frameCount: 4, durations: [0.09, 0.09, 0.1, 0.13], loop: false },
+    death: { frameCount: 9, durations: [0.1, 0.1, 0.11, 0.12, 0.12, 0.13, 0.14, 0.15, 0.16], loop: false },
+  } },
+  Golem: { packageDir: 'golem', filePrefix: 'golem', states: {
+    idle: { frameCount: 6, durations: [0.2, 0.19, 0.2, 0.2, 0.19, 0.2], loop: true },
+    move: { frameCount: 8, durations: [0.14, 0.13, 0.14, 0.13, 0.14, 0.13, 0.14, 0.13], loop: true },
+    basic_attack: { frameCount: 9, durations: [0.16, 0.14, 0.12, 0.09, 0.08, 0.1, 0.12, 0.14, 0.16], loop: false,
+      markers: { release_frame: 3, release_time_cs: 42, impact_frame: 4, impact_time_cs: 51 } },
+    hit: { frameCount: 4, durations: [0.11, 0.11, 0.12, 0.16], loop: false },
+    death: { frameCount: 9, durations: [0.12, 0.12, 0.13, 0.13, 0.14, 0.15, 0.16, 0.18, 0.2], loop: false },
+  } },
+};
+function monsterFramePath(spriteKey, state, idx) {
+  const def = MONSTER_MOTION_DEFS[spriteKey];
+  const n = String(idx).padStart(3, '0');
+  return `assets/monsters/${def.filePrefix}_motion/${state}/${def.filePrefix}_${state}_${n}.png`;
+}
+const MONSTER_TEXTURES = {}; // { Slime: { idle: THREE.Texture[], ... }, OrcBrute: {...}, ... }
+const MONSTER_TEXTURE_SET = new Set(); // membership check for isSharedUnitTexture(), shared across all five
+const MONSTER_MOTION_READY = {}; // { Slime: false, OrcBrute: false, ... }
+function loadMonsterMotionSprites(spriteKey) {
+  const def = MONSTER_MOTION_DEFS[spriteKey];
+  const loader = new THREE.TextureLoader();
+  const states = Object.keys(def.states);
+  let total = 0, settled = 0, anyFailed = false;
+  MONSTER_TEXTURES[spriteKey] = {};
+  MONSTER_MOTION_READY[spriteKey] = false;
+  states.forEach((s) => { MONSTER_TEXTURES[spriteKey][s] = new Array(def.states[s].frameCount); total += def.states[s].frameCount; });
+  states.forEach((state) => {
+    const count = def.states[state].frameCount;
+    for (let i = 0; i < count; i++) {
+      loader.load(monsterFramePath(spriteKey, state, i), (tex) => {
+        tex.magFilter = THREE.NearestFilter; tex.minFilter = THREE.NearestFilter;
+        MONSTER_TEXTURES[spriteKey][state][i] = tex; MONSTER_TEXTURE_SET.add(tex);
+        settled++;
+        if (settled === total && !anyFailed) MONSTER_MOTION_READY[spriteKey] = true;
+      }, undefined, (err) => {
+        anyFailed = true; settled++;
+        console.error('Monster motion frame load failed (falling back to static sprite):', spriteKey, state, i, err);
+      });
+    }
+  });
+}
 function loadAllSprites(onDone) {
   const loader = new THREE.TextureLoader();
   const names = Object.keys(ASSET_META);
@@ -1573,6 +1670,15 @@ function makeUnit(cfg) {
     u.skelAnim = { state: 'idle', timer: 0, frameIdx: 0, deathDone: false };
     setSkeletonFrame(u, 'idle', 0);
   }
+  // Monster Demo Batch 1 — Remaining Five Runtime Integration v1: same additive, opt-in
+  // pattern as Skeleton above, generalized via MONSTER_MOTION_DEFS/MONSTER_MOTION_READY.
+  // Only Slime/OrcBrute/StoneWolf/SpiritArcher/Golem units ever get u.monsterAnim, and only
+  // once that specific monster's motion frames have finished loading.
+  if (MONSTER_MOTION_DEFS[cfg.sprite] && MONSTER_MOTION_READY[cfg.sprite]) {
+    u.monsterAnim = { state: 'idle', timer: 0, frameIdx: 0, deathDone: false };
+    u.monsterSprite = cfg.sprite;
+    setMonsterFrame(u, cfg.sprite, 'idle', 0);
+  }
   body.userData.unit = u;
   units.push(u);
   return u;
@@ -2088,6 +2194,7 @@ function isSharedUnitTexture(t) {
   if (t === EQUIP_BADGE_TEX || t === LINK_BADGE_TEX) return true;
   for (const k in SPRITES) if (SPRITES[k] === t) return true;
   if (SKELETON_TEXTURE_SET.has(t)) return true; // Skeleton motion frames are shared across all live Skeleton units
+  if (MONSTER_TEXTURE_SET.has(t)) return true; // Remaining-five motion frames, same shared-cache safety as Skeleton
   return false;
 }
 function disposeObjectTree(root) {
@@ -2211,9 +2318,70 @@ function advanceSkeletonDeathAnim(u, dt) {
   if (idx !== sa.frameIdx) { sa.frameIdx = idx; setSkeletonFrame(u, 'death', idx); }
 }
 
+// --- Monster Demo Batch 1 — Remaining Five Runtime Integration v1 — shared, data-driven
+// presentation-only state machine (see MONSTER_MOTION_DEFS above). One set of generic
+// functions serves all five monsters via u.monsterAnim + u.monsterSprite, instead of five
+// bespoke copies of the Skeleton pattern above. skeletonFrameIndexForTime is reused as-is
+// (it takes only a generic `seq` with .durations/.loop, no Skeleton-specific reference).
+function setMonsterFrame(u, spriteKey, state, idx) {
+  const tex = MONSTER_TEXTURES[spriteKey] && MONSTER_TEXTURES[spriteKey][state] && MONSTER_TEXTURES[spriteKey][state][idx];
+  if (!tex) return; // missing-frame fallback: keep showing the last valid frame, never blank/crash
+  u.body.material.map = tex;
+  u.body.material.needsUpdate = true;
+}
+// Starts (or restarts) a one-shot/looping state immediately from frame 0. Once death has been
+// triggered the unit is locked into it — no further hit/attack can play over a dying unit.
+function triggerMonsterAnim(u, spriteKey, state) {
+  if (!u.monsterAnim || u.monsterAnim.state === 'death') return;
+  u.monsterAnim.state = state; u.monsterAnim.timer = 0; u.monsterAnim.frameIdx = 0;
+  setMonsterFrame(u, spriteKey, state, 0);
+}
+function updateMonsterMotionAnim(u, dt) {
+  const ma = u.monsterAnim;
+  const spriteKey = u.monsterSprite;
+  const def = MONSTER_MOTION_DEFS[spriteKey];
+  if (ma.state === 'hit' || ma.state === 'basic_attack') {
+    ma.timer += dt;
+    const seq = def.states[ma.state];
+    const idx = skeletonFrameIndexForTime(seq, ma.timer);
+    if (idx === null) { // one-shot finished -> resume whatever the unit is currently doing
+      const next = u.moving ? 'move' : 'idle';
+      ma.state = next; ma.timer = 0; ma.frameIdx = 0;
+      setMonsterFrame(u, spriteKey, next, 0);
+      return;
+    }
+    if (idx !== ma.frameIdx) { ma.frameIdx = idx; setMonsterFrame(u, spriteKey, ma.state, idx); }
+    return;
+  }
+  if (ma.state === 'death') return; // advanced separately in animate() since dead units skip updateUnit()
+  // idle/move: continuously follow the unit's existing (unmodified) `moving` flag, looping.
+  const wantState = u.moving ? 'move' : 'idle';
+  if (ma.state !== wantState) { ma.state = wantState; ma.timer = 0; ma.frameIdx = 0; }
+  const seq = def.states[ma.state];
+  const total = seq.durations.reduce((a, b) => a + b, 0);
+  ma.timer = (ma.timer + dt) % total;
+  const idx = skeletonFrameIndexForTime(seq, ma.timer);
+  if (idx !== ma.frameIdx) { ma.frameIdx = idx; setMonsterFrame(u, spriteKey, ma.state, idx); }
+}
+// Called only from the main animate() loop for dead monster units (updateUnit() returns early
+// for !u.alive, so death playback can't ride the normal per-unit update path). Sets
+// ma.deathDone once the Death sequence's real duration has fully played; the pre-existing
+// deathT rotate/fade-out block only starts after that (see animate()), so the approved
+// Death animation is never cut short by the old ~0.5s generic fade.
+function advanceMonsterDeathAnim(u, dt) {
+  const ma = u.monsterAnim;
+  const def = MONSTER_MOTION_DEFS[u.monsterSprite];
+  ma.timer += dt;
+  const seq = def.states.death;
+  const idx = skeletonFrameIndexForTime(seq, ma.timer);
+  if (idx === null) { ma.deathDone = true; return; }
+  if (idx !== ma.frameIdx) { ma.frameIdx = idx; setMonsterFrame(u, u.monsterSprite, 'death', idx); }
+}
+
 const WALK_SEQ = [1,2,3,4], ATTACK_SEQ = [5,6,7], ATTACK_FRAME_DUR = 0.12;
 function updateAnim(u, dt) {
   if (u.skelAnim) { updateSkeletonMotionAnim(u, dt); return; } // Skeleton pilot: fully separate path
+  if (u.monsterAnim) { updateMonsterMotionAnim(u, dt); return; } // Remaining-five Runtime integration: fully separate path
   if (u.frames <= 1) return;
   if (u.animState === 'attack') {
     u.animTimer += dt;
@@ -2259,6 +2427,7 @@ function restoreBodyColor(u) {
 function applyHitFlash(u, colorHex, durationMs) {
   if (!u.body) return;
   if (u.skelAnim && u.alive) triggerSkeletonAnim(u, 'hit'); // Skeleton pilot: presentational only, same trigger as the existing flash
+  if (u.monsterAnim && u.alive) triggerMonsterAnim(u, u.monsterSprite, 'hit'); // Remaining-five: presentational only, same trigger
   if (u.hitFlashTimer) clearTimeout(u.hitFlashTimer); // flash ซ้อน: ตัวใหม่ทับตัวเก่า ไม่มี timer หลุดมือ
   u.body.material.color.set(colorHex);
   u.hitFlashTimer = setTimeout(() => { u.hitFlashTimer = null; restoreBodyColor(u); }, durationMs);
@@ -2478,6 +2647,7 @@ function handleUnitDeath(target, killer) {
   restoreBodyColor(target); // ตายกลาง hit-flash: คืนสีฐานก่อนเริ่ม death fade ไม่ให้ศพค้างสีส้มแดง
   target.deathT = 0;
   if (target.skelAnim) triggerSkeletonAnim(target, 'death'); // Skeleton pilot: play Death frames; existing deathT fade is delayed until it finishes (see animate())
+  if (target.monsterAnim) triggerMonsterAnim(target, target.monsterSprite, 'death'); // Remaining-five: same Death-before-fade contract
   if (target.team === 'player' && target.baseStats) deadAlliesThisWave.push(target); // real heroes only, not summons
   if (killer) grantMana(killer, MANA_PER_KILL);
   const mark = (target.statuses || []).find((s) => s.rewardOnDeath);
@@ -3169,6 +3339,7 @@ function updateUnit(u, dt) {
       u.atkCooldown = 1/baseAtkSpeed;
       u.animState='attack'; u.animTimer=0;
       if (u.skelAnim) triggerSkeletonAnim(u, 'basic_attack'); // Skeleton pilot: presentational only, fires alongside the existing trigger above, does not change atkCooldown/damage timing
+      if (u.monsterAnim) triggerMonsterAnim(u, u.monsterSprite, 'basic_attack'); // Remaining-five: presentational only, does not change atkCooldown/damage timing
       let dmg = applyTrait(u, target, attackerRawAtk(u));
       dmg = applySynergyDamageModifiers(dmg, u, target);
       dmg = (target.statuses || []).some((s) => s.invulnerable) ? 0 : absorbWithShield(target, dmg);
@@ -4272,7 +4443,12 @@ function animate(now) {
     if (!u.alive && u.skelAnim && u.skelAnim.state === 'death' && !u.skelAnim.deathDone) {
       advanceSkeletonDeathAnim(u, dt);
     }
-    if (!u.alive && u.deathT !== undefined && u.deathT < 1 && (!u.skelAnim || u.skelAnim.deathDone)) {
+    // Remaining-five Runtime integration: same dead-unit death-frame-advance need as Skeleton
+    // (updateUnit() returns early for !u.alive, so death playback can't ride the normal path).
+    if (!u.alive && u.monsterAnim && u.monsterAnim.state === 'death' && !u.monsterAnim.deathDone) {
+      advanceMonsterDeathAnim(u, dt);
+    }
+    if (!u.alive && u.deathT !== undefined && u.deathT < 1 && (!u.skelAnim || u.skelAnim.deathDone) && (!u.monsterAnim || u.monsterAnim.deathDone)) {
       u.deathT = Math.min(1, u.deathT + dt*2);
       u.body.rotation.z = -u.deathT*Math.PI/2;
       u.body.material.opacity = 1 - u.deathT;
@@ -4293,6 +4469,8 @@ function animate(now) {
 // deliberately NOT gating game start on them, so a slow/failed load never delays or blocks the
 // Runtime (Skeleton simply renders with its original static sprite until/unless they finish).
 loadSkeletonMotionSprites();
+// Remaining-five monster motion frames: same background, non-blocking load pattern.
+Object.keys(MONSTER_MOTION_DEFS).forEach(loadMonsterMotionSprites);
 loadAllSprites(() => {
   document.getElementById('loading').style.display = 'none';
   pickShopOffers();
