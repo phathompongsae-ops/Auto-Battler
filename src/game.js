@@ -1026,6 +1026,22 @@ const ITEM_BASE = {
     }
   ]
 };
+// ----- Item shop (Demo-1 schedule) — deterministic constants; no repository pricing spec
+// exists (docs checked), so this is the minimal documented schedule: base items cost 6,
+// combined items cost 14; waves 1–5 offer base only, 6–10 mostly base with a 25% combined
+// chance per slot, 11–15 a 50% combined chance. Offers are item DEF IDs only — an item
+// INSTANCE is created exclusively at purchase (buyShopItem -> createItemInstance), so
+// rerolling/refreshing offers can never consume or duplicate owned instances. -----
+const ITEM_SHOP = {
+  slots: 2,
+  base_cost: 6,
+  combined_cost: 14,
+  bands: [
+    { min_wave: 1,  max_wave: 5,  combined_chance: 0 },
+    { min_wave: 6,  max_wave: 10, combined_chance: 0.25 },
+    { min_wave: 11, max_wave: 15, combined_chance: 0.5 },
+  ],
+};
 // flat id -> item def lookup across base_items + combined_items, for equip/buildCombatStats
 const ITEM_DEFS_BY_ID = {};
 [...ITEM_BASE.base_items, ...ITEM_BASE.combined_items].forEach((def) => { ITEM_DEFS_BY_ID[def.id] = def; });
@@ -1551,6 +1567,7 @@ let benchHeroes = [];
 let placedUnits = [];                      // unit[] ฝั่งผู้เล่นที่วางลงรบแล้ว (อ้างอิงตัวยูนิตตรงๆ ไม่ใช่ตำแหน่ง
                                             // เพราะยูนิตขยับระหว่างต่อสู้ได้ ผูกกับพิกัดจะหลุดการติดตาม)
 let shopOffers = [];
+let itemShopOffers = []; // item DEF ids on offer (instances exist only after purchase — see ITEM_SHOP note)
 let selectedUnit = null;                   // ฮีโร่ (ม้านั่งหรือสนามรบ) ที่แตะเลือกไว้ — รอแตะช่องปลายทางเพื่อย้าย
 
 const units = [];
@@ -3501,6 +3518,32 @@ function pickShopOffers() {
     offers.push(pool.splice(i,1)[0]);
   }
   shopOffers = offers;
+  pickItemShopOffers(); // item offers refresh with the hero offers (new wave + reroll) — def ids only, never instances
+}
+function itemShopCost(itemDefId) {
+  return ITEM_DEFS_BY_ID[itemDefId].recipe ? ITEM_SHOP.combined_cost : ITEM_SHOP.base_cost;
+}
+function pickItemShopOffers() {
+  const band = ITEM_SHOP.bands.find((b) => wave >= b.min_wave && wave <= b.max_wave)
+    || ITEM_SHOP.bands[ITEM_SHOP.bands.length - 1]; // waves past the table keep the last band's odds
+  itemShopOffers = [];
+  for (let i = 0; i < ITEM_SHOP.slots; i++) {
+    const pool = Math.random() < band.combined_chance ? ITEM_BASE.combined_items : ITEM_BASE.base_items;
+    itemShopOffers.push(pool[Math.floor(Math.random() * pool.length)].id);
+  }
+}
+function buyShopItem(offerIdx) {
+  if (phase !== 'shop') return false;
+  const itemDefId = itemShopOffers[offerIdx];
+  if (!itemDefId) return false;
+  const cost = itemShopCost(itemDefId);
+  if (gold < cost) return false;
+  if (playerState.inventory.itemInstanceIds.length >= playerState.inventory.capacity) return false;
+  gold -= cost;
+  itemShopOffers.splice(offerIdx, 1); // sold-out slot — the single gold deduction above is the only one
+  createItemInstance(itemDefId); // existing factory: instance lands in inventory, equippable via the existing flow
+  renderUI();
+  return true;
 }
 
 // ไทยชื่อย่อของ effect key แต่ละตัว ใช้แสดงผลในกล่อง Synergy panel เท่านั้น (ไม่กระทบ logic)
@@ -3745,6 +3788,22 @@ function renderUI() {
   const rerollCost = getRerollCost();
   rerollBtn.disabled = gold < rerollCost || ownedPool.length === 0 || !!pendingEvolution;
   rerollBtn.textContent = freeRerollsRemaining > 0 ? `รีโรล (ฟรี)` : `รีโรล 💰${rerollCost}`;
+
+  // Item/weapon shop section — separate offer list under the hero cards (see ITEM_SHOP note)
+  const itemShopCardsEl = document.getElementById('itemShopCards');
+  const invFull = playerState.inventory.itemInstanceIds.length >= playerState.inventory.capacity;
+  itemShopCardsEl.innerHTML = '';
+  itemShopOffers.forEach((itemDefId, idx) => {
+    const idef = ITEM_DEFS_BY_ID[itemDefId];
+    const cost = itemShopCost(itemDefId);
+    const div = document.createElement('div');
+    div.className = 'card itemShopCard' + (gold < cost || invFull ? ' disabled' : '');
+    div.innerHTML = `<div class="itemIcon">${itemIcon(itemDefId)}</div><div class="name">${idef.name}</div><div class="cost">💰${cost}</div>`;
+    div.title = idef.passive || '';
+    div.onclick = () => buyShopItem(idx);
+    itemShopCardsEl.appendChild(div);
+  });
+  document.getElementById('itemShopHeader').style.display = itemShopOffers.length ? '' : 'none';
 
   // ม้านั่งสำรองอยู่บนกระดาน 3D เนื้อเดียวกันแล้ว (แถวสีเข้มล่างสุด) ไม่มีการ์ด DOM ให้ render อีกต่อไป —
   // เหลือแค่แถบ hint/selectedUnit ลอยอยู่กึ่งกลางล่างจอบอกสถานะ/ปุ่มไอเทม-ขาย ของฮีโร่ที่เลือกอยู่

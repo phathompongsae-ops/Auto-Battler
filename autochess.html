@@ -193,6 +193,10 @@
   #shopDrawer h3 button:disabled { background: #444; border-color: #555; color: #999; cursor: not-allowed; }
   #shopCloseBtn { background: #262a33 !important; color: var(--text) !important; border-color: var(--panel-border) !important; }
   #shopCards { display: flex; gap: 6px; flex-wrap: wrap; }
+  /* ----- Item/weapon shop section: separate row under the hero cards, reuses .card ----- */
+  #itemShopHeader { margin: 8px 0 4px; font-size: 12px; color: var(--text-dim); border-top: 1px solid var(--card-border); padding-top: 6px; }
+  #itemShopCards { display: flex; gap: 6px; flex-wrap: wrap; }
+  .itemShopCard .itemIcon { font-size: 30px; line-height: 48px; height: 48px; background: #2a2420; }
   .subcount { font-weight: normal; color: var(--text-dim); font-size: 11px; }
   .card {
     width: 62px; background: var(--card-bg); border: 2px solid var(--card-border); border-radius: 6px; overflow: hidden;
@@ -447,6 +451,8 @@
 <div class="panel" id="shopDrawer">
   <h3>ร้านค้า <span><button id="rerollBtn">รีโรล (2💰)</button> <button id="shopCloseBtn">✕</button></span></h3>
   <div id="shopCards"></div>
+  <div id="itemShopHeader">อาวุธ/ไอเทม</div>
+  <div id="itemShopCards"></div>
 </div>
 
 <div id="bottomRight" class="hudCorner">
