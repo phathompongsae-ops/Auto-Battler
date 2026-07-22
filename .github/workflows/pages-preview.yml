@@ -1,0 +1,62 @@
+# Publishes an isolated per-PR preview of the static site at
+#   https://phathompongsae-ops.github.io/Auto-Battler/pr-preview/pr-<number>/
+# without ever touching the production root or any other PR's preview directory. Companion to
+# pages.yml (production, main-only) — both workflows write to the same `gh-pages` branch, which
+# is why they share the `gh-pages-deploy` concurrency group (serializes the two writers so a
+# production push and a PR preview update can never race on the same branch).
+#
+# SECURITY:
+#   - Triggered by `pull_request` (never `pull_request_target`), so a fork PR's own workflow
+#     file/code only ever runs with GitHub's default read-only, no-secrets token for forks.
+#   - The job additionally hard-restricts to same-repository PRs via the head-repo check below,
+#     as required for previews that need a write-capable token (to push gh-pages and comment) —
+#     fork PRs simply get no preview (see docs/PAGES_PR_PREVIEW.md), which is the documented,
+#     explicitly-accepted restriction rather than attempting broader (and riskier) fork support.
+#   - permissions is least-privilege: contents:write (push to gh-pages) and pull-requests:write
+#     (post/update the preview-URL comment) only — no pages:write/id-token:write, since this
+#     never goes through the Pages Actions-deployment API.
+#   - The preview path is derived solely from github.event.pull_request.number (a GitHub-assigned
+#     integer, never user-controlled text) by pr-preview-action itself; no branch name, PR title,
+#     or other free-form string is interpolated into any path or shell command anywhere below.
+#   - Cleanup on `closed` removes only that PR's own pr-preview/pr-<number>/ directory (pr-preview-
+#     action's own scoped, well-tested behavior) — production root and every other PR's preview
+#     directory are left untouched.
+name: Deploy PR Preview
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, closed]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: gh-pages-deploy
+  cancel-in-progress: false
+
+jobs:
+  preview:
+    # Same-repository branches only (see SECURITY note above) — a PR from a fork has
+    # head.repo.full_name != base repo full_name and is skipped entirely.
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout PR head
+        uses: actions/checkout@v4
+
+      - name: Build site directory
+        if: github.event.action != 'closed'
+        run: |
+          mkdir -p _site
+          cp autochess.html _site/index.html
+          cp -r assets _site/assets
+          cp -r src _site/src
+
+      - name: Deploy / remove PR preview
+        uses: rossjrw/pr-preview-action@v1
+        with:
+          source-dir: ./_site
+          preview-branch: gh-pages
+          umbrella-dir: pr-preview
+          action: auto

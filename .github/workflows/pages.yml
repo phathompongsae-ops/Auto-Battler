@@ -1,3 +1,18 @@
+# Deploys the production build to the root of the `gh-pages` branch, which is what makes it
+# possible for a *separate* workflow (pages-preview.yml) to additively publish/remove
+# per-PR subpaths (pr-preview/pr-<N>/) without ever wiping this root — the previous mechanism
+# (actions/upload-pages-artifact + actions/deploy-pages) atomically replaces the ENTIRE live
+# Pages deployment on every run with no way to preserve unrelated content alongside it, so it
+# cannot coexist with isolated PR previews. keep_files: true on the publish step is what
+# preserves any existing pr-preview/** directories already committed to gh-pages by the preview
+# workflow; this workflow only ever touches root-level files (index.html/assets/src).
+#
+# REQUIRED ONE-TIME MANUAL STEP (not performed by this workflow or by automation): the
+# repository's Pages source must be switched from "GitHub Actions" to "Deploy from a branch"
+# (gh-pages, "/ (root)") in Settings -> Pages before this workflow's output is actually served.
+# Until that switch happens, this workflow safely pushes to gh-pages but the live site keeps
+# being served from whatever the previous Actions-based deployment last published (i.e. this
+# change alone cannot break or silently replace the current production deployment).
 name: Deploy GitHub Pages
 
 on:
@@ -7,20 +22,15 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: write
 
 concurrency:
-  group: pages
+  group: gh-pages-deploy
   cancel-in-progress: false
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -30,12 +40,12 @@ jobs:
           cp autochess.html _site/index.html
           cp -r assets _site/assets
           cp -r src _site/src
-      - name: Setup Pages
-        uses: actions/configure-pages@v5
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
+      - name: Publish production root to gh-pages
+        uses: peaceiris/actions-gh-pages@v4
         with:
-          path: _site
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: _site
+          destination_dir: .
+          keep_files: true
+          commit_message: "Deploy production ${{ github.sha }}"
