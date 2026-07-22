@@ -1590,6 +1590,17 @@ function makeUnit(cfg) {
     shadowRefW = defaultW;
     body = new THREE.Mesh(new THREE.PlaneGeometry(w, h),
       new THREE.MeshBasicMaterial({ map: tex, side: THREE.DoubleSide, transparent: true, alphaTest: 0.5 }));
+  } else if (MONSTER_MOTION_DEFS[cfg.sprite] && MONSTER_MOTION_READY[cfg.sprite]) {
+    // Motion-enabled monster with no static ASSET_META entry (Slime/OrcBrute): same transparent
+    // billboard plane as the textured branch, seeded with idle frame 0. Without this branch the
+    // opaque box below became the body and setMonsterFrame() mapped transparent motion PNGs onto
+    // that placeholder-tinted BoxGeometry — the black-rectangle/tinted-sprite defect. The box
+    // stays as the fallback only when this monster's motion frames genuinely failed to load.
+    w = cfg.frameSize ? cfg.frameSize.w : 1.1;
+    h = cfg.frameSize ? cfg.frameSize.h : 1.6;
+    tex = MONSTER_TEXTURES[cfg.sprite].idle[0];
+    body = new THREE.Mesh(new THREE.PlaneGeometry(w, h),
+      new THREE.MeshBasicMaterial({ map: tex, side: THREE.DoubleSide, transparent: true, alphaTest: 0.5 }));
   } else {
     // Geometric placeholder (no sprite art yet — per game_assets policy, a plain colored box
     // stands in until real art lands, instead of spending time generating character art).
@@ -2422,7 +2433,10 @@ function mitigateDamage(rawDmg, attacker, target, armorPenPct) {
 // (2) removeUnit ยกเลิก timer ค้าง ไม่ให้ callback เก่าไปแตะ material ที่ dispose แล้ว
 function restoreBodyColor(u) {
   if (u.hitFlashTimer) { clearTimeout(u.hitFlashTimer); u.hitFlashTimer = null; }
-  if (u.body) u.body.material.color.set(u.placeholderColor || 0xffffff);
+  // A textured body must return to WHITE (no tint) — placeholderColor only applies to the
+  // untextured box fallback. Slime/OrcBrute carry a placeholderColor AND (normally) a motion
+  // texture, so keying on the material's map, not the config, picks the right base per unit.
+  if (u.body) u.body.material.color.set(u.body.material.map ? 0xffffff : (u.placeholderColor || 0xffffff));
 }
 function applyHitFlash(u, colorHex, durationMs) {
   if (!u.body) return;
@@ -2509,6 +2523,16 @@ function selectTarget(u) {
   for (const o of enemies) { const d=gridDist(u,o); if (d<bd){bd=d;best=o;} }
   return best;
 }
+// ----- Facing: single helper for every horizontal-flip decision (movement + basic attack). -----
+// Canonical facing multiplier per motion sprite: 1 = the source art reads as facing right at
+// scale.x=+1 (true for every current hero sheet and monster motion set). If a future art set is
+// authored facing left, register it here as -1 and it flips in data, not scattered code.
+const SPRITE_BASE_FACING = {};
+function setUnitFacing(u, dirX) {
+  if (!dirX || !u.body) return; // horizontal tie / pure-vertical: keep the last valid facing
+  const want = (dirX > 0 ? 1 : -1) * (SPRITE_BASE_FACING[u.sprite] || 1);
+  if (u.body.scale.x !== want) u.body.scale.x = want; // only flips on a real side change — never churns per frame
+}
 // The target's pending destination (not its live tile) when it's already mid-step — two mutually-
 // chasing melee units both reading each other's live position would each arrive to find the other
 // has just relocated, forever "just missing" in a stable back-and-forth loop. Aiming at the
@@ -2564,7 +2588,7 @@ function stepToward(u, target) {
     if (!occupied.has(nk)) {
       occupied.delete(key(u.c,u.r)); occupied.add(nk);
       u.moving=true; u.moveT=0; u.moveFrom={c:u.c,r:u.r}; u.moveTo=next;
-      u.body.scale.x = (next.c<u.c)?-1:(next.c>u.c?1:u.body.scale.x);
+      setUnitFacing(u, next.c - u.c); // vertical step (dirX 0) keeps the last valid facing
     }
   }
 }
@@ -3377,7 +3401,9 @@ function updateUnit(u, dt) {
         }
       }
     }
-    u.body.scale.x = (gridToWorld(target.c,target.r).x < u.group.position.x) ? -1 : 1;
+    // Same facing contract as movement: face the target's horizontal side; on a same-column tie
+    // keep the last valid facing (the old ternary forced +1, snapping units to an arbitrary side).
+    setUnitFacing(u, gridToWorld(target.c,target.r).x - u.group.position.x);
   } else stepToward(u, target); // 5) Movement
   updateAnim(u, dt);
 }
