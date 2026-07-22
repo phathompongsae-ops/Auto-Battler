@@ -2442,7 +2442,12 @@ function mitigateDamage(rawDmg, attacker, target, armorPenPct) {
   const isMagic = attacker.attackType === 'magic';
   const ts = target.combatStats;
   const def = ts ? (isMagic ? (ts.m_def || 0) : (ts.p_def || 0)) : (isMagic ? (target.mDef || 0) : (target.pDef || 0));
-  return Math.max(0, rawDmg - def);
+  // Diminishing-return mitigation: def 30 blocks ~23%, def 100 blocks 50%, def can never
+  // reduce a positive attack to zero. The old flat `max(0, raw - def)` made every early
+  // monster (Slime 9, Skeleton 13, OrcBrute 20, Golem 24 P.ATK) deal literally 0 to any
+  // hero with equal-or-higher defense, which is most of the roster. Enemy `armor` keeps its
+  // separate percentage path above — heroes attacking monsters are unaffected by this line.
+  return rawDmg * 100 / (100 + Math.max(0, def));
 }
 // ----- hit-flash กลาง: เก็บ timer handle ไว้บนยูนิต เพื่อคืนสี/ยกเลิกได้จากทุกจุดใน lifecycle -----
 // แก้บั๊กศพค้างสี flash: เดิม callback restore เช็ค `target.alive` → ยูนิตที่ตายกลาง flash ไม่ถูกคืนสี
@@ -4451,8 +4456,27 @@ const resultBtn = document.getElementById('resultBtn');
 let waveTimer = 0;
 const WAVE_TIMEOUT = 150;
 
+// ----- Measured per-stage enemy scaling (Live Gameplay QA balance pass) -----
+// Enemy base stats never grow across the run while the player stacks heroes, levels, Links,
+// and (now) purchasable equipment; after the diminishing-return mitigation fix, three scripted
+// x4 playthroughs still cleared all 15 waves at 58–96% surviving team HP. This fixed lookup
+// table (applied exactly once, at spawn — no compounding, unlike the removed +12%/wave double
+// scaling) restores pressure per stage band. Boss/miniboss identity, skills, and compositions
+// are unchanged — only spawn-time hp/pAtk are multiplied, escorts and bosses alike, so the
+// difficulty rise is systemic rather than a lone inflated final boss. Stages 1–2 are untouched
+// so the opening never depends on lucky shop RNG.
+const STAGE_ENEMY_SCALE = {
+  1:{hp:1.0,atk:1.0}, 2:{hp:1.0,atk:1.0}, 3:{hp:1.05,atk:1.05},
+  4:{hp:1.15,atk:1.1}, 5:{hp:1.2,atk:1.15},
+  6:{hp:1.35,atk:1.2}, 7:{hp:1.45,atk:1.25}, 8:{hp:1.55,atk:1.3},
+  9:{hp:1.65,atk:1.35}, 10:{hp:1.7,atk:1.4},
+  11:{hp:1.9,atk:1.5}, 12:{hp:2.0,atk:1.55}, 13:{hp:2.15,atk:1.6},
+  14:{hp:2.3,atk:1.65}, 15:{hp:2.45,atk:1.7},
+};
 function spawnWave(n) {
-  buildWave(n).forEach((cfg) => makeUnit({ team:'enemy', ...cfg }));
+  const scale = STAGE_ENEMY_SCALE[n] || STAGE_ENEMY_SCALE[15];
+  buildWave(n).forEach((cfg) => makeUnit({ team:'enemy', ...cfg,
+    hp: Math.round(cfg.hp * scale.hp), pAtk: Math.round(cfg.pAtk * scale.atk) }));
 }
 function clearEnemies() {
   units.filter(u => u.team==='enemy').forEach(removeUnit);
