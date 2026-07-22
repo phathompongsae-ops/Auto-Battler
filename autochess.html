@@ -292,7 +292,11 @@
      sprite doesn't cover the tile the player is about to drop on, and reads a touch
      smaller than the bench card it came from */
   .benchGhost { position: fixed; width: 50px; height: 50px; pointer-events: none; z-index: 80;
-    transform: translate(-50%, -50%) scale(0.86); border-radius: 10px; overflow: hidden;
+    /* feet-anchored: the ghost's bottom-center sits exactly on the shared drag target point
+       (the same point the tile raycast/highlight/drop use), so the ghost visually stands on
+       the tile that will actually receive the unit */
+    transform: translate(-50%, -100%) scale(0.86); transform-origin: bottom center;
+    border-radius: 10px; overflow: hidden;
     background: #333; box-shadow: 0 4px 10px #0008, 0 0 0 2px var(--accent); }
   .benchGhost img { width: 100%; height: 100%; object-fit: cover; display: block; }
   /* ----- มุมล่างขวา (Toggle Shop / เริ่มการต่อสู้) — Lv./EXP ย้ายขึ้นแถบบนแล้ว ----- */

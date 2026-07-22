@@ -2558,6 +2558,38 @@ function findMeleeApproachTile(u, target) {
   }
   return best;
 }
+// Ring-2 staging picker: every free, reachable tile at Manhattan distance exactly 2 from the
+// target's approach reference. When all four attack tiles are taken (typical around a lone boss),
+// a melee unit queues here — close enough to slide into an attack tile the moment one opens —
+// instead of holding position across the board. Grants no attack range (d==2 never satisfies the
+// d<=1 range check); shares astar() and first-found-wins-on-tie with findMeleeApproachTile, so
+// tie-breaking stays deterministic. Fixed enumeration order: dc from -2..2, negative dr first.
+function findMeleeStagingTile(u, target) {
+  const ref = meleeApproachRef(target);
+  let best = null, bestLen = Infinity;
+  for (let dc = -2; dc <= 2; dc++) {
+    const adr = 2 - Math.abs(dc);
+    for (const dr of (adr === 0 ? [0] : [-adr, adr])) {
+      const c = ref.c+dc, r = ref.r+dr;
+      if (c<0||r<0||c>=GRID_COLS||r>=GRID_ROWS||r===BENCH_ROW) continue;
+      if (c === u.c && r === u.r) return { c, r }; // already staged on a ring tile (own tile reads as occupied) — stay put
+      if (occupied.has(key(c,r))) continue;
+      const path = astar(u.c, u.r, c, r, key(u.c,u.r));
+      if (path && path.length < bestLen) { bestLen = path.length; best = { c, r }; }
+    }
+  }
+  return best;
+}
+// Retarget fallback when the current melee target is fully unreachable (no free attack tile AND
+// no free staging tile): nearest living enemy that IS reachable by either ring. Stable sort keeps
+// insertion order on equal distances, so the pick is deterministic.
+function findBestReachableEnemy(u) {
+  const foes = units.filter((o) => o.alive && o.team !== u.team).sort((a, b) => gridDist(u, a) - gridDist(u, b));
+  for (const foe of foes) {
+    if (findMeleeApproachTile(u, foe) || findMeleeStagingTile(u, foe)) return foe;
+  }
+  return null;
+}
 function stepToward(u, target) {
   // A unit already mid-step must finish that step before picking a new destination.
   if (u.moving) return;
@@ -2576,7 +2608,19 @@ function stepToward(u, target) {
     // target changed or the cached tile is no longer within melee range of the target.
     let goal = u.approachGoal;
     if (!goal || u.approachGoalFor !== target || gridDist(goal, meleeApproachRef(target)) > 1) goal = findMeleeApproachTile(u, target);
-    if (!goal) { u.approachGoal = null; u.approachGoalFor = null; return; } // no reachable free tile borders the target right now — hold position
+    // All four attack tiles taken/unreachable -> queue on the ring-2 staging band instead of
+    // holding position far away. A staging goal is never cached past this call: its gridDist to
+    // the ref is 2, so the re-pick condition above re-runs findMeleeApproachTile next time and
+    // the staged unit advances into a real attack tile the moment one opens (e.g. a unit died).
+    if (!goal) goal = findMeleeStagingTile(u, target);
+    if (!goal) {
+      u.approachGoal = null; u.approachGoalFor = null;
+      // Target fully unreachable (boxed in) — if some other living enemy IS reachable, switch to
+      // it rather than idling forever against a wall; the lock in updateUnit keeps the new target.
+      const alt = findBestReachableEnemy(u);
+      if (alt && alt !== target) u.current_target = alt;
+      return;
+    }
     u.approachGoal = goal; u.approachGoalFor = target;
     goalC = goal.c; goalR = goal.r;
   } else {
@@ -4003,9 +4047,9 @@ function moveUnitTo(u, c, r) {
 // ============================================================
 const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
-// #boardContainer is no longer full-viewport (it's a centered square that's ~60% of the
-// screen), so mouse coords must be normalized against the CANVAS's own bounding rect, not
-// window.innerWidth/Height — this is the single source every raycast call site below uses.
+// #boardContainer is a full-viewport fixed layer again (inset:0 — the old "centered ~60%
+// square" note was stale), but normalizing against the CANVAS's own bounding rect stays
+// correct for any layout — this is the single source every raycast call site below uses.
 function setMouseFromClient(clientX, clientY) {
   const rect = renderer.domElement.getBoundingClientRect();
   mouse.x = ((clientX - rect.left) / rect.width) * 2 - 1;
@@ -4031,22 +4075,30 @@ function pickPlayerUnitAtScreenPoint(clientX, clientY) {
 // ต่างหาก แตะยูนิตของผู้เล่น (ม้านั่งหรือสนามรบก็ได้) เพื่อเลือก แล้วแตะช่องปลายทางเพื่อย้าย — หรือ
 // ลากตรงๆ ด้วยผี sprite ลอยเหนือนิ้ว (GHOST_Y_OFFSET) แบบเดียวกับระบบม้านั่งเดิม
 // ============================================================
-const GHOST_Y_OFFSET = 56; // px lifted above the pointer
-let unitDrag = null; // {unit, startX, startY, moved, pointerId, ghostEl}
+const GHOST_Y_OFFSET = 56; // px the drag TARGET POINT is lifted above a finger (0 for mouse — no occlusion)
+let unitDrag = null; // {unit, startX, startY, moved, pointerId, ghostEl, hoverTile, liftY}
 
 document.addEventListener('dragstart', (e) => e.preventDefault()); // native drag/selection can fire mid-gesture on some browsers
 
+// ONE shared drag target point drives everything: ghost anchor, tile raycast, tile highlight,
+// and (via hoverTile) the pointer-up drop. dragTargetPoint lifts the point above a finger so the
+// destination tile is never hidden under the touch; the ghost's FEET are anchored exactly at
+// this same point (CSS translate(-50%,-100%)), so the tile the ghost stands on, the highlighted
+// tile, and the drop tile are always the same tile. Previously the ghost floated at
+// clientY-56 while the raycast used the unshifted clientY — one tile visually under the ghost,
+// a different tile highlighted and receiving the unit.
+function dragTargetPoint(ds, e) { return { x: e.clientX, y: e.clientY - ds.liftY }; }
 function startBenchGhost(ds, x, y) {
   const ghost = document.createElement('div');
   ghost.className = 'benchGhost';
   ghost.innerHTML = `<img src="${heroPortraitSrc(ds.unit.heroKey)}">`;
   document.body.appendChild(ghost);
   ghost.style.left = x + 'px';
-  ghost.style.top = (y - GHOST_Y_OFFSET) + 'px';
+  ghost.style.top = y + 'px';
   ds.ghostEl = ghost;
 }
 function moveBenchGhost(ds, x, y) {
-  if (ds.ghostEl) { ds.ghostEl.style.left = x + 'px'; ds.ghostEl.style.top = (y - GHOST_Y_OFFSET) + 'px'; }
+  if (ds.ghostEl) { ds.ghostEl.style.left = x + 'px'; ds.ghostEl.style.top = y + 'px'; }
 }
 function endBenchGhost(ds) {
   if (ds.ghostEl && ds.ghostEl.parentNode) ds.ghostEl.parentNode.removeChild(ds.ghostEl);
@@ -4057,21 +4109,23 @@ renderer.domElement.addEventListener('pointerdown', (e) => {
   const u = pickPlayerUnitAtScreenPoint(e.clientX, e.clientY);
   if (!u) return; // ปล่อยให้ pointerup ด้านล่างจัดการ "แตะช่องว่างเพื่อย้าย" กรณีนี้แทน
   e.preventDefault();
-  unitDrag = { unit: u, startX: e.clientX, startY: e.clientY, moved: false, pointerId: e.pointerId, ghostEl: null, hoverTile: null };
+  unitDrag = { unit: u, startX: e.clientX, startY: e.clientY, moved: false, pointerId: e.pointerId, ghostEl: null, hoverTile: null,
+    liftY: e.pointerType === 'mouse' ? 0 : GHOST_Y_OFFSET };
 });
 document.addEventListener('pointermove', (e) => {
   if (!unitDrag || e.pointerId !== unitDrag.pointerId) return;
   const dx = e.clientX - unitDrag.startX, dy = e.clientY - unitDrag.startY;
+  const pt = dragTargetPoint(unitDrag, e); // shared point: ghost anchor == raycast == highlight == drop
   if (!unitDrag.moved && Math.hypot(dx, dy) > 6) {
     unitDrag.moved = true;
-    startBenchGhost(unitDrag, e.clientX, e.clientY);
+    startBenchGhost(unitDrag, pt.x, pt.y);
   }
   if (unitDrag.moved) {
-    moveBenchGhost(unitDrag, e.clientX, e.clientY);
-    // ตรวจช่องใต้ pointer ตอนนี้ด้วย raycast เดิม (pickTileAtScreenPoint) แบบ real-time — อัปเดต
-    // ไฮไลต์เฉพาะตอนช่องที่ชี้อยู่เปลี่ยนจริง (ไม่ใช่ทุก pixel) ประหยัด repaint โดยยังใช้
+    moveBenchGhost(unitDrag, pt.x, pt.y);
+    // ตรวจช่องที่จุดเป้าหมายเดียวกับผี (pt) ด้วย raycast เดิม (pickTileAtScreenPoint) แบบ real-time —
+    // อัปเดตไฮไลต์เฉพาะตอนช่องที่ชี้อยู่เปลี่ยนจริง (ไม่ใช่ทุก pixel) ประหยัด repaint โดยยังใช้
     // material/mesh เดิมของ tileMeshes ซ้ำเสมอ ไม่สร้าง/ลบอะไรใหม่
-    const tile = pickTileAtScreenPoint(e.clientX, e.clientY);
+    const tile = pickTileAtScreenPoint(pt.x, pt.y);
     const next = (tile && tile.isTile && tile.playerZone) ? { c: tile.c, r: tile.r } : null;
     const prev = unitDrag.hoverTile;
     if ((next?.c !== prev?.c) || (next?.r !== prev?.r)) {
