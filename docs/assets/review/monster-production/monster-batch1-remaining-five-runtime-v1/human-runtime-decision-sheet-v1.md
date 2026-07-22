@@ -1,14 +1,22 @@
 # Monster Demo Batch 1 — Remaining Five — Human Runtime Decision Sheet
 
-Status: `AWAITING_HUMAN_RUNTIME_REVIEW`. No box below is pre-checked.
+Status: `APPROVED`. Decided by explicit user approval after review-evidence completion
+(x1, x4, and mixed-monster x4 evidence — see `validation-report-v1.md` and the
+mixed-monster-x4 review supplement referenced in `human-runtime-approval-record-v1.md`).
 
 | Monster | Idle | Move | Attack | Hit | Death | Overall decision |
 |---|---|---|---|---|---|---|
-| Slime | ☐ | ☐ | ☐ | ☐ | ☐ | Pending |
-| Orc | ☐ | ☐ | ☐ | ☐ | ☐ | Pending |
-| Stone Wolf | ☐ | ☐ | ☐ | ☐ | ☐ | Pending |
-| Spirit Archer | ☐ | ☐ | ☐ | ☐ | ☐ | Pending |
-| Golem | ☐ | ☐ | ☐ | ☐ | ☐ | Pending |
+| Slime | ☑ | ☑ | ☑ | ☑ | ☑ | APPROVE |
+| Orc | ☑ | ☑ | ☑ | ☑ | ☑ | APPROVE |
+| Stone Wolf | ☑ | ☑ | ☑ | ☑ | ☑ | APPROVE |
+| Spirit Archer | ☑ | ☑ | ☑ | ☑ | ☑ | APPROVE |
+| Golem | ☑ | ☑ | ☑ | ☑ | ☑ | APPROVE |
 
-Human Runtime Approval, Canonical Approval, and merge authorization are not granted by this
-sheet.
+**Batch decision: APPROVE 5/5**
+
+**Human Runtime Approval: APPROVED**
+
+**Review decision source: EXPLICIT_USER_APPROVAL**
+
+Canonical Approval and merge authorization are **not** granted by this sheet — those remain
+separate, later decisions.
