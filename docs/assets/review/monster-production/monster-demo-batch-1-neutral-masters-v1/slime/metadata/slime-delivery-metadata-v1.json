@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "project": "phathompongsae-ops/Auto-Battler",
+  "recordId": "monster-demo-batch-1-slime-delivery-v1",
+  "monsterId": "slime",
+  "displayName": "Slime",
+  "deliveryType": "locked-neutral-master",
+  "masterPath": "docs/assets/review/monster-production/monster-demo-batch-1-neutral-masters-v1/slime/neutral/slime-neutral-master.png",
+  "masterSha256": "ace0b378a3b716f7f812a540d375cc8ac1c6b83a2a9e01061e46dc3158ba0ea2",
+  "canvas": [640, 960],
+  "format": "PNG",
+  "colorMode": "RGBA",
+  "bitDepth": 8,
+  "alphaBounds": [59, 335, 581, 855],
+  "maxAlphaY": 854,
+  "footBaselineHalfOpenY": 855,
+  "fullyTransparentOuterBorders": true,
+  "reviewPackage": "docs/assets/review/monster-production/monster-demo-batch-1-neutral-masters-v1/slime/review-package/monster_demo_batch_1_new_art_direction_batch_review_v1.zip",
+  "reviewPackageScope": "shared batch review package containing the byte-identical approved Slime master",
+  "reviewPackageSha256": "3aae92ec66a38279532ee0b2b0878d5474f6ab910e19de76af8e7f3f44fb22f1",
+  "approval": {
+    "humanVisualApproval": "approved",
+    "exactPackageApproved": false,
+    "canonicalApproved": false,
+    "motionProductionAuthorized": false,
+    "runtimeIntegrationAuthorized": false,
+    "merged": false
+  }
+}
