@@ -80,19 +80,23 @@ async function newPage(browser, viewport) {
   }
 
   // ---------- Fix 2: facing contract ----------
+  // Uses OrcBrute (no per-sprite override) as the neutral example of the generic mechanism —
+  // Skeleton itself gained a real production override in the Post-Merge Android QA Hotfix v1
+  // (see tests/android_qa_hotfix_v1.test.js), so it's no longer a neutral "default facing" stand-in.
   {
     const page = await newPage(browser);
     const r = await page.evaluate(() => {
       phase = 'battle'; paused = false;
-      const u = makeUnit({ team: 'enemy', name: 'F', sprite: 'Skeleton', c: 3, r: 3, hp: 50, pAtk: 5, atkSpeed: 1, range: 1, moveSpeed: 1, armor: 5 });
+      const u = makeUnit({ team: 'enemy', name: 'F', sprite: 'OrcBrute', c: 3, r: 3, hp: 50, pAtk: 5, atkSpeed: 1, range: 1, moveSpeed: 1, armor: 5 });
       const out = {};
       setUnitFacing(u, -5); out.left = u.body.scale.x;
       setUnitFacing(u, 0); out.tieKeeps = u.body.scale.x;      // tie must PRESERVE, not force +1
       setUnitFacing(u, 5); out.right = u.body.scale.x;
-      SPRITE_BASE_FACING.Skeleton = -1;                         // per-sprite canonical facing multiplier
-      setUnitFacing(u, 5); out.baseFlipped = u.body.scale.x;
-      delete SPRITE_BASE_FACING.Skeleton;
-      removeUnit(u);
+      SPRITE_BASE_FACING.__TestSprite = -1;                     // per-sprite canonical facing multiplier (synthetic key)
+      const u2 = makeUnit({ team: 'enemy', name: 'F2', sprite: '__TestSprite', c: 3, r: 3, hp: 50, pAtk: 5, atkSpeed: 1, range: 1, moveSpeed: 1, armor: 5 });
+      setUnitFacing(u2, 5); out.baseFlipped = u2.body.scale.x;
+      delete SPRITE_BASE_FACING.__TestSprite;
+      removeUnit(u); removeUnit(u2);
       return out;
     });
     check('fix2 faces left on negative dirX', r.left === -1, r);

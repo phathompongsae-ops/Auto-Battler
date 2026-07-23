@@ -196,3 +196,5 @@ tiles; pre-fix visible-feet error was ≈12 screen px. Regression suite: **70/70
 8 new foot-anchor checks). Verified at 360×800, 800×360, 844×390 (touch) and 1280×720 (mouse) —
 emulated Playwright Chromium; no real Android hardware was available, so no real-device
 verification is claimed.
+
+_PR #96 preview deployment trigger note: appended 2026-07-23T00:00:00Z solely to generate a pull_request synchronize event for the merged Pages per-PR preview workflow — no gameplay content changed._

@@ -1253,7 +1253,13 @@ function getLinkedHeroes() {
   return placedUnits.filter((u) => linkedHeroIds.has(u.instanceId));
 }
 // root class ที่ไม่ซ้ำกันจากฮีโร่ที่เลือก — อาชีพเดียวกันซ้ำหลายตัวให้บัฟครั้งเดียว (ห้าม stack)
+// Post-merge Android QA hotfix v1: Link bonuses must stay inactive below a full 3/3 selection —
+// this was the only read of the selection used by both the buff computation (computeLinkedBuffs)
+// and the buff-list UI (renderLinkPanel), so gating it here fixes both surfaces at once without
+// touching selection display itself (getLinkedHeroes/the 3 portrait slots still show 1/3, 2/3 as
+// picked — only activation is gated) or the locked MAX_LINKED_HEROES of 3.
 function getActiveLinkedClasses() {
+  if (linkedHeroIds.size < MAX_LINKED_HEROES) return [];
   return [...new Set(getLinkedHeroes().map((u) => getRootClass(u.heroKey)).filter(Boolean))];
 }
 // ล้าง id ที่ไม่ได้อยู่บนสนามรบแล้วออกจาก Link อัตโนมัติ (ถูกถอนกลับม้านั่ง/ขาย/รวมร่าง/รวมดาว —
@@ -2582,7 +2588,12 @@ function selectTarget(u) {
 // Canonical facing multiplier per motion sprite: 1 = the source art reads as facing right at
 // scale.x=+1 (true for every current hero sheet and monster motion set). If a future art set is
 // authored facing left, register it here as -1 and it flips in data, not scattered code.
-const SPRITE_BASE_FACING = {};
+// Post-merge Android QA hotfix v1: real-device testing showed Skeleton facing the wrong way on
+// movement/attack — Skeleton's own motion package (skeleton_motion/*) reads canonically left at
+// scale.x=+1, opposite the assumption every other current sprite matched. Registering it here
+// flips the mapping in data only; setUnitFacing, every other sprite's facing, and movement/attack
+// logic are untouched.
+const SPRITE_BASE_FACING = { Skeleton: -1 };
 function setUnitFacing(u, dirX) {
   if (!dirX || !u.body) return; // horizontal tie / pure-vertical: keep the last valid facing
   const want = (dirX > 0 ? 1 : -1) * (SPRITE_BASE_FACING[u.sprite] || 1);
