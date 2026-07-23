@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 1,
+  "taskId": "agent-runner-smoke-test-v1",
+  "title": "Agent Runner Docs-Only Smoke Test",
+  "repository": "phathompongsae-ops/Auto-Battler",
+  "owner": "user",
+  "status": "BLOCKED",
+  "base": {
+    "ref": "coco/agent-orchestration-v1",
+    "sha": null
+  },
+  "scope": {
+    "allow": [
+      "read orchestration docs and task records",
+      "create one docs-only smoke-test result file on an isolated branch",
+      "open a draft PR for the smoke-test result"
+    ],
+    "deny": [
+      "modify game/runtime/assets/validators outside orchestration smoke-test scope",
+      "merge any PR",
+      "set any game approval/runtime eligibility flag true",
+      "rewrite branch history"
+    ]
+  },
+  "inputs": [
+    {"type":"doc","path":"docs/ops/agent-orchestration-v1.md"},
+    {"type":"doc","path":"docs/ops/agent-handoff-format-v1.md"},
+    {"type":"policy","path":"data/design/agent-task-transition-policy-v1.json"}
+  ],
+  "requiredOutputs": [
+    "one docs-only smoke-test result file",
+    "one isolated smoke-test branch",
+    "one draft PR",
+    "actual run evidence"
+  ],
+  "validation": [
+    "no files outside docs/ops smoke-test result are changed",
+    "no merge occurs",
+    "task runner reports actual branch/commit/PR identifiers"
+  ],
+  "handoff": {
+    "nextOwner": "user",
+    "transitionCondition": "After credentials are configured, run CC smoke test first; only then test Coco automation."
+  },
+  "blocker": {
+    "code": "AGENT_RUNNER_CREDENTIALS_NOT_CONFIGURED",
+    "resolver": "user",
+    "resolution": "Configure the required GitHub Actions secret(s): ANTHROPIC_API_KEY for CC; OPENAI_API_KEY only if headless Codex automation is desired. Then transition this task to READY_FOR_CC for the first smoke test."
+  },
+  "reporting": {
+    "requireBranch": true,
+    "requireFullCommitSha": true,
+    "requirePrNumberWhenRepoChanged": true,
+    "requireActualTestsRun": true
+  }
+}
