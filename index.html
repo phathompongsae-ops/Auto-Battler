@@ -231,9 +231,14 @@
   #inventoryPanel .panel { pointer-events: auto; padding: 6px 8px; max-height: 96px; }
   #inventoryPanel h3 { margin: 0 0 4px; font-size: 12px; }
   #inventoryCards, #equipModalInventory { display: flex; gap: 5px; overflow-x: auto; max-width: 100%; }
+  /* touch-action:none on the draggable item card/slot — same root-cause fix as the canvas comment
+     above: without it, real Android touch reads the held press+move as a page/row pan (#inventoryCards
+     and #equipModalInventory both scroll horizontally) and fires pointercancel before the drag's own
+     6px move threshold/preventDefault ever take effect, so the item never reaches equipItem(). */
   .itemCard {
     width: 46px; flex-shrink: 0; background: var(--card-bg); border: 2px solid var(--card-border); border-radius: 6px;
     text-align: center; font-size: 9px; user-select: none; padding: 3px 2px; cursor: grab; color: var(--text);
+    touch-action: none;
   }
   .itemCard .itemIcon { font-size: 18px; line-height: 1.15; }
   .itemCard .itemName { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -258,6 +263,7 @@
     width: 64px; height: 64px; border: 2px dashed var(--panel-border); border-radius: 8px;
     display: flex; flex-direction: column; align-items: center; justify-content: center;
     font-size: 10px; color: var(--text-dim); background: rgba(255,255,255,0.03);
+    touch-action: none;
   }
   .equipSlot.filled { border-style: solid; background: rgba(216,173,77,0.12); cursor: grab; }
   .equipSlot .itemIcon { font-size: 22px; }
