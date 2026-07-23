@@ -3581,6 +3581,14 @@ function updateUnit(u, dt) {
       if (u.sprite === 'SpiritArcher' && u.monsterAnim) {
         u.spiritArcherAtkFacingDx = gridToWorld(target.c,target.r).x - u.group.position.x;
       }
+      // Skeleton Motion Feel Pilot v1 (facing follow-up): same committed-attack-facing snapshot
+      // as the Spirit Archer fix, applied to Skeleton's own one-shot basic_attack swing (0.72s
+      // presentation retiming above). Without this, a target death/replacement or relocation to
+      // the opposite side while the swing is mid-play flips the pose, exactly like the Spirit
+      // Archer defect. Presentation-only: does not touch target selection, damage, or cooldown.
+      if (u.sprite === 'Skeleton' && u.skelAnim) {
+        u.skeletonAtkFacingDx = gridToWorld(target.c,target.r).x - u.group.position.x;
+      }
       let dmg = applyTrait(u, target, attackerRawAtk(u));
       dmg = applySynergyDamageModifiers(dmg, u, target);
       dmg = (target.statuses || []).some((s) => s.invulnerable) ? 0 : absorbWithShield(target, dmg);
@@ -3624,8 +3632,12 @@ function updateUnit(u, dt) {
     // still playing, hold the facing snapshot taken at the moment the attack fired instead of
     // recalculating live — this is what prevents a mid-shot facing flip. Every other sprite/state
     // falls through to the exact original live calculation, unchanged.
+    // Skeleton Motion Feel Pilot v1 (facing follow-up): identical lock, gated to Skeleton's own
+    // committed basic_attack one-shot instead of Spirit Archer's.
     const spiritArcherAtkLock = u.sprite === 'SpiritArcher' && u.monsterAnim && u.monsterAnim.state === 'basic_attack';
-    setUnitFacing(u, spiritArcherAtkLock ? u.spiritArcherAtkFacingDx : gridToWorld(target.c,target.r).x - u.group.position.x);
+    const skeletonAtkLock = u.sprite === 'Skeleton' && u.skelAnim && u.skelAnim.state === 'basic_attack';
+    const liveFacingDx = gridToWorld(target.c,target.r).x - u.group.position.x;
+    setUnitFacing(u, spiritArcherAtkLock ? u.spiritArcherAtkFacingDx : (skeletonAtkLock ? u.skeletonAtkFacingDx : liveFacingDx));
   } else stepToward(u, target); // 5) Movement
   updateAnim(u, dt);
 }
