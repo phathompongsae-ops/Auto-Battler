@@ -99,3 +99,34 @@ frame shown is the same approved package frame; only WHICH frame is shown WHEN c
 - All test runs used the repo's documented offline convention (scratch copy with a local
   three.min.js substituted for the CDN tag); emulated Chromium — **no real-device claim is
   made**. Human Feel Gate remains pending real Android review.
+
+## Addendum: attack-facing follow-up (Skeleton Motion Feel Pilot v1, facing follow-up)
+
+Investigation for a later Skeleton-only pilot round found one more presentation defect, of the
+exact same class already fixed for Spirit Archer in a separate PR: Skeleton's basic-attack facing
+was recalculated **live** from `u.current_target` on every tick, including every tick of its own
+already-committed one-shot `basic_attack` swing (the 0.72s presentation retiming above). If the
+target died and was replaced, or a second adjacent target existed on the opposite side (a
+surrounded Skeleton) and became the current target mid-swing, the sprite's facing flipped
+mid-pose — the swing visibly pointed away from the target it was actually hitting.
+
+Reproduced directly (Skeleton with two adjacent player units, target reassigned mid-swing):
+facing flipped mid-animation before the fix, held correctly after.
+
+**Fix** (presentation-only, Skeleton-gated, same pattern as the Spirit Archer fix): snapshot the
+committed target-facing dx onto `u.skeletonAtkFacingDx` the instant `triggerSkeletonAnim(u,
+'basic_attack')` fires; the facing call at the bottom of the Basic Attack block uses that
+snapshot instead of a live recalculation for exactly as long as `u.skelAnim.state ===
+'basic_attack'`. Every other sprite/state, including Skeleton's own idle/move/hit, falls through
+to the exact original live calculation, unchanged.
+
+Validation: new `tests/skeleton_attack_facing_v1.test.js` (20/20 pass); pre-existing
+`tests/skeleton_motion_feel_v1.test.js` re-run 5x fresh against current `main` — 4/5 clean, 1/5
+showing the identical, previously-classified `PRE_EXISTING_NON_BLOCKING_TIMING_FLAKE`
+(`bodyOffsetClean`, a 90ms real-`setTimeout` race unrelated to facing); `tests/live_qa_six_fixes`
+70/70, `tests/android_qa_hotfix_v1` 61/61, `tests/spirit_archer_attack_facing_v1` 29/29 (Spirit
+Archer's own fix confirmed untouched). Real rAF game loop, wave 3 (3 Skeletons + 1 Spirit
+Archer), full battle to a result at x1 and x4 across 3 repeated runs each: victory every time, 0
+out-of-range facing samples, and 0 facing flips across every consecutive sample pair where a
+Skeleton or Spirit Archer was mid-`basic_attack` (50–88 locked Skeleton samples at x1, 11 at x4;
+18–75 locked Spirit Archer samples), 0 page errors.
