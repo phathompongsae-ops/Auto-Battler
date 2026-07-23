@@ -2339,37 +2339,126 @@ function setSkeletonFrame(u, state, idx) {
   u.body.material.map = tex;
   u.body.material.needsUpdate = true;
 }
+// --- Skeleton Motion Feel Pilot v1 — presentation-only tuning layer over the approved motion
+// package. It only changes WHICH already-approved frame is shown WHEN (state selection, playback
+// timing, idle hold, distance-synced walk, stop settle, subtle breathing) for Skeleton units.
+// It never touches combat state, damage application, cooldowns, movement speed, pathfinding,
+// any frame PNG, or the SKELETON_ANIM_DEF table above (kept intact as the approved-package
+// timing record — hit/attack playback now reads the presentation overrides below instead).
+const SKELETON_FEEL = {
+  // World units traveled per full 8-frame walk cycle. TILE=1, so one tile step = exactly one
+  // cycle, and the movement bob in updateUnit (|sin(moveT*2π)| = two footfall arcs per step)
+  // lines up with the cycle's two strides. Playback phase advances with ACTUAL distance moved —
+  // frames can never advance while stationary, and foot contact stays in step with travel.
+  strideWorldUnits: 1.0,
+  // Hold the last walk pose this long after `moving` goes false before settling into the held
+  // idle. A real stop reads as a settle instead of a hard snap; the 1-tick moving=false gap
+  // between consecutive path steps never reaches it, which kills the restart-every-tile flicker.
+  stopSettleSec: 0.12,
+  // Idle is a HELD neutral frame (cycling the package's 6 independently-rendered idle poses at
+  // ~6fps is exactly what read as "dancing") plus a barely-visible breathing scale. The scale is
+  // bottom-anchored in updateSkeletonMotionAnim so the drawn feet and the shadow never move.
+  idleBreathAmpl: 0.012,
+  idleBreathPeriodSec: 3.2,
+  // Attack presentation retiming (visual only). Damage applies the instant an attack triggers
+  // (updateUnit), but the package timing put the contact pose (frame 4) 0.42s later — the swing
+  // landed almost half a second after the damage number/flash, reading as weightless. Compressed
+  // anticipation (0.15s to contact) + longer follow-through; total 0.72s, safely inside the 1.0s
+  // attack cooldown. The damage event itself is byte-untouched.
+  attackDurations: [0.05, 0.04, 0.03, 0.03, 0.10, 0.09, 0.10, 0.13, 0.15],
+  // Brief readable recoil (0.31s vs the package's 0.42s) so sustained incoming fire doesn't
+  // visually pin the unit in hit frames for most of the fight.
+  hitDurations: [0.06, 0.07, 0.08, 0.10],
+};
+const SKELETON_PRESENT_SEQ = {
+  basic_attack: { durations: SKELETON_FEEL.attackDurations, loop: false },
+  hit: { durations: SKELETON_FEEL.hitDurations, loop: false },
+};
+// Breathing only ever writes body.scale.y; body.position.y is re-asserted by updateUnit every
+// tick outside idle (walk bob / base), so clearing the scale is the whole cleanup.
+function skeletonClearIdleBreath(u) {
+  if (u.body && u.body.scale.y !== 1) u.body.scale.y = 1;
+}
 // Starts (or restarts) a one-shot/looping state immediately from frame 0. Once death has been
 // triggered the unit is locked into it — no further hit/attack can play over a dying unit.
 function triggerSkeletonAnim(u, state) {
   if (!u.skelAnim || u.skelAnim.state === 'death') return;
-  u.skelAnim.state = state; u.skelAnim.timer = 0; u.skelAnim.frameIdx = 0;
+  skeletonClearIdleBreath(u); // a one-shot may interrupt idle mid-breath — drop the scale residue
+  u.skelAnim.state = state; u.skelAnim.timer = 0; u.skelAnim.frameIdx = 0; u.skelAnim.shownState = state;
   setSkeletonFrame(u, state, 0);
 }
 function updateSkeletonMotionAnim(u, dt) {
   const sa = u.skelAnim;
   if (sa.state === 'hit' || sa.state === 'basic_attack') {
     sa.timer += dt;
-    const seq = SKELETON_ANIM_DEF[sa.state];
+    // keep the walk distance tracker fresh so a hit taken mid-step doesn't phase-jump on resume
+    sa.lastX = u.group.position.x; sa.lastZ = u.group.position.z;
+    const seq = SKELETON_PRESENT_SEQ[sa.state];
     const idx = skeletonFrameIndexForTime(seq, sa.timer);
-    if (idx === null) { // one-shot finished -> resume whatever the unit is currently doing
-      const next = u.moving ? 'move' : 'idle';
-      sa.state = next; sa.timer = 0; sa.frameIdx = 0;
-      setSkeletonFrame(u, next, 0);
+    if (idx === null) { // one-shot finished -> resume what the unit is actually doing
+      if (u.moving) { // continue the walk cycle from its preserved phase — no restart, no idle flash
+        sa.state = 'move'; sa.shownState = 'move'; sa.settleT = 0;
+        sa.frameIdx = Math.min(7, Math.floor((sa.movePhase || 0) * 8));
+        setSkeletonFrame(u, 'move', sa.frameIdx);
+      } else { // settle straight onto the held neutral — never flashes through walk frames
+        sa.state = 'idle'; sa.shownState = 'idle'; sa.timer = 0; sa.frameIdx = 0; sa.breathT = 0;
+        setSkeletonFrame(u, 'idle', 0);
+      }
       return;
     }
     if (idx !== sa.frameIdx) { sa.frameIdx = idx; setSkeletonFrame(u, sa.state, idx); }
     return;
   }
   if (sa.state === 'death') return; // advanced separately in animate() since dead units skip updateUnit()
-  // idle/move: continuously follow the unit's existing (unmodified) `moving` flag, looping.
-  const wantState = u.moving ? 'move' : 'idle';
-  if (sa.state !== wantState) { sa.state = wantState; sa.timer = 0; sa.frameIdx = 0; }
-  const seq = SKELETON_ANIM_DEF[sa.state];
-  const total = seq.durations.reduce((a, b) => a + b, 0);
-  sa.timer = (sa.timer + dt) % total;
-  const idx = skeletonFrameIndexForTime(seq, sa.timer);
-  if (idx !== sa.frameIdx) { sa.frameIdx = idx; setSkeletonFrame(u, sa.state, idx); }
+
+  if (u.moving) {
+    // Walk: playback phase advances with ACTUAL world distance, not wall-clock time. The phase
+    // persists across path steps and through interrupting one-shots, so the cycle no longer
+    // restarts at frame 0 every tile; slow/immobilizing statuses slow playback automatically.
+    if (sa.state !== 'move') { sa.state = 'move'; sa.timer = 0; }
+    sa.settleT = 0;
+    skeletonClearIdleBreath(u);
+    const px = u.group.position.x, pz = u.group.position.z;
+    if (sa.lastX === undefined) { sa.lastX = px; sa.lastZ = pz; }
+    const d = Math.hypot(px - sa.lastX, pz - sa.lastZ);
+    sa.lastX = px; sa.lastZ = pz;
+    sa.movePhase = ((sa.movePhase || 0) + d / SKELETON_FEEL.strideWorldUnits) % 1;
+    const idx = Math.min(7, Math.floor(sa.movePhase * 8));
+    if (sa.frameIdx !== idx || sa.shownState !== 'move') { sa.frameIdx = idx; sa.shownState = 'move'; setSkeletonFrame(u, 'move', idx); }
+    return;
+  }
+
+  if (sa.state === 'move') {
+    // Just stopped (or in the 1-tick gap between consecutive path steps): hold the current walk
+    // pose briefly. A real stop settles into the held idle after stopSettleSec; a between-steps
+    // gap resumes moving first and never gets here — the per-step restart flicker is gone.
+    // World position is already exact (updateUnit lerp hits t=1 on the final tick): no drift.
+    sa.settleT = (sa.settleT || 0) + dt;
+    // the step-completion tick still lerped a final distance fragment before flipping `moving`
+    // off — fold it into the cycle phase so playback tracks travel exactly, with no per-tile hiccup
+    const spx = u.group.position.x, spz = u.group.position.z;
+    const sd = Math.hypot(spx - (sa.lastX === undefined ? spx : sa.lastX), spz - (sa.lastZ === undefined ? spz : sa.lastZ));
+    sa.lastX = spx; sa.lastZ = spz;
+    if (sd > 0) {
+      sa.movePhase = ((sa.movePhase || 0) + sd / SKELETON_FEEL.strideWorldUnits) % 1;
+      const si = Math.min(7, Math.floor(sa.movePhase * 8));
+      if (sa.frameIdx !== si) { sa.frameIdx = si; setSkeletonFrame(u, 'move', si); }
+    }
+    if (sa.settleT < SKELETON_FEEL.stopSettleSec) return;
+    sa.state = 'idle'; sa.shownState = 'idle'; sa.timer = 0; sa.frameIdx = 0; sa.movePhase = 0; sa.breathT = 0;
+    setSkeletonFrame(u, 'idle', 0);
+    return;
+  }
+
+  // Idle: one stable neutral frame (idle frame 0) + barely-visible bottom-anchored breathing.
+  if (sa.shownState !== 'idle' || sa.frameIdx !== 0) { sa.frameIdx = 0; sa.shownState = 'idle'; setSkeletonFrame(u, 'idle', 0); }
+  sa.breathT = (sa.breathT || 0) + dt;
+  const s = 1 + SKELETON_FEEL.idleBreathAmpl * Math.sin((sa.breathT / SKELETON_FEEL.idleBreathPeriodSec) * Math.PI * 2);
+  u.body.scale.y = s;
+  // Pin the plane's bottom edge (the drawn feet) exactly where the un-scaled pose puts it:
+  // scaling happens about the plane center, so shifting the center up by halfH*(s-1) keeps
+  // bottom = baseY - halfH constant. Feet and shadow are rock-stable by construction.
+  u.body.position.y = (u.halfH - (u.footLift || 0)) + u.halfH * (s - 1);
 }
 // Called only from the main animate() loop for dead Skeleton units (updateUnit() returns early
 // for !u.alive, so death playback can't ride the normal per-unit update path). Sets
@@ -2594,8 +2683,16 @@ function selectTarget(u) {
 // flips the mapping in data only; setUnitFacing, every other sprite's facing, and movement/attack
 // logic are untouched.
 const SPRITE_BASE_FACING = { Skeleton: -1 };
+// Skeleton Motion Feel Pilot v1: per-sprite near-zero dead-zone (world units). Attack facing
+// passes a raw float dx every frame (see updateUnit), so a target sitting almost exactly on the
+// unit's own column could alternate the sign by fractions of a pixel and rapid-flip the sprite.
+// Movement facing always passes whole-tile deltas (|dirX| >= 1), so it can never be affected.
+// Only Skeleton registers a dead-zone — every other unit keeps the exact previous behavior.
+const SPRITE_FACING_DEADZONE = { Skeleton: 0.05 };
 function setUnitFacing(u, dirX) {
   if (!dirX || !u.body) return; // horizontal tie / pure-vertical: keep the last valid facing
+  const dz = SPRITE_FACING_DEADZONE[u.sprite];
+  if (dz && Math.abs(dirX) < dz) return; // near-tie: keep the last valid facing (no flip jitter)
   const want = (dirX > 0 ? 1 : -1) * (SPRITE_BASE_FACING[u.sprite] || 1);
   if (u.body.scale.x !== want) u.body.scale.x = want; // only flips on a real side change — never churns per frame
 }
