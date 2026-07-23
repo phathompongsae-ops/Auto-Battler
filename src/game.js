@@ -2688,7 +2688,9 @@ const SPRITE_BASE_FACING = { Skeleton: -1 };
 // unit's own column could alternate the sign by fractions of a pixel and rapid-flip the sprite.
 // Movement facing always passes whole-tile deltas (|dirX| >= 1), so it can never be affected.
 // Only Skeleton registers a dead-zone — every other unit keeps the exact previous behavior.
-const SPRITE_FACING_DEADZONE = { Skeleton: 0.05 };
+// Spirit Archer Attack Facing Pilot v1: same near-zero dead-zone mechanism as Skeleton, applied
+// here to kill facing jitter on the (unlocked, between-shot) live target tracking below.
+const SPRITE_FACING_DEADZONE = { Skeleton: 0.05, SpiritArcher: 0.05 };
 function setUnitFacing(u, dirX) {
   if (!dirX || !u.body) return; // horizontal tie / pure-vertical: keep the last valid facing
   const dz = SPRITE_FACING_DEADZONE[u.sprite];
@@ -3571,6 +3573,14 @@ function updateUnit(u, dt) {
       u.animState='attack'; u.animTimer=0;
       if (u.skelAnim) triggerSkeletonAnim(u, 'basic_attack'); // Skeleton pilot: presentational only, fires alongside the existing trigger above, does not change atkCooldown/damage timing
       if (u.monsterAnim) triggerMonsterAnim(u, u.monsterSprite, 'basic_attack'); // Remaining-five: presentational only, does not change atkCooldown/damage timing
+      // Spirit Archer Attack Facing Pilot v1: snapshot the target-facing direction at the exact
+      // tick the attack commits, so the one-shot basic_attack pose (anticipation/release/
+      // recovery) can't flip mid-play if the target dies/is replaced or moves to the opposite
+      // side while that pose is still on screen. Presentation-only: does not touch target
+      // selection, damage, cooldown, or any other sprite's facing.
+      if (u.sprite === 'SpiritArcher' && u.monsterAnim) {
+        u.spiritArcherAtkFacingDx = gridToWorld(target.c,target.r).x - u.group.position.x;
+      }
       let dmg = applyTrait(u, target, attackerRawAtk(u));
       dmg = applySynergyDamageModifiers(dmg, u, target);
       dmg = (target.statuses || []).some((s) => s.invulnerable) ? 0 : absorbWithShield(target, dmg);
@@ -3610,7 +3620,12 @@ function updateUnit(u, dt) {
     }
     // Same facing contract as movement: face the target's horizontal side; on a same-column tie
     // keep the last valid facing (the old ternary forced +1, snapping units to an arbitrary side).
-    setUnitFacing(u, gridToWorld(target.c,target.r).x - u.group.position.x);
+    // Spirit Archer Attack Facing Pilot v1: while the committed basic_attack one-shot pose is
+    // still playing, hold the facing snapshot taken at the moment the attack fired instead of
+    // recalculating live — this is what prevents a mid-shot facing flip. Every other sprite/state
+    // falls through to the exact original live calculation, unchanged.
+    const spiritArcherAtkLock = u.sprite === 'SpiritArcher' && u.monsterAnim && u.monsterAnim.state === 'basic_attack';
+    setUnitFacing(u, spiritArcherAtkLock ? u.spiritArcherAtkFacingDx : gridToWorld(target.c,target.r).x - u.group.position.x);
   } else stepToward(u, target); // 5) Movement
   updateAnim(u, dt);
 }
