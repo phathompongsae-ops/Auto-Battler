@@ -1,54 +1,56 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="th">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Auto Battler — เมนู</title>
-<style>
-  html, body {
-    margin: 0; padding: 0; min-height: 100%;
-    background: #14100c; color: #d7c9a7;
-    font-family: monospace;
-    display: flex; align-items: center; justify-content: center;
-    text-align: center;
-  }
-  main { padding: 32px 24px; }
-  h1 { color: #f0e6c8; font-size: 22px; margin-bottom: 24px; }
-  .menu { display: flex; flex-direction: column; gap: 14px; align-items: stretch; }
-  a.demo {
-    display: block; color: #f0e6c8; text-decoration: none;
-    background: #241c14; border: 1px solid #5a4a32; border-radius: 6px;
-    padding: 14px 28px; font-size: 16px; min-width: 260px;
-  }
-  a.demo:hover { background: #33291b; border-color: #a89468; }
-  a.demo small { display: block; color: #a89468; font-size: 12px; margin-top: 4px; }
-  a.primary { border-color: #91b86a; background: #23301c; }
-  a.primary small { color: #b8d59b; }
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#171b24">
+  <title>Realmfront — Fantasy Settlement War</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-<main>
-  <h1>🏛 Auto Battler — ซากอารีน่าหิน</h1>
-  <div class="menu">
-    <a class="demo primary" href="autochess-next.html">โหมด Auto Chess — Combat Next (ทดสอบ)
-      <small>15 ด่าน · Target Lock · Threat แนวหน้า · Assassin เน้นแนวหลัง · Projectile · Beast Lord ระยะกลาง</small>
-    </a>
-    <a class="demo" href="autochess.html">โหมด Auto Chess — เวอร์ชันเดิม
-      <small>ร้านค้า จัดทัพ ระบบ Link โควตาแพ้ 3 ครั้ง และบอสครบ 15 ด่าน</small>
-    </a>
-    <a class="demo" href="game.html">เฟส 1 — ทีมเริ่มต้น 4 คน
-      <small>Fighter / Swordman / Archer / Acolyte vs กองทัพซากอารีน่า</small>
-    </a>
-    <a class="demo" href="heroes.html">ฮีโร่ 8 คน — สไปรท์แอนิเมชัน
-      <small>Blade Master / Duelist / Beast Lord / Trickster / Archmage / Frost Weaver / Summoner / Sniper</small>
-    </a>
-    <a class="demo" href="forest-clearing.html">ลานรบป่าเขียว — ฉากสนามใหม่
-      <small>กระดาน 8x6 ต้นสน/ลำธาร+สะพาน/ธงประจำทีม/คริสตัล — ฮีโร่ 8 คน vs กองทัพซากอารีน่า</small>
-    </a>
-    <a class="demo" href="assets/portraits/portraits_contact_sheet.png">แกลเลอรีภาพตัวละคร
-      <small>การ์ดภาพฮีโร่ 8 คน สัดส่วนสมจริงแบบ FF — procedural placeholder</small>
-    </a>
+  <div id="app">
+    <header class="topbar">
+      <div class="brand"><span class="crest">R</span><div><strong>REALMFRONT</strong><small>Fantasy Settlement War</small></div></div>
+      <div id="resourceHud" class="resources"></div>
+      <div class="timebox"><strong id="monthLabel">Year 1 · Month 1</strong><small id="seasonLabel">Season 1</small></div>
+    </header>
+
+    <main class="game-shell">
+      <section class="world-panel">
+        <canvas id="cityCanvas" width="960" height="620" aria-label="Human settlement"></canvas>
+        <div class="city-overlay">
+          <div><b id="cityName">Dawnkeep</b><span id="cityLevel">Town Hall Lv.1</span></div>
+          <div class="war-clock"><span>Season War</span><b id="warCountdown">3 months</b></div>
+        </div>
+        <div id="toast" class="toast" aria-live="polite"></div>
+      </section>
+
+      <aside class="side-panel">
+        <div class="tabs" role="tablist">
+          <button class="tab active" data-tab="build">Build</button>
+          <button class="tab" data-tab="army">Army</button>
+          <button class="tab" data-tab="expedition">Expedition</button>
+          <button class="tab" data-tab="territory">Territory</button>
+        </div>
+        <div id="panelContent" class="panel-content"></div>
+      </aside>
+    </main>
+
+    <nav class="bottom-actions">
+      <button id="saveBtn">Save</button>
+      <button id="newBtn">New Game</button>
+      <button id="helpBtn">Guide</button>
+      <button id="warBtn" class="danger" disabled>Season War</button>
+    </nav>
   </div>
-</main>
+
+  <div id="modal" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modal-card">
+      <button id="closeModal" class="close" aria-label="Close">×</button>
+      <div id="modalBody"></div>
+    </div>
+  </div>
+
+  <script type="module" src="app.js"></script>
 </body>
 </html>

@@ -1,0 +1,63 @@
+:root{
+  --bg:#10141c;--panel:#1a2130;--panel2:#232c3d;--line:#344158;--text:#f2ead9;
+  --muted:#aeb8c8;--gold:#f0c66d;--green:#6ec28a;--red:#db6f72;--blue:#6aa7e7;
+  --purple:#9b84e6;--orange:#df8558
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:radial-gradient(circle at top,#222b3c,#0f131a 70%);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
+button{font:inherit}
+button:focus-visible{outline:3px solid #f1cf7a;outline-offset:2px}
+#app{min-height:100%;display:flex;flex-direction:column}
+.topbar{display:flex;align-items:center;gap:16px;padding:10px 14px;background:rgba(16,20,28,.96);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:4}
+.brand{display:flex;align-items:center;gap:9px;min-width:190px}
+.brand strong{display:block;letter-spacing:.08em;font-size:15px}
+.brand small{display:block;color:var(--muted);font-size:10px}
+.crest{width:38px;height:38px;border-radius:10px;background:linear-gradient(145deg,#4d6e9f,#263954);display:grid;place-items:center;font-weight:900;border:1px solid #7590b9}
+.resources{display:flex;gap:7px;flex:1;flex-wrap:wrap}
+.res{padding:6px 9px;background:#202838;border:1px solid #334057;border-radius:9px;min-width:78px}
+.res small{color:var(--muted);display:block;font-size:10px}.res b{font-size:14px}
+.timebox{text-align:right;min-width:118px}.timebox strong,.timebox small{display:block}.timebox small{color:var(--muted);font-size:11px}
+.game-shell{width:100%;max-width:1440px;margin:0 auto;display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:12px;padding:12px;flex:1}
+.world-panel{position:relative;min-height:520px;border:1px solid var(--line);border-radius:16px;overflow:hidden;background:#17211c}
+#cityCanvas{display:block;width:100%;height:100%;min-height:520px;touch-action:manipulation;background:linear-gradient(#9bc8de 0 32%,#6c9a69 32% 100%)}
+.city-overlay{position:absolute;left:12px;top:12px;display:flex;gap:10px;align-items:stretch;pointer-events:none}
+.city-overlay>div{background:rgba(15,19,27,.82);border:1px solid rgba(255,255,255,.13);backdrop-filter:blur(4px);padding:8px 10px;border-radius:10px}
+.city-overlay b,.city-overlay span{display:block}.city-overlay span{font-size:11px;color:var(--muted)}
+.war-clock b{color:#ffd07b}
+.toast{position:absolute;left:50%;bottom:18px;transform:translateX(-50%);background:rgba(15,19,27,.93);border:1px solid var(--line);border-radius:10px;padding:9px 14px;opacity:0;transition:.2s;pointer-events:none;max-width:80%;text-align:center}
+.toast.show{opacity:1}
+.side-panel{background:rgba(26,33,48,.96);border:1px solid var(--line);border-radius:16px;overflow:hidden;min-width:0}
+.tabs{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid var(--line)}
+.tab{border:0;background:#171e2b;color:var(--muted);padding:11px 4px;cursor:pointer;font-size:12px}
+.tab.active{background:#2a3549;color:white;box-shadow:inset 0 -3px #79a7e2}
+.panel-content{padding:12px;max-height:calc(100vh - 160px);overflow:auto}
+.section-title{margin:3px 0 10px;font-size:15px}
+.card-grid{display:grid;gap:8px}
+.card{background:#20293a;border:1px solid #334159;border-radius:11px;padding:10px}
+.card h3{font-size:14px;margin:0 0 4px}.card p{font-size:11px;color:var(--muted);margin:3px 0 8px;line-height:1.35}
+.row{display:flex;align-items:center;justify-content:space-between;gap:8px}.stack{display:flex;flex-direction:column;gap:8px}
+.btn{border:1px solid #4d607e;background:#30415d;color:white;padding:8px 10px;border-radius:9px;cursor:pointer;min-height:38px}
+.btn:hover{background:#3b5071}.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.good{background:#315c49;border-color:#4b8e6d}.btn.warn{background:#694433;border-color:#9a6246}.btn.danger{background:#6b343a;border-color:#9f4a53}
+.cost{font-size:10px;color:#e9c57a}.pill{display:inline-block;padding:3px 7px;border-radius:999px;background:#303c52;font-size:10px;color:#d9e2f0}
+.progress{height:8px;background:#121722;border-radius:99px;overflow:hidden;border:1px solid #303a4e}.progress>span{display:block;height:100%;background:linear-gradient(90deg,#5f9be0,#74c390)}
+.unit-line{display:grid;grid-template-columns:36px 1fr auto;gap:8px;align-items:center}.avatar{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;background:#34445f;border:2px solid #758fb7;font-weight:800;font-size:11px}
+.faction-arcane .avatar{background:#493f71;border-color:#9a82e0}.faction-demon .avatar{background:#653b35;border-color:#dc795c}
+.bottom-actions{display:flex;gap:8px;padding:9px 12px;background:#111722;border-top:1px solid var(--line);justify-content:center;flex-wrap:wrap}
+.bottom-actions button{min-height:42px;padding:8px 16px;border-radius:10px;border:1px solid #42516c;background:#263248;color:white;cursor:pointer}
+.bottom-actions .danger{background:#67343b;border-color:#a34e58}.bottom-actions button:disabled{opacity:.4;cursor:not-allowed}
+.modal{position:fixed;inset:0;background:rgba(5,8,12,.74);display:grid;place-items:center;padding:18px;z-index:20}
+.modal.hidden{display:none}.modal-card{width:min(760px,100%);max-height:88%;overflow:auto;background:#1c2432;border:1px solid #495a76;border-radius:16px;padding:18px;position:relative;box-shadow:0 25px 80px rgba(0,0,0,.45)}
+.close{position:absolute;right:10px;top:8px;border:0;background:transparent;color:#cbd4e1;font-size:28px;cursor:pointer}
+.battlefield{height:250px;background:linear-gradient(#2f4157 0 43%,#4f6748 43% 100%);border:1px solid #52627a;border-radius:12px;position:relative;overflow:hidden;margin:12px 0}
+.fighter{position:absolute;width:46px;height:60px;transition:left .35s ease,top .35s ease;filter:drop-shadow(0 6px 4px rgba(0,0,0,.35))}
+.fighter .head{width:24px;height:24px;border-radius:50%;background:#e5c5a8;margin:0 auto;border:2px solid #2a3040}
+.fighter .body{height:30px;width:34px;margin:-1px auto 0;border-radius:12px 12px 7px 7px;background:#547bb4;border:2px solid #26344d}
+.fighter.enemy .body{background:#824a51}.fighter.arcane .body{background:#6657a0}.fighter .hp{position:absolute;left:2px;right:2px;top:-8px;height:5px;background:#202020;border-radius:4px;overflow:hidden}.fighter .hp span{display:block;height:100%;background:#62bd72}
+.log{font-size:11px;color:#bec8d8;max-height:120px;overflow:auto;background:#131925;padding:8px;border-radius:8px}
+.result-big{text-align:center;padding:22px}.result-big h2{font-size:30px;margin:0 0 8px}.victory{color:#7ad39b}.defeat{color:#e67b80}
+.tutorial{border-left:3px solid #f0c66d;padding:8px 10px;background:#2a2d31;margin-bottom:10px;font-size:12px}
+.map-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.node{min-height:90px;border-radius:10px;border:1px solid #42506a;padding:8px;background:#242e40}.node.human{border-color:#6f9bcf}.node.arcane{border-color:#8a73cf}.node.demon{border-color:#c06750}.node.neutral{opacity:.8}
+.node strong{font-size:12px}.node small{display:block;color:var(--muted);font-size:10px;margin-top:4px}
+@media(max-width:900px){.game-shell{grid-template-columns:1fr}.side-panel{min-height:330px}.panel-content{max-height:none}.topbar{align-items:flex-start;flex-wrap:wrap}.brand{min-width:auto}.timebox{margin-left:auto}.resources{order:3;width:100%}#cityCanvas{min-height:390px}.world-panel{min-height:390px}}
+@media(max-width:520px){.game-shell{padding:6px;gap:6px}.topbar{padding:7px}.res{min-width:63px;padding:5px 7px}.res small{font-size:9px}.res b{font-size:12px}.tabs{grid-template-columns:repeat(2,1fr)}#cityCanvas{min-height:330px}.world-panel{min-height:330px}.city-overlay{right:8px;left:8px;justify-content:space-between}.brand small{display:none}.panel-content{padding:8px}.modal{padding:8px}}
