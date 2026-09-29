@@ -21,11 +21,11 @@ export const UNIT_CLASSES = {
 };
 
 export const REGIONS = [
-  {id:"fields",name:"Green Fields",power:62,reward:{gold:62,wood:58,stone:22,crystal:2},rival:.12},
-  {id:"forest",name:"Ancient Forest",power:120,reward:{gold:92,wood:84,stone:38,crystal:7},rival:.20},
-  {id:"pass",name:"Rocky Pass",power:195,reward:{gold:125,wood:48,stone:94,crystal:12},rival:.28},
-  {id:"ruins",name:"Crystal Ruins",power:285,reward:{gold:165,wood:48,stone:64,crystal:32},rival:.36},
-  {id:"frontier",name:"Dark Frontier",power:400,reward:{gold:225,wood:78,stone:100,crystal:44},rival:.45}
+  {id:"fields",name:"Green Fields",power:300,townHall:1,reward:{gold:62,wood:58,stone:22,crystal:2},rival:.12},
+  {id:"forest",name:"Ancient Forest",power:420,townHall:2,reward:{gold:92,wood:84,stone:38,crystal:7},rival:.20},
+  {id:"pass",name:"Rocky Pass",power:560,townHall:3,reward:{gold:125,wood:48,stone:94,crystal:12},rival:.28},
+  {id:"ruins",name:"Crystal Ruins",power:720,townHall:4,reward:{gold:165,wood:48,stone:64,crystal:32},rival:.36},
+  {id:"frontier",name:"Dark Frontier",power:900,townHall:5,reward:{gold:225,wood:78,stone:100,crystal:44},rival:.45}
 ];
 
 export function createInitialState(){
@@ -36,8 +36,8 @@ export function createInitialState(){
     units:[makeUnit("Warrior",1),makeUnit("Warrior",2),makeUnit("Archer",3),makeUnit("Cleric",4)],
     nextUnitId:5,
     rivals:{
-      arcane:{name:"Arcane Covenant",cityLevel:1,armyPower:112,resources:180,territory:3,warWins:0,capitalUnlocked:false,conquered:false},
-      demon:{name:"Ashen Horde",cityLevel:1,armyPower:122,resources:180,territory:3,warWins:0,capitalUnlocked:false,conquered:false}
+      arcane:{name:"Arcane Covenant",cityLevel:1,armyPower:350,resources:180,territory:3,warWins:0,capitalUnlocked:false,conquered:false},
+      demon:{name:"Ashen Horde",cityLevel:1,armyPower:365,resources:180,territory:3,warWins:0,capitalUnlocked:false,conquered:false}
     },
     territory:{h1:"human",h2:"human",n1:"neutral",n2:"neutral",n3:"neutral",a1:"arcane",a2:"arcane",a3:"arcane",d1:"demon",d2:"demon",d3:"demon"},
     stats:{battles:0,wins:0,losses:0,expeditions:0,territories:0,seasonWars:0},
@@ -84,7 +84,7 @@ export function upgradeBuilding(state,key){
   spend(state.resources,cost);state.buildings[key]=lvl+1;return {ok:true,cost};
 }
 export function enemyPowerForExpedition(state,region,rivalType=null){
-  const scale=1+(Math.max(0,state.season-1))*.055,rival=rivalType?state.rivals[rivalType]:null;
+  const scale=1+(Math.max(0,state.season-1))*.035,rival=rivalType?state.rivals[rivalType]:null;
   return Math.round(region.power*scale*(rival?1.08+rival.cityLevel*.025:1));
 }
 export function resolveBattle(playerPower,enemyPower,rng=Math.random){
@@ -105,14 +105,14 @@ export function advanceMonth(state){
   state.season=(state.year-1)*4+Math.floor((state.month-1)/3)+1;
   const seasonTriggered=state.season>previousSeason;
   if(seasonTriggered){state.warReady=true;state.pendingWarSeason=previousSeason}
-  progressRivals(state);return {blocked:false,seasonTriggered};
+  progressRivals(state,seasonTriggered);return {blocked:false,seasonTriggered};
 }
-export function progressRivals(state){
+export function progressRivals(state,seasonTriggered=false){
   for(const key of ["arcane","demon"]){
     const r=state.rivals[key];if(r.conquered)continue;
-    const growth=11+state.season*2.6+r.cityLevel*3;
-    r.armyPower+=Math.round(growth);r.resources+=32+state.season*5;
-    if(state.season%2===0&&r.cityLevel<5)r.cityLevel++;
+    const growth=7+state.season*1.8+r.cityLevel*2;
+    r.armyPower+=Math.round(growth);r.resources+=30+state.season*4;
+    if(seasonTriggered&&state.season%2===0&&r.cityLevel<5)r.cityLevel++;
   }
   updateCapitalLocks(state);
 }
@@ -157,6 +157,7 @@ function captureOne(state,key){
 function claimFactionTerritory(state,key){for(const k of Object.keys(state.territory))if(state.territory[k]===key)state.territory[k]="human"}
 export function expeditionOutcome(state,region,ids,rng=Math.random){
   if(state.warReady)return {ok:false,reason:"Resolve the Season War before another expedition"};
+  if((state.buildings.townhall||0)<(region.townHall||1))return {ok:false,reason:"Upgrade Town Hall to unlock this region"};
   if(ids.length<3||ids.length>5)return {ok:false,reason:"Choose 3-5 units"};
   const rivalRoll=rng(),rivalType=rivalRoll<region.rival/2?"arcane":rivalRoll<region.rival?"demon":null;
   const enemyPower=enemyPowerForExpedition(state,region,rivalType),pp=armyPower(state,ids),battle=resolveBattle(pp,enemyPower,rng);
