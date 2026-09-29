@@ -3,7 +3,7 @@ import {BUILDINGS,UNIT_CLASSES,REGIONS,createInitialState,normalizeState,buildin
 const SAVE_KEY="realmfront-save-v2";
 let state=normalizeState(loadRaw());
 let activeTab="build",selectedTeam=new Set(state.units.slice(0,4).map(u=>u.id)),animT=0,lastFrame=0,soundOn=true;
-const qaMode=new URLSearchParams(location.search).has("qa");
+const qaParams=new URLSearchParams(location.search),qaScene=qaParams.get("qa"),qaMode=qaParams.has("qa");
 const spriteSheets={characters:new Image(),buildings:new Image(),regions:new Image(),vfx:new Image()};
 spriteSheets.characters.src="assets/characters.svg";
 spriteSheets.buildings.src="assets/buildings.svg";
@@ -102,18 +102,37 @@ function finishExpedition(result){
 }
 function drawBattlePreview(ids,rivalType){
   const stage=q("#battleStage");if(!stage)return;stage.classList.toggle("arcane",rivalType==="arcane");stage.classList.toggle("demon",rivalType==="demon");stage.innerHTML="";
-  ids.slice(0,5).forEach((id,i)=>{const u=state.units.find(x=>x.id===id);stage.insertAdjacentHTML("beforeend",fighterHtml(9+i*7,30+(i%2)*38,false,u?.cls||"Warrior",null))});
-  for(let i=0;i<4;i++)stage.insertAdjacentHTML("beforeend",fighterHtml(72+i*5,34+(i%2)*42,true,"Warrior",rivalType));
+  ids.slice(0,5).forEach((id,i)=>{const u=state.units.find(x=>x.id===id);stage.insertAdjacentHTML("beforeend",fighterHtml(8+i*7,27+(i%2)*32,false,u?.cls||"Warrior",null))});
+  for(let i=0;i<4;i++)stage.insertAdjacentHTML("beforeend",fighterHtml(68+i*5,30+(i%2)*32,true,"Warrior",rivalType));
 }
-function fighterHtml(left,top,enemy,cls,rival){return '<div class="fighter '+cls.toLowerCase()+' '+(enemy?"enemy ":"")+(rival||"")+'" style="left:'+left+'%;top:'+top+'%"><div class="hp"><span style="width:100%"></span></div><div class="head"></div><div class="body"></div><div class="weapon"></div></div>'}
+function fighterHtml(left,top,enemy,cls,rival){
+  const humanIndex=charSpriteIndex[cls]??0,rivalIndex=rival==="arcane"?1:rival==="demon"?2:0;
+  const pos=enemy?rivalIndex*50:humanIndex*20,sheet=enemy?"rival-sprite":"human-sprite";
+  return '<div class="fighter '+cls.toLowerCase()+' '+(enemy?"enemy ":"")+(rival||"")+'" style="left:'+left+'%;top:'+top+'%" data-role="'+cls+'"><div class="hp"><span style="width:100%"></span></div><div class="battle-sprite '+sheet+'" style="--sprite-pos:'+pos+'%"></div></div>'
+}
 function animateBattle(ids,result,done){
   drawBattlePreview(ids,result.rivalType);const stage=q("#battleStage"),log=q("#battleLog"),fighters=[...stage.querySelectorAll(".fighter")];let tick=0;
-  const timer=setInterval(()=>{tick++;fighters.forEach((f,i)=>{const enemy=f.classList.contains("enemy");f.style.left=(enemy?Math.max(52,72+i%4*5-tick*2.8):Math.min(44,9+i*7+tick*2.8))+"%";if((i+tick)%3===0){f.classList.add("hit");setTimeout(()=>f.classList.remove("hit"),120)}const hp=f.querySelector(".hp span");hp.style.width=Math.max(6,100-tick*(result.win&&enemy?19:result.win?8:enemy?7:19))+"%"});spawnProjectile(stage,tick);spawnDamage(stage,tick,result);sound(tick%3===0?"magic":tick%2===0?"arrow":"hit");log.innerHTML+="<br>Exchange "+tick+": "+(tick%2?"front line clashes":"arrows and spellfire cross the field")+".";
+  const timer=setInterval(()=>{tick++;fighters.forEach((f,i)=>{const enemy=f.classList.contains("enemy");f.style.left=(enemy?Math.max(54,68+i%4*5-tick*2.4):Math.min(43,8+i*7+tick*2.4))+"%";f.classList.remove("attacking","hit");if((i+tick)%3===0){f.classList.add("hit");setTimeout(()=>f.classList.remove("hit"),120)}else{f.classList.add("attacking");setTimeout(()=>f.classList.remove("attacking"),150)}const hp=f.querySelector(".hp span");hp.style.width=Math.max(6,100-tick*(result.win&&enemy?19:result.win?8:enemy?7:19))+"%"});spawnProjectile(stage,tick);spawnDamage(stage,tick,result);sound(tick%3===0?"magic":tick%2===0?"arrow":"hit");log.innerHTML+="<br>Exchange "+tick+": "+(tick%2?"front line clashes":"arrows and spellfire cross the field")+".";
     log.scrollTop=log.scrollHeight;if(tick>=5){clearInterval(timer);fighters.forEach(f=>{if((result.win&&f.classList.contains("enemy"))||(!result.win&&!f.classList.contains("enemy")))f.classList.add("down")});setTimeout(done,520)}
   },260);
 }
-function spawnProjectile(stage,tick){if(tick<2||tick>4)return;const p=document.createElement("div");p.className="projectile sprite-vfx "+(tick===3?"magic":tick===4?"holy":"");p.style.left="34%";p.style.top=(34+tick*8)+"%";stage.appendChild(p);setTimeout(()=>p.remove(),430)}
+function spawnProjectile(stage,tick){
+  if(tick<2||tick>4)return;
+  const ranged=[...stage.querySelectorAll(".fighter:not(.enemy).archer,.fighter:not(.enemy).mage,.fighter:not(.enemy).cleric")];
+  if(!ranged.length)return;
+  const source=ranged[(tick-2)%ranged.length],p=document.createElement("div"),box=stage.getBoundingClientRect(),src=source.getBoundingClientRect();
+  const kind=source.classList.contains("mage")?"magic":source.classList.contains("cleric")?"holy":"arrow";
+  p.className="projectile sprite-vfx "+kind;
+  p.style.left=Math.max(12,src.left-box.left+src.width*.65)+"px";p.style.top=Math.max(18,src.top-box.top+src.height*.36)+"px";
+  p.style.setProperty("--shot-distance",Math.max(120,box.width*.42)+"px");stage.appendChild(p);setTimeout(()=>p.remove(),430)
+}
 function spawnDamage(stage,tick,result){const d=document.createElement("div");d.className="damage";d.textContent="-"+Math.round((result.enemyPower/8)*(0.7+tick*.12));d.style.left=(result.win?68:34)+"%";d.style.top=(34+(tick%2)*30)+"%";stage.appendChild(d);setTimeout(()=>d.remove(),700)}
+
+function showBattleQa(rivalType){
+  const ids=[...selectedTeam],label=rivalType==="demon"?"Ashen Horde":"Arcane Covenant";
+  openModal('<div class="hero-title"><small>BATTLE VISUAL QA</small><h2>'+label+'</h2><span class="pill">Simple auto-battle · chibi sprite pass</span></div><div id="battleStage" class="battlefield"></div><div class="log">Human classes face '+label+'. HP bars, silhouettes, faction colors and mobile spacing are under visual QA.</div>');
+  drawBattlePreview(ids,rivalType);
+}
 
 function showSeasonWar(){
   if(!state.warReady)return;const ids=[...selectedTeam];if(ids.length<3){toast("Choose at least 3 units");activeTab="army";renderPanel();return}
@@ -309,4 +328,4 @@ function drawCityFx(ox,oy,tw,th){
   const now=performance.now();for(let i=cityFx.length-1;i>=0;i--){const fx=cityFx[i],age=(now-fx.t)/1000;if(age>1.15){cityFx.splice(i,1);continue}const p=iso(4.8,3.8,ox,oy,tw,th);ctx.globalAlpha=1-age/1.15;ctx.fillStyle=fx.type==="recruit"?"#9fdbb4":"#e7d19a";for(let j=0;j<10;j++){const a=j*Math.PI/5+age*2,r=14+age*28;ctx.beginPath();ctx.arc(p.x+Math.cos(a)*r,p.y-18+Math.sin(a)*r*.5,2.5,0,Math.PI*2);ctx.fill()}ctx.globalAlpha=1}
 }
 function loop(t){const dt=t-lastFrame;lastFrame=t;animT=t;if(dt<80)renderCity();requestAnimationFrame(loop)}
-window.addEventListener("resize",renderCity);renderAll();renderCity();if(!qaMode)requestAnimationFrame(loop);
+window.addEventListener("resize",renderCity);renderAll();renderCity();if(qaScene==="battle")showBattleQa("arcane");if(qaScene==="battle-mobile")showBattleQa("demon");if(!qaMode)requestAnimationFrame(loop);

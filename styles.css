@@ -64,22 +64,26 @@ button:focus-visible{outline:3px solid #f1cf7a;outline-offset:2px}
 .modal.hidden{display:none}.modal-card{width:min(790px,100%);max-height:90%;overflow:auto;background:linear-gradient(145deg,#1c2738,#151e2b);border:1px solid #4b5e7b;border-radius:18px;padding:18px;position:relative;box-shadow:0 25px 80px rgba(0,0,0,.5)}
 .close{position:absolute;right:10px;top:8px;border:0;background:transparent;color:#cbd4e1;font-size:28px;cursor:pointer;z-index:2}
 .hero-title{text-align:center;margin:2px 0 14px}.hero-title small{display:block;color:var(--muted);font-size:10px;letter-spacing:.15em}.hero-title h2{margin:4px 0;font-size:25px}
-.battlefield{height:300px;background:linear-gradient(#718aa0 0 41%,#596e4d 41% 100%);border:1px solid #52627a;border-radius:14px;position:relative;overflow:hidden;margin:12px 0;box-shadow:inset 0 -50px 80px rgba(0,0,0,.1)}
-.battlefield.arcane{background:linear-gradient(#5b6c91 0 42%,#55567b 42% 100%)}.battlefield.demon{background:linear-gradient(#6c5556 0 42%,#5c443d 42% 100%)}
-.battlefield:before{content:"";position:absolute;left:0;right:0;top:40%;height:2px;background:rgba(255,255,255,.15);box-shadow:0 34px 0 rgba(255,255,255,.05),0 68px 0 rgba(255,255,255,.04)}
-.fighter{position:absolute;width:54px;height:70px;transition:left .28s ease,top .28s ease,transform .16s ease,opacity .2s;filter:drop-shadow(0 7px 4px rgba(0,0,0,.34));z-index:2}
-.fighter .head{width:26px;height:26px;border-radius:50%;background:#e5c5a8;margin:0 auto;border:2px solid #293245;position:relative}
-.fighter .head:before{content:"";position:absolute;left:3px;right:3px;top:-3px;height:8px;border-radius:8px 8px 2px 2px;background:#4a392f}
-.fighter .body{height:33px;width:37px;margin:-1px auto 0;border-radius:12px 12px 7px 7px;background:#557cb6;border:2px solid #26344d;position:relative}
-.fighter .weapon{position:absolute;width:22px;height:4px;background:#c9d1dc;border-radius:4px;right:-12px;top:35px;transform:rotate(-32deg);transform-origin:left center}
-.fighter.archer .body{background:#64845e}.fighter.archer .weapon{width:18px;height:22px;border:3px solid #d8c18d;background:transparent;border-left-color:transparent;border-radius:50%;right:-10px;top:26px}
-.fighter.mage .body{background:#7563b2}.fighter.mage .weapon,.fighter.cleric .weapon{width:4px;height:30px;background:#9b7750;right:-6px;top:27px;transform:rotate(10deg)}.fighter.mage .weapon:after{content:"";position:absolute;width:9px;height:9px;border-radius:50%;background:#9b8cf0;left:-3px;top:-6px;box-shadow:0 0 12px #9b8cf0}
-.fighter.cleric .body{background:#d0b978}.fighter.knight .body{background:#6f7e98;width:41px}.fighter.rogue .body{background:#67586f}.fighter.rogue .weapon{box-shadow:-7px 8px 0 #c9d1dc}
-.fighter.enemy .body{background:#824a51}.fighter.arcane .body{background:#6657a0}.fighter.arcane .head:before{background:#4b3f72}.fighter.demon .head{background:#c98167}.fighter.demon .body{background:#873f35}.fighter.demon .head:after{content:"";position:absolute;left:-4px;right:-4px;top:-7px;height:7px;border-left:5px solid #2e2525;border-right:5px solid #2e2525}
-.fighter .hp{position:absolute;left:2px;right:2px;top:-8px;height:5px;background:#202020;border-radius:4px;overflow:hidden}.fighter .hp span{display:block;height:100%;background:#62bd72}
-.fighter.hit{transform:translateX(-5px) scale(.96);filter:brightness(1.5) drop-shadow(0 7px 4px rgba(0,0,0,.34))}.fighter.down{opacity:.22;transform:translateY(13px) rotate(18deg)}
-.projectile{position:absolute;width:20px;height:5px;border-radius:4px;background:#f3d9a0;z-index:4;box-shadow:0 0 7px rgba(255,221,143,.7);animation:shot .35s linear forwards}.projectile.magic{width:13px;height:13px;border-radius:50%;background:#9c8bf1;box-shadow:0 0 14px #9c8bf1}.projectile.holy{width:12px;height:12px;border-radius:3px;background:#ffe5a6;box-shadow:0 0 14px #ffe5a6}
-@keyframes shot{to{transform:translateX(260px)}}
+.battlefield{--sky1:#7eb7d2;--sky2:#c8d7c4;--ground1:#6f925f;--ground2:#506f4a;height:300px;background:linear-gradient(var(--sky1) 0 42%,var(--sky2) 42% 44%,var(--ground1) 44% 100%);border:1px solid #52627a;border-radius:14px;position:relative;overflow:hidden;margin:12px 0;box-shadow:inset 0 -50px 80px rgba(0,0,0,.12)}
+.battlefield.arcane{--sky1:#697cac;--sky2:#9a91bd;--ground1:#615f83;--ground2:#484866}.battlefield.demon{--sky1:#7d625e;--sky2:#b06d56;--ground1:#69483d;--ground2:#49312d}
+.battlefield:before{content:"";position:absolute;left:-4%;right:-4%;top:22%;height:25%;z-index:0;background:linear-gradient(135deg,rgba(47,73,77,.5),rgba(77,95,82,.32));clip-path:polygon(0 100%,8% 58%,17% 82%,27% 30%,37% 76%,48% 38%,58% 78%,69% 28%,82% 72%,92% 43%,100% 100%)}
+.battlefield:after{content:"";position:absolute;left:-12%;right:-12%;bottom:-20%;height:54%;z-index:0;background:radial-gradient(ellipse at center,rgba(211,194,147,.48) 0 37%,rgba(73,91,58,.08) 38% 100%);transform:rotate(-2deg)}
+.fighter{position:absolute;width:62px;height:80px;transition:left .28s ease,top .28s ease,transform .16s ease,opacity .2s;z-index:2}
+.fighter .hp{position:absolute;left:4px;right:4px;top:-8px;height:6px;background:rgba(23,24,27,.9);border:1px solid rgba(255,255,255,.16);border-radius:5px;overflow:hidden;box-shadow:0 2px 4px rgba(0,0,0,.25)}.fighter .hp span{display:block;height:100%;background:linear-gradient(90deg,#4fad67,#79d28a)}
+.battle-sprite{position:absolute;left:-7px;top:-4px;width:76px;height:76px;background-repeat:no-repeat;background-position:var(--sprite-pos) 0;transform-origin:50% 78%;filter:drop-shadow(0 7px 4px rgba(0,0,0,.28));animation:battleBob 1.15s ease-in-out infinite}
+.battle-sprite.human-sprite{background-image:url("assets/characters.svg");background-size:600% 100%}
+.battle-sprite.rival-sprite{background-image:url("assets/rivals.svg");background-size:300% 100%}
+.fighter.enemy .battle-sprite{animation-name:battleBobEnemy}
+.fighter.attacking .battle-sprite{animation:battleStrike .16s ease-out}
+.fighter.enemy.attacking .battle-sprite{animation:battleStrikeEnemy .16s ease-out}
+.fighter.hit{transform:translateX(-5px) scale(.96)}.fighter.hit .battle-sprite{filter:brightness(1.65) saturate(.85) drop-shadow(0 7px 4px rgba(0,0,0,.28))}
+.fighter.down{opacity:.3;transform:translateY(14px) rotate(16deg)}.fighter.down .battle-sprite{animation:none;filter:grayscale(.45) brightness(.72)}
+@keyframes battleBob{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-2px) scale(1.015,.985)}}
+@keyframes battleBobEnemy{0%,100%{transform:scaleX(-1) translateY(0)}50%{transform:scaleX(-1) translateY(-2px) scale(1.015,.985)}}
+@keyframes battleStrike{0%{transform:translateX(0) rotate(0)}55%{transform:translateX(9px) rotate(5deg) scale(1.04,.97)}100%{transform:translateX(0) rotate(0)}}
+@keyframes battleStrikeEnemy{0%{transform:scaleX(-1) translateX(0) rotate(0)}55%{transform:scaleX(-1) translateX(9px) rotate(5deg) scale(1.04,.97)}100%{transform:scaleX(-1) translateX(0) rotate(0)}}
+.projectile{position:absolute;z-index:4;animation:shot .35s linear forwards;pointer-events:none}
+@keyframes shot{to{transform:translateX(var(--shot-distance,260px))}}
 .damage{position:absolute;color:#fff0c5;font-weight:900;font-size:13px;text-shadow:0 2px 3px #000;z-index:8;animation:dmg .65s ease-out forwards}@keyframes dmg{to{transform:translateY(-28px);opacity:0}}
 .log{font-size:11px;color:#bec8d8;max-height:112px;overflow:auto;background:#101722;padding:8px;border-radius:8px}
 .result-big{text-align:center;padding:22px}.result-big h2{font-size:30px;margin:0 0 8px}.victory{color:#7ad39b}.defeat{color:#e67b80}
@@ -93,13 +97,14 @@ button:focus-visible{outline:3px solid #f1cf7a;outline-offset:2px}
 .war-choice{border-width:2px}.war-choice.arcane{border-color:#7764bc}.war-choice.demon{border-color:#b65c48}.capital-badge{display:inline-block;padding:4px 8px;border-radius:6px;background:#643b31;color:#ffd1b6;font-size:10px;letter-spacing:.08em}
 .campaign-end{background:radial-gradient(circle at top,rgba(92,126,89,.18),transparent 60%)}
 @media(max-width:920px){.game-shell{grid-template-columns:1fr}.side-panel{min-height:330px}.panel-content{max-height:none}.topbar{align-items:flex-start;flex-wrap:wrap}.brand{min-width:auto}.timebox{margin-left:auto}.resources{order:3;width:100%}#cityCanvas{min-height:420px}.world-panel{min-height:420px}}
-@media(max-width:620px){.game-shell{padding:6px;gap:6px}.topbar{padding:7px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px}.brand{grid-column:1}.timebox{grid-column:2;margin:0}.resources{grid-column:1/-1;order:initial;width:100%;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px}.res{min-width:0;padding:5px 4px;text-align:center}.res small{font-size:7px;white-space:nowrap}.res b{font-size:10px;white-space:nowrap}.tabs{grid-template-columns:repeat(2,1fr)}#cityCanvas{min-height:345px}.world-panel{min-height:345px}.brand small{display:none}.panel-content{padding:8px}.modal{padding:8px}.battlefield{height:250px}.bottom-actions button{flex:1 1 112px}.war-alert{top:31%}}
+@media(max-width:620px){.game-shell{padding:6px;gap:6px}.topbar{padding:7px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px}.brand{grid-column:1}.timebox{grid-column:2;margin:0}.resources{grid-column:1/-1;order:initial;width:100%;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px}.res{min-width:0;padding:5px 4px;text-align:center}.res small{font-size:7px;white-space:nowrap}.res b{font-size:10px;white-space:nowrap}.tabs{grid-template-columns:repeat(2,1fr)}#cityCanvas{min-height:345px}.world-panel{min-height:345px}.brand small{display:none}.panel-content{padding:8px}.modal{padding:8px}.battlefield{height:250px}.fighter{width:56px;height:72px}.battle-sprite{width:68px;height:68px;left:-6px}.bottom-actions button{flex:1 1 112px}.war-alert{top:31%}}
 @media(max-width:420px){.brand strong{font-size:12px}.crest{width:32px;height:32px}.timebox{min-width:100px}.timebox strong{font-size:11px}.timebox small{font-size:9px}.resources{gap:3px}.res{min-width:0;padding:4px 2px}.res small{font-size:6.5px}.res b{font-size:9px}.game-shell{padding:4px}.world-panel{border-radius:13px}#cityCanvas{min-height:315px}.side-panel{border-radius:13px}.unit-line{grid-template-columns:40px 1fr}.unit-line>label{grid-column:2}.modal-card{padding:14px}.map-grid{grid-template-columns:repeat(2,1fr)}}
 @media(orientation:landscape) and (max-height:450px){.topbar{position:static}.game-shell{grid-template-columns:minmax(0,1fr) 330px;padding:5px}.world-panel,#cityCanvas{min-height:330px}.panel-content{max-height:330px}.bottom-actions{padding:5px}.bottom-actions button{min-height:36px}.brand small{display:none}}
 
 /* Sprite Asset Pass */
 .sprite-vfx{background-image:url("assets/vfx.svg");background-repeat:no-repeat;background-size:600% 100%;border:0}
 .projectile.sprite-vfx{width:36px;height:36px;background-position:20% 0;background-color:transparent;box-shadow:none}
+.projectile.sprite-vfx.arrow{width:34px;height:34px;background-position:20% 0;background-color:transparent;box-shadow:none}
 .projectile.sprite-vfx.magic{width:38px;height:38px;background-position:40% 0;background-color:transparent;box-shadow:none}
 .projectile.sprite-vfx.holy{width:38px;height:38px;background-position:60% 0;background-color:transparent;box-shadow:none}
 .region-art{background-repeat:no-repeat;background-size:500% 100%;background-color:#476b4d}
