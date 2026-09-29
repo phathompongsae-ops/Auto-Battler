@@ -17,7 +17,7 @@
 
 
 
-<text x="64" y="124" text-anchor="middle" font-family="Arial" font-size="10" fill="#f6eddc">Warrior</text>
+
 </g><g transform="translate(128 0)" filter="url(#s)">
 <ellipse cx="64" cy="111" rx="24" ry="7" fill="#000" opacity=".18"/>
 <line x1="54" y1="82" x2="50" y2="108" stroke="#4b3528" stroke-width="7" stroke-linecap="round"/>
@@ -34,7 +34,7 @@
 <path d="M88 46 Q110 66 88 91" fill="none" stroke="#d7b875" stroke-width="5"/><line x1="88" y1="46" x2="88" y2="91" stroke="#efe4bf" stroke-width="2"/>
 
 
-<text x="64" y="124" text-anchor="middle" font-family="Arial" font-size="10" fill="#f6eddc">Archer</text>
+
 </g><g transform="translate(256 0)" filter="url(#s)">
 <ellipse cx="64" cy="111" rx="24" ry="7" fill="#000" opacity=".18"/>
 <line x1="54" y1="82" x2="50" y2="108" stroke="#4b3528" stroke-width="7" stroke-linecap="round"/>
@@ -51,7 +51,7 @@
 
 <line x1="90" y1="30" x2="87" y2="101" stroke="#805d3f" stroke-width="7"/><circle cx="90" cy="25" r="9" fill="#aa99f2" stroke="#efe9ff" stroke-width="3"/><circle cx="90" cy="25" r="17" fill="none" stroke="#aa99f2" stroke-opacity=".35" stroke-width="3"/>
 
-<text x="64" y="124" text-anchor="middle" font-family="Arial" font-size="10" fill="#f6eddc">Mage</text>
+
 </g><g transform="translate(384 0)" filter="url(#s)">
 <ellipse cx="64" cy="111" rx="24" ry="7" fill="#000" opacity=".18"/>
 <line x1="54" y1="82" x2="50" y2="108" stroke="#4b3528" stroke-width="7" stroke-linecap="round"/>
@@ -68,7 +68,7 @@
 
 <line x1="90" y1="30" x2="87" y2="101" stroke="#805d3f" stroke-width="7"/><circle cx="90" cy="25" r="9" fill="#fff0b5" stroke="#efe9ff" stroke-width="3"/><circle cx="90" cy="25" r="17" fill="none" stroke="#fff0b5" stroke-opacity=".35" stroke-width="3"/>
 
-<text x="64" y="124" text-anchor="middle" font-family="Arial" font-size="10" fill="#f6eddc">Cleric</text>
+
 </g><g transform="translate(512 0)" filter="url(#s)">
 <ellipse cx="64" cy="111" rx="24" ry="7" fill="#000" opacity=".18"/>
 <line x1="54" y1="82" x2="50" y2="108" stroke="#4b3528" stroke-width="7" stroke-linecap="round"/>
@@ -85,7 +85,7 @@
 
 
 
-<text x="64" y="124" text-anchor="middle" font-family="Arial" font-size="10" fill="#f6eddc">Knight</text>
+
 </g><g transform="translate(640 0)" filter="url(#s)">
 <ellipse cx="64" cy="111" rx="24" ry="7" fill="#000" opacity=".18"/>
 <line x1="54" y1="82" x2="50" y2="108" stroke="#4b3528" stroke-width="7" stroke-linecap="round"/>
@@ -102,5 +102,5 @@
 
 
 <line x1="84" y1="64" x2="108" y2="45" stroke="#dce5ee" stroke-width="5"/><line x1="44" y1="64" x2="20" y2="45" stroke="#dce5ee" stroke-width="5"/>
-<text x="64" y="124" text-anchor="middle" font-family="Arial" font-size="10" fill="#f6eddc">Rogue</text>
+
 </g></svg>
