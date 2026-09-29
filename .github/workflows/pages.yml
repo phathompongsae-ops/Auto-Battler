@@ -13,6 +13,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Validate browser JavaScript syntax
+        run: |
+          node --check app.js
+          node --check src/fantasy-core.js
       - name: Run game logic tests
         run: npm test
       - name: Build static site
@@ -37,13 +41,17 @@ jobs:
           test -s mobile.png
           kill $SERVER_PID 2>/dev/null || true
           trap - EXIT
-      - name: Upload visual QA screenshots
+      - name: Upload visual QA diagnostics
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: realmfront-visual-qa
+          if-no-files-found: ignore
           path: |
             desktop.png
             mobile.png
+            rendered-dom.html
+            /tmp/realmfront-server.log
       - name: Publish production root
         uses: peaceiris/actions-gh-pages@v4
         with:
