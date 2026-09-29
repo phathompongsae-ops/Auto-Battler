@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="576" height="96" viewBox="0 0 576 96">
+<g><path d="M18 72 Q48 16 84 22 Q50 34 30 80 Z" fill="#f2d998" opacity=".9"/><path d="M24 66 Q50 23 77 27" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round"/></g>
+<g transform="translate(96 0)"><line x1="8" y1="48" x2="82" y2="48" stroke="#e8d6a0" stroke-width="4"/><polygon points="82,41 95,48 82,55" fill="#e8d6a0"/></g>
+<g transform="translate(192 0)"><circle cx="48" cy="48" r="20" fill="#9c8bf1"/><circle cx="48" cy="48" r="33" fill="none" stroke="#9c8bf1" stroke-width="5" opacity=".45"/></g>
+<g transform="translate(288 0)"><circle cx="48" cy="48" r="34" fill="none" stroke="#a7f1d3" stroke-width="6" opacity=".5"/><rect x="41" y="19" width="14" height="58" rx="5" fill="#a7f1d3"/><rect x="19" y="41" width="58" height="14" rx="5" fill="#a7f1d3"/></g>
+<g transform="translate(384 0)"><path d="M48 5 L58 34 L87 20 L68 45 L95 53 L65 59 L82 87 L55 68 L45 95 L39 66 L10 82 L29 56 L1 48 L31 41 L14 14 L42 34 Z" fill="#f1a36c" opacity=".85"/></g>
+<g transform="translate(480 0)"><circle cx="48" cy="48" r="30" fill="#ffe07b" opacity=".7"/><circle cx="48" cy="48" r="12" fill="#fff5c0"/></g>
+</svg>

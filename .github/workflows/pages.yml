@@ -21,9 +21,10 @@ jobs:
         run: npm test
       - name: Build static site
         run: |
-          mkdir -p _site/src
+          mkdir -p _site/src _site/assets
           cp index.html styles.css app.js _site/
           cp src/fantasy-core.js _site/src/
+          cp -R assets/. _site/assets/
       - name: Visual smoke screenshots
         run: |
           python3 -m http.server 4173 -d _site >/tmp/realmfront-server.log 2>&1 &
