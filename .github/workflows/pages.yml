@@ -24,7 +24,7 @@ jobs:
           mkdir -p _site/src _site/assets
           cp index.html styles.css app.js _site/
           cp src/fantasy-core.js _site/src/
-          cp -R assets/. _site/assets/
+          cp assets/characters.svg assets/buildings.svg assets/regions.svg assets/rivals.svg assets/factions.svg assets/vfx.svg _site/assets/
       - name: Visual smoke screenshots
         run: |
           python3 -m http.server 4173 -d _site >/tmp/realmfront-server.log 2>&1 &
