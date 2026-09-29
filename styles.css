@@ -108,3 +108,43 @@ button:focus-visible{outline:3px solid #f1cf7a;outline-offset:2px}
 .projectile.sprite-vfx.magic{width:38px;height:38px;background-position:40% 0;background-color:transparent;box-shadow:none}
 .projectile.sprite-vfx.holy{width:38px;height:38px;background-position:60% 0;background-color:transparent;box-shadow:none}
 .region-art{background-repeat:no-repeat;background-size:500% 100%;background-color:#476b4d}
+
+
+/* Pixel Visual Lock */
+:root{--px-dark:#2b2430;--px-deep:#17141b;--px-panel:#3b4658;--px-panel2:#505f72;--px-line:#15141a;--px-cream:#f6e7bd}
+html,body{font-family:"Courier New",ui-monospace,monospace;background:#17141b}
+#cityCanvas{image-rendering:pixelated;image-rendering:crisp-edges}
+.vignette{display:none}
+.topbar,.side-panel,.bottom-actions,.modal-card,.card,.res,.tab,.btn,.city-overlay>div,.toast,.tutorial,.map-wrap,.node,.region-card,.war-alert{border-radius:2px!important;box-shadow:none!important}
+.topbar{background:#2c3442;border:4px solid #15141a;border-left:0;border-right:0;border-top:0}
+.brand strong{font-weight:900;text-shadow:2px 2px 0 #15141a}
+.crest{border-radius:0;background:#456c9a;border:3px solid #15141a;box-shadow:inset -4px -4px 0 #31506f!important}
+.res{background:#3a4658;border:3px solid #15141a;box-shadow:inset -3px -3px 0 #293544!important}
+.game-shell{gap:8px}
+.world-panel{border-radius:0;border:4px solid #15141a;box-shadow:6px 6px 0 #0c0b0f;background:#5e8056}
+.city-overlay>div{background:#313a49;border:3px solid #15141a;backdrop-filter:none;box-shadow:3px 3px 0 #15141a!important}
+.side-panel{background:#303949;border:4px solid #15141a;box-shadow:6px 6px 0 #0c0b0f!important}
+.tabs{border-bottom:4px solid #15141a}
+.tab{background:#26303e;border-right:2px solid #15141a;color:#c7d1dc;font-weight:700}
+.tab.active{background:#58739a;color:#fff0c4;box-shadow:inset 0 -4px 0 #f0c66d!important}
+.panel-content{background:#344052}
+.card{background:#46556a;border:3px solid #1d1b22;box-shadow:inset -4px -4px 0 #324055!important}
+.card h3,.section-title{color:#fff1c5;text-shadow:2px 2px 0 #25212a}
+.btn,.bottom-actions button{background:#5d7596;border:3px solid #17151b;border-radius:0!important;box-shadow:inset -3px -3px 0 #405873,3px 3px 0 #17151b!important;font-weight:800}
+.btn.good{background:#57835d;box-shadow:inset -3px -3px 0 #3c6143,3px 3px 0 #17151b!important}
+.btn.warn{background:#9b6b46}.btn.danger,.bottom-actions .danger{background:#92464a}
+.btn:active,.bottom-actions button:active{transform:translate(2px,2px);box-shadow:inset -2px -2px 0 rgba(0,0,0,.2),1px 1px 0 #17151b!important}
+.bottom-actions{background:#252d39;border-top:4px solid #15141a}
+.modal{background:rgba(16,13,18,.82)}
+.modal-card{background:#354154;border:4px solid #17151b;box-shadow:8px 8px 0 #0b090d!important}
+.battlefield{border-radius:0;border:4px solid #17151b;image-rendering:pixelated;background:linear-gradient(#78a7bd 0 40%,#c4d3ad 40% 44%,#67885a 44% 100%)}
+.battle-sprite{image-rendering:pixelated}
+.fighter .hp{border-radius:0;border:2px solid #17151b;height:7px}
+.fighter .hp span{background:#66c06c}
+.log{border-radius:0;border:3px solid #17151b;background:#242c39}
+.avatar{border-radius:0;border:3px solid #17151b;background:#456c9a;image-rendering:pixelated}
+.pill{border-radius:0;background:#263140;border:2px solid #17151b;color:#fff1c5}
+.tutorial{background:#4b4436;border:3px solid #17151b;border-left:6px solid #f0c66d}
+.region-art,.sprite-vfx{image-rendering:pixelated}
+.war-alert{border:4px solid #2a1718;background:#793f3f;box-shadow:6px 6px 0 #15141a!important}
+@media(max-width:620px){.world-panel,.side-panel{box-shadow:3px 3px 0 #0c0b0f!important}.card{box-shadow:inset -2px -2px 0 #324055!important}}
