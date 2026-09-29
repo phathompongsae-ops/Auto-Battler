@@ -1,0 +1,106 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="768" height="128" viewBox="0 0 768 128">
+<defs><filter id="s"><feDropShadow dx="0" dy="3" stdDeviation="2" flood-opacity=".22"/></filter></defs>
+<rect width="768" height="128" fill="none"/>
+<g transform="translate(0 0)" filter="url(#s)">
+<ellipse cx="64" cy="111" rx="24" ry="7" fill="#000" opacity=".18"/>
+<line x1="54" y1="82" x2="50" y2="108" stroke="#4b3528" stroke-width="7" stroke-linecap="round"/>
+<line x1="74" y1="82" x2="78" y2="108" stroke="#4b3528" stroke-width="7" stroke-linecap="round"/>
+<rect x="43" y="51" width="42" height="42" rx="12" fill="#557cb6" stroke="#2f4051" stroke-width="4"/>
+<path d="M46 55 L64 70 L82 55" fill="none" stroke="#d6b464" stroke-width="5"/>
+<circle cx="64" cy="36" r="18" fill="#e8c3a3" stroke="#3d3940" stroke-width="4"/>
+<path d="M46 36 Q64 14 82 36 L78 24 Q64 15 50 24 Z" fill="#49372d"/>
+<circle cx="58" cy="37" r="2" fill="#2b292c"/><circle cx="70" cy="37" r="2" fill="#2b292c"/>
+
+
+
+<g transform="translate(86 58) rotate(-32)"><rect x="-2" y="-1" width="36" height="6" rx="2" fill="#dce5ee"/><rect x="-8" y="-3" width="10" height="10" rx="2" fill="#8a643f"/></g><circle cx="38" cy="66" r="12" fill="#8194aa" stroke="#dce5ee" stroke-width="3"/>
+
+
+
+<text x="64" y="124" text-anchor="middle" font-family="Arial" font-size="10" fill="#f6eddc">Warrior</text>
+</g><g transform="translate(128 0)" filter="url(#s)">
+<ellipse cx="64" cy="111" rx="24" ry="7" fill="#000" opacity=".18"/>
+<line x1="54" y1="82" x2="50" y2="108" stroke="#4b3528" stroke-width="7" stroke-linecap="round"/>
+<line x1="74" y1="82" x2="78" y2="108" stroke="#4b3528" stroke-width="7" stroke-linecap="round"/>
+<rect x="43" y="51" width="42" height="42" rx="12" fill="#64845e" stroke="#2f4051" stroke-width="4"/>
+<path d="M46 55 L64 70 L82 55" fill="none" stroke="#d7bd7d" stroke-width="5"/>
+<circle cx="64" cy="36" r="18" fill="#e8c3a3" stroke="#3d3940" stroke-width="4"/>
+<path d="M46 36 Q64 14 82 36 L78 24 Q64 15 50 24 Z" fill="#49372d"/>
+<circle cx="58" cy="37" r="2" fill="#2b292c"/><circle cx="70" cy="37" r="2" fill="#2b292c"/>
+
+
+
+
+<path d="M88 46 Q110 66 88 91" fill="none" stroke="#d7b875" stroke-width="5"/><line x1="88" y1="46" x2="88" y2="91" stroke="#efe4bf" stroke-width="2"/>
+
+
+<text x="64" y="124" text-anchor="middle" font-family="Arial" font-size="10" fill="#f6eddc">Archer</text>
+</g><g transform="translate(256 0)" filter="url(#s)">
+<ellipse cx="64" cy="111" rx="24" ry="7" fill="#000" opacity=".18"/>
+<line x1="54" y1="82" x2="50" y2="108" stroke="#4b3528" stroke-width="7" stroke-linecap="round"/>
+<line x1="74" y1="82" x2="78" y2="108" stroke="#4b3528" stroke-width="7" stroke-linecap="round"/>
+<rect x="43" y="51" width="42" height="42" rx="12" fill="#7563b2" stroke="#2f4051" stroke-width="4"/>
+<path d="M46 55 L64 70 L82 55" fill="none" stroke="#aa99f2" stroke-width="5"/>
+<circle cx="64" cy="36" r="18" fill="#e8c3a3" stroke="#3d3940" stroke-width="4"/>
+<path d="M46 36 Q64 14 82 36 L78 24 Q64 15 50 24 Z" fill="#4d3c6a"/>
+<circle cx="58" cy="37" r="2" fill="#2b292c"/><circle cx="70" cy="37" r="2" fill="#2b292c"/>
+
+<path d="M45 28 L64 5 L84 28 Z" fill="#594a87"/><rect x="45" y="25" width="39" height="7" rx="3" fill="#7e6abd"/>
+
+
+
+<line x1="90" y1="30" x2="87" y2="101" stroke="#805d3f" stroke-width="7"/><circle cx="90" cy="25" r="9" fill="#aa99f2" stroke="#efe9ff" stroke-width="3"/><circle cx="90" cy="25" r="17" fill="none" stroke="#aa99f2" stroke-opacity=".35" stroke-width="3"/>
+
+<text x="64" y="124" text-anchor="middle" font-family="Arial" font-size="10" fill="#f6eddc">Mage</text>
+</g><g transform="translate(384 0)" filter="url(#s)">
+<ellipse cx="64" cy="111" rx="24" ry="7" fill="#000" opacity=".18"/>
+<line x1="54" y1="82" x2="50" y2="108" stroke="#4b3528" stroke-width="7" stroke-linecap="round"/>
+<line x1="74" y1="82" x2="78" y2="108" stroke="#4b3528" stroke-width="7" stroke-linecap="round"/>
+<rect x="43" y="51" width="42" height="42" rx="12" fill="#d0b978" stroke="#2f4051" stroke-width="4"/>
+<path d="M46 55 L64 70 L82 55" fill="none" stroke="#fff0b5" stroke-width="5"/>
+<circle cx="64" cy="36" r="18" fill="#e8c3a3" stroke="#3d3940" stroke-width="4"/>
+<path d="M46 36 Q64 14 82 36 L78 24 Q64 15 50 24 Z" fill="#49372d"/>
+<circle cx="58" cy="37" r="2" fill="#2b292c"/><circle cx="70" cy="37" r="2" fill="#2b292c"/>
+
+
+
+
+
+<line x1="90" y1="30" x2="87" y2="101" stroke="#805d3f" stroke-width="7"/><circle cx="90" cy="25" r="9" fill="#fff0b5" stroke="#efe9ff" stroke-width="3"/><circle cx="90" cy="25" r="17" fill="none" stroke="#fff0b5" stroke-opacity=".35" stroke-width="3"/>
+
+<text x="64" y="124" text-anchor="middle" font-family="Arial" font-size="10" fill="#f6eddc">Cleric</text>
+</g><g transform="translate(512 0)" filter="url(#s)">
+<ellipse cx="64" cy="111" rx="24" ry="7" fill="#000" opacity=".18"/>
+<line x1="54" y1="82" x2="50" y2="108" stroke="#4b3528" stroke-width="7" stroke-linecap="round"/>
+<line x1="74" y1="82" x2="78" y2="108" stroke="#4b3528" stroke-width="7" stroke-linecap="round"/>
+<rect x="43" y="51" width="42" height="42" rx="12" fill="#6f7e98" stroke="#2f4051" stroke-width="4"/>
+<path d="M46 55 L64 70 L82 55" fill="none" stroke="#cbd5e1" stroke-width="5"/>
+<circle cx="64" cy="36" r="18" fill="#e8c3a3" stroke="#3d3940" stroke-width="4"/>
+<path d="M46 36 Q64 14 82 36 L78 24 Q64 15 50 24 Z" fill="#49372d"/>
+<circle cx="58" cy="37" r="2" fill="#2b292c"/><circle cx="70" cy="37" r="2" fill="#2b292c"/>
+<path d="M47 31 Q64 12 81 31 L78 43 L50 43 Z" fill="#9aa9bb" stroke="#596b7f" stroke-width="3"/>
+
+
+<g transform="translate(86 58) rotate(-32)"><rect x="-2" y="-1" width="36" height="6" rx="2" fill="#dce5ee"/><rect x="-8" y="-3" width="10" height="10" rx="2" fill="#8a643f"/></g><circle cx="38" cy="66" r="12" fill="#8194aa" stroke="#dce5ee" stroke-width="3"/>
+
+
+
+<text x="64" y="124" text-anchor="middle" font-family="Arial" font-size="10" fill="#f6eddc">Knight</text>
+</g><g transform="translate(640 0)" filter="url(#s)">
+<ellipse cx="64" cy="111" rx="24" ry="7" fill="#000" opacity=".18"/>
+<line x1="54" y1="82" x2="50" y2="108" stroke="#4b3528" stroke-width="7" stroke-linecap="round"/>
+<line x1="74" y1="82" x2="78" y2="108" stroke="#4b3528" stroke-width="7" stroke-linecap="round"/>
+<rect x="43" y="51" width="42" height="42" rx="12" fill="#67586f" stroke="#2f4051" stroke-width="4"/>
+<path d="M46 55 L64 70 L82 55" fill="none" stroke="#a68cae" stroke-width="5"/>
+<circle cx="64" cy="36" r="18" fill="#e8c3a3" stroke="#3d3940" stroke-width="4"/>
+<path d="M46 36 Q64 14 82 36 L78 24 Q64 15 50 24 Z" fill="#302936"/>
+<circle cx="58" cy="37" r="2" fill="#2b292c"/><circle cx="70" cy="37" r="2" fill="#2b292c"/>
+
+
+<path d="M46 34 Q64 20 82 34" fill="none" stroke="#2d2934" stroke-width="9"/>
+
+
+
+<line x1="84" y1="64" x2="108" y2="45" stroke="#dce5ee" stroke-width="5"/><line x1="44" y1="64" x2="20" y2="45" stroke="#dce5ee" stroke-width="5"/>
+<text x="64" y="124" text-anchor="middle" font-family="Arial" font-size="10" fill="#f6eddc">Rogue</text>
+</g></svg>

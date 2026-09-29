@@ -4,6 +4,13 @@ const SAVE_KEY="realmfront-save-v2";
 let state=normalizeState(loadRaw());
 let activeTab="build",selectedTeam=new Set(state.units.slice(0,4).map(u=>u.id)),animT=0,lastFrame=0,soundOn=true;
 const qaMode=new URLSearchParams(location.search).has("qa");
+const spriteSheets={characters:new Image(),buildings:new Image(),regions:new Image(),vfx:new Image()};
+spriteSheets.characters.src="assets/characters.svg";
+spriteSheets.buildings.src="assets/buildings.svg";
+spriteSheets.regions.src="assets/regions.svg";
+spriteSheets.vfx.src="assets/vfx.svg";
+const charSpriteIndex={Warrior:0,Archer:1,Mage:2,Cleric:3,Knight:4,Rogue:5};
+const buildingSpriteIndex={townhall:0,house:1,barracks:2,archery:3,chapel:4,blacksmith:5,warehouse:6,training:7,shrine:8,watchtower:9};
 const cityFx=[],q=s=>document.querySelector(s),panel=q("#panelContent"),canvas=q("#cityCanvas"),ctx=canvas.getContext("2d"),modal=q("#modal"),modalBody=q("#modalBody");
 
 function loadRaw(){try{return JSON.parse(localStorage.getItem(SAVE_KEY))}catch{return null}}
@@ -69,7 +76,8 @@ function renderArmy(){
 }
 function renderExpedition(){
   const power=armyPower(state,[...selectedTeam]);
-  panel.innerHTML=tutorialBox()+'<div class="row"><h2 class="section-title">Expeditions</h2><span class="pill">Team Power '+power+'</span></div><p style="font-size:11px;color:var(--muted)">Choose 3-5 units. Each expedition advances one month. A pending Season War must be resolved first.</p><div class="card-grid">'+REGIONS.map((r,i)=>{const lock=i>0&&state.buildings.townhall<Math.min(4,i+1),art=["","forest","pass","ruins","frontier"][i];return '<div class="card region-card"><div class="region-art '+art+'"></div><h3>'+r.name+' <span class="pill">Power '+r.power+'</span></h3><p>Loot: '+costText(r.reward)+'<br>Rival encounter '+Math.round(r.rival*100)+'%</p><button class="btn good" data-exp="'+r.id+'" '+(lock||selectedTeam.size<3||state.warReady?"disabled":"")+'>'+(state.warReady?"Resolve Season War":lock?"Upgrade Town Hall":"Explore")+'</button></div>'}).join("")+'</div>';
+  panel.innerHTML=tutorialBox()+'<div class="row"><h2 class="section-title">Expeditions</h2><span class="pill">Team Power '+power+'</span></div><p style="font-size:11px;color:var(--muted)">Choose 3-5 units. Each expedition advances one month. A pending Season War must be resolved first.</p><div class="card-grid">'+REGIONS.map((r,i)=>{const lock=i>0&&state.buildings.townhall<Math.min(4,i+1),art=["","forest","pass","ruins","frontier"][i];return '<div class="card region-card"><div class="region-art '+art+'" data-region-index="'+i+'"></div><h3>'+r.name+' <span class="pill">Power '+r.power+'</span></h3><p>Loot: '+costText(r.reward)+'<br>Rival encounter '+Math.round(r.rival*100)+'%</p><button class="btn good" data-exp="'+r.id+'" '+(lock||selectedTeam.size<3||state.warReady?"disabled":"")+'>'+(state.warReady?"Resolve Season War":lock?"Upgrade Town Hall":"Explore")+'</button></div>'}).join("")+'</div>';
+  panel.querySelectorAll(".region-art").forEach(el=>{const ri=Number(el.dataset.regionIndex||0);el.style.backgroundImage='url("assets/regions.svg")';el.style.backgroundSize='500% 100%';el.style.backgroundPosition=(ri*25)+'% 0';});
   panel.querySelectorAll("[data-exp]").forEach(b=>b.addEventListener("click",()=>startExpedition(b.dataset.exp)));
 }
 function renderTerritory(){
@@ -104,7 +112,7 @@ function animateBattle(ids,result,done){
     log.scrollTop=log.scrollHeight;if(tick>=5){clearInterval(timer);fighters.forEach(f=>{if((result.win&&f.classList.contains("enemy"))||(!result.win&&!f.classList.contains("enemy")))f.classList.add("down")});setTimeout(done,520)}
   },260);
 }
-function spawnProjectile(stage,tick){if(tick<2||tick>4)return;const p=document.createElement("div");p.className="projectile "+(tick===3?"magic":tick===4?"holy":"");p.style.left="34%";p.style.top=(34+tick*8)+"%";stage.appendChild(p);setTimeout(()=>p.remove(),430)}
+function spawnProjectile(stage,tick){if(tick<2||tick>4)return;const p=document.createElement("div");p.className="projectile sprite-vfx "+(tick===3?"magic":tick===4?"holy":"");p.style.left="34%";p.style.top=(34+tick*8)+"%";stage.appendChild(p);setTimeout(()=>p.remove(),430)}
 function spawnDamage(stage,tick,result){const d=document.createElement("div");d.className="damage";d.textContent="-"+Math.round((result.enemyPower/8)*(0.7+tick*.12));d.style.left=(result.win?68:34)+"%";d.style.top=(34+(tick%2)*30)+"%";stage.appendChild(d);setTimeout(()=>d.remove(),700)}
 
 function showSeasonWar(){
@@ -211,6 +219,16 @@ function tinyWindow(x,y,glow="#ffd271"){ctx.fillStyle="#5d4532";ctx.fillRect(x-4
 function banner(x,y,color){ctx.fillStyle="#4d3827";ctx.fillRect(x-1,y-4,2,22);ctx.fillStyle=color;ctx.beginPath();ctx.moveTo(x,y-4);ctx.lineTo(x+13,y+1);ctx.lineTo(x,y+8);ctx.closePath();ctx.fill()}
 function chimney(x,y){ctx.fillStyle="#4c4b49";ctx.fillRect(x-4,y-14,8,14);ctx.fillStyle="rgba(210,219,215,.28)";ctx.beginPath();ctx.arc(x+3,y-18-Math.sin(animT*.002)*2,5,0,Math.PI*2);ctx.fill()}
 function drawBuilding(x,y,k,lvl,scale){
+  if(spriteSheets.buildings.complete && spriteSheets.buildings.naturalWidth){
+    const i=buildingSpriteIndex[k];
+    if(i!==undefined){
+      const sx=(i%5)*128, sy=Math.floor(i/5)*128;
+      const size=scale*(1.35+Math.min(4,lvl)*.05);
+      ctx.drawImage(spriteSheets.buildings,sx,sy,128,128,x-size/2,y-size*.88,size,size);
+      if(lvl>=2){ctx.save();ctx.globalAlpha=.22+.06*lvl;ctx.strokeStyle="#f2d88b";ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(x,y+5,size*.34,7,0,0,Math.PI*2);ctx.stroke();ctx.restore()}
+      return;
+    }
+  }
   const s=scale*(.58+lvl*.028),tier=Math.min(4,lvl),upgrade=tier>=3;
   buildingShadow(x,y,s);
   if(k==="townhall"){
@@ -254,6 +272,12 @@ function drawCityLife(ox,oy,tw,th){
   chars.sort((a,b)=>a.p.y-b.p.y).forEach(({p,u,i})=>drawChibi(p.x,p.y-3,u.cls,i));
 }
 function drawChibi(x,y,cls,i){
+  const si=charSpriteIndex[cls];
+  if(si!==undefined && spriteSheets.characters.complete && spriteSheets.characters.naturalWidth){
+    const bob=Math.sin(animT*.006+i)*1.4,size=48;
+    ctx.save();ctx.translate(x,y+bob);ctx.drawImage(spriteSheets.characters,si*128,0,128,128,-size/2,-size*.9,size,size);ctx.restore();
+    return;
+  }
   const palette={Warrior:"#557cb6",Archer:"#64845e",Mage:"#7563b2",Cleric:"#d0b978",Knight:"#6f7e98",Rogue:"#67586f",Civilian:i%2?"#8b6e4d":"#6f7f66"};
   const body=palette[cls]||"#557cb6",bob=Math.sin(animT*.006+i)*1.2,step=Math.sin(animT*.01+i)*2;
   ctx.save();ctx.translate(x,y+bob);
