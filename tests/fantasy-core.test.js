@@ -52,10 +52,22 @@ test("season war defeat is recoverable",()=>{
 });
 
 test("capital unlock requires campaign and city progress",()=>{
-  const s=createInitialState();s.buildings.townhall=3;s.rivals.arcane.warWins=2;s.rivals.arcane.territory=1;s.units.forEach(u=>u.level=10);
+  const s=createInitialState();s.buildings.townhall=3;s.rivals.arcane.warWins=3;s.rivals.arcane.territory=0;s.units.forEach(u=>u.level=10);
   updateCapitalLocks(s);assert.equal(s.rivals.arcane.capitalUnlocked,true);
 });
 
+
+test("capital stays locked until all three faction territories fall",()=>{
+  const s=createInitialState();s.buildings.townhall=3;s.units.forEach(u=>u.level=10);
+  s.rivals.arcane.warWins=2;s.rivals.arcane.territory=1;updateCapitalLocks(s);
+  assert.equal(s.rivals.arcane.capitalUnlocked,false);
+});
+
+test("older version-2 saves gain the third faction territory node safely",()=>{
+  const legacy=createInitialState();delete legacy.territory.a3;delete legacy.territory.d3;
+  const migrated=normalizeState(JSON.parse(JSON.stringify(legacy)));
+  assert.equal(migrated.territory.a3,"arcane");assert.equal(migrated.territory.d3,"demon");
+});
 test("both capital victories trigger campaign victory",()=>{
   const s=createInitialState();s.buildings.townhall=4;s.units.forEach(u=>u.level=12);
   for(const k of ["arcane","demon"]){s.rivals[k].capitalUnlocked=true;s.rivals[k].armyPower=20;s.rivals[k].territory=1;s.warReady=true;const r=resolveSeasonWar(s,k,s.units.map(u=>u.id),fixed(.99,.01),true);assert.equal(r.win,true)}

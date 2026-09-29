@@ -39,7 +39,7 @@ export function createInitialState(){
       arcane:{name:"Arcane Covenant",cityLevel:1,armyPower:112,resources:180,territory:3,warWins:0,capitalUnlocked:false,conquered:false},
       demon:{name:"Ashen Horde",cityLevel:1,armyPower:122,resources:180,territory:3,warWins:0,capitalUnlocked:false,conquered:false}
     },
-    territory:{h1:"human",h2:"human",n1:"neutral",n2:"neutral",n3:"neutral",a1:"arcane",a2:"arcane",d1:"demon",d2:"demon"},
+    territory:{h1:"human",h2:"human",n1:"neutral",n2:"neutral",n3:"neutral",a1:"arcane",a2:"arcane",a3:"arcane",d1:"demon",d2:"demon",d3:"demon"},
     stats:{battles:0,wins:0,losses:0,expeditions:0,territories:0,seasonWars:0},
     tutorial:0,eventsSeen:0,lastMessage:"Build your settlement and prepare for the first expedition."
   };
@@ -47,6 +47,9 @@ export function createInitialState(){
 export function normalizeState(s){
   if(!s||s.version!==2)return createInitialState();
   s.pendingWarSeason??=s.warReady?Math.max(1,s.season-1):null;s.sandbox??=false;
+  s.territory??={};
+  s.territory.a3??=s.rivals?.arcane?.conquered?"human":"arcane";
+  s.territory.d3??=s.rivals?.demon?.conquered?"human":"demon";
   s.stats.losses??=Math.max(0,(s.stats.battles||0)-(s.stats.wins||0));
   return s;
 }
@@ -117,7 +120,7 @@ export function updateCapitalLocks(state){
   const th=state.buildings.townhall||0,p=armyPower(state);
   for(const key of ["arcane","demon"]){
     const r=state.rivals[key];
-    if(!r.conquered&&r.warWins>=2&&r.territory<=1&&th>=3&&p>=330)r.capitalUnlocked=true;
+    if(!r.conquered&&r.warWins>=3&&r.territory===0&&th>=3&&p>=330)r.capitalUnlocked=true;
   }
 }
 export function seasonWarPower(state,key,capital=false){
@@ -134,7 +137,7 @@ export function resolveSeasonWar(state,key,ids,rng=Math.random,capital=false){
     r.warWins++;const reward=capital?{gold:430,wood:230,stone:250,crystal:105}:{gold:190,wood:105,stone:105,crystal:38};
     gain(state.resources,reward,resourceCap(state));
     if(capital){r.conquered=true;r.territory=0;claimFactionTerritory(state,key);state.lastMessage=r.name+" capital has fallen!";}
-    else{captureOne(state,key);r.territory=Math.max(1,r.territory-1);state.lastMessage="Season War victory against "+r.name+"."}
+    else{captureOne(state,key);r.territory=Math.max(0,r.territory-1);state.lastMessage="Season War victory against "+r.name+"."}
     grantXp(state,ids,capital?100:62);
   }else{
     state.resources.gold=Math.max(0,state.resources.gold-35);
