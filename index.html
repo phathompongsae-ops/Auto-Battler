@@ -72,6 +72,16 @@
     </div>
   </div>
 
+  <script>
+    window.addEventListener("error", function (e) {
+      var p=document.getElementById("panelContent");
+      if(p) p.innerHTML='<div style="padding:12px;color:#ffd0d0;background:#4a2028;border:1px solid #a45460;border-radius:10px"><b>Runtime error</b><br><code>'+String(e.message||"Unknown error")+'</code><br><small>'+String(e.filename||"")+' '+String(e.lineno||"")+'</small></div>';
+    });
+    window.addEventListener("unhandledrejection", function (e) {
+      var p=document.getElementById("panelContent");
+      if(p) p.innerHTML='<div style="padding:12px;color:#ffd0d0;background:#4a2028;border:1px solid #a45460;border-radius:10px"><b>Module error</b><br><code>'+String(e.reason&&e.reason.message||e.reason||"Unknown rejection")+'</code></div>';
+    });
+  </script>
   <script type="module" src="app.js"></script>
 </body>
 </html>
