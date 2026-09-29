@@ -9,6 +9,7 @@ Build a compact fantasy settlement, recruit a small army, explore for resources,
 - Web-first 2D isometric pixel-art presentation with a compact classic management-game feel.
 - Pixel art is now the locked production direction; avoid smooth vector/procedural web-demo styling in final visible assets.
 - Small readable chibi pixel units with simple Kairosoft-like combat readability.
+- Final class silhouettes are locked: Warrior sword/shield, Archer hood/bow, Mage pointed hat/staff, Cleric light hood/cross staff, Knight full helm/tower shield, Rogue dark hood/dual daggers.
 - The settlement must feel alive: residents walk, work, train, and occupy the town scene.
 - Human, Arcane, and Demon factions must remain visually distinct.
 - Prefer coherent local pixel sprite sheets, hard-edged tiles, nearest-neighbor rendering and restrained effects over heavy 3D or external runtime dependencies.

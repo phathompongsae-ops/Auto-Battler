@@ -1,16 +1,29 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="384" height="128" viewBox="0 0 384 128" shape-rendering="crispEdges"><rect width="384" height="128" fill="none"/><g><rect x="36" y="104" width="56" height="8" fill="#000" opacity=".22"/>
-  <rect x="48" y="76" width="12" height="28" fill="#3e5d36"/><rect x="68" y="76" width="12" height="28" fill="#3e5d36"/>
-  <rect x="40" y="48" width="48" height="40" fill="#6f9552" stroke="#24242b" stroke-width="4"/>
-  <rect x="48" y="20" width="32" height="28" fill="#9db873" stroke="#24242b" stroke-width="4"/>
-  <rect x="48" y="16" width="32" height="12" fill="#345034"/>
-  <rect x="56" y="32" width="4" height="4" fill="#2a2022"/><rect x="68" y="32" width="4" height="4" fill="#2a2022"/><rect x="40" y="24" width="12" height="8" fill="#9db873"/><rect x="76" y="24" width="12" height="8" fill="#9db873"/><rect x="90" y="48" width="8" height="36" fill="#bcc5c8"/></g><g><rect x="164" y="104" width="56" height="8" fill="#000" opacity=".22"/>
-  <rect x="176" y="76" width="12" height="28" fill="#47356e"/><rect x="196" y="76" width="12" height="28" fill="#47356e"/>
-  <rect x="168" y="48" width="48" height="40" fill="#7359aa" stroke="#24242b" stroke-width="4"/>
-  <rect x="176" y="20" width="32" height="28" fill="#d4b8d9" stroke="#24242b" stroke-width="4"/>
-  <rect x="176" y="16" width="32" height="12" fill="#3e2f59"/>
-  <rect x="184" y="32" width="4" height="4" fill="#2a2022"/><rect x="196" y="32" width="4" height="4" fill="#2a2022"/><rect x="220" y="40" width="6" height="52" fill="#77593b"/><rect x="216" y="28" width="16" height="16" fill="#aa98ff"/><rect x="220" y="32" width="8" height="8" fill="#e0d8ff"/></g><g><rect x="292" y="104" width="56" height="8" fill="#000" opacity=".22"/>
-  <rect x="304" y="76" width="12" height="28" fill="#5c2e29"/><rect x="324" y="76" width="12" height="28" fill="#5c2e29"/>
-  <rect x="296" y="48" width="48" height="40" fill="#9a4b3d" stroke="#24242b" stroke-width="4"/>
-  <rect x="304" y="20" width="32" height="28" fill="#d6876c" stroke="#24242b" stroke-width="4"/>
-  <rect x="304" y="16" width="32" height="12" fill="#3c2624"/>
-  <rect x="312" y="32" width="4" height="4" fill="#2a2022"/><rect x="324" y="32" width="4" height="4" fill="#2a2022"/><rect x="300" y="8" width="8" height="16" fill="#3f2523"/><rect x="332" y="8" width="8" height="16" fill="#3f2523"/><rect x="346" y="48" width="8" height="36" fill="#d2d8df"/></g></svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="384" height="128" viewBox="0 0 384 128" shape-rendering="crispEdges">
+<rect width="384" height="128" fill="none"/>
+<!-- Frontier goblin -->
+<g transform="translate(0 0)">
+<rect x="36" y="106" width="56" height="6" fill="#000" opacity=".22"/>
+<rect x="48" y="78" width="12" height="28" fill="#334b31"/><rect x="70" y="78" width="12" height="28" fill="#334b31"/>
+<rect x="40" y="48" width="48" height="42" fill="#6e944f" stroke="#222b23" stroke-width="4"/><rect x="44" y="52" width="40" height="7" fill="#8aac67"/>
+<rect x="48" y="22" width="32" height="28" fill="#9db777" stroke="#222b23" stroke-width="4"/><rect x="38" y="24" width="12" height="8" fill="#9db777"/><rect x="78" y="24" width="12" height="8" fill="#9db777"/><rect x="48" y="17" width="32" height="9" fill="#3b5337"/>
+<rect x="56" y="34" width="4" height="4" fill="#213021"/><rect x="68" y="34" width="4" height="4" fill="#213021"/>
+<rect x="92" y="48" width="8" height="38" fill="#bfc8cc"/><rect x="87" y="69" width="18" height="6" fill="#6c4b32"/>
+</g>
+<!-- Arcane sentinel -->
+<g transform="translate(128 0)">
+<rect x="36" y="106" width="56" height="6" fill="#000" opacity=".22"/>
+<rect x="48" y="78" width="12" height="28" fill="#3e3460"/><rect x="70" y="78" width="12" height="28" fill="#3e3460"/>
+<rect x="40" y="48" width="48" height="42" fill="#7058a9" stroke="#242039" stroke-width="4"/><rect x="44" y="52" width="40" height="7" fill="#9a85d4"/><rect x="59" y="60" width="11" height="22" fill="#4d3e78"/>
+<rect x="48" y="22" width="32" height="28" fill="#d6bedc" stroke="#242039" stroke-width="4"/><rect x="44" y="16" width="40" height="12" fill="#44335f"/><rect x="50" y="10" width="8" height="10" fill="#a896f2"/><rect x="61" y="6" width="8" height="14" fill="#c0b0ff"/><rect x="72" y="10" width="8" height="10" fill="#a896f2"/>
+<rect x="56" y="34" width="4" height="4" fill="#302442"/><rect x="68" y="34" width="4" height="4" fill="#302442"/>
+<rect x="93" y="39" width="6" height="55" fill="#6f533b"/><rect x="87" y="26" width="18" height="18" fill="#a997f3"/><rect x="92" y="31" width="8" height="8" fill="#e2dcff"/>
+</g>
+<!-- Demon raider -->
+<g transform="translate(256 0)">
+<rect x="36" y="106" width="56" height="6" fill="#000" opacity=".22"/>
+<rect x="48" y="78" width="12" height="28" fill="#4a2b28"/><rect x="70" y="78" width="12" height="28" fill="#4a2b28"/>
+<rect x="40" y="48" width="48" height="42" fill="#98493b" stroke="#2c2020" stroke-width="4"/><rect x="44" y="52" width="40" height="7" fill="#c9664c"/><rect x="58" y="60" width="13" height="22" fill="#67342d"/>
+<rect x="48" y="22" width="32" height="28" fill="#d8886d" stroke="#2c2020" stroke-width="4"/><rect x="44" y="16" width="40" height="12" fill="#4b2b28"/><rect x="46" y="7" width="8" height="15" fill="#352221"/><rect x="76" y="7" width="8" height="15" fill="#352221"/>
+<rect x="56" y="34" width="4" height="4" fill="#4c1d18"/><rect x="68" y="34" width="4" height="4" fill="#4c1d18"/>
+<rect x="91" y="49" width="8" height="39" fill="#d5dce2"/><rect x="84" y="43" width="22" height="8" fill="#d5dce2"/><rect x="86" y="68" width="18" height="6" fill="#694532"/>
+</g></svg>

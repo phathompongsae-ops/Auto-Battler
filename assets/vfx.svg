@@ -1,8 +1,15 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="576" height="96" viewBox="0 0 576 96">
-<g><path d="M18 72 Q48 16 84 22 Q50 34 30 80 Z" fill="#f2d998" opacity=".9"/><path d="M24 66 Q50 23 77 27" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round"/></g>
-<g transform="translate(96 0)"><line x1="8" y1="48" x2="82" y2="48" stroke="#e8d6a0" stroke-width="4"/><polygon points="82,41 95,48 82,55" fill="#e8d6a0"/></g>
-<g transform="translate(192 0)"><circle cx="48" cy="48" r="20" fill="#9c8bf1"/><circle cx="48" cy="48" r="33" fill="none" stroke="#9c8bf1" stroke-width="5" opacity=".45"/></g>
-<g transform="translate(288 0)"><circle cx="48" cy="48" r="34" fill="none" stroke="#a7f1d3" stroke-width="6" opacity=".5"/><rect x="41" y="19" width="14" height="58" rx="5" fill="#a7f1d3"/><rect x="19" y="41" width="58" height="14" rx="5" fill="#a7f1d3"/></g>
-<g transform="translate(384 0)"><path d="M48 5 L58 34 L87 20 L68 45 L95 53 L65 59 L82 87 L55 68 L45 95 L39 66 L10 82 L29 56 L1 48 L31 41 L14 14 L42 34 Z" fill="#f1a36c" opacity=".85"/></g>
-<g transform="translate(480 0)"><circle cx="48" cy="48" r="30" fill="#ffe07b" opacity=".7"/><circle cx="48" cy="48" r="12" fill="#fff5c0"/></g>
+<svg xmlns="http://www.w3.org/2000/svg" width="576" height="96" viewBox="0 0 576 96" shape-rendering="crispEdges">
+<rect width="576" height="96" fill="none"/>
+<!-- slash -->
+<g><rect x="18" y="66" width="16" height="8" fill="#f2d998"/><rect x="30" y="54" width="18" height="8" fill="#f2d998"/><rect x="44" y="42" width="18" height="8" fill="#fff2c5"/><rect x="58" y="30" width="18" height="8" fill="#f2d998"/><rect x="72" y="22" width="10" height="8" fill="#fff"/></g>
+<!-- arrow -->
+<g transform="translate(96 0)"><rect x="12" y="45" width="64" height="6" fill="#e8d6a0"/><rect x="74" y="40" width="8" height="16" fill="#e8d6a0"/><rect x="82" y="44" width="10" height="8" fill="#f6e8bd"/><rect x="8" y="40" width="6" height="8" fill="#8a653d"/><rect x="8" y="51" width="6" height="8" fill="#8a653d"/></g>
+<!-- magic -->
+<g transform="translate(192 0)"><rect x="34" y="34" width="28" height="28" fill="#9c8bf1"/><rect x="28" y="40" width="40" height="16" fill="#9c8bf1"/><rect x="40" y="28" width="16" height="40" fill="#9c8bf1"/><rect x="42" y="42" width="12" height="12" fill="#e2dcff"/><rect x="24" y="24" width="8" height="8" fill="#b9aaff"/><rect x="64" y="64" width="8" height="8" fill="#b9aaff"/></g>
+<!-- holy -->
+<g transform="translate(288 0)"><rect x="41" y="16" width="14" height="64" fill="#a7f1d3"/><rect x="16" y="41" width="64" height="14" fill="#a7f1d3"/><rect x="45" y="20" width="6" height="56" fill="#e2fff2"/><rect x="20" y="45" width="56" height="6" fill="#e2fff2"/></g>
+<!-- hit burst -->
+<g transform="translate(384 0)"><rect x="42" y="14" width="12" height="22" fill="#f1a36c"/><rect x="42" y="60" width="12" height="22" fill="#f1a36c"/><rect x="14" y="42" width="22" height="12" fill="#f1a36c"/><rect x="60" y="42" width="22" height="12" fill="#f1a36c"/><rect x="28" y="28" width="14" height="14" fill="#ffd092"/><rect x="54" y="54" width="14" height="14" fill="#ffd092"/></g>
+<!-- gold glow -->
+<g transform="translate(480 0)"><rect x="30" y="30" width="36" height="36" fill="#ffe07b"/><rect x="24" y="38" width="48" height="20" fill="#ffe07b"/><rect x="38" y="24" width="20" height="48" fill="#ffe07b"/><rect x="41" y="41" width="14" height="14" fill="#fff4b5"/></g>
 </svg>

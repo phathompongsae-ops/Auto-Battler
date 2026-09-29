@@ -175,3 +175,10 @@ html,body{font-family:"Courier New",ui-monospace,monospace;background:#17141b}
 .war-battle.capital{border-color:#d2b45b;box-shadow:inset 0 0 0 4px rgba(240,198,109,.18)!important}
 .war-result-art{height:124px;margin:-18px -18px 8px;background-image:url("assets/factions.svg");background-size:200% 100%;background-repeat:no-repeat;image-rendering:pixelated;border-bottom:4px solid #17151b}
 @media(max-width:620px){.war-grid{grid-template-columns:1fr}.war-choice{padding-top:94px!important}.war-art{height:86px}.war-stats{font-size:10px}.war-result-art{height:98px;margin:-14px -14px 8px}}
+
+/* Final Pixel Character UI */
+.avatar.unit-avatar,.avatar.faction-avatar{border-radius:0!important;background-repeat:no-repeat!important;background-color:#334052!important;image-rendering:pixelated}
+.avatar.unit-avatar{background-image:url("assets/characters.svg")!important;background-size:600% 100%!important;background-position:var(--avatar-pos) 0!important}
+.avatar.faction-avatar{background-image:url("assets/rivals.svg")!important;background-size:300% 100%!important;background-position:var(--avatar-pos) 0!important}
+.avatar.unit-avatar:before,.avatar.unit-avatar:after,.avatar.faction-avatar:before,.avatar.faction-avatar:after{display:none!important}
+.faction-arcane .avatar.faction-avatar{border-color:#a28ee5!important}.faction-demon .avatar.faction-avatar{border-color:#df795d!important}

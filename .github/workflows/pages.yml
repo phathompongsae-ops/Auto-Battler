@@ -41,6 +41,7 @@ jobs:
           timeout 45s "$CHROME" --headless --no-first-run --disable-background-networking --no-sandbox --disable-dev-shm-usage --disable-gpu --hide-scrollbars --timeout=3000 --window-size=390,844 --screenshot=expedition-mobile.png "http://127.0.0.1:4173/?qa=expedition" || test -s expedition-mobile.png
           timeout 45s "$CHROME" --headless --no-first-run --disable-background-networking --no-sandbox --disable-dev-shm-usage --disable-gpu --hide-scrollbars --timeout=3000 --window-size=1200,800 --screenshot=war-desktop.png "http://127.0.0.1:4173/?qa=war" || test -s war-desktop.png
           timeout 45s "$CHROME" --headless --no-first-run --disable-background-networking --no-sandbox --disable-dev-shm-usage --disable-gpu --hide-scrollbars --timeout=3000 --window-size=390,844 --screenshot=war-mobile.png "http://127.0.0.1:4173/?qa=war" || test -s war-mobile.png
+          timeout 45s "$CHROME" --headless --no-first-run --disable-background-networking --no-sandbox --disable-dev-shm-usage --disable-gpu --hide-scrollbars --timeout=3000 --window-size=390,844 --screenshot=army-mobile.png "http://127.0.0.1:4173/?qa=army" || test -s army-mobile.png
           test -s desktop.png
           test -s mobile.png
           test -s battle-desktop.png
@@ -49,6 +50,7 @@ jobs:
           test -s expedition-mobile.png
           test -s war-desktop.png
           test -s war-mobile.png
+          test -s army-mobile.png
           kill $SERVER_PID 2>/dev/null || true
           trap - EXIT
       - name: Upload visual QA diagnostics
@@ -66,6 +68,7 @@ jobs:
             expedition-mobile.png
             war-desktop.png
             war-mobile.png
+            army-mobile.png
             /tmp/realmfront-server.log
       - name: Publish production root
         uses: peaceiris/actions-gh-pages@v4
