@@ -14,8 +14,8 @@ const buildingSpriteIndex={townhall:0,house:1,barracks:2,archery:3,chapel:4,blac
 const cityFx=[],q=s=>document.querySelector(s),panel=q("#panelContent"),canvas=q("#cityCanvas"),ctx=canvas.getContext("2d"),modal=q("#modal"),modalBody=q("#modalBody");
 
 function loadRaw(){try{return JSON.parse(localStorage.getItem(SAVE_KEY))}catch{return null}}
-function persist(){localStorage.setItem(SAVE_KEY,JSON.stringify(state))}
-function save(){persist();toast("Game saved");sound("click")}
+function persist(){try{localStorage.setItem(SAVE_KEY,JSON.stringify(state));return true}catch{return false}}
+function save(){toast(persist()?"Game saved":"Save unavailable in this browser context");sound("click")}
 function money(n){return Math.round(n).toLocaleString()}
 function costText(c){return Object.entries(c).filter(([,v])=>v>0).map(([k,v])=>k[0].toUpperCase()+k.slice(1)+" "+v).join(" · ")}
 function toast(msg){const e=q("#toast");e.textContent=msg;e.classList.add("show");clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove("show"),2200)}
@@ -42,7 +42,7 @@ q("#soundBtn").addEventListener("click",()=>{soundOn=!soundOn;q("#soundBtn").tex
 q("#warBtn").addEventListener("click",showSeasonWar);
 document.addEventListener("click",e=>{if(e.target?.id==="confirmNew"){resetGame();closeModal()}});
 
-function resetGame(){localStorage.removeItem(SAVE_KEY);state=createInitialState();selectedTeam=new Set(state.units.map(u=>u.id));activeTab="build";document.querySelectorAll(".tab").forEach(b=>b.classList.toggle("active",b.dataset.tab==="build"));renderAll();toast("New campaign started")}
+function resetGame(){try{localStorage.removeItem(SAVE_KEY)}catch{}state=createInitialState();selectedTeam=new Set(state.units.map(u=>u.id));activeTab="build";document.querySelectorAll(".tab").forEach(b=>b.classList.toggle("active",b.dataset.tab==="build"));renderAll();toast("New campaign started")}
 function renderAll(){ensureSelections();updateCapitalLocks(state);renderHud();renderPanel();updateWarButton();persist();checkEnd()}
 function renderHud(){
   const cap=resourceCap(state),icons={gold:"◆",wood:"▥",stone:"⬟",crystal:"✦"};
@@ -81,7 +81,7 @@ function renderExpedition(){
   panel.querySelectorAll("[data-exp]").forEach(b=>b.addEventListener("click",()=>startExpedition(b.dataset.exp)));
 }
 function renderTerritory(){
-  const labels={h1:"Dawnkeep",h2:"River Farms",n1:"Old Road",n2:"Sunken Mine",n3:"Crosswind",a1:"Crystal Verge",a2:"Astral Gate",d1:"Cinder March",d2:"Ash Bastion"};
+  const labels={h1:"Dawnkeep",h2:"River Farms",n1:"Old Road",n2:"Sunken Mine",n3:"Crosswind",a1:"Crystal Verge",a2:"Astral Gate",a3:"Moon Spire",d1:"Cinder March",d2:"Ash Bastion",d3:"Ember Gate"};
   const cells=Object.entries(state.territory).map(([k,v])=>'<div class="node '+v+'"><strong><i class="banner-mark"></i>'+labels[k]+'</strong><small>'+v.toUpperCase()+'</small></div>').join("");
   panel.innerHTML='<h2 class="section-title">Frontier Territory</h2><div class="map-wrap"><div class="map-grid">'+cells+'</div></div><h2 class="section-title">Rival Factions</h2>'+["arcane","demon"].map(rivalCard).join("");
 }
@@ -126,7 +126,7 @@ function runSeasonWar(key,capital,ids){
   modalBody.innerHTML='<div class="result-big '+(capital?"campaign-end":"")+'"><small class="capital-badge">'+(capital?"CAPITAL ASSAULT":"SEASON WAR")+'</small><h2 class="'+(r.win?"victory":"defeat")+'">'+title+'</h2><p>Army '+r.playerPower+' vs '+r.enemyPower+'</p><p>'+state.lastMessage+'</p><button id="warReturn" class="btn good">Return to Dawnkeep</button></div>';
   q("#warReturn").addEventListener("click",()=>{closeModal();floatText(r.win?(capital?"Capital Fallen":"+ Territory"):"Army regrouped",r.win?"magic":"good");renderAll()});
 }
-function showGuide(){openModal('<div class="hero-title"><small>COMMANDER GUIDE</small><h2>How to Win</h2></div><div class="stack"><div class="card"><b>1. Build</b><p>Upgrade Dawnkeep. Town Hall opens harder regions; Houses increase population.</p></div><div class="card"><b>2. Explore</b><p>Send 3-5 units. Battles are automatic and each expedition advances one month.</p></div><div class="card"><b>3. Season War</b><p>Every three months you must resolve a war before exploring again.</p></div><div class="card"><b>4. Capital</b><p>Win wars, reduce territory, reach Town Hall Lv.3 and Army Power 330 to unlock a capital assault.</p></div><div class="card"><b>5. Victory</b><p>Conquer both rival capitals before the campaign deadline.</p></div></div>')}
+function showGuide(){openModal('<div class="hero-title"><small>COMMANDER GUIDE</small><h2>How to Win</h2></div><div class="stack"><div class="card"><b>1. Build</b><p>Upgrade Dawnkeep. Town Hall opens harder regions; Houses increase population.</p></div><div class="card"><b>2. Explore</b><p>Send 3-5 units. Battles are automatic and each expedition advances one month.</p></div><div class="card"><b>3. Season War</b><p>Every three months you must resolve a war before exploring again.</p></div><div class="card"><b>4. Capital</b><p>Win three territory wars against a faction, reach Town Hall Lv.3 and Army Power 330, then assault its capital on a later Season War.</p></div><div class="card"><b>5. Victory</b><p>Conquer both rival capitals before the campaign deadline.</p></div></div>')}
 
 function checkEnd(){
   if(!state.gameOver)return;
