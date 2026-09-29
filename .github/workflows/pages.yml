@@ -39,12 +39,16 @@ jobs:
           timeout 45s "$CHROME" --headless --no-first-run --disable-background-networking --no-sandbox --disable-dev-shm-usage --disable-gpu --hide-scrollbars --timeout=3000 --window-size=390,844 --screenshot=battle-mobile.png "http://127.0.0.1:4173/?qa=battle-mobile" || test -s battle-mobile.png
           timeout 45s "$CHROME" --headless --no-first-run --disable-background-networking --no-sandbox --disable-dev-shm-usage --disable-gpu --hide-scrollbars --timeout=3000 --window-size=1200,800 --screenshot=expedition-desktop.png "http://127.0.0.1:4173/?qa=expedition" || test -s expedition-desktop.png
           timeout 45s "$CHROME" --headless --no-first-run --disable-background-networking --no-sandbox --disable-dev-shm-usage --disable-gpu --hide-scrollbars --timeout=3000 --window-size=390,844 --screenshot=expedition-mobile.png "http://127.0.0.1:4173/?qa=expedition" || test -s expedition-mobile.png
+          timeout 45s "$CHROME" --headless --no-first-run --disable-background-networking --no-sandbox --disable-dev-shm-usage --disable-gpu --hide-scrollbars --timeout=3000 --window-size=1200,800 --screenshot=war-desktop.png "http://127.0.0.1:4173/?qa=war" || test -s war-desktop.png
+          timeout 45s "$CHROME" --headless --no-first-run --disable-background-networking --no-sandbox --disable-dev-shm-usage --disable-gpu --hide-scrollbars --timeout=3000 --window-size=390,844 --screenshot=war-mobile.png "http://127.0.0.1:4173/?qa=war" || test -s war-mobile.png
           test -s desktop.png
           test -s mobile.png
           test -s battle-desktop.png
           test -s battle-mobile.png
           test -s expedition-desktop.png
           test -s expedition-mobile.png
+          test -s war-desktop.png
+          test -s war-mobile.png
           kill $SERVER_PID 2>/dev/null || true
           trap - EXIT
       - name: Upload visual QA diagnostics
@@ -60,6 +64,8 @@ jobs:
             battle-mobile.png
             expedition-desktop.png
             expedition-mobile.png
+            war-desktop.png
+            war-mobile.png
             /tmp/realmfront-server.log
       - name: Publish production root
         uses: peaceiris/actions-gh-pages@v4
