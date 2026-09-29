@@ -3,6 +3,7 @@ import {BUILDINGS,UNIT_CLASSES,REGIONS,createInitialState,normalizeState,buildin
 const SAVE_KEY="realmfront-save-v2";
 let state=normalizeState(loadRaw());
 let activeTab="build",selectedTeam=new Set(state.units.slice(0,4).map(u=>u.id)),animT=0,lastFrame=0,soundOn=true;
+const qaMode=new URLSearchParams(location.search).has("qa");
 const cityFx=[],q=s=>document.querySelector(s),panel=q("#panelContent"),canvas=q("#cityCanvas"),ctx=canvas.getContext("2d"),modal=q("#modal"),modalBody=q("#modalBody");
 
 function loadRaw(){try{return JSON.parse(localStorage.getItem(SAVE_KEY))}catch{return null}}
@@ -170,4 +171,4 @@ function drawChibi(x,y,cls,i){const palette={Warrior:"#557cb6",Archer:"#64845e",
 function drawTrees(ox,oy,tw,th){for(let i=0;i<14;i++){const gx=(i*3.7)%10,gy=(i*2.1)%8;if(gx>1&&gx<8&&gy>1&&gy<7)continue;const p=iso(gx,gy,ox,oy,tw,th);ctx.fillStyle="#5a4635";ctx.fillRect(p.x-2,p.y-20,4,20);ctx.fillStyle=i%2?"#3f7048":"#527f51";ctx.beginPath();ctx.arc(p.x,p.y-25,11,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.arc(p.x-7,p.y-21,7,0,Math.PI*2);ctx.fill()}}
 function drawCityFx(ox,oy,tw,th){const now=performance.now();for(let i=cityFx.length-1;i>=0;i--){const fx=cityFx[i],age=(now-fx.t)/1000;if(age>1.15){cityFx.splice(i,1);continue}const p=iso(4.8,3.8,ox,oy,tw,th);ctx.globalAlpha=1-age/1.15;ctx.fillStyle=fx.type==="recruit"?"#9fdbb4":"#e7d19a";for(let j=0;j<8;j++){const a=j*Math.PI/4+age*2,r=14+age*24;ctx.beginPath();ctx.arc(p.x+Math.cos(a)*r,p.y-18+Math.sin(a)*r*.5,2.4,0,Math.PI*2);ctx.fill()}ctx.globalAlpha=1}}
 function loop(t){const dt=t-lastFrame;lastFrame=t;animT=t;if(dt<80)renderCity();requestAnimationFrame(loop)}
-window.addEventListener("resize",renderCity);renderAll();requestAnimationFrame(loop);
+window.addEventListener("resize",renderCity);renderAll();renderCity();if(!qaMode)requestAnimationFrame(loop);
