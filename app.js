@@ -223,7 +223,7 @@ function drawBuilding(x,y,k,lvl,scale){
     const i=buildingSpriteIndex[k];
     if(i!==undefined){
       const sx=(i%5)*128, sy=Math.floor(i/5)*128;
-      const size=scale*(1.35+Math.min(4,lvl)*.05);
+      const size=scale*(1.52+Math.min(4,lvl)*.055);
       ctx.drawImage(spriteSheets.buildings,sx,sy,128,128,x-size/2,y-size*.88,size,size);
       if(lvl>=2){ctx.save();ctx.globalAlpha=.22+.06*lvl;ctx.strokeStyle="#f2d88b";ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(x,y+5,size*.34,7,0,0,Math.PI*2);ctx.stroke();ctx.restore()}
       return;
@@ -274,7 +274,7 @@ function drawCityLife(ox,oy,tw,th){
 function drawChibi(x,y,cls,i){
   const si=charSpriteIndex[cls];
   if(si!==undefined && spriteSheets.characters.complete && spriteSheets.characters.naturalWidth){
-    const bob=Math.sin(animT*.006+i)*1.4,size=48;
+    const bob=Math.sin(animT*.006+i)*1.4,size=54;
     ctx.save();ctx.translate(x,y+bob);ctx.drawImage(spriteSheets.characters,si*128,0,128,128,-size/2,-size*.9,size,size);ctx.restore();
     return;
   }
