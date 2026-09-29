@@ -158,7 +158,7 @@ function checkEnd(){
 
 function renderCity(){
   const dpr=Math.min(2,window.devicePixelRatio||1),rect=canvas.getBoundingClientRect(),w=Math.max(360,rect.width),h=Math.max(315,rect.height);
-  if(canvas.width!==Math.floor(w*dpr)||canvas.height!==Math.floor(h*dpr)){canvas.width=Math.floor(w*dpr);canvas.height=Math.floor(h*dpr);ctx.setTransform(dpr,0,0,dpr,0,0)}
+  if(canvas.width!==Math.floor(w*dpr)||canvas.height!==Math.floor(h*dpr)){canvas.width=Math.floor(w*dpr);canvas.height=Math.floor(h*dpr);ctx.setTransform(dpr,0,0,dpr,0,0)}ctx.imageSmoothingEnabled=false;
   ctx.clearRect(0,0,w,h);
   const horizon=h*.27,sky=ctx.createLinearGradient(0,0,0,horizon);
   sky.addColorStop(0,"#78b5da");sky.addColorStop(.55,"#b8d7d7");sky.addColorStop(1,"#e8e3c5");
@@ -244,7 +244,7 @@ function drawBuilding(x,y,k,lvl,scale){
       const sx=(i%5)*128, sy=Math.floor(i/5)*128;
       const size=scale*(1.52+Math.min(4,lvl)*.055);
       ctx.drawImage(spriteSheets.buildings,sx,sy,128,128,x-size/2,y-size*.88,size,size);
-      if(lvl>=2){ctx.save();ctx.globalAlpha=.22+.06*lvl;ctx.strokeStyle="#f2d88b";ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(x,y+5,size*.34,7,0,0,Math.PI*2);ctx.stroke();ctx.restore()}
+      if(lvl>=2){ctx.save();ctx.globalAlpha=.9;ctx.fillStyle="#2a1d16";ctx.fillRect(Math.round(x-size*.18),Math.round(y+2),Math.round(size*.36),4);ctx.fillStyle="#f0c66d";ctx.fillRect(Math.round(x-size*.14),Math.round(y+3),Math.round(size*.28*Math.min(1,lvl/4)),2);ctx.restore()}
       return;
     }
   }
@@ -293,7 +293,7 @@ function drawCityLife(ox,oy,tw,th){
 function drawChibi(x,y,cls,i){
   const si=charSpriteIndex[cls];
   if(si!==undefined && spriteSheets.characters.complete && spriteSheets.characters.naturalWidth){
-    const bob=Math.sin(animT*.006+i)*1.4,size=54;
+    const bob=Math.round(Math.sin(animT*.006+i)*2),size=60;
     ctx.save();ctx.translate(x,y+bob);ctx.drawImage(spriteSheets.characters,si*128,0,128,128,-size/2,-size*.9,size,size);ctx.restore();
     return;
   }

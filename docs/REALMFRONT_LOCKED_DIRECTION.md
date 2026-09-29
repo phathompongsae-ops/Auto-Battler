@@ -6,11 +6,12 @@ This file is the implementation guardrail for the current Web Alpha. Do not expa
 Build a compact fantasy settlement, recruit a small army, explore for resources, fight short automatic battles, improve the settlement, resolve a major Season War every three in-game months, capture rival territory, and conquer both rival capitals.
 
 ## Visual direction
-- Web-first 2D / 2.5D isometric presentation.
-- Small readable chibi units, roughly Kairosoft-like in combat complexity.
+- Web-first 2D isometric pixel-art presentation with a compact classic management-game feel.
+- Pixel art is now the locked production direction; avoid smooth vector/procedural web-demo styling in final visible assets.
+- Small readable chibi pixel units with simple Kairosoft-like combat readability.
 - The settlement must feel alive: residents walk, work, train, and occupy the town scene.
 - Human, Arcane, and Demon factions must remain visually distinct.
-- Prefer coherent local sprite/vector assets and restrained effects over heavy 3D or external runtime dependencies.
+- Prefer coherent local pixel sprite sheets, hard-edged tiles, nearest-neighbor rendering and restrained effects over heavy 3D or external runtime dependencies.
 
 ## Combat lock
 - Automatic combat only.
