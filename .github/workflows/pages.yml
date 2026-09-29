@@ -33,12 +33,12 @@ jobs:
           sleep 2
           CHROME="$(command -v google-chrome || command -v chromium || command -v chromium-browser)"
           test -n "$CHROME"
-          timeout 25s "$CHROME" --headless --no-sandbox --disable-dev-shm-usage --disable-gpu --hide-scrollbars --timeout=3000 --window-size=1440,900 --screenshot=desktop.png "http://127.0.0.1:4173/?qa=1" || test -s desktop.png
-          timeout 25s "$CHROME" --headless --no-sandbox --disable-dev-shm-usage --disable-gpu --hide-scrollbars --timeout=3000 --window-size=390,844 --screenshot=mobile.png "http://127.0.0.1:4173/?qa=1" || test -s mobile.png
-          timeout 25s "$CHROME" --headless --no-sandbox --disable-dev-shm-usage --disable-gpu --hide-scrollbars --timeout=3000 --window-size=1200,800 --screenshot=battle-desktop.png "http://127.0.0.1:4173/?qa=battle" || test -s battle-desktop.png
-          timeout 25s "$CHROME" --headless --no-sandbox --disable-dev-shm-usage --disable-gpu --hide-scrollbars --timeout=3000 --window-size=390,844 --screenshot=battle-mobile.png "http://127.0.0.1:4173/?qa=battle-mobile" || test -s battle-mobile.png
-          timeout 25s "$CHROME" --headless --no-sandbox --disable-dev-shm-usage --disable-gpu --hide-scrollbars --timeout=3000 --window-size=1200,800 --screenshot=expedition-desktop.png "http://127.0.0.1:4173/?qa=expedition" || test -s expedition-desktop.png
-          timeout 25s "$CHROME" --headless --no-sandbox --disable-dev-shm-usage --disable-gpu --hide-scrollbars --timeout=3000 --window-size=390,844 --screenshot=expedition-mobile.png "http://127.0.0.1:4173/?qa=expedition" || test -s expedition-mobile.png
+          timeout 45s "$CHROME" --headless --no-first-run --disable-background-networking --no-sandbox --disable-dev-shm-usage --disable-gpu --hide-scrollbars --timeout=3000 --window-size=1440,900 --screenshot=desktop.png "http://127.0.0.1:4173/?qa=1" || test -s desktop.png
+          timeout 45s "$CHROME" --headless --no-first-run --disable-background-networking --no-sandbox --disable-dev-shm-usage --disable-gpu --hide-scrollbars --timeout=3000 --window-size=390,844 --screenshot=mobile.png "http://127.0.0.1:4173/?qa=1" || test -s mobile.png
+          timeout 45s "$CHROME" --headless --no-first-run --disable-background-networking --no-sandbox --disable-dev-shm-usage --disable-gpu --hide-scrollbars --timeout=3000 --window-size=1200,800 --screenshot=battle-desktop.png "http://127.0.0.1:4173/?qa=battle" || test -s battle-desktop.png
+          timeout 45s "$CHROME" --headless --no-first-run --disable-background-networking --no-sandbox --disable-dev-shm-usage --disable-gpu --hide-scrollbars --timeout=3000 --window-size=390,844 --screenshot=battle-mobile.png "http://127.0.0.1:4173/?qa=battle-mobile" || test -s battle-mobile.png
+          timeout 45s "$CHROME" --headless --no-first-run --disable-background-networking --no-sandbox --disable-dev-shm-usage --disable-gpu --hide-scrollbars --timeout=3000 --window-size=1200,800 --screenshot=expedition-desktop.png "http://127.0.0.1:4173/?qa=expedition" || test -s expedition-desktop.png
+          timeout 45s "$CHROME" --headless --no-first-run --disable-background-networking --no-sandbox --disable-dev-shm-usage --disable-gpu --hide-scrollbars --timeout=3000 --window-size=390,844 --screenshot=expedition-mobile.png "http://127.0.0.1:4173/?qa=expedition" || test -s expedition-mobile.png
           test -s desktop.png
           test -s mobile.png
           test -s battle-desktop.png
