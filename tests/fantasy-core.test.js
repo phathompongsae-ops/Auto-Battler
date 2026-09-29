@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {createInitialState,normalizeState,buildingCost,upgradeBuilding,recruit,REGIONS,expeditionOutcome,resolveSeasonWar,armyPower,advanceMonth,updateCapitalLocks} from "../src/fantasy-core.js";
+import {createInitialState,normalizeState,buildingCost,upgradeBuilding,recruit,REGIONS,expeditionOutcome,resolveSeasonWar,armyPower,advanceMonth,updateCapitalLocks,enemyPowerForExpedition} from "../src/fantasy-core.js";
 
 const fixed=(...vals)=>{let i=0;return()=>vals[i++%vals.length]};
 
@@ -27,7 +27,7 @@ test("expedition victory advances month and grants progress",()=>{
 });
 
 test("expedition defeat still returns consolation loot",()=>{
-  const s=createInitialState(),ids=s.units.map(u=>u.id);s.units.forEach(u=>u.level=1);
+  const s=createInitialState(),ids=s.units.map(u=>u.id);s.units.forEach(u=>u.level=1);s.buildings.townhall=5;
   const impossible={...REGIONS[4],power:9999};const r=expeditionOutcome(s,impossible,ids,fixed(.99,.01,.99));
   assert.equal(r.ok,true);assert.equal(r.win,false);assert.ok(r.reward.wood>0);assert.equal(s.stats.losses,1);
 });
@@ -73,6 +73,51 @@ test("both capital victories trigger campaign victory",()=>{
   for(const k of ["arcane","demon"]){s.rivals[k].capitalUnlocked=true;s.rivals[k].armyPower=20;s.rivals[k].territory=1;s.warReady=true;const r=resolveSeasonWar(s,k,s.units.map(u=>u.id),fixed(.99,.01),true);assert.equal(r.win,true)}
   assert.equal(s.victory,true);assert.equal(s.gameOver,true);
 });
+
+
+
+test("region progression requires matching Town Hall level",()=>{
+  const s=createInitialState(),ids=s.units.map(u=>u.id);
+  const locked=expeditionOutcome(s,REGIONS[4],ids,fixed(.99,.5,.5,.5));
+  assert.equal(locked.ok,false);assert.match(locked.reason,/Town Hall/);
+  s.buildings.townhall=5;
+  const unlocked=expeditionOutcome(s,REGIONS[0],ids,fixed(.99,.5,.5,.5));
+  assert.equal(unlocked.ok,true);
+});
+
+test("balanced eight-war route can reach campaign victory without softlock",()=>{
+  const s=createInitialState();
+  assert.equal(recruit(s,"Warrior").ok,true);
+  assert.equal(upgradeBuilding(s,"townhall").ok,true);
+  const team=()=>s.units.slice(0,5).map(u=>u.id);
+  const strategicUpgrades=()=>{
+    for(const [key,target] of [["townhall",3],["blacksmith",1],["training",1],["townhall",4],["blacksmith",2],["townhall",5],["blacksmith",4]]){
+      while((s.buildings[key]||0)<target){
+        const r=upgradeBuilding(s,key);if(!r.ok)break;
+      }
+    }
+  };
+  for(let war=0;war<8;war++){
+    for(let month=0;month<3;month++){
+      strategicUpgrades();
+      const ids=team(),pp=armyPower(s,ids);
+      const unlocked=REGIONS.filter(r=>(r.townHall||1)<=s.buildings.townhall);
+      const safe=unlocked.filter(r=>enemyPowerForExpedition(s,r,null)<=pp*.95);
+      const region=safe.at(-1)||unlocked[0];
+      const e=expeditionOutcome(s,region,ids,fixed(.99,.5,.5,.5));
+      assert.equal(e.ok,true);assert.equal(e.win,true);
+    }
+    strategicUpgrades();
+    assert.equal(s.warReady,true);
+    const key=war<4?"arcane":"demon",capital=war===3||war===7;
+    if(capital)assert.equal(s.rivals[key].capitalUnlocked,true);
+    const w=resolveSeasonWar(s,key,team(),fixed(.5,.5),capital);
+    assert.equal(w.ok,true);assert.equal(w.win,true);
+  }
+  assert.equal(s.stats.seasonWars,8);
+  assert.equal(s.victory,true);assert.equal(s.gameOver,true);assert.ok(s.season<=9);
+});
+
 
 test("calendar helper does not advance while war is pending",()=>{
   const s=createInitialState();s.warReady=true;const month=s.month;const r=advanceMonth(s);assert.equal(r.blocked,true);assert.equal(s.month,month);

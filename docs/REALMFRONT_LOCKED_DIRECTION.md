@@ -23,6 +23,7 @@ Build a compact fantasy settlement, recruit a small army, explore for resources,
 - Human is the playable faction; Arcane and Demon are AI rivals.
 - Gold, Wood, Stone, Crystal only.
 - Expedition team size: 3-5 units.
+- The five expedition regions unlock at Town Hall Lv.1 through Lv.5 respectively, and recommended power is calibrated to the same Army Power scale shown in the UI.
 - Season War occurs every 3 in-game months and must be resolved before further exploration.
 - Each rival has three territory steps before its capital.
 - Capital unlock requires three territory-war wins against that faction, all three territories captured, Town Hall Lv.3, and Army Power 330.
