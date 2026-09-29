@@ -148,3 +148,17 @@ html,body{font-family:"Courier New",ui-monospace,monospace;background:#17141b}
 .region-art,.sprite-vfx{image-rendering:pixelated}
 .war-alert{border:4px solid #2a1718;background:#793f3f;box-shadow:6px 6px 0 #15141a!important}
 @media(max-width:620px){.world-panel,.side-panel{box-shadow:3px 3px 0 #0c0b0f!important}.card{box-shadow:inset -2px -2px 0 #324055!important}}
+
+/* Expedition Pixel Presentation */
+.region-card{padding-top:80px!important}
+.region-art{height:72px!important;border-bottom:3px solid #17151b!important;image-rendering:pixelated}
+.expedition-hero{height:104px;margin:-18px -18px 10px;border-bottom:4px solid #17151b;background-repeat:no-repeat;image-rendering:pixelated}
+.expedition-title{margin-top:-2px}
+.expedition-brief{display:grid;grid-template-columns:auto 1fr auto auto;gap:6px 10px;align-items:center;background:#283445;border:3px solid #17151b;padding:7px 9px;margin:-2px 0 10px;font-size:11px}
+.expedition-brief span{color:#aebbd0}.expedition-brief b{color:#ffe4a0}
+.battlefield.region-fields{--sky1:#82b8cf;--sky2:#d8deb2;--ground1:#77a160;--ground2:#54774d}
+.battlefield.region-forest{--sky1:#5b817a;--sky2:#6c8c6c;--ground1:#426747;--ground2:#2e4f39}
+.battlefield.region-pass{--sky1:#899697;--sky2:#a69e89;--ground1:#7b7569;--ground2:#5b5752}
+.battlefield.region-ruins{--sky1:#766b9d;--sky2:#9587b2;--ground1:#625a88;--ground2:#454468}
+.battlefield.region-frontier{--sky1:#775456;--sky2:#9d6957;--ground1:#66483f;--ground2:#47332f}
+@media(max-width:620px){.expedition-hero{height:88px;margin:-14px -14px 8px}.expedition-brief{grid-template-columns:auto 1fr;font-size:10px}}
