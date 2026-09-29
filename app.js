@@ -151,7 +151,7 @@ function drawBuilding(x,y,k,lvl,scale){
   ctx.fillStyle="rgba(0,0,0,.2)";ctx.beginPath();ctx.ellipse(x,y+12,scale*.38,8,0,0,Math.PI*2);ctx.fill();
   const s=scale*(.55+lvl*.025),wall="#d7c8a6",wood="#795842",blue="#4b6e9e";
   if(k==="townhall"){ctx.fillStyle=wall;ctx.fillRect(x-s*.52,y-36-lvl*3,s*1.04,36+lvl*3);ctx.fillStyle="#5a7398";roof(x,y-38-lvl*3,s*.66,21+lvl*2);tower(x-s*.32,y-38-lvl*3,lvl);tower(x+s*.32,y-38-lvl*3,lvl);banner(x,y-66-lvl*4,blue)}
-  else if(k==="house"){ctx.fillStyle="#d5bd92";ctx.fillRect(x-s*.45,y-28,s*.9,28);ctx.fillStyle="#915c45";roof(x,y-29,s*.56,18);window(x-12,y-18);window(x+8,y-18)}
+  else if(k==="house"){ctx.fillStyle="#d5bd92";ctx.fillRect(x-s*.45,y-28,s*.9,28);ctx.fillStyle="#915c45";roof(x,y-29,s*.56,18);drawWindow(x-12,y-18);drawWindow(x+8,y-18)}
   else if(k==="barracks"){ctx.fillStyle="#c8b18a";ctx.fillRect(x-s*.52,y-27,s*1.04,27);ctx.fillStyle="#713d3f";roof(x,y-28,s*.58,17);banner(x-s*.35,y-43,"#8e3f43");ctx.strokeStyle="#c7d0dc";ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(x+s*.34,y-8);ctx.lineTo(x+s*.47,y-34);ctx.stroke()}
   else if(k==="archery"){ctx.fillStyle="#c9ba94";ctx.fillRect(x-s*.48,y-25,s*.96,25);ctx.fillStyle="#55734f";roof(x,y-26,s*.55,15);ctx.strokeStyle="#d8c18d";ctx.lineWidth=3;ctx.beginPath();ctx.arc(x+s*.38,y-15,10,-1.2,1.2);ctx.stroke()}
   else if(k==="chapel"){ctx.fillStyle="#d7d0c0";ctx.beginPath();ctx.moveTo(x-s*.42,y);ctx.lineTo(x-s*.32,y-34);ctx.lineTo(x,y-51-lvl*2);ctx.lineTo(x+s*.32,y-34);ctx.lineTo(x+s*.42,y);ctx.closePath();ctx.fill();ctx.fillStyle="#6f60a5";ctx.beginPath();ctx.arc(x,y-30,7,0,Math.PI*2);ctx.fill();ctx.shadowColor="#9b8cf0";ctx.shadowBlur=12;ctx.fillRect(x-2,y-54,4,10);ctx.shadowBlur=0}
@@ -163,7 +163,7 @@ function drawBuilding(x,y,k,lvl,scale){
   if(lvl>=3){ctx.strokeStyle="rgba(255,224,151,.65)";ctx.lineWidth=1.5;ctx.strokeRect(x-s*.45,y-4,s*.9,3)}
 }
 function roof(x,y,half,h){ctx.beginPath();ctx.moveTo(x-half,y);ctx.lineTo(x,y-h);ctx.lineTo(x+half,y);ctx.closePath();ctx.fill()}
-function window(x,y){ctx.fillStyle="#f4ca70";ctx.fillRect(x-3,y-4,6,7)}
+function drawWindow(x,y){ctx.fillStyle="#f4ca70";ctx.fillRect(x-3,y-4,6,7)}
 function banner(x,y,color){ctx.fillStyle="#4d3a2e";ctx.fillRect(x-1,y-5,2,20);ctx.fillStyle=color;ctx.beginPath();ctx.moveTo(x,y-5);ctx.lineTo(x+12,y);ctx.lineTo(x,y+6);ctx.closePath();ctx.fill()}
 function tower(x,y,lvl){ctx.fillStyle="#b9b4a8";ctx.fillRect(x-7,y-20-lvl*2,14,20+lvl*2);ctx.fillStyle="#445a77";roof(x,y-20-lvl*2,10,10)}
 function drawCityLife(ox,oy,tw,th){const list=state.units.slice(0,Math.min(12,state.units.length));const civilians=Math.max(3,Math.min(8,(state.buildings.house||1)*2));for(let i=0;i<list.length+civilians;i++){const u=list[i]||{cls:"Civilian"},a=animT*.00015+i*1.7,gx=4.5+Math.cos(a+i*.2)*2.6,gy=4+Math.sin(a*1.31+i)*2.0,p=iso(gx,gy,ox,oy,tw,th);drawChibi(p.x,p.y-4,u.cls,i)}}
