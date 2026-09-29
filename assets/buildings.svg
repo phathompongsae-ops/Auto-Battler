@@ -11,7 +11,7 @@
 
 
 
-<text x="64" y="122" text-anchor="middle" font-family="Arial" font-size="9" fill="#f6eddc">Town Hall</text>
+
 </g><g transform="translate(128 0)" filter="url(#s)">
 <ellipse cx="64" cy="109" rx="48" ry="9" fill="#000" opacity=".16"/>
 <rect x="20" y="60" width="88" height="42" rx="4" fill="#d6bd91" stroke="#514a43" stroke-width="3"/><polygon points="14,62 64,24 114,62 64,76" fill="#985d47" stroke="#514a43" stroke-width="3"/><rect x="56" y="78" width="17" height="24" rx="2" fill="#5b4634"/><rect x="31" y="73" width="13" height="14" fill="#ffd37a" stroke="#654f39" stroke-width="3"/><rect x="84" y="73" width="13" height="14" fill="#ffd37a" stroke="#654f39" stroke-width="3"/>
@@ -23,7 +23,7 @@
 
 
 
-<text x="64" y="122" text-anchor="middle" font-family="Arial" font-size="9" fill="#f6eddc">House</text>
+
 </g><g transform="translate(256 0)" filter="url(#s)">
 <ellipse cx="64" cy="109" rx="48" ry="9" fill="#000" opacity=".16"/>
 <rect x="20" y="60" width="88" height="42" rx="4" fill="#c9b18a" stroke="#514a43" stroke-width="3"/><polygon points="14,62 64,24 114,62 64,76" fill="#7b3f44" stroke="#514a43" stroke-width="3"/><rect x="56" y="78" width="17" height="24" rx="2" fill="#5b4634"/><rect x="31" y="73" width="13" height="14" fill="#ffd37a" stroke="#654f39" stroke-width="3"/><rect x="84" y="73" width="13" height="14" fill="#ffd37a" stroke="#654f39" stroke-width="3"/>
@@ -35,7 +35,7 @@
 
 
 
-<text x="64" y="122" text-anchor="middle" font-family="Arial" font-size="9" fill="#f6eddc">Barracks</text>
+
 </g><g transform="translate(384 0)" filter="url(#s)">
 <ellipse cx="64" cy="109" rx="48" ry="9" fill="#000" opacity=".16"/>
 <rect x="20" y="60" width="88" height="42" rx="4" fill="#c9b893" stroke="#514a43" stroke-width="3"/><polygon points="14,62 64,24 114,62 64,76" fill="#56774f" stroke="#514a43" stroke-width="3"/><rect x="56" y="78" width="17" height="24" rx="2" fill="#5b4634"/><rect x="31" y="73" width="13" height="14" fill="#ffd37a" stroke="#654f39" stroke-width="3"/><rect x="84" y="73" width="13" height="14" fill="#ffd37a" stroke="#654f39" stroke-width="3"/>
@@ -47,7 +47,7 @@
 
 
 
-<text x="64" y="122" text-anchor="middle" font-family="Arial" font-size="9" fill="#f6eddc">Archery</text>
+
 </g><g transform="translate(512 0)" filter="url(#s)">
 <ellipse cx="64" cy="109" rx="48" ry="9" fill="#000" opacity=".16"/>
 <rect x="20" y="60" width="88" height="42" rx="4" fill="#dad4c5" stroke="#514a43" stroke-width="3"/><polygon points="14,62 64,24 114,62 64,76" fill="#6d5aa3" stroke="#514a43" stroke-width="3"/><rect x="56" y="78" width="17" height="24" rx="2" fill="#5b4634"/><rect x="31" y="73" width="13" height="14" fill="#ffd37a" stroke="#654f39" stroke-width="3"/><rect x="84" y="73" width="13" height="14" fill="#ffd37a" stroke="#654f39" stroke-width="3"/>
@@ -59,7 +59,7 @@
 
 
 
-<text x="64" y="122" text-anchor="middle" font-family="Arial" font-size="9" fill="#f6eddc">Chapel</text>
+
 </g><g transform="translate(0 128)" filter="url(#s)">
 <ellipse cx="64" cy="109" rx="48" ry="9" fill="#000" opacity=".16"/>
 <rect x="20" y="60" width="88" height="42" rx="4" fill="#9b9992" stroke="#514a43" stroke-width="3"/><polygon points="14,62 64,24 114,62 64,76" fill="#4d5056" stroke="#514a43" stroke-width="3"/><rect x="56" y="78" width="17" height="24" rx="2" fill="#5b4634"/><rect x="31" y="73" width="13" height="14" fill="#ffd37a" stroke="#654f39" stroke-width="3"/><rect x="84" y="73" width="13" height="14" fill="#ffd37a" stroke="#654f39" stroke-width="3"/>
@@ -71,7 +71,7 @@
 
 
 
-<text x="64" y="122" text-anchor="middle" font-family="Arial" font-size="9" fill="#f6eddc">Blacksmith</text>
+
 </g><g transform="translate(128 128)" filter="url(#s)">
 <ellipse cx="64" cy="109" rx="48" ry="9" fill="#000" opacity=".16"/>
 <rect x="20" y="60" width="88" height="42" rx="4" fill="#b99971" stroke="#514a43" stroke-width="3"/><polygon points="14,62 64,24 114,62 64,76" fill="#6c533e" stroke="#514a43" stroke-width="3"/><rect x="56" y="78" width="17" height="24" rx="2" fill="#5b4634"/><rect x="31" y="73" width="13" height="14" fill="#ffd37a" stroke="#654f39" stroke-width="3"/><rect x="84" y="73" width="13" height="14" fill="#ffd37a" stroke="#654f39" stroke-width="3"/>
@@ -83,7 +83,7 @@
 <rect x="25" y="82" width="18" height="18" fill="#7e5b36"/><rect x="55" y="82" width="18" height="18" fill="#7e5b36"/><rect x="85" y="82" width="18" height="18" fill="#7e5b36"/>
 
 
-<text x="64" y="122" text-anchor="middle" font-family="Arial" font-size="9" fill="#f6eddc">Warehouse</text>
+
 </g><g transform="translate(256 128)" filter="url(#s)">
 <ellipse cx="64" cy="109" rx="48" ry="9" fill="#000" opacity=".16"/>
 <rect x="19" y="85" width="90" height="18" rx="3" fill="#7d5d3e"/><circle cx="64" cy="59" r="15" fill="#9f7c55"/><rect x="61" y="60" width="6" height="42" fill="#6b4d35"/>
@@ -95,7 +95,7 @@
 
 
 
-<text x="64" y="122" text-anchor="middle" font-family="Arial" font-size="9" fill="#f6eddc">Training</text>
+
 </g><g transform="translate(384 128)" filter="url(#s)">
 <ellipse cx="64" cy="109" rx="48" ry="9" fill="#000" opacity=".16"/>
 <rect x="20" y="60" width="88" height="42" rx="4" fill="#dad4c5" stroke="#514a43" stroke-width="3"/><polygon points="14,62 64,24 114,62 64,76" fill="#6e9b9d" stroke="#514a43" stroke-width="3"/><rect x="56" y="78" width="17" height="24" rx="2" fill="#5b4634"/><rect x="31" y="73" width="13" height="14" fill="#ffd37a" stroke="#654f39" stroke-width="3"/><rect x="84" y="73" width="13" height="14" fill="#ffd37a" stroke="#654f39" stroke-width="3"/>
@@ -107,7 +107,7 @@
 
 <circle cx="64" cy="62" r="15" fill="#8de6df" opacity=".5"/><circle cx="64" cy="62" r="25" fill="none" stroke="#8de6df" stroke-width="4" opacity=".28"/>
 
-<text x="64" y="122" text-anchor="middle" font-family="Arial" font-size="9" fill="#f6eddc">Shrine</text>
+
 </g><g transform="translate(512 128)" filter="url(#s)">
 <ellipse cx="64" cy="109" rx="48" ry="9" fill="#000" opacity=".16"/>
 <rect x="20" y="60" width="88" height="42" rx="4" fill="#aaa69d" stroke="#514a43" stroke-width="3"/><polygon points="14,62 64,24 114,62 64,76" fill="#56616d" stroke="#514a43" stroke-width="3"/><rect x="56" y="78" width="17" height="24" rx="2" fill="#5b4634"/><rect x="31" y="73" width="13" height="14" fill="#ffd37a" stroke="#654f39" stroke-width="3"/><rect x="84" y="73" width="13" height="14" fill="#ffd37a" stroke="#654f39" stroke-width="3"/>
@@ -119,5 +119,5 @@
 
 
 <rect x="50" y="34" width="28" height="70" fill="#aaa69d"/><polygon points="45,38 64,17 83,38" fill="#56616d"/><rect x="77" y="18" width="4" height="33" fill="#56412d"/><path d="M81 18 L104 25 L81 34 Z" fill="#4f6f9c"/>
-<text x="64" y="122" text-anchor="middle" font-family="Arial" font-size="9" fill="#f6eddc">Watch Tower</text>
+
 </g></svg>
