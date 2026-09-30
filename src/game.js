@@ -2682,7 +2682,11 @@ function selectTarget(u) {
 // scale.x=+1, opposite the assumption every other current sprite matched. Registering it here
 // flips the mapping in data only; setUnitFacing, every other sprite's facing, and movement/attack
 // logic are untouched.
-const SPRITE_BASE_FACING = { Skeleton: -1 };
+// Stone Wolf Facing Pilot v1: read-only inspection of the approved stone-wolf_motion/* package
+// (idle/move/basic_attack) confirmed the quadruped's head, lunge, and direction-of-travel all
+// read canonically LEFT in every frame — the same "authored facing left" case Skeleton hit,
+// opposite the generic assumption. Registering it here flips the mapping in data only.
+const SPRITE_BASE_FACING = { Skeleton: -1, StoneWolf: -1 };
 // Skeleton Motion Feel Pilot v1: per-sprite near-zero dead-zone (world units). Attack facing
 // passes a raw float dx every frame (see updateUnit), so a target sitting almost exactly on the
 // unit's own column could alternate the sign by fractions of a pixel and rapid-flip the sprite.
@@ -3589,6 +3593,14 @@ function updateUnit(u, dt) {
       if (u.sprite === 'Skeleton' && u.skelAnim) {
         u.skeletonAtkFacingDx = gridToWorld(target.c,target.r).x - u.group.position.x;
       }
+      // Stone Wolf Facing Pilot v1: same committed-attack-facing snapshot, applied to Stone
+      // Wolf's own one-shot basic_attack lunge. Reproduced directly before this fix: a target
+      // reassigned mid-lunge (e.g. a surrounded Wolf) flipped the pose, exactly like the
+      // Skeleton/Spirit Archer defect. Presentation-only: does not touch target selection,
+      // damage, or cooldown.
+      if (u.sprite === 'StoneWolf' && u.monsterAnim) {
+        u.stoneWolfAtkFacingDx = gridToWorld(target.c,target.r).x - u.group.position.x;
+      }
       let dmg = applyTrait(u, target, attackerRawAtk(u));
       dmg = applySynergyDamageModifiers(dmg, u, target);
       dmg = (target.statuses || []).some((s) => s.invulnerable) ? 0 : absorbWithShield(target, dmg);
@@ -3634,10 +3646,13 @@ function updateUnit(u, dt) {
     // falls through to the exact original live calculation, unchanged.
     // Skeleton Motion Feel Pilot v1 (facing follow-up): identical lock, gated to Skeleton's own
     // committed basic_attack one-shot instead of Spirit Archer's.
+    // Stone Wolf Facing Pilot v1: identical lock, gated to Stone Wolf's own committed
+    // basic_attack one-shot.
     const spiritArcherAtkLock = u.sprite === 'SpiritArcher' && u.monsterAnim && u.monsterAnim.state === 'basic_attack';
     const skeletonAtkLock = u.sprite === 'Skeleton' && u.skelAnim && u.skelAnim.state === 'basic_attack';
+    const stoneWolfAtkLock = u.sprite === 'StoneWolf' && u.monsterAnim && u.monsterAnim.state === 'basic_attack';
     const liveFacingDx = gridToWorld(target.c,target.r).x - u.group.position.x;
-    setUnitFacing(u, spiritArcherAtkLock ? u.spiritArcherAtkFacingDx : (skeletonAtkLock ? u.skeletonAtkFacingDx : liveFacingDx));
+    setUnitFacing(u, spiritArcherAtkLock ? u.spiritArcherAtkFacingDx : (skeletonAtkLock ? u.skeletonAtkFacingDx : (stoneWolfAtkLock ? u.stoneWolfAtkFacingDx : liveFacingDx)));
   } else stepToward(u, target); // 5) Movement
   updateAnim(u, dt);
 }

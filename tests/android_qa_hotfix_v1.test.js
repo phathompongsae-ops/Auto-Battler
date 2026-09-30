@@ -62,8 +62,13 @@ function firePointerSeq(steps) {
       phase = 'battle'; paused = false;
       const out = {};
       out.registeredOverride = SPRITE_BASE_FACING.Skeleton === -1;
+      // Stone Wolf Facing Pilot v1: a second, independently-diagnosed-and-evidenced sprite
+      // (StoneWolf) legitimately registered its own base-facing override; the "untouched"
+      // contract is about UNRELATED sprites never gaining an override, not about the map
+      // staying at exactly one entry forever.
       out.otherSpritesUntouched = !('OrcBrute' in SPRITE_BASE_FACING) && !('Slime' in SPRITE_BASE_FACING)
-        && !('BladeMaster' in SPRITE_BASE_FACING) && Object.keys(SPRITE_BASE_FACING).length === 1;
+        && !('SpiritArcher' in SPRITE_BASE_FACING) && !('Golem' in SPRITE_BASE_FACING)
+        && !('BladeMaster' in SPRITE_BASE_FACING) && Object.keys(SPRITE_BASE_FACING).length === 2;
 
       const sk = makeUnit({ team: 'enemy', name: 'Sk', sprite: 'Skeleton', c: 3, r: 3, hp: 50, pAtk: 5, atkSpeed: 1, range: 1, moveSpeed: 1, armor: 5 });
       setUnitFacing(sk, 5);  out.moveRight = sk.body.scale.x;   // dirX>0 -> flipped by the -1 override
