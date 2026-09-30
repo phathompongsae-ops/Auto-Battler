@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "project": "phathompongsae-ops/Auto-Battler",
+  "recordId": "monster-demo-batch-1-stone-wolf-delivery-v1",
+  "monsterId": "stone-wolf",
+  "displayName": "Stone Wolf",
+  "deliveryType": "locked-neutral-master",
+  "masterPath": "docs/assets/review/monster-production/monster-demo-batch-1-neutral-masters-v1/stone-wolf/neutral/stone-wolf-neutral-master.png",
+  "masterSha256": "4f8c4bcf5555f76cac5463ef796a92d1a5cccf0daec4b7a4f0b064d2cacc2f08",
+  "canvas": [640, 960],
+  "format": "PNG",
+  "colorMode": "RGBA",
+  "bitDepth": 8,
+  "alphaBounds": [69, 385, 571, 855],
+  "maxAlphaY": 854,
+  "footBaselineHalfOpenY": 855,
+  "fullyTransparentOuterBorders": true,
+  "reviewPackage": "docs/assets/review/monster-production/monster-demo-batch-1-neutral-masters-v1/stone-wolf/review-package/monster_demo_batch_1_stone_wolf_final_targeted_rework_v3_human_review_package.zip",
+  "reviewPackageSha256": "3ec9f8c1f6ce4c8bd6f10e264339c07377d51d27f4980c8a381da2f5574b84b3",
+  "approval": {
+    "humanVisualApproval": "approved",
+    "exactPackageApproved": false,
+    "canonicalApproved": false,
+    "motionProductionAuthorized": false,
+    "runtimeIntegrationAuthorized": false,
+    "merged": false
+  }
+}

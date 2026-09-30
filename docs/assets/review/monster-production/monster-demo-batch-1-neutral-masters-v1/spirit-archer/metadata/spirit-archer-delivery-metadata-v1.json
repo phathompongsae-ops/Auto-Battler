@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "project": "phathompongsae-ops/Auto-Battler",
+  "recordId": "monster-demo-batch-1-spirit-archer-delivery-v1",
+  "monsterId": "spirit-archer",
+  "displayName": "Spirit Archer",
+  "deliveryType": "locked-neutral-master",
+  "masterPath": "docs/assets/review/monster-production/monster-demo-batch-1-neutral-masters-v1/spirit-archer/neutral/spirit-archer-neutral-master.png",
+  "masterSha256": "2438dfc1047106bc51549cda4cdb60c9cf450d7b1cb1ed38785ffac533ed479e",
+  "canvas": [640, 960],
+  "format": "PNG",
+  "colorMode": "RGBA",
+  "bitDepth": 8,
+  "alphaBounds": [103, 225, 537, 855],
+  "maxAlphaY": 854,
+  "footBaselineHalfOpenY": 855,
+  "fullyTransparentOuterBorders": true,
+  "reviewPackage": "docs/assets/review/monster-production/monster-demo-batch-1-neutral-masters-v1/spirit-archer/review-package/monster_demo_batch_1_spirit_archer_new_art_direction_v1_human_review_package.zip",
+  "reviewPackageSha256": "9ed949f1317aa3d5122faf3f528d8d80eaf1caf88fe898fe83fc9185de3f782d",
+  "approval": {
+    "humanVisualApproval": "approved",
+    "exactPackageApproved": false,
+    "canonicalApproved": false,
+    "motionProductionAuthorized": false,
+    "runtimeIntegrationAuthorized": false,
+    "merged": false
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "schemaVersion": 1,
+  "monsterId": "skeleton",
+  "master": {"sha256": "861369dbe72bd1742af7e1ff3aa4e4bf49de9ee216ff59b4723aab4add0a99a8", "png": true, "rgba8": true, "canvas": [640, 960], "alphaBounds": [46, 154, 550, 855], "maxAlphaY": 854, "baselineHalfOpenY": 855, "transparentOuterBorders": true, "byteIdentityPreserved": true},
+  "reviewZip": {"sha256": "9c311c9055e888a4c9165a97666f9e3efefdf317d54b66e3f714323f280a9d96", "sizeBytes": 3131592, "entryCount": 10, "crcPass": true, "pathSafetyPass": true},
+  "scope": "Repository delivery verification only; no visual re-review, regeneration, motion, or runtime validation."
+}

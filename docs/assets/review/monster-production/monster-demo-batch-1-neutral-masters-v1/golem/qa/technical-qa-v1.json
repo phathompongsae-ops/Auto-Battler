@@ -1,0 +1,7 @@
+{
+  "schemaVersion": 1,
+  "monsterId": "golem",
+  "master": {"sha256": "a6f25abed97388c2f2d1572ed95581ef2a5dcb9b43b49d816fb4ed3e132af36a", "png": true, "rgba8": true, "canvas": [640, 960], "alphaBounds": [47, 336, 592, 855], "maxAlphaY": 854, "baselineHalfOpenY": 855, "transparentOuterBorders": true, "byteIdentityPreserved": true},
+  "reviewZip": {"sha256": "d862fb25a270f2615c20dd395e9cc593aa9a1b9069fe626a9840473e5953f82c", "sizeBytes": 4974863, "entryCount": 17, "crcPass": true, "pathSafetyPass": true},
+  "scope": "Repository delivery verification only; no visual re-review, regeneration, motion, or runtime validation."
+}

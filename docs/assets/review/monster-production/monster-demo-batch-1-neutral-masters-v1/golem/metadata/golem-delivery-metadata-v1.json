@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "project": "phathompongsae-ops/Auto-Battler",
+  "recordId": "monster-demo-batch-1-golem-delivery-v1",
+  "monsterId": "golem",
+  "displayName": "Golem",
+  "deliveryType": "locked-neutral-master",
+  "masterPath": "docs/assets/review/monster-production/monster-demo-batch-1-neutral-masters-v1/golem/neutral/golem-neutral-master.png",
+  "masterSha256": "a6f25abed97388c2f2d1572ed95581ef2a5dcb9b43b49d816fb4ed3e132af36a",
+  "canvas": [640, 960],
+  "format": "PNG",
+  "colorMode": "RGBA",
+  "bitDepth": 8,
+  "alphaBounds": [47, 336, 592, 855],
+  "maxAlphaY": 854,
+  "footBaselineHalfOpenY": 855,
+  "fullyTransparentOuterBorders": true,
+  "reviewPackage": "docs/assets/review/monster-production/monster-demo-batch-1-neutral-masters-v1/golem/review-package/monster_demo_batch_1_golem_final_targeted_rework_v3_human_review_package.zip",
+  "reviewPackageSha256": "d862fb25a270f2615c20dd395e9cc593aa9a1b9069fe626a9840473e5953f82c",
+  "approval": {
+    "humanVisualApproval": "approved",
+    "exactPackageApproved": false,
+    "canonicalApproved": false,
+    "motionProductionAuthorized": false,
+    "runtimeIntegrationAuthorized": false,
+    "merged": false
+  }
+}

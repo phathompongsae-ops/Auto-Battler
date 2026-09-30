@@ -1,0 +1,7 @@
+{
+  "schemaVersion": 1,
+  "monsterId": "orc",
+  "master": {"sha256": "fb873b5f74f964b5e93bd61819035fbde80f5496b7be786144ddd4ee612fda1f", "png": true, "rgba8": true, "canvas": [640, 960], "alphaBounds": [68, 156, 571, 855], "maxAlphaY": 854, "baselineHalfOpenY": 855, "transparentOuterBorders": true, "byteIdentityPreserved": true},
+  "reviewZip": {"sha256": "3aae92ec66a38279532ee0b2b0878d5474f6ab910e19de76af8e7f3f44fb22f1", "sizeBytes": 10463489, "entryCount": 24, "crcPass": true, "pathSafetyPass": true, "scope": "shared batch review package containing the byte-identical approved Orc master"},
+  "scope": "Repository delivery verification only; no visual re-review, regeneration, motion, or runtime validation."
+}

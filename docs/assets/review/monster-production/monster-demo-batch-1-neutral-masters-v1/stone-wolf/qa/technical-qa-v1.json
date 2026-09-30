@@ -1,0 +1,7 @@
+{
+  "schemaVersion": 1,
+  "monsterId": "stone-wolf",
+  "master": {"sha256": "4f8c4bcf5555f76cac5463ef796a92d1a5cccf0daec4b7a4f0b064d2cacc2f08", "png": true, "rgba8": true, "canvas": [640, 960], "alphaBounds": [69, 385, 571, 855], "maxAlphaY": 854, "baselineHalfOpenY": 855, "transparentOuterBorders": true, "byteIdentityPreserved": true},
+  "reviewZip": {"sha256": "3ec9f8c1f6ce4c8bd6f10e264339c07377d51d27f4980c8a381da2f5574b84b3", "sizeBytes": 4039605, "entryCount": 17, "crcPass": true, "pathSafetyPass": true},
+  "scope": "Repository delivery verification only; no visual re-review, regeneration, motion, or runtime validation."
+}
