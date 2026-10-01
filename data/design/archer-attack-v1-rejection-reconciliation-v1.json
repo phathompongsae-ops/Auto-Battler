@@ -1,0 +1,81 @@
+{
+  "recordVersion": 1,
+  "id": "archer-attack-v1-rejection-reconciliation-v1",
+  "repository": "phathompongsae-ops/Auto-Battler",
+  "planningLineage": {
+    "sourcePR": 68,
+    "sourceBranch": "coco/archer-attack-review-approval-coordination-v1",
+    "sourceHead": "fce85bdc79a702d51b3fd4a24852396c21913f8e",
+    "relationship": "direct-descendant-planning-reconciliation",
+    "note": "PR #68 was created before PR #67 was discovered and contains stale attackGenerated=false planning state. This record supersedes that stale effective-state interpretation without rewriting PR #68 history."
+  },
+  "executionCandidate": {
+    "pr": 67,
+    "title": "Archer Attack Production v1 + Complete Motion Readiness Pack v1",
+    "branch": "cc/archer-attack-production-v1",
+    "head": "390c288c90ee060bccba5f5a00aa673ed503d521",
+    "basePR": 65,
+    "baseSha": "5305c84e80a7117c69a2f8048f9f5ca76e051d09",
+    "relationshipToPlanningLineage": "sibling execution branch; referenced read-only; no merge/cherry-pick/copy into this reconciliation lineage"
+  },
+  "userDecision": {
+    "attackVersion": "v1",
+    "userVisualApproval": false,
+    "attackPackageApproved": false,
+    "visualReviewStatus": "rejected",
+    "rejectionReasonCode": "near_static_visual_motion",
+    "forensicVerdict": {
+      "oldAttack": "CLEAR",
+      "pr67AttackV1": "NEAR_STATIC",
+      "pr67NeedsRedo": true
+    },
+    "decisionRule": "Technical validator PASS does not constitute visual approval. The user must visibly perceive raise, draw, full draw, release, and follow-through without relying on projectile VFX."
+  },
+  "attackV1Disposition": {
+    "generated": true,
+    "approved": false,
+    "supersededCandidate": true,
+    "runtimeEligible": false,
+    "runtimeIntegrated": false,
+    "mayBeUsedAsFinalAttackArt": false,
+    "preserveForForensicComparison": true
+  },
+  "attackV2Authorization": {
+    "authorizedForProductionByCC": true,
+    "generated": false,
+    "approved": false,
+    "executionOwner": "CC",
+    "contract": "data/design/archer-attack-v2-redo-contract-v1.json",
+    "visualQualityGates": "data/design/archer-attack-visual-quality-gates-v1.json",
+    "validatorUpgradePlan": "data/design/archer-attack-v2-validator-upgrade-plan-v1.json",
+    "handoff": "docs/reviews/archer-attack-v2-cc-execution-handoff-v1.md"
+  },
+  "effectiveStateAfterReconciliation": {
+    "neutralMasterApproved": true,
+    "idlePackageApproved": true,
+    "movePackageApproved": true,
+    "attackV1Generated": true,
+    "attackV1UserVisualApproval": false,
+    "attackV1PackageApproved": false,
+    "attackV1VisualReviewStatus": "rejected",
+    "attackV1RedoRequired": true,
+    "attackV2AuthorizedForProduction": true,
+    "attackV2Generated": false,
+    "attackV2PackageApproved": false,
+    "completeArcherMotionApproved": false,
+    "canonicalApproved": false,
+    "runtimeEligible": false,
+    "runtimeIntegrated": false
+  },
+  "scope": {
+    "binaryGenerated": false,
+    "imagesEdited": false,
+    "neutralIdleMoveModified": false,
+    "srcModified": false,
+    "runtimeModified": false,
+    "gameplayModified": false,
+    "otherCharacterProduction": false,
+    "crossRepositoryWork": false,
+    "prMerged": false
+  }
+}

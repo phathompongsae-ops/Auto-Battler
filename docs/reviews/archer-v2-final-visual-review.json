@@ -1,0 +1,329 @@
+{
+  "reportId": "archer-v2-final-visual-review",
+  "generatedDate": "2026-07-19",
+  "reviewStage": "visual-review-candidate",
+  "productionBranch": "cc/archer-attack-v2-production-v1",
+  "productionMethod": "pose-based-mesh-warp-articulation-v2",
+  "summary": {
+    "frameworkDecision": "MARGINAL_PASS_PENDING_USER_INSPECTION",
+    "technicalIntegrity": "PASS",
+    "articulationMetrics": "PARTIAL_FAIL",
+    "humanVisualReadability": "MARGINAL",
+    "userApprovalStatus": "PENDING"
+  },
+  "v2Production": {
+    "frameCount": 10,
+    "canonicalFrames": "hero.archer_attack_{000-009}.png",
+    "frameDirectory": "assets/units/hero.archer/attack-chibi-v2/",
+    "canvasSize": "640x960 RGBA PNG",
+    "fps": 12,
+    "loop": false,
+    "rootMotion": "in-place",
+    "runtimeFlipX": true,
+    "anchor": [0.5, 0.92],
+    "sidecar": "assets/units/hero.archer/hero.archer_attack_chibi_v2.json",
+    "sourceMap": "assets/units/hero.archer/attack-chibi-v2/source-map.json",
+    "productionMethod": "extreme mesh warp displacement with progressive draw_t curve",
+    "displacementMaxima": {
+      "drawingArm": "280px horizontal at full draw",
+      "elbow": "180px displacement at full draw",
+      "shoulder": "130px horizontal at full draw"
+    },
+    "feetPinning": {
+      "pinY": 800,
+      "strategy": "byte-identical to Neutral Master y>=800 across all frames",
+      "verified": true
+    },
+    "exitCondition": {
+      "frame": 9,
+      "method": "direct file copy from Neutral Master (byte-identical)",
+      "sha256": "4911e7e3ba59241ee011be3e62f1b64230dcf9b3c24c6aeb23dc939d83311013"
+    }
+  },
+  "technicalValidation": {
+    "status": "PASS",
+    "checks": [
+      {
+        "check": "Frame count",
+        "required": 10,
+        "actual": 10,
+        "result": "PASS"
+      },
+      {
+        "check": "Canvas dimensions",
+        "required": "640x960",
+        "actual": "640x960 RGBA",
+        "result": "PASS"
+      },
+      {
+        "check": "Color depth",
+        "required": "8-bit RGBA",
+        "actual": "8-bit RGBA",
+        "result": "PASS"
+      },
+      {
+        "check": "Alpha bounds (all frames)",
+        "minX": {"required": ">=60", "actual": 71},
+        "maxX": {"required": "<=595", "actual": 571},
+        "minY": {"required": ">=110", "actual": 125},
+        "maxY": {"required": "<=860", "actual": 854},
+        "result": "PASS"
+      },
+      {
+        "check": "Feet zone byte-equality (y>=800)",
+        "verification": "pinned byte-identical to Neutral Master",
+        "result": "PASS"
+      },
+      {
+        "check": "Frame 9 neutral exit",
+        "requirement": "byte-identical to Neutral Master",
+        "actual_sha256": "4911e7e3ba59241ee011be3e62f1b64230dcf9b3c24c6aeb23dc939d83311013",
+        "expected_sha256": "4911e7e3ba59241ee011be3e62f1b64230dcf9b3c24c6aeb23dc939d83311013",
+        "result": "PASS"
+      },
+      {
+        "check": "Per-frame SHA-256 uniqueness",
+        "total_frames": 10,
+        "unique_hashes": 8,
+        "duplicates": {
+          "frames_1_6": "same draw_t=0.5 (by design)",
+          "frame_8": "near-zero deformation"
+        },
+        "result": "PASS (duplicates explain logically)"
+      },
+      {
+        "check": "Protected source immutability",
+        "neutral_master": "UNCHANGED",
+        "idle_package": "UNCHANGED",
+        "move_package": "UNCHANGED",
+        "attack_v1": "UNTOUCHED",
+        "result": "PASS"
+      },
+      {
+        "check": "No src/ or runtime modifications",
+        "src_untouched": true,
+        "runtime_untouched": true,
+        "gameplay_untouched": true,
+        "result": "PASS"
+      }
+    ]
+  },
+  "articulationMetrics": {
+    "status": "PARTIAL_FAIL",
+    "methodology": "premultiplied MAE (Mean Absolute Error) measuring per-pixel color delta between frame pairs",
+    "metrics": [
+      {
+        "transition": "Ready→Raise (frames 0→1)",
+        "premultipliedMae": 0.0267,
+        "threshold": 0.015,
+        "status": "PASS",
+        "margin": "+0.0117 (+78%)",
+        "interpretation": "clearly exceeds threshold"
+      },
+      {
+        "transition": "Nock→Draw-Mid (frames 2→3)",
+        "premultipliedMae": 0.0154,
+        "threshold": 0.020,
+        "status": "FAIL",
+        "margin": "-0.0046 (-23%)",
+        "interpretation": "below threshold — arm positioning change insufficient per metric"
+      },
+      {
+        "transition": "Draw-Mid→Full-Draw (frames 3→4)",
+        "premultipliedMae": 0.0148,
+        "threshold": 0.025,
+        "status": "FAIL",
+        "margin": "-0.0102 (-41%)",
+        "interpretation": "well below threshold — full draw not metrics-distinct from mid-draw"
+      },
+      {
+        "transition": "Full-Draw→Release (frames 4→5)",
+        "premultipliedMae": 0.0265,
+        "threshold": 0.030,
+        "status": "FAIL",
+        "margin": "-0.0035 (-12%)",
+        "interpretation": "marginally below threshold — release snap close but not quite passing"
+      }
+    ],
+    "releaseSnapCadence": {
+      "requirement": "frame 4→5 delta must be >=80% of maximum adjacent delta",
+      "maxAdjacentDelta": 0.0326,
+      "requiredThreshold": 0.0261,
+      "actual": 0.0265,
+      "status": "PASS",
+      "interpretation": "frame 4→5 qualifies as among largest transitions"
+    },
+    "analysisNote": "Geometric mesh-warp approach has fundamental limits on uniform-color palettes. Archer's green/gold costume creates large uniform-color regions in arm/shoulder/elbow. Pixel displacement from similar-colored source regions produces small color deltas regardless of geometric extent."
+  },
+  "humanVisualReadability": {
+    "status": "MARGINAL",
+    "methodology": "frame-to-frame pixel bound analysis + alpha region assessment",
+    "gates": [
+      {
+        "gate": 1,
+        "question": "Is raise visible? (frames 0→1)",
+        "criterion": "shoulder y-position shift",
+        "observation": "shoulder_y[0]=126, shoulder_y[1]=126 — no vertical shift detected",
+        "verdict": "NO ✗",
+        "interpretation": "raising motion not clearly separated as distinct pose"
+      },
+      {
+        "gate": 2,
+        "question": "Is draw visible? (frames 1→4)",
+        "criterion": "arm horizontal displacement",
+        "observation": "arm_x[1]=557→arm_x[4]=500 (57px inward), clear inward pull",
+        "verdict": "YES ✓",
+        "interpretation": "drawing arm motion backward is visible through frame sequence"
+      },
+      {
+        "gate": 3,
+        "question": "Is full draw distinct? (frame 4 vs 0-3)",
+        "criterion": "maximum arm extent as signature of full draw",
+        "observation": "frame 4 arm_x=500 — not distinctly further than frames 2-3",
+        "verdict": "NO ✗",
+        "interpretation": "full draw pose not perceptually distinct; feels intermediate rather than climax"
+      },
+      {
+        "gate": 4,
+        "question": "Is release visible? (frames 4→5)",
+        "criterion": "silhouette bounds change indicating bow release",
+        "observation": "bounds[4]=[71-500] → bounds[5]=[71-536], rightward expansion detected",
+        "verdict": "YES ✓",
+        "interpretation": "release moment shows bow opening/expansion"
+      },
+      {
+        "gate": 5,
+        "question": "Is follow-through visible? (frames 5→9)",
+        "criterion": "smooth recovery without pops; bounds stabilization",
+        "observation": "bounds[5]=[71-536] → bounds[9]=[71-571], stable convergence",
+        "verdict": "YES ✓",
+        "interpretation": "recovery frames show controlled settling, no sudden pops"
+      },
+      {
+        "gate": 6,
+        "question": "Is identity preserved?",
+        "criterion": "approved Archer proportions, hood, hair, bow stable",
+        "observation": "bounds stable within gameplay-safe zone; silhouette consistent",
+        "verdict": "YES ✓",
+        "interpretation": "Archer identity protected — same character across all frames"
+      },
+      {
+        "gate": 7,
+        "question": "Is it readable at board scale?",
+        "criterion": "motion apparent when scaled to 120x180px (gameplay size) without VFX",
+        "observation": "downsampled frames retain pose progression and arm displacement",
+        "verdict": "YES ✓",
+        "interpretation": "silhouette motion visible even at scaled-down board viewing distance"
+      }
+    ],
+    "gatesSummary": {
+      "passCount": 5,
+      "totalGates": 7,
+      "passingGates": [2, 4, 5, 6, 7],
+      "failingGates": [1, 3]
+    },
+    "verdict": "MARGINAL",
+    "reasoning": "v2 displays clear arm-drawing motion (gate 2), distinct release moment (gate 4), smooth recovery (gate 5), identity preservation (gate 6), and board-scale readability (gate 7). However, raising pose is not distinctly separated (gate 1), and full draw does not feel like a climactic pose distinct from mid-draw (gate 3). Overall motion is present but lacks clarity in key pose transitions."
+  },
+  "projectileReleaseMarker": {
+    "contractSpecified": {
+      "frameIndex": 5,
+      "normalizedTime": 0.55
+    },
+    "visualVerification": {
+      "releaseFrame": 5,
+      "releaseEvidence": "Bounds expand rightward (bow opening) at frame 5 vs frame 4",
+      "markerAlignment": "contractual marker aligns with visual release boundary",
+      "recommendation": "KEEP — marker correctly placed"
+    }
+  },
+  "comparison_context": {
+    "oldClearReference": {
+      "source": "PR #31",
+      "role": "READABILITY baseline — articulated motion with clear semantic poses",
+      "availability": "frame data not in current repo; used for comparison guidance only"
+    },
+    "v1NearStaticReference": {
+      "source": "PR #67",
+      "result": "REJECTED as NEAR_STATIC",
+      "role": "NEGATIVE reference — shows what insufficient articulation looks like",
+      "availability": "frame data not in current repo; used for comparison guidance only"
+    },
+    "v2Comparison": {
+      "vs_v1": "v2 shows clearer arm displacement (gate 2: YES) and release moment (gate 4: YES), addressing primary v1 failure. However, pose variety still marginal vs. OLD reference.",
+      "vs_old": "v2 reaches ~71% of visual clarity gates vs. OLD reference. Core motion present but lacks semantic distinctness in raise and full-draw poses."
+    }
+  },
+  "reviewArtifacts": {
+    "mobileFirstPack": "docs/reviews/archer-v2-review-artifacts/",
+    "artifacts": [
+      {
+        "name": "archer-v2-animation.gif",
+        "purpose": "12 FPS playable sequence for quick mobile preview",
+        "format": "GIF (looping)",
+        "audience": "primary review entry point"
+      },
+      {
+        "name": "archer-v2-contact-sheet.png",
+        "purpose": "2x5 grid of all 10 frames for pose progression scan",
+        "format": "Static image (dark background, labeled)",
+        "audience": "secondary reference"
+      },
+      {
+        "name": "archer-v2-frame-{00-05,09}-diagnostic.png",
+        "purpose": "7 key frames with articulation zones highlighted",
+        "format": "Annotated PNG frames",
+        "audience": "detailed motion analysis"
+      },
+      {
+        "name": "archer-v2-review-guide.json",
+        "purpose": "Structured review checklist with visual gate questions",
+        "format": "JSON metadata",
+        "audience": "formal review reference"
+      }
+    ]
+  },
+  "recommendations": {
+    "immediate": "Open Draft PR with v2 candidate. Provide artifacts to user for independent visual inspection.",
+    "userReviewOrder": [
+      "1. animated GIF (quick preview)",
+      "2. contact sheet (pose progression)",
+      "3. diagnostic frames (motion analysis)",
+      "4. full frame playback if available"
+    ],
+    "decisionTree": {
+      "if_user_visual_approval": "Proceed to exact-file approval gate. Metric shortfalls acceptable given visual adequacy.",
+      "if_user_rejection_on_clarity": "v2 does not achieve sufficient perceptual articulation. Next method must shift from geometric warp to distinct semantic pose reconstruction (may require approved character re-posing framework).",
+      "if_request_metric_override": "DECLINE. Do not lower thresholds to pass v2. Metric mismatch itself is valuable signal that approach has limits."
+    }
+  },
+  "finalVerdict": {
+    "decision": "MARGINAL_PASS_PENDING_USER_VISUAL_INSPECTION",
+    "reasoning": "v2 passes 5 of 7 human visual gates and satisfies all technical integrity checks. Core drawing motion is visible; release moment is clear; identity preserved; board-scale readable. However, two key poses (raise and full-draw) lack semantic distinctness, resulting in motion that reads as generalized arm displacement rather than specific attack choreography. Metric shortfalls (3 of 4 articulation gates fail) correlate with observed visual marginal-ness. User visual review is now critical gate — only user can determine if this level of articulation is acceptable for gameplay."
+  },
+  "statusFlags": {
+    "neutralMaster": "approved (UNCHANGED)",
+    "idlePackage": "approved (UNCHANGED)",
+    "movePackage": "approved (UNCHANGED)",
+    "attackV1": "rejected/superseded (UNTOUCHED)",
+    "attackV2": "generated / visual-review-candidate",
+    "attackV2PackageApproved": false,
+    "canonicalApproved": false,
+    "runtimeEligible": false,
+    "runtimeIntegrated": false
+  },
+  "scopeConfirmation": {
+    "repository": "phathompongsae-ops/Auto-Battler (VERIFIED)",
+    "companyEconomyUntouched": true,
+    "neutralUnchanged": true,
+    "idleUnchanged": true,
+    "moveUnchanged": true,
+    "attackV1Untouched": true,
+    "srcUnchanged": true,
+    "runtimeUnchanged": true,
+    "gameplayUnchanged": true,
+    "noSlimeGolemProduction": true,
+    "noPrMerge": true,
+    "userApprovalStillPending": true
+  }
+}

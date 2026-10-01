@@ -1,0 +1,69 @@
+{
+  "sourceNeutralMaster": {
+    "sha256": "4911e7e3ba59241ee011be3e62f1b64230dcf9b3c24c6aeb23dc939d83311013"
+  },
+  "productionMethod": {
+    "type": "mesh-warp-pose-based-articulation",
+    "aiRegeneration": false,
+    "pixelCopyFromOldAttack": false,
+    "feetPinExclusiveY": 800,
+    "worldTravelBaked": false,
+    "articulation": [
+      "drawing-arm-pull",
+      "elbow-bend",
+      "shoulder-rotation"
+    ]
+  },
+  "frames": [
+    {
+      "frameIndex": 0,
+      "path": "assets/units/hero.archer/attack-chibi-v2/hero.archer_attack_000.png",
+      "sha256": "48d909894efa1e24f386d1e2917deb53a9bc688798d18784eb98d9b0fbe19b4e"
+    },
+    {
+      "frameIndex": 1,
+      "path": "assets/units/hero.archer/attack-chibi-v2/hero.archer_attack_001.png",
+      "sha256": "a15f1927dc5a6d04963b20b654c9bfc563725420d3e56d7c3ca45e84eee47582"
+    },
+    {
+      "frameIndex": 2,
+      "path": "assets/units/hero.archer/attack-chibi-v2/hero.archer_attack_002.png",
+      "sha256": "ae500391e5d15510714f89a552d2bd8b3d895a4487807dcc1c7774bb7628dc9d"
+    },
+    {
+      "frameIndex": 3,
+      "path": "assets/units/hero.archer/attack-chibi-v2/hero.archer_attack_003.png",
+      "sha256": "368a8b3fa9e1d6ad2a6d0a37397f6d8f2194573c15358fae35e5313a29f637a1"
+    },
+    {
+      "frameIndex": 4,
+      "path": "assets/units/hero.archer/attack-chibi-v2/hero.archer_attack_004.png",
+      "sha256": "617141c21394ad847ab048b5b2ee9e8ad7193323d7a227aad7456f166f2475a6"
+    },
+    {
+      "frameIndex": 5,
+      "path": "assets/units/hero.archer/attack-chibi-v2/hero.archer_attack_005.png",
+      "sha256": "b591bd90ad48c401d2de5655c91f606210d95b91997f243ffaebc1e5439e24c2"
+    },
+    {
+      "frameIndex": 6,
+      "path": "assets/units/hero.archer/attack-chibi-v2/hero.archer_attack_006.png",
+      "sha256": "a15f1927dc5a6d04963b20b654c9bfc563725420d3e56d7c3ca45e84eee47582"
+    },
+    {
+      "frameIndex": 7,
+      "path": "assets/units/hero.archer/attack-chibi-v2/hero.archer_attack_007.png",
+      "sha256": "6c63bedf4cf0486392dcb699fc9208eab13f5a7623c597d3dda410c5f124b1e1"
+    },
+    {
+      "frameIndex": 8,
+      "path": "assets/units/hero.archer/attack-chibi-v2/hero.archer_attack_008.png",
+      "sha256": "48d909894efa1e24f386d1e2917deb53a9bc688798d18784eb98d9b0fbe19b4e"
+    },
+    {
+      "frameIndex": 9,
+      "path": "assets/units/hero.archer/attack-chibi-v2/hero.archer_attack_009.png",
+      "sha256": "4911e7e3ba59241ee011be3e62f1b64230dcf9b3c24c6aeb23dc939d83311013"
+    }
+  ]
+}

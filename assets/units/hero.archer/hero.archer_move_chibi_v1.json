@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "assetId": "hero.archer.move.chibi-production-candidate.v1",
+  "unitId": "hero.archer",
+  "state": "move",
+  "fps": 12,
+  "frameCount": 8,
+  "loop": true,
+  "anchor": [
+    0.5,
+    0.92
+  ],
+  "canvas": [
+    640,
+    960
+  ],
+  "eventMarkers": [
+    {
+      "name": "leftFootstepCue",
+      "normalizedTime": 0.25
+    },
+    {
+      "name": "rightFootstepCue",
+      "normalizedTime": 0.75
+    }
+  ],
+  "rootMotion": "in-place",
+  "runtimeFlipX": true,
+  "framePathPattern": "move-chibi-v1/hero.archer_move_{frame:03d}.png",
+  "sourceMap": "move-chibi-v1/source-map.json",
+  "neutralMasterApproved": true,
+  "idlePackageApproved": true,
+  "movePackageApproved": false,
+  "canonicalApproved": false,
+  "runtimeEligible": false,
+  "runtimeIntegrated": false
+}

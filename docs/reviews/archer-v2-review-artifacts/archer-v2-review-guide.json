@@ -1,0 +1,89 @@
+{
+  "artifactVersion": 1,
+  "generated": "2026-07-19",
+  "candidate": "hero.archer.attack.chibi-production-candidate-v2",
+  "artifacts": [
+    {
+      "type": "contact_sheet",
+      "file": "archer-v2-contact-sheet.png",
+      "purpose": "Quick visual scan of all 10 frames on mobile/tablet",
+      "format": "2x5 grid, 160x240px thumbnails on dark background",
+      "audience": [
+        "mobile-reviewer",
+        "designer",
+        "quick-check"
+      ]
+    },
+    {
+      "type": "animated_gif",
+      "file": "archer-v2-animation.gif",
+      "purpose": "Playable attack sequence at 12 FPS without loading individual frames",
+      "format": "GIF, looping, 83ms per frame",
+      "audience": [
+        "mobile-reviewer",
+        "motion-check"
+      ]
+    },
+    {
+      "type": "diagnostic_frames",
+      "files": [
+        "archer-v2-frame-{00,01,02,03,04,05,09}-diagnostic.png"
+      ],
+      "purpose": "Annotated frames with articulation zones highlighted in red",
+      "keyMoments": [
+        "ready",
+        "raise",
+        "nock",
+        "draw-mid",
+        "full-draw",
+        "release",
+        "exit"
+      ],
+      "audience": [
+        "motion-analyst",
+        "detailed-review"
+      ]
+    }
+  ],
+  "validator_status": {
+    "technicalPass": true,
+    "articulationPass": false,
+    "marginalGates": [
+      {
+        "gate": "nock-draw-mid",
+        "actual": 0.0154,
+        "threshold": 0.02,
+        "gap": -23
+      },
+      {
+        "gate": "draw-mid-full-draw",
+        "actual": 0.0148,
+        "threshold": 0.025,
+        "gap": -41
+      },
+      {
+        "gate": "full-draw-release",
+        "actual": 0.0265,
+        "threshold": 0.03,
+        "gap": -12
+      }
+    ]
+  },
+  "review_guidance": {
+    "focus": "Perceptual articulation quality, not MAE metrics",
+    "questions": [
+      "Is the draw motion visually apparent frame-to-frame?",
+      "Can you see the arm moving backward during frames 1-4?",
+      "Is the shoulder rotation subtle but visible?",
+      "Does the release snap (frame 5) feel distinct?",
+      "Is the recovery (frames 6-9) smooth?"
+    ],
+    "assessment_criteria": [
+      "Visual motion is CLEAR and readable at board scale",
+      "Archer identity (face, hood, bow) is stable and recognizable",
+      "No visual artifacts, glitches, or distortion",
+      "Transition to/from idle is smooth without pops",
+      "Release frame (5) marks a clear timing beat"
+    ]
+  }
+}

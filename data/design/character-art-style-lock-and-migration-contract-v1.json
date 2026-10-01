@@ -1,0 +1,443 @@
+{
+  "contractVersion": 1,
+  "id": "character-art-style-lock-and-migration-contract-v1",
+  "status": "style-direction-locked-production-binaries-pending",
+  "styleDirectionApproved": true,
+  "canonicalApproved": false,
+  "runtimeEligible": false,
+  "sourceState": {
+    "verifiedAt": "2026-07-19",
+    "repository": "phathompongsae-ops/Auto-Battler",
+    "contractBase": {
+      "pr": 12,
+      "branch": "coco/free-asset-intake-v1",
+      "sha": "36dd6a2b58b47942b66bd9103c3baeeaf674302c",
+      "state": "open-draft-unmerged",
+      "rationale": "Existing Coco docs/design line for character visual locks, canonical import gates, asset readiness, and shop-card presentation; its changed paths contain no src or runtime files."
+    },
+    "runtimeReferences": [
+      {
+        "pr": 55,
+        "branch": "cc/arena-ruins-static-board-runtime-integration-v1",
+        "sha": "08744faad0df8ce5fe1e43461ba59687fd0aebe8",
+        "state": "open-draft-unmerged",
+        "usage": "read-only Arena Ruins color/readability and board-scale baseline"
+      },
+      {
+        "pr": 56,
+        "branch": "cc/pilot-idle-motion-runtime-integration-v1",
+        "sha": "bbe63518c42761f49a0aa068c78e0d07d3e88214",
+        "state": "open-draft-unmerged",
+        "usage": "read-only asset-animation and motion-pipeline technical baseline"
+      }
+    ],
+    "ancestryBoundary": {
+      "contractBaseRuntime55MergeBase": "3300d02488e6a4715c87d20ac30e3ed53fdfca6f",
+      "contractBaseRuntime56MergeBase": "3300d02488e6a4715c87d20ac30e3ed53fdfca6f",
+      "runtime55IsAncestorOfContractBase": false,
+      "runtime56IsAncestorOfContractBase": false,
+      "contractBaseIsAncestorOfRuntime55": false,
+      "contractBaseIsAncestorOfRuntime56": false,
+      "rule": "Do not merge, rebase, or blind-cherry-pick either CC runtime ancestry into this Coco contract. Future integration consumes this contract and approved binaries path-limited."
+    }
+  },
+  "referenceManifest": "data/design/character-art-reference-manifest-v1.json",
+  "primaryReference": {
+    "logicalReferenceId": "gameplay_character_style_context_reference",
+    "role": "PRIMARY CHARACTER STYLE CONTEXT REFERENCE",
+    "direction": "Cute stylized fantasy chibi, gameplay-first readability",
+    "approvalIntent": "The style and presentation should closely follow this reference; the archived reference itself is not a production or runtime asset."
+  },
+  "styleAnchors": {
+    "archer": {
+      "logicalReferenceId": "style_anchor_archer",
+      "archetypeRole": "human-hero-anchor",
+      "lockedTraits": [
+        "female",
+        "green hood",
+        "green hair",
+        "pointed elf-like ears",
+        "large expressive green eyes",
+        "ornate green-and-gold bow",
+        "green-and-gold ranger outfit",
+        "very chibi large-head small-body proportions",
+        "cute but battle-ready",
+        "clean small-size silhouette"
+      ]
+    },
+    "slime": {
+      "logicalReferenceId": "style_anchor_slime",
+      "archetypeRole": "cute-simple-monster-anchor",
+      "lockedTraits": [
+        "bright blue glossy jelly body",
+        "rounded teardrop/slime silhouette",
+        "large shiny eyes",
+        "small horn-like protrusions",
+        "cute smile",
+        "very simple readable shape",
+        "strong small-size readability",
+        "polished glossy material"
+      ]
+    },
+    "golem": {
+      "logicalReferenceId": "style_anchor_golem",
+      "archetypeRole": "heavy-monster-anchor",
+      "lockedTraits": [
+        "compact chunky stone body",
+        "oversized fists",
+        "bright glowing blue crystals",
+        "glowing blue eyes",
+        "heavy readable silhouette",
+        "powerful but cute/chibi",
+        "rock mass remains readable when reduced"
+      ]
+    }
+  },
+  "proportionRules": {
+    "heroHumanoidTargetHeadsTall": [2.5, 3.0],
+    "required": [
+      "large head relative to torso",
+      "short torso and shortened limbs",
+      "hands and class-defining weapons remain readable",
+      "small body preserves battle-ready posture"
+    ],
+    "forbidden": [
+      "realistic adult proportions",
+      "long fashion-illustration limbs",
+      "super-deformed baby proportions that erase class authority"
+    ]
+  },
+  "faceRules": {
+    "required": [
+      "large expressive eyes",
+      "expression readable at reduced size",
+      "simplified facial planes and features",
+      "face shape supports character identity"
+    ],
+    "forbidden": [
+      "photoreal facial anatomy",
+      "micro-detail that disappears at board scale",
+      "one repeated face differentiated only by hair or costume"
+    ]
+  },
+  "silhouetteRules": {
+    "recognitionTarget": "Class, role, or monster archetype should be identifiable within approximately one second.",
+    "priority": [
+      "weapon or casting cue",
+      "headgear, hair, hood, horns, ears, or crystals",
+      "shoulder and torso massing",
+      "stance and limb mass",
+      "secondary accessories"
+    ],
+    "forbidden": [
+      "clutter that collapses when reduced",
+      "repeated cloak/costume blockout across class lines",
+      "weapon silhouettes hidden behind the body"
+    ]
+  },
+  "readabilityRules": {
+    "requiredContexts": [
+      "board unit scale",
+      "bench scale",
+      "shop card scale",
+      "enemy-list portrait or icon scale"
+    ],
+    "detailHierarchy": [
+      "silhouette",
+      "face and head",
+      "weapon or class cue",
+      "dominant color",
+      "secondary costume detail"
+    ],
+    "colorSeparation": [
+      "one clear dominant class or material color",
+      "strong warm/cool or material contrast",
+      "avoid low-contrast same-value costumes",
+      "retain foreground separation against Arena Ruins warm sand and stone"
+    ],
+    "acceptance": "A production candidate must pass side-by-side review in all four contexts; decorative detail cannot compensate for a failed silhouette or face read."
+  },
+  "renderingRules": {
+    "required": [
+      "stylized 3D fantasy",
+      "polished mobile-game finish",
+      "hand-painted or softly rendered material feel",
+      "controlled soft cinematic lighting",
+      "crisp readable outer and internal edges",
+      "transparent character export without card or scene pixels"
+    ],
+    "forbidden": [
+      "photorealism",
+      "overly realistic PBR",
+      "flat 2D anime rendering",
+      "super-deformed baby style",
+      "baked card frame, text, price, rarity border, scene, floor, or board background",
+      "baked floor shadow that contains scene or board-specific pixels"
+    ]
+  },
+  "classDifferentiationRules": {
+    "heroes": [
+      "unique silhouette per class line",
+      "unique weapon or casting cue",
+      "unique dominant color family",
+      "unique head, hair, hood, helmet, or ear shape",
+      "do not repeat cloak shape and costume blockout between classes"
+    ],
+    "monsters": [
+      "shape language identifies the archetype immediately",
+      "simple monsters use simple silhouettes",
+      "heavy monsters use chunky massing",
+      "ranged monsters show a readable ranged weapon or casting cue",
+      "bosses gain visual authority through scale, mass, framing, and focal detail without abandoning chibi language"
+    ]
+  },
+  "genderConstraints": {
+    "archer": "female",
+    "acolyte": "female",
+    "archerClass2Descendants": ["sniper", "ranger"],
+    "acolyteClass2Descendants": ["priest", "inquisitor"],
+    "descendantGenderRule": "Archer and Acolyte Class 2 descendants remain female.",
+    "otherClassLines": "Retain the existing hero-codex-v1 gender records unless a separately approved design contract changes them."
+  },
+  "boardCompatibility": {
+    "runtimeReference": "PR #55",
+    "background": "warm sand and stone Arena Ruins",
+    "required": [
+      "foreground silhouette and value separation",
+      "Slime blue hue and glossy highlights must not blend into floor accents",
+      "Golem crystals, eye glow, massing, and edge values must prevent stone-on-stone loss",
+      "Archer and human classes need readable head, weapon, and dominant-color separation"
+    ],
+    "forbidden": [
+      "baked Arena Ruins background or floor pixels",
+      "baked board tile, bench, perimeter, prop, or map-specific pixels",
+      "baked environmental shadow",
+      "changing camera, board dimensions, or gameplay geometry to compensate for weak character readability"
+    ]
+  },
+  "approvalModel": {
+    "styleDirectionApproved": true,
+    "canonicalApproved": false,
+    "meaning": {
+      "styleDirectionApprovedMeaning": "The user approved the project-wide visual language and the four logical references.",
+      "canonicalApprovedMeaning": "False because no newly migrated production character binary is approved by this contract."
+    },
+    "exactFileGate": [
+      "source and provenance recorded",
+      "original and export hashes recorded",
+      "dimensions and real alpha verified",
+      "no baked background, floor, shadow, UI, text, or card pixels",
+      "neutral master matches the style lock",
+      "board, bench, shop-card, and enemy-list readability passed",
+      "user explicitly approves that exact production file"
+    ]
+  },
+  "migrationAudit": {
+    "auditedRuntimeTree": {
+      "pr": 56,
+      "sha": "bbe63518c42761f49a0aa068c78e0d07d3e88214"
+    },
+    "technicallyReusable": [
+      {
+        "paths": ["src/asset-animation-runtime.js"],
+        "reuse": "asset resolution, animation state machine, FPS sanitization, fallback, texture cache/ref-count disposal, and marker delivery"
+      },
+      {
+        "paths": ["src/motion-test-harness.js"],
+        "reuse": "state selection, x1/x4 playback, pause/restart, flipX, transition sequencing, diagnostics, and dispose lifecycle"
+      },
+      {
+        "paths": ["assets/units/*/*_motiontest.json", "assets/units/*/*/source-map.json"],
+        "reuse": "sidecar/source-map shape, unit/state identity, FPS, frame count, loop, anchor, event-marker, root-motion, and provenance fields; values must be revalidated for a changed visual master"
+      },
+      {
+        "paths": [
+          "tools/test-asset-animation-runtime.mjs",
+          "tools/test-motion-test-harness.mjs",
+          "tools/test-archer-package-transitions-v1.mjs",
+          "tools/validate-*-frames-v1.mjs",
+          "tools/validate-motion-pipeline-stack-v1.mjs",
+          "tools/validate-pilot-motion-test-contract-v1.mjs"
+        ],
+        "reuse": "test and validation infrastructure, with future expected hashes and visual-master-specific assertions updated only in the replacement asset task"
+      }
+    ],
+    "visuallyRequiresReplacement": [
+      {
+        "paths": [
+          "assets/units/hero.archer/attack/*.png",
+          "assets/units/hero.archer/idle/*.png",
+          "assets/units/hero.archer/move/*.png"
+        ],
+        "reason": "Current Archer is closer to realistic adult proportions and does not match the approved green-haired, large-eyed, very-chibi anchor. All states must be regenerated after a new exact-file neutral master is approved."
+      },
+      {
+        "paths": [
+          "assets/units/monster.golem/attack/*.png",
+          "assets/units/monster.golem/idle/*.png"
+        ],
+        "reason": "Current Golem shares stone/crystal cues but has a taller heroic humanoid mass; the approved anchor requires a more compact chunky body and stronger oversized-fist chibi read."
+      },
+      {
+        "paths": [
+          "assets/fighter.png",
+          "assets/swordman.png",
+          "assets/archer.png",
+          "assets/mage.png",
+          "assets/summoner.png",
+          "assets/acolyte.png",
+          "assets/merchant.png",
+          "assets/novice.png",
+          "assets/heroes/*.png",
+          "assets/portraits/*.png",
+          "assets/v5/body_*.png",
+          "assets/v5/face_*.png"
+        ],
+        "reason": "Legacy/procedural Class 1, Class 2, portrait, and composited sheets do not meet the new polished stylized-3D chibi language and cannot become final migrated visuals."
+      },
+      {
+        "paths": [
+          "assets/mon_*.png",
+          "assets/orc_warlord.png",
+          "assets/lich_king.png",
+          "assets/arena_overlord.png",
+          "assets/boss_champion*.png",
+          "assets/miniboss_warden.png",
+          "assets/v5/mon_*.png"
+        ],
+        "reason": "Legacy monster and boss sprites predate this style lock; each active roster entry needs a new style-conforming neutral master and exact-file review. Obsolete roster art is not migrated unless separately reactivated."
+      }
+    ],
+    "possiblyReusableWithReview": [
+      {
+        "paths": [
+          "assets/units/monster.slime/move/*.png",
+          "assets/units/monster.slime/idle/*.png"
+        ],
+        "reason": "The current bright-blue glossy silhouette and small horns are directionally close, but the approved anchor has a rounder, friendlier face with very large shiny eyes and a cute smile. Reuse requires exact reduced-size comparison and explicit approval; otherwise regenerate all states from the new Slime master."
+      }
+    ]
+  },
+  "technicalReusePolicy": {
+    "baseline": "PR #56 is technically reusable as a read-only motion/runtime baseline.",
+    "allowed": [
+      "reuse loader and runtime seams",
+      "reuse animation state and transition architecture",
+      "reuse sidecar schema and marker vocabulary",
+      "reuse harness and regression-test structure"
+    ],
+    "condition": "Reusing a system or schema does not approve any old visual frame."
+  },
+  "visualReplacementPolicy": {
+    "oldFramesFinal": false,
+    "rule": "When a neutral visual master changes silhouette, proportion, costume, face, weapon, or material substantially, every animation and portrait derived from the old master becomes replacement-planned rather than final.",
+    "preservation": "Do not delete, overwrite, recolor, retouch, or regenerate existing assets in this contract task.",
+    "promotion": "New files remain canonicalApproved=false until separate exact-file approval."
+  },
+  "motionMigrationRule": {
+    "productionInThisTask": false,
+    "pipelineReusable": true,
+    "requiredAfterMasterApproval": [
+      "derive every state from the same approved neutral master",
+      "regenerate all old-master states affected by silhouette or proportion change",
+      "revalidate canvas, anchor, baseline, crop, flip, FPS, loop, root motion, and event markers",
+      "retain gameplay marker timing semantics unless a separate gameplay-authorized task changes them",
+      "run package transitions and x4 playback after integration"
+    ],
+    "prohibition": "Do not treat technically passing PR #56 frames as final visuals after their source master is replaced."
+  },
+  "migrationPhases": [
+    {
+      "phase": 1,
+      "name": "Style Anchors",
+      "characters": ["archer", "slime", "golem"],
+      "sourceArt": "Use the three logical style anchors plus the primary gameplay context; create new production source in a later task, never by extracting reference pixels.",
+      "neutralIdleMaster": "Approve one transparent neutral full-body master per anchor before any state production. Archer defines hero language, Slime simple-monster language, and Golem heavy-monster language.",
+      "motionRegenerationRequirement": "Archer and Golem require replacement motion sets. Slime requires exact comparison first and regeneration if it misses the approved face/proportion lock.",
+      "cardPortraitRequirement": "Produce board/bench sprite, shop-card presentation, and enemy-list portrait crops from the same approved master without baking UI into source art.",
+      "runtimeIntegrationImpact": "Path-limited asset/sidecar replacement through existing PR #56 seams; no Core Logic, Combat, camera, board, or map change.",
+      "approvalGate": "Each neutral master and each derived production set receives separate exact-file approval; style approval alone is insufficient."
+    },
+    {
+      "phase": 2,
+      "name": "Class 1 Hero Set",
+      "characters": ["fighter", "swordman", "archer", "mage", "summoner", "acolyte", "merchant"],
+      "sourceArt": "New style-conforming full-body source for all seven classes, preserving the existing class/gender/weapon identity contracts.",
+      "neutralIdleMaster": "One approved neutral/idle master per class with unique face, head shape, weapon cue, dominant color, and silhouette.",
+      "motionRegenerationRequirement": "Generate required idle/move/attack and later skill/hit/death states only after the class master is approved.",
+      "cardPortraitRequirement": "Shop-card and portrait/icon views must remain identifiable and consistent with the board sprite.",
+      "runtimeIntegrationImpact": "Reuse current loaders and state contracts; replace visuals path-limited after asset approval.",
+      "approvalGate": "Class-by-class exact-file gate plus one seven-class contact-sheet differentiation review."
+    },
+    {
+      "phase": 3,
+      "name": "Core Monsters",
+      "characters": ["slime", "orc", "stone_wolf", "skeleton", "spirit_archer", "shadow_assassin", "golem"],
+      "sourceArt": "New monster masters following simple/heavy/ranged/assassin shape-language rules and the active Map 1 roster IDs.",
+      "neutralIdleMaster": "One approved master per monster; ranged and heavy archetypes must read without color alone.",
+      "motionRegenerationRequirement": "Regenerate all states whose old master is replaced; preserve authorized gameplay markers and root-motion semantics.",
+      "cardPortraitRequirement": "Enemy-list portrait/icon and board sprite must share identity and remain distinct against Arena Ruins.",
+      "runtimeIntegrationImpact": "Visual-only path-limited integration through existing seams; map encounter data remains unchanged.",
+      "approvalGate": "Per-monster exact-file gate plus full active-monster silhouette strip at reduced size."
+    },
+    {
+      "phase": 4,
+      "name": "Class 2",
+      "characters": [
+        "knight", "berserker", "blade_master", "duelist", "sniper", "ranger", "archmage", "frost_weaver", "beast_lord", "spirit_blade", "priest", "inquisitor", "tycoon", "trickster"
+      ],
+      "sourceArt": "New evolutions derived from their approved Class 1 family language while remaining unmistakable from the parent and sibling branch.",
+      "neutralIdleMaster": "Approve parent/sibling comparison before animation; Archer and Acolyte descendants remain female.",
+      "motionRegenerationRequirement": "No legacy Class 2 sheet is final; build states from each approved Class 2 master.",
+      "cardPortraitRequirement": "Evolution branch remains readable in shop/card/portrait scale without relying on labels.",
+      "runtimeIntegrationImpact": "Reuse class IDs and technical asset framework; no fusion or gameplay rule change.",
+      "approvalGate": "Parent-plus-two-branch exact-file and silhouette comparison per class line."
+    },
+    {
+      "phase": 5,
+      "name": "Bosses",
+      "characters": ["orc_warlord", "bone_dragon", "lich_king", "arena_overlord"],
+      "sourceArt": "New chibi-fantasy boss masters with larger authority and focal detail while staying readable and compatible with the same rendering language.",
+      "neutralIdleMaster": "Approve scale, mass, focal feature, and reduced-size portrait before motion.",
+      "motionRegenerationRequirement": "Regenerate active boss motion from approved masters; do not migrate obsolete warden/champion art unless gameplay separately reactivates those IDs.",
+      "cardPortraitRequirement": "Enemy/boss list portrait and board-scale body need a consistent focal read.",
+      "runtimeIntegrationImpact": "Asset-only replacement; boss stats, skills, encounter ownership, targeting, and stage logic remain protected.",
+      "approvalGate": "Exact-file boss master approval plus board-scale readability and effect-clearance review."
+    },
+    {
+      "phase": 6,
+      "name": "Secret Classes",
+      "characters": ["ninja"],
+      "reservedFutureCharacters": ["black_dragon_knight", "sword_saint"],
+      "sourceArt": "Create only from separately approved secret-class briefs. Reserved Map 2/3 IDs remain unproduced until canonical data exists.",
+      "neutralIdleMaster": "Approve secret-class silhouette and differentiation from all normal/evolved classes before motion.",
+      "motionRegenerationRequirement": "Create states only after the exact master and production scope are approved.",
+      "cardPortraitRequirement": "Secret rarity/authority is expressed by character design; UI frames remain separate assets.",
+      "runtimeIntegrationImpact": "Future visual integration only; unlock, save, shop, fusion, Combat, and Map 2/3 behavior remain untouched.",
+      "approvalGate": "Separate brief approval, exact-file gate, differentiation review, and explicit runtime task."
+    }
+  ],
+  "protectedAreas": [
+    "src/",
+    "Core Logic",
+    "Combat",
+    "targeting and pathfinding",
+    "economy and stage logic",
+    "main loop",
+    "camera and board geometry",
+    "map runtime and Arena Ruins production assets",
+    "existing motion and character production assets",
+    "Map 2 and Map 3",
+    "canonicalApproved values on production assets"
+  ],
+  "futureValidationGates": [
+    "reference and production provenance",
+    "exact SHA-256 and dimensions",
+    "true alpha and transparent-background verification",
+    "no baked background, floor, shadow, UI, text, or card pixels",
+    "board, bench, shop-card, and enemy-list readability",
+    "Arena Ruins foreground separation",
+    "frame identity, baseline, crop, loop, root motion, markers, and x4 regression",
+    "explicit exact-file user approval"
+  ]
+}

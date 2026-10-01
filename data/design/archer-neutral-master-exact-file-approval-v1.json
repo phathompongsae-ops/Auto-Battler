@@ -1,0 +1,129 @@
+{
+  "recordVersion": 1,
+  "id": "archer-neutral-master-exact-file-approval-v1",
+  "characterId": "hero.archer",
+  "candidateId": "hero.archer.production-master.candidate.v1",
+  "status": "user-exact-file-approval-recorded",
+  "styleDirectionApproved": true,
+  "neutralMasterApproved": true,
+  "approvedNeutralMasterSource": true,
+  "userApprovalRecorded": true,
+  "canonicalApproved": false,
+  "runtimeEligible": false,
+  "motionGenerated": false,
+  "runtimeIntegrated": false,
+  "approval": {
+    "owner": "user",
+    "source": "Explicit user instruction in the Archer Neutral Master Exact-File Approval v1 task.",
+    "recordedAt": "2026-07-19",
+    "decision": "approved-exact-file",
+    "scope": [
+      "visual identity",
+      "Neutral Master source",
+      "future motion generation source",
+      "future derivative source subject to separate derivative validation and approval"
+    ],
+    "exclusions": [
+      "runtime integration",
+      "canonical runtime production approval",
+      "Idle, Move, or Attack package approval",
+      "portrait, class icon, card UI, or other derivative approval",
+      "permission to alter the approved identity"
+    ]
+  },
+  "exactFile": {
+    "path": "docs/assets/review/character-production/archer/master-v1/archer-production-master-candidate-v1.png",
+    "sha256": "4911e7e3ba59241ee011be3e62f1b64230dcf9b3c24c6aeb23dc939d83311013",
+    "bytes": 569259,
+    "dimensions": [640, 960],
+    "format": "PNG",
+    "mode": "RGBA",
+    "transparentBackground": true,
+    "alphaBounds": {
+      "origin": "top-left",
+      "x": 71,
+      "y": 125,
+      "width": 501,
+      "height": 730
+    },
+    "sourcePR": {
+      "pr": 59,
+      "branch": "coco/archer-production-master-v1",
+      "sha": "47a60378af16920aea75f9c8e2192e52518459e9"
+    },
+    "approvalEvidencePR": {
+      "pr": 60,
+      "branch": "coco/archer-neutral-master-approval-pack-v1",
+      "sha": "e96a88384c9b785de5849d1e232c37d15f59555f"
+    },
+    "bytesVerifiedUnchanged": true,
+    "regenerated": false,
+    "modified": false
+  },
+  "identityLock": {
+    "face": "large-eyed approachable heroic female Ranger face from the exact approved pixels",
+    "eyes": "large expressive green eyes with preserved shape, spacing, and contrast",
+    "hood": "green Ranger hood with gold trim and an open face read",
+    "hair": "green hair with the approved front and side silhouette",
+    "ears": "pointed elf-like ears with approved size, angle, and placement",
+    "bodyProportions": "approximately 2.5 to 3 heads tall, large head, compact torso, short readable limbs",
+    "costume": "approved green-and-gold Ranger costume language and detail hierarchy",
+    "palette": "dominant green, warm gold, natural skin, and dark leather support",
+    "bow": "approved ornate green-and-gold bow identity, scale, curvature, grip, string relationship, and gold tips",
+    "silhouette": "approved hood, ears, hair, compact body, quiver, cape, and oversized-bow silhouette",
+    "renderingLanguage": "cute stylized 3D fantasy chibi with gameplay-first readability and polished mobile-game finish",
+    "futureContinuityRule": "Idle, Move, Attack, and presentation derivatives must derive from this exact master and may not materially change face identity, hair color, hood design, bow identity, costume language, or body-proportion class without a new approval."
+  },
+  "carriedForwardConstraints": {
+    "board": [
+      "board-scale readability passed",
+      "preserve the bow silhouette",
+      "preserve hood and pointed-ear readability",
+      "preserve foreground separation from Arena Ruins warm sand and stone"
+    ],
+    "bench": [
+      "bench is the highest readability risk",
+      "prevent hood and hair from collapsing into one undifferentiated green mass",
+      "preserve gold hood trim",
+      "preserve the face opening",
+      "preserve eye contrast"
+    ],
+    "shop": [
+      "prefer full-silhouette framing",
+      "tight crop is not recommended",
+      "do not excessively crop feet or the lower bow"
+    ],
+    "geometryRule": "Do not change board, tile, camera, bench-slot, anchor, or gameplay geometry to compensate for a visual-readability issue."
+  },
+  "futureProductionGate": {
+    "nextAuthorizedTask": "Archer Idle Production v1",
+    "startedByThisRecord": false,
+    "orderedSequence": [
+      "Approved Neutral Master",
+      "Archer Idle Production v1 and separate approval",
+      "Archer Move Production v1 and separate approval",
+      "Archer Attack Production v1 and separate approval",
+      "separate CC runtime integration"
+    ],
+    "derivativePolicy": "Every motion or presentation derivative requires its own provenance, continuity validation, and approval. Neutral Master approval does not approve a derivative automatically."
+  },
+  "invariants": {
+    "candidateBytesChanged": false,
+    "candidateRegenerated": false,
+    "idleCreatedOrModified": false,
+    "moveCreatedOrModified": false,
+    "attackCreatedOrModified": false,
+    "motionSidecarChanged": false,
+    "motionSourceMapChanged": false,
+    "markerTimingChanged": false,
+    "runtimeChanged": false,
+    "coreLogicChanged": false,
+    "gameplayChanged": false,
+    "prMerged": false
+  },
+  "relatedContracts": [
+    "data/design/archer-production-master-v1.json",
+    "data/design/archer-production-master-migration-map-v1.json",
+    "data/design/archer-neutral-master-approval-pack-v1.json"
+  ]
+}

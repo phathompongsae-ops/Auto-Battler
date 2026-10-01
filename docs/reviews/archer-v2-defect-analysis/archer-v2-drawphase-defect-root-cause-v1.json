@@ -1,0 +1,65 @@
+{
+  "reportId": "archer-v2-drawphase-defect-root-cause-v1",
+  "date": "2026-07-19",
+  "pr": 72,
+  "branch": "cc/archer-attack-v2-production-v1",
+  "headAtInvestigation": "879d75f397f3554998d9af61b2c825b14b875b75",
+  "humanReviewVerdict": "FAIL",
+  "reportedDefect": "Frames 002-004: bow torn / grip hand missing / bow appears floating; discontinuity between hand and bow.",
+  "investigation": {
+    "step1_defectIsInSource": {
+      "method": "Directly opened source PNGs hero.archer_attack_002/003/004.png (not the contact sheet).",
+      "finding": "Defect is present in the source frames themselves. The golden bow is fragmented into displaced blocks with a detached, floating upper limb (top-right) and hard rectangular mesh-warp shear seams across the right torso/arm. Grip hand is lost. Confirmed NOT a contact-sheet rendering artifact."
+    },
+    "step2_defectExtent": {
+      "method": "Per-pixel abs-diff of frames 002/003/004 vs byte-clean neighbor frame 001, thresholded >30.",
+      "diffBoundingBox": "x[250-560] y[123-599]",
+      "finding": "All damage sits in the upper-right quadrant (right shoulder, right arm, cape, and bow)."
+    },
+    "step3_criticalFinding": {
+      "method": "Split the 001-vs-002/003/004 diff into INSIDE the damaged region (x[245-585] y[115-610]) vs OUTSIDE it.",
+      "measured": {
+        "frame002": {"insideChangedPx": 81258, "outsideChangedPx": 0},
+        "frame003": {"insideChangedPx": 87640, "outsideChangedPx": 0},
+        "frame004": {"insideChangedPx": 92892, "outsideChangedPx": 0}
+      },
+      "finding": "OUTSIDE the torn-bow region, frames 002/003/004 are BYTE-IDENTICAL to frame 001 (0 changed pixels). The ENTIRE frame-to-frame difference across the draw phase is the bow-tearing warp. There is NO body, arm, shoulder, or drawing-hand motion beneath the defect.",
+      "implication": "The reported 'torn bow' is not a flaw layered on top of a good draw pose. The torn bow IS the entire content of the draw-phase 'animation'. The mesh-warp produced only progressive tearing of the bow region and nothing else."
+    },
+    "step4_fixAttempt": {
+      "method": "Deterministic region-restore: composite the clean bow + grip-hand + upper-right body from frame 001 into the damaged region of 002/003/004, feathered at boundaries that already match.",
+      "result": "Removes the defect cleanly (bow intact, grip continuous, no seams, identity/costume/proportions preserved exactly).",
+      "sideEffect": "Because the only difference from frame 001 WAS the damaged region, restoring it makes fixed 002/003/004 byte-identical to frame 001. The draw phase becomes fully static and frames 001/002/003/004/006 become five identical frames.",
+      "verdict": "This removes the torn-bow FAIL but re-introduces the NEAR_STATIC FAIL (the exact reason Attack v1 was rejected). Not a genuine fix."
+    }
+  },
+  "rootCause": "The v2 production method (pose-based mesh warp, generate-archer-attack-v2-articulated-v1.py) displaces Neutral Master pixels in the bow/upper-right region. For the draw-phase frames the displacement magnitude was large enough to shear the bow into disconnected blocks and detach its upper limb, while producing NO coherent re-posing of the arm/hand/body. The standing Neutral Master has the archer holding the bow relaxed at her side; a readable archery draw (bow arm extended, drawing hand pulling the string toward the face) is a genuine RE-POSE that cannot be synthesized from the standing asset by geometric pixel displacement without either (a) tearing, or (b) collapsing back to the source pose.",
+  "whyNotPatchable": "A genuinely readable draw requires re-posing limbs (raising/extending the bow arm and bringing the drawing hand to the string). That needs a rigged puppet reconstruction or a pose-guided image-generation/inpainting model. Neither is available as a deterministic pixel operation in this environment. Any deterministic warp that is large enough to READ as a draw is precisely what tears the bow; any warp small enough to avoid tearing collapses to the static source pose.",
+  "decision": "Per user instruction (2026-07-19): ESCALATE to the re-pose method rather than ship a defect-removal that produces a static/duplicate result. Production frames 002-004 left UNTOUCHED (baseline hashes preserved). No fake fix committed.",
+  "recommendedNextMethod": {
+    "approach": "pose-guided regeneration / rigged key-pose reconstruction",
+    "requirements": [
+      "Preserve approved Archer identity (face, hood, hair, ears, eyes, green/gold costume, ornate bow design) from the Neutral Master.",
+      "Do NOT lock the body pose: allow the bow arm to extend and the drawing hand to reach the string across the draw phase.",
+      "Produce distinct, readable key poses: ready -> raise -> nock -> draw-mid -> full-draw -> release -> follow-through -> recovery -> neutral exit.",
+      "Keep canvas 640x960, anchor [0.5,0.92], 12 FPS, projectileRelease marker semantics, feet pin y>=800, and frame-9 byte-identical Neutral exit.",
+      "Needs an image-generation/inpainting capability (not available deterministically in this environment) OR user-supplied re-posed frames (the pattern already used for other characters' motion-test imports)."
+    ],
+    "note": "This mirrors the 'distinct articulated key-pose reconstruction / pose-guided regeneration' path already flagged in docs/reviews/archer-v2-final-visual-review.json as the fallback if visual review rejected the mesh-warp candidate."
+  },
+  "statusFlags": {
+    "attackPackageApproved": false,
+    "canonicalApproved": false,
+    "runtimeEligible": false,
+    "runtimeIntegrated": false,
+    "note": "Unchanged. No approval granted. No validator threshold modified."
+  },
+  "scopeConfirmation": {
+    "productionFramesModified": "none (002-004 baseline SHA-256 preserved)",
+    "validatorThresholdsModified": false,
+    "approvalStateModified": false,
+    "runtimeOrGameplayModified": false,
+    "prMerged": false
+  },
+  "evidenceArtifact": "docs/reviews/archer-v2-defect-analysis/archer-v2-drawphase-defect-evidence.png"
+}

@@ -1,0 +1,91 @@
+{
+  "checklistVersion": 1,
+  "id": "archer-attack-cc-return-checklist-v1",
+  "purpose": "Required return-report structure when CC completes Archer Attack Production v1.",
+  "executionOwner": "CC",
+  "reviewOwner": "Coco/user",
+  "sections": {
+    "GITHUB": [
+      "PR number",
+      "branch",
+      "HEAD SHA",
+      "exact base PR/branch/SHA",
+      "direct-descendant ancestry result",
+      "draft/open/unmerged state"
+    ],
+    "SOURCE": [
+      "Neutral Master SHA-256 verification",
+      "Neutral Master dimensions/RGBA/alpha decode result",
+      "Idle protected-byte comparison pass",
+      "Move protected-byte comparison pass"
+    ],
+    "ATTACK": [
+      "frame count",
+      "dimensions",
+      "FPS",
+      "loop semantics",
+      "rootMotion",
+      "runtimeFlipX",
+      "anchor and validation evidence",
+      "releaseCue frameIndex",
+      "releaseCue normalizedTime",
+      "releaseCue semantic meaning",
+      "per-frame SHA-256 list",
+      "frame directory",
+      "sidecar path",
+      "source-map path",
+      "production contract path",
+      "validation report path",
+      "human review path"
+    ],
+    "VISUAL": [
+      "identity result versus approved Neutral Master",
+      "board-scale result",
+      "bench-scale result",
+      "Idle -> Attack readiness",
+      "Attack -> Idle readiness",
+      "Move -> Attack readiness",
+      "all known concerns and any candidate-only iterations performed"
+    ],
+    "REVIEW_ARTIFACTS": [
+      "contact sheet path",
+      "preview GIF path",
+      "board-scale sample path",
+      "releaseCue marker diagnostic path",
+      "optional Idle -> Attack -> Idle transition diagnostic path",
+      "optional Move -> Attack diagnostic path"
+    ],
+    "VALIDATION": [
+      "validator names/commands",
+      "exit codes",
+      "warnings",
+      "JSON/schema result",
+      "design-data audit result",
+      "changed-path audit result",
+      "git diff --check result",
+      "Neutral protected-byte result",
+      "Idle protected-byte result",
+      "Move protected-byte result"
+    ],
+    "STATUS": {
+      "required": {
+        "attackGenerated": true,
+        "attackPackageApproved": false,
+        "canonicalApproved": false,
+        "runtimeEligible": false,
+        "runtimeIntegrated": false
+      },
+      "rule": "CC production completion must stop pending user review; technical pass must not self-approve Attack."
+    }
+  },
+  "hardRejectIfMissing": [
+    "exact base/ancestry",
+    "Neutral Master SHA verification",
+    "Idle/Move protected-byte pass",
+    "per-frame hashes",
+    "releaseCue exact mapping",
+    "review artifacts",
+    "validation exit codes",
+    "attackPackageApproved=false"
+  ]
+}

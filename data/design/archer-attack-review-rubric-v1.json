@@ -1,0 +1,82 @@
+{
+  "rubricVersion": 1,
+  "id": "archer-attack-review-rubric-v1",
+  "characterId": "hero.archer",
+  "state": "attack",
+  "purpose": "Machine-readable user-review rubric for a future CC-produced Archer Attack candidate. This rubric never auto-approves a package.",
+  "source": {
+    "repository": "phathompongsae-ops/Auto-Battler",
+    "coordinationBasePR": 66,
+    "coordinationBaseSha": "b2bc48ca3b246f6c72879c2683a9b19e1cf5cd11",
+    "attackProductionSourcePR": 65,
+    "attackProductionSourceSha": "5305c84e80a7117c69a2f8048f9f5ca76e051d09",
+    "neutralMasterId": "hero.archer.production-master.candidate.v1",
+    "neutralMasterSha256": "4911e7e3ba59241ee011be3e62f1b64230dcf9b3c24c6aeb23dc939d83311013"
+  },
+  "sections": {
+    "identity": [
+      "same Archer identity as approved Neutral Master",
+      "face/head stable",
+      "green hood and green hair stable",
+      "pointed elf-like ears readable",
+      "large green eyes readable",
+      "oversized ornate green/gold bow preserved",
+      "green/gold Ranger proportions and costume preserved",
+      "no redesign or identity drift"
+    ],
+    "motionReadability": [
+      "anticipation readable",
+      "bow draw readable",
+      "full draw readable",
+      "release is the clearest timing beat",
+      "follow-through controlled",
+      "recovery clean without obvious pop"
+    ],
+    "boardScale": [
+      "bow silhouette readable",
+      "no crop",
+      "no excessive blur or visual noise",
+      "Ranger bow-attack intent readable at gameplay scale",
+      "no obvious HP-bar-zone interference"
+    ],
+    "benchScale": [
+      "hood/hair separation",
+      "face opening remains readable",
+      "gold hood trim survives reduction",
+      "eye contrast remains readable",
+      "bow identity remains distinct"
+    ],
+    "technical": [
+      "6-8 frames target or documented justified deviation",
+      "12 FPS target",
+      "loop=false",
+      "rootMotion=in-place",
+      "runtimeFlipX=true",
+      "anchor validated from actual bounds/support evidence",
+      "releaseCue exact frameIndex and normalizedTime recorded",
+      "per-frame SHA-256 recorded",
+      "source provenance traces to exact Neutral Master",
+      "640x960 RGBA PNG unless a separately approved contract revision exists",
+      "alpha bounds measured and no crop"
+    ],
+    "transitionReadiness": [
+      "Idle -> Attack continuity",
+      "Attack -> Idle recovery continuity",
+      "Move -> Attack continuity",
+      "no obvious anchor, scale, bounds, silhouette, bow-orientation, first-frame, or recovery pop"
+    ]
+  },
+  "decisionModel": {
+    "allowedReviewOutcomes": ["pass-for-user-consideration", "revise-candidate", "reject-candidate"],
+    "autoApprove": false,
+    "technicalPassEqualsUserApproval": false,
+    "userExplicitApprovalRequiredForExactFileApproval": true
+  },
+  "currentState": {
+    "attackGenerated": false,
+    "attackPackageApproved": false,
+    "canonicalApproved": false,
+    "runtimeEligible": false,
+    "runtimeIntegrated": false
+  }
+}

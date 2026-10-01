@@ -1,0 +1,240 @@
+{
+  "recordVersion": 1,
+  "id": "archer-move-package-exact-file-approval-v1",
+  "characterId": "hero.archer",
+  "state": "move",
+  "packageId": "hero.archer.move.chibi-production-candidate.v1",
+  "status": "user-exact-package-approval-recorded",
+  "styleDirectionApproved": true,
+  "neutralMasterApproved": true,
+  "idlePackageApproved": true,
+  "movePackageApproved": true,
+  "canonicalApproved": false,
+  "runtimeEligible": false,
+  "runtimeIntegrated": false,
+  "attackGenerated": false,
+  "userApprovalRecorded": true,
+  "approval": {
+    "owner": "user",
+    "source": "Explicit user instruction in the Archer Move Package Exact-File Approval v1 task.",
+    "recordedAt": "2026-07-19",
+    "decision": "approved-exact-package",
+    "scope": [
+      "the eight exact Move PNG frame files and their ordered sequence",
+      "the exact frame SHA-256 values",
+      "12 FPS looping in-place locomotion",
+      "runtimeFlipX=true and anchor [0.5, 0.92]",
+      "leftFootstepCue at normalizedTime 0.25 mapped to frame 002",
+      "rightFootstepCue at normalizedTime 0.75 mapped to frame 006",
+      "identity continuity with the approved Neutral Master and approved Idle constraints",
+      "source provenance, gait cadence, and measured contact alignment",
+      "use as the approved visual source for a separately scoped Archer Attack production task and eventual separately scoped runtime integration"
+    ],
+    "exclusions": [
+      "canonical runtime production approval",
+      "runtime eligibility or integration",
+      "permission to overwrite or silently revise Move v1",
+      "Attack package production or approval",
+      "runtime, src, Core Logic, Combat, gameplay, camera, board, or map changes"
+    ]
+  },
+  "sourcePR": {
+    "repository": "phathompongsae-ops/Auto-Battler",
+    "pr": 64,
+    "branch": "coco/archer-move-production-v1",
+    "sha": "636b46abee0f91d4f73a71aadff409de2fd2ec67",
+    "baseBranch": "coco/archer-idle-package-exact-file-approval-v1",
+    "baseSha": "40b334937f394f54c1d1e97b729e37778644ee1e",
+    "stateVerifiedAtApprovalStart": "open-draft-unmerged",
+    "headDriftDetected": false
+  },
+  "sourceNeutralMaster": {
+    "candidateId": "hero.archer.production-master.candidate.v1",
+    "path": "docs/assets/review/character-production/archer/master-v1/archer-production-master-candidate-v1.png",
+    "sha256": "4911e7e3ba59241ee011be3e62f1b64230dcf9b3c24c6aeb23dc939d83311013",
+    "dimensions": [640, 960],
+    "format": "PNG",
+    "mode": "RGBA",
+    "neutralMasterApproved": true,
+    "approvedNeutralMasterSource": true
+  },
+  "approvedIdleSource": {
+    "packageId": "hero.archer.idle.chibi-production-candidate.v1",
+    "approvalRecord": "data/design/archer-idle-package-exact-file-approval-v1.json",
+    "idlePackageApproved": true,
+    "usage": "identity, silhouette, readability, anchor, and no-foot-slide constraints"
+  },
+  "exactPackageLock": {
+    "frameDirectory": "assets/units/hero.archer/move-chibi-v1/",
+    "frameCount": 8,
+    "fps": 12,
+    "loop": true,
+    "rootMotion": "in-place",
+    "runtimeFlipX": true,
+    "anchor": [0.5, 0.92],
+    "canvas": [640, 960],
+    "format": "PNG",
+    "mode": "RGBA",
+    "eventMarkers": [
+      {
+        "name": "leftFootstepCue",
+        "normalizedTime": 0.25,
+        "frameIndex": 2,
+        "contactBaselineY": 854
+      },
+      {
+        "name": "rightFootstepCue",
+        "normalizedTime": 0.75,
+        "frameIndex": 6,
+        "contactBaselineY": 854
+      }
+    ],
+    "frames": [
+      {
+        "frameIndex": 0,
+        "path": "assets/units/hero.archer/move-chibi-v1/hero.archer_move_000.png",
+        "sha256": "a9142fb9aff23110822e2eae491fd10a483aaec21f0ce44616108c3d5e797d79",
+        "bytes": 550548,
+        "dimensions": [640, 960],
+        "mode": "RGBA",
+        "supportFootBaselineY": 854
+      },
+      {
+        "frameIndex": 1,
+        "path": "assets/units/hero.archer/move-chibi-v1/hero.archer_move_001.png",
+        "sha256": "91ccd270ed2796d6a6d0d11a95582537af95cbfe0334c701022522f4e3def1fc",
+        "bytes": 547492,
+        "dimensions": [640, 960],
+        "mode": "RGBA",
+        "supportFootBaselineY": 854
+      },
+      {
+        "frameIndex": 2,
+        "path": "assets/units/hero.archer/move-chibi-v1/hero.archer_move_002.png",
+        "sha256": "1b92c2c694f03866798c5c0d67e7a1a2f929b2d4181c172fa493c0f583f146d9",
+        "bytes": 546452,
+        "dimensions": [640, 960],
+        "mode": "RGBA",
+        "supportFootBaselineY": 854,
+        "marker": "leftFootstepCue"
+      },
+      {
+        "frameIndex": 3,
+        "path": "assets/units/hero.archer/move-chibi-v1/hero.archer_move_003.png",
+        "sha256": "904eff4bf047861d6e4da257ecd733471a2de73c36ca5333b0c7ec18b181e70c",
+        "bytes": 547870,
+        "dimensions": [640, 960],
+        "mode": "RGBA",
+        "supportFootBaselineY": 854
+      },
+      {
+        "frameIndex": 4,
+        "path": "assets/units/hero.archer/move-chibi-v1/hero.archer_move_004.png",
+        "sha256": "8890f16ab7a903d7638a35e8fcc3456cb82ad49a67f0d4ff85371e55bbc3c2d9",
+        "bytes": 550199,
+        "dimensions": [640, 960],
+        "mode": "RGBA",
+        "supportFootBaselineY": 854
+      },
+      {
+        "frameIndex": 5,
+        "path": "assets/units/hero.archer/move-chibi-v1/hero.archer_move_005.png",
+        "sha256": "2d6f9200366e3056a8309e249f6fd2ddf31b32fea7538ae35860878126446d03",
+        "bytes": 546381,
+        "dimensions": [640, 960],
+        "mode": "RGBA",
+        "supportFootBaselineY": 853
+      },
+      {
+        "frameIndex": 6,
+        "path": "assets/units/hero.archer/move-chibi-v1/hero.archer_move_006.png",
+        "sha256": "444f4b9833c3e5bd3be41c2873673b881e0ef7d40b1092ed1894cd4a33f3927c",
+        "bytes": 545346,
+        "dimensions": [640, 960],
+        "mode": "RGBA",
+        "supportFootBaselineY": 854,
+        "marker": "rightFootstepCue"
+      },
+      {
+        "frameIndex": 7,
+        "path": "assets/units/hero.archer/move-chibi-v1/hero.archer_move_007.png",
+        "sha256": "383adfadbeba4314ecade83b6080c753ed2a976fc80b03d4820b0546bdb035b1",
+        "bytes": 546234,
+        "dimensions": [640, 960],
+        "mode": "RGBA",
+        "supportFootBaselineY": 852
+      }
+    ],
+    "measuredEvidence": {
+      "markerContactBaselineY": 854,
+      "transitionalSupportBaselineRangeY": [852, 854],
+      "maximumSupportHeightVariationPixels": 2,
+      "accumulatedTranslationPixels": 0,
+      "loopSeamPremultipliedRgbaMae": 0.009958632,
+      "maximumAdjacentPremultipliedRgbaMae": 0.010189156,
+      "gaitCadenceValidated": true,
+      "identityDriftDetected": false
+    },
+    "immutabilityRule": "These eight SHA-256 values and exact package semantics define approved Move v1. Any later visual or semantic change requires a new version and new explicit approval; Move v1 must not be overwritten."
+  },
+  "packageSnapshotBoundary": {
+    "productionContract": "data/design/archer-move-production-v1.json",
+    "sidecar": "assets/units/hero.archer/hero.archer_move_chibi_v1.json",
+    "sourceMap": "assets/units/hero.archer/move-chibi-v1/source-map.json",
+    "validationReport": "docs/reviews/archer-move-production-v1-validation.json",
+    "generator": "tools/generate-archer-move-production-v1.py",
+    "validator": "tools/validate-archer-move-production-v1.mjs",
+    "snapshotStatusAtPR64": "pending-user-approval",
+    "effectiveApprovalStatus": "approved-by-this-overlay-record",
+    "reasonNotMutated": "PR #64 metadata, frames, review artifacts, generator, validator, sidecar, and source map remain byte-for-byte immutable production evidence. This overlay is the current approval source of truth."
+  },
+  "carriedForwardConstraints": {
+    "visual": [
+      "preserve the compact low-amplitude locomotion cue",
+      "preserve face, hood, pointed-ear, and ornate-bow stability",
+      "preserve the readable green-and-gold identity",
+      "preserve zero accumulated root translation"
+    ],
+    "gait": [
+      "preserve the maximum two-pixel support-height variation",
+      "preserve both marker contacts at y=854",
+      "preserve the validated gait cadence and marker mapping",
+      "do not reuse Move locomotion deformation as Attack-state deformation"
+    ]
+  },
+  "futureProductionGate": {
+    "completed": [
+      "Approved Neutral Master",
+      "Approved Archer Idle v1",
+      "Approved Archer Move v1"
+    ],
+    "nextAuthorizedTask": "Archer Attack Production v1",
+    "startedByThisRecord": false,
+    "orderedSequence": [
+      "Approved Neutral Master",
+      "Approved Archer Idle",
+      "Approved Archer Move",
+      "Archer Attack Production v1 and separate approval",
+      "separate CC runtime integration"
+    ]
+  },
+  "invariants": {
+    "frameBytesChanged": false,
+    "frameRegenerated": false,
+    "reviewArtifactsChanged": false,
+    "sidecarChanged": false,
+    "sourceMapChanged": false,
+    "generatorChanged": false,
+    "validatorChanged": false,
+    "neutralMasterChanged": false,
+    "idlePackageChanged": false,
+    "attackGenerated": false,
+    "runtimeChanged": false,
+    "srcChanged": false,
+    "coreLogicChanged": false,
+    "combatChanged": false,
+    "gameplayChanged": false,
+    "crossRepositoryAccessOrWrite": false,
+    "prMerged": false
+  }
+}

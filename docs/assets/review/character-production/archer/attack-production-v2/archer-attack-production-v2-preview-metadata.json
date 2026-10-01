@@ -1,0 +1,53 @@
+{
+  "previewPackId": "archer-attack-v2-human-review-preview",
+  "purpose": "Human PASS/FAIL visual review aid for PR #72 \u2014 presentation only, not a production asset",
+  "sourcePR": 72,
+  "sourceBranch": "cc/archer-attack-v2-production-v1",
+  "sourceFrameDirectory": "assets/units/hero.archer/attack-chibi-v2",
+  "sourceSidecar": "assets/units/hero.archer/hero.archer_attack_chibi_v2.json",
+  "timing": {
+    "sourceFps": 12,
+    "msPerFrame": 83,
+    "frameCount": 10,
+    "frameOrder": [
+      "000",
+      "001",
+      "002",
+      "003",
+      "004",
+      "005",
+      "006",
+      "007",
+      "008",
+      "009"
+    ],
+    "productionLoopSemantics": false,
+    "note": "GIF container is set to loop indefinitely purely so a human reviewer can watch multiple passes; this does NOT change the production sidecar, which remains loop=false."
+  },
+  "transformationsApplied": [
+    "RGBA source alpha composited over flat neutral backdrop (58,58,58) for legibility",
+    "Uniform aspect-ratio-preserving resize for contact-sheet thumbnails only (640x960 -> 200x300)"
+  ],
+  "transformationsNotApplied": [
+    "no frame interpolation",
+    "no motion blur",
+    "no color/level/hue adjustment",
+    "no crop",
+    "no reshaping/distortion",
+    "no frame drop",
+    "no frame reorder",
+    "no source PNG file modified"
+  ],
+  "artifacts": [
+    {
+      "file": "archer-attack-production-v2-playback-preview.gif",
+      "type": "animated GIF",
+      "shows": "full 10-frame sequence in source order, looped for review"
+    },
+    {
+      "file": "archer-attack-production-v2-contact-sheet.png",
+      "type": "contact sheet",
+      "shows": "all 10 frames simultaneously, labeled, in source order"
+    }
+  ]
+}

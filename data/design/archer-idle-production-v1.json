@@ -1,0 +1,152 @@
+{
+  "contractVersion": 1,
+  "id": "archer-idle-production-v1",
+  "packageId": "hero.archer.idle.chibi-production-candidate.v1",
+  "characterId": "hero.archer",
+  "state": "idle",
+  "status": "production-candidate-pending-user-approval",
+  "styleDirectionApproved": true,
+  "neutralMasterApproved": true,
+  "idlePackageApproved": false,
+  "canonicalApproved": false,
+  "runtimeEligible": false,
+  "runtimeIntegrated": false,
+  "moveGenerated": false,
+  "attackGenerated": false,
+  "source": {
+    "repository": "phathompongsae-ops/Auto-Battler",
+    "basePR": {
+      "pr": 61,
+      "branch": "coco/archer-neutral-master-exact-file-approval-v1",
+      "sha": "7e1f0639b577b6f8c1d5f6ba43c8160f1c4115e2",
+      "verifiedState": "open-draft-unmerged",
+      "ancestryRole": "exact base and approved Neutral Master source"
+    },
+    "technicalBaselinePR": {
+      "pr": 56,
+      "branch": "cc/pilot-idle-motion-runtime-integration-v1",
+      "sha": "bbe63518c42761f49a0aa068c78e0d07d3e88214",
+      "verifiedState": "open-draft-unmerged",
+      "ancestryIncluded": false,
+      "usage": "read-only FPS, loop, root-motion, anchor, event-marker, and runtimeFlipX semantics"
+    },
+    "ccRuntimeAncestryIncluded": false
+  },
+  "sourceNeutralMaster": {
+    "candidateId": "hero.archer.production-master.candidate.v1",
+    "path": "docs/assets/review/character-production/archer/master-v1/archer-production-master-candidate-v1.png",
+    "sha256": "4911e7e3ba59241ee011be3e62f1b64230dcf9b3c24c6aeb23dc939d83311013",
+    "bytes": 569259,
+    "dimensions": [640, 960],
+    "format": "PNG",
+    "mode": "RGBA",
+    "neutralMasterApproved": true,
+    "approvedNeutralMasterSource": true,
+    "canonicalApproved": false,
+    "runtimeEligible": false,
+    "bytesChangedByThisPackage": false
+  },
+  "motionContract": {
+    "fps": 8,
+    "frameCount": 8,
+    "durationSeconds": 1,
+    "loop": true,
+    "rootMotion": "in-place",
+    "eventMarkers": [],
+    "runtimeFlipX": true,
+    "canvas": [640, 960],
+    "anchor": [0.5, 0.92],
+    "anchorDecision": "retained-after-measurement",
+    "anchorEvidence": {
+      "footBaselineYAllFrames": 854,
+      "anchorPixel": [320, 883.2],
+      "anchorToFootBaselinePixelsAllFrames": 29.2,
+      "contactZonePinnedFromY": 800,
+      "reason": "The lower contact zone is pixel-identical to the approved master in all frames, so the established package-local anchor remains valid without a runtime or geometry change."
+    }
+  },
+  "productionMethod": {
+    "type": "identity-preserving deterministic source-derived deformation",
+    "aiRegeneration": false,
+    "frameZero": "exact approved Neutral Master bytes",
+    "remainingFrames": "each samples the same approved Neutral Master independently through a periodic displacement field; edits are never accumulated frame-to-frame",
+    "filter": "bilinear in premultiplied RGBA",
+    "upperBodyMaximumAmplitudePixels": {
+      "vertical": 2,
+      "horizontal": 0.65
+    },
+    "contactZonePinnedFromY": 800,
+    "generator": "tools/generate-archer-idle-production-v1.py",
+    "forbiddenOperationsConfirmedAbsent": [
+      "AI regeneration",
+      "repaint or retouch",
+      "face, eye, hair, hood, ear, costume, bow, palette, or proportion redesign",
+      "root translation",
+      "motion interpolation from a different identity source"
+    ]
+  },
+  "identityContinuity": {
+    "locked": [
+      "face and green-eye identity",
+      "green hood and gold trim",
+      "green hair and pointed elf-like ears",
+      "chibi proportion class",
+      "green-and-gold Ranger costume",
+      "ornate bow shape, grip, string, and gold tips",
+      "approved silhouette and rendering language"
+    ],
+    "checks": [
+      "all frames trace to one exact approved SHA",
+      "frame 000 is byte-identical to the approved master",
+      "every frame has a unique SHA",
+      "maximum normalized premultiplied source delta is below 0.018",
+      "no outer-border alpha and no crop",
+      "foot/contact rows y>=800 are pixel-identical across the loop"
+    ],
+    "result": "pass-with-user-visual-approval-pending"
+  },
+  "packagePaths": {
+    "frames": "assets/units/hero.archer/idle-chibi-v1/hero.archer_idle_000.png through hero.archer_idle_007.png",
+    "sidecar": "assets/units/hero.archer/hero.archer_idle_chibi_v1.json",
+    "sourceMap": "assets/units/hero.archer/idle-chibi-v1/source-map.json",
+    "validationReport": "docs/reviews/archer-idle-production-v1-validation.json",
+    "humanReview": "docs/reviews/archer-idle-production-v1.md",
+    "frameInventory": "assets/units/hero.archer/idle-chibi-v1/source-map.json"
+  },
+  "review": {
+    "artifactsDirectory": "docs/assets/review/character-production/archer/idle-production-v1",
+    "contactSheet": "archer-idle-production-v1-contact-sheet.png",
+    "loopPreview": "archer-idle-production-v1-loop-preview.gif",
+    "boardScaleSample": "archer-idle-production-v1-board-scale-sample.png",
+    "benchScaleSample": "archer-idle-production-v1-bench-scale-sample.png",
+    "reviewOnly": true,
+    "runtimeEligible": false,
+    "boardObservation": "Bow arc, hood/ear shape, face opening, and green/gold contrast remain readable over the warm Arena Ruins board in the sampled frame.",
+    "benchObservation": "Ranger silhouette and bow remain readable; face and hood/hair separation remain the highest small-scale approval risk.",
+    "userApprovalRequired": true
+  },
+  "loopValidation": {
+    "metric": "mean absolute difference of premultiplied RGBA normalized to 0..1",
+    "seamFrame7To0": 0.00630028,
+    "maximumAdjacent": 0.006577154,
+    "seamNotGreaterThanMaximumAdjacent": true,
+    "result": "pass"
+  },
+  "protectedScope": {
+    "existingArcherAssetsOverwritten": false,
+    "moveCreatedOrModified": false,
+    "attackCreatedOrModified": false,
+    "runtimeChanged": false,
+    "srcChanged": false,
+    "coreLogicChanged": false,
+    "combatChanged": false,
+    "gameplayChanged": false,
+    "cameraOrBoardChanged": false,
+    "prMerged": false
+  },
+  "approvalGate": {
+    "current": "Idle package user review required",
+    "nextAllowedAfterApproval": "Archer Move Production v1 in a separate task",
+    "runtimeIntegrationAuthorized": false
+  }
+}

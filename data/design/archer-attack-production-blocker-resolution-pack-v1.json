@@ -1,0 +1,51 @@
+{
+  "recordVersion": 1,
+  "id": "archer-attack-production-blocker-resolution-pack-v1",
+  "status": "resolved-by-execution-owner-handoff",
+  "repository": "phathompongsae-ops/Auto-Battler",
+  "verifiedBase": {
+    "pr": 65,
+    "branch": "coco/archer-move-package-exact-file-approval-v1",
+    "sha": "5305c84e80a7117c69a2f8048f9f5ca76e051d09"
+  },
+  "verifiedFilesystemLimitation": {
+    "cocoFilesystemAccessibility": "NOT SHARED",
+    "retrySharedWorkspaceFlow": false,
+    "cocoMustNotProduceAttackAssetsInCurrentEnvironment": true,
+    "ccExecutionOwnerForAttackProduction": true,
+    "cocoAllowedRoles": [
+      "GitHub verification",
+      "docs/data planning",
+      "handoff preparation",
+      "review coordination"
+    ]
+  },
+  "packFiles": {
+    "inputManifest": "data/design/archer-attack-input-manifest-v1.json",
+    "productionContract": "data/design/archer-attack-production-contract-v1.json",
+    "validationChecklist": "data/design/archer-attack-production-validation-checklist-v1.json",
+    "ccExecutionHandoff": "docs/reviews/archer-attack-production-cc-execution-handoff-v1.md",
+    "postAttackIntegrationPlan": "docs/reviews/archer-post-attack-integration-readiness-plan-v1.md"
+  },
+  "currentState": {
+    "neutralMasterApproved": true,
+    "idlePackageApproved": true,
+    "movePackageApproved": true,
+    "attackGenerated": false,
+    "attackPackageApproved": false,
+    "canonicalApproved": false,
+    "runtimeEligible": false,
+    "runtimeIntegrated": false
+  },
+  "scope": {
+    "assetGenerationPerformed": false,
+    "attackFramesCreated": false,
+    "existingAssetsModified": false,
+    "srcChanged": false,
+    "runtimeChanged": false,
+    "gameplayChanged": false,
+    "otherCharactersChanged": false,
+    "crossRepositoryAccessOrWrite": false,
+    "prMerged": false
+  }
+}

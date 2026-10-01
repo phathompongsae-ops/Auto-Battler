@@ -1,0 +1,155 @@
+{
+  "contractVersion": 1,
+  "id": "archer-attack-production-contract-v1",
+  "packageId": "hero.archer.attack.chibi-production-candidate.v1",
+  "characterId": "hero.archer",
+  "state": "attack",
+  "status": "execution-pending-cc-exact-source-production",
+  "executionOwner": "CC",
+  "sourceManifest": "data/design/archer-attack-input-manifest-v1.json",
+  "base": {
+    "repository": "phathompongsae-ops/Auto-Battler",
+    "pr": 65,
+    "branch": "coco/archer-move-package-exact-file-approval-v1",
+    "sha": "5305c84e80a7117c69a2f8048f9f5ca76e051d09"
+  },
+  "sourceNeutralMaster": {
+    "candidateId": "hero.archer.production-master.candidate.v1",
+    "path": "docs/assets/review/character-production/archer/master-v1/archer-production-master-candidate-v1.png",
+    "sha256": "4911e7e3ba59241ee011be3e62f1b64230dcf9b3c24c6aeb23dc939d83311013",
+    "dimensions": [640, 960],
+    "format": "PNG",
+    "mode": "RGBA",
+    "approved": true
+  },
+  "approvedDependencies": {
+    "idleApprovalRecord": "data/design/archer-idle-package-exact-file-approval-v1.json",
+    "moveApprovalRecord": "data/design/archer-move-package-exact-file-approval-v1.json",
+    "idleImmutable": true,
+    "moveImmutable": true
+  },
+  "visualIdentityLock": [
+    "female youthful Ranger",
+    "cute stylized 3D fantasy chibi",
+    "approximately 2.5-3 heads tall",
+    "green hood",
+    "green hair",
+    "pointed elf-like ears",
+    "large green eyes",
+    "oversized ornate green/gold bow",
+    "green/gold Ranger outfit",
+    "compact gameplay-readable silhouette",
+    "polished stylized mobile-game rendering"
+  ],
+  "identityPriority": ["silhouette", "face/head", "bow/class cue", "green/gold palette", "details"],
+  "motionPhases": [
+    {"order": 1, "phase": "anticipation"},
+    {"order": 2, "phase": "bow draw"},
+    {"order": 3, "phase": "full draw"},
+    {"order": 4, "phase": "aim"},
+    {"order": 5, "phase": "release"},
+    {"order": 6, "phase": "follow-through"},
+    {"order": 7, "phase": "recovery"}
+  ],
+  "motionContract": {
+    "frameCount": {
+      "min": 6,
+      "max": 8,
+      "rule": "use the smallest count that remains clearly readable at board scale"
+    },
+    "fps": 12,
+    "loop": false,
+    "rootMotion": "in-place",
+    "runtimeFlipX": true,
+    "preferredAnchor": [0.5, 0.92],
+    "anchorRule": "revalidate from actual alpha bounds and support baseline; do not change runtime/board geometry to compensate",
+    "eventMarkers": [
+      {
+        "name": "releaseCue",
+        "normalizedTime": "determine deterministically from the actual release frame",
+        "frameIndex": "set to exact generated frame index after visual release is identified",
+        "semanticMeaning": "future runtime projectile spawn/release timing; marker only, no projectile/combat implementation in this package"
+      }
+    ]
+  },
+  "visualRules": {
+    "mustReadAs": "Ranger bow attack",
+    "mustInclude": [
+      "readable anticipation",
+      "readable bow draw",
+      "clear full-draw/aim silhouette",
+      "clearest release moment",
+      "controlled follow-through",
+      "clean recovery toward neutral"
+    ],
+    "mustNotReadAs": ["melee swing", "spell cast", "generic arm motion", "locomotion", "acrobatic jump"],
+    "forbidden": [
+      "identity drift",
+      "face morph",
+      "bow morph",
+      "costume morph",
+      "scale pumping",
+      "lighting pop",
+      "accumulated root translation",
+      "baked projectile travel",
+      "baked impact VFX",
+      "enemy/background/UI"
+    ]
+  },
+  "outputPackage": {
+    "frameDirectory": "assets/units/hero.archer/attack-chibi-v1/",
+    "framePattern": "hero.archer_attack_000.png ... hero.archer_attack_NNN.png",
+    "sidecar": "assets/units/hero.archer/hero.archer_attack_chibi_v1.json",
+    "sourceMap": "assets/units/hero.archer/attack-chibi-v1/source-map.json",
+    "productionContract": "data/design/archer-attack-production-v1.json",
+    "validationReport": "docs/reviews/archer-attack-production-v1-validation.json",
+    "humanReview": "docs/reviews/archer-attack-production-v1.md",
+    "reviewDirectory": "docs/assets/review/character-production/archer/attack-production-v1/",
+    "reviewArtifacts": [
+      "archer-attack-production-v1-contact-sheet.png",
+      "archer-attack-production-v1-preview.gif",
+      "archer-attack-production-v1-board-scale-sample.png",
+      "archer-attack-production-v1-release-cue-diagnostic.png"
+    ],
+    "optionalReviewArtifacts": [
+      "archer-attack-production-v1-idle-attack-idle-transition-diagnostic.gif",
+      "archer-attack-production-v1-move-attack-transition-diagnostic.gif"
+    ],
+    "optionalGenerator": "tools/generate-archer-attack-production-v1.py",
+    "optionalValidator": "tools/validate-archer-attack-production-v1.mjs",
+    "overwriteExistingAssets": false
+  },
+  "provenanceRequirements": [
+    "Neutral Master ID and SHA-256",
+    "derivation/generation method",
+    "frame index and per-frame SHA-256",
+    "640x960 RGBA and decode success",
+    "alpha bounds",
+    "anchor and support/baseline evidence",
+    "FPS, loop, rootMotion, runtimeFlipX",
+    "releaseCue normalized time and exact frame"
+  ],
+  "approvalStateRequiredAfterProduction": {
+    "attackGenerated": true,
+    "attackPackageApproved": false,
+    "canonicalApproved": false,
+    "runtimeEligible": false,
+    "runtimeIntegrated": false
+  },
+  "scopeExclusions": [
+    "src/",
+    "runtime integration",
+    "Combat",
+    "projectile logic",
+    "targeting",
+    "pathfinding",
+    "main loop",
+    "camera",
+    "board",
+    "map",
+    "economy",
+    "stage logic",
+    "other characters",
+    "PR merge"
+  ]
+}

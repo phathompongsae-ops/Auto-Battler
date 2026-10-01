@@ -1,0 +1,74 @@
+{
+  "checklistVersion": 1,
+  "id": "archer-attack-production-validation-checklist-v1",
+  "executionOwner": "CC",
+  "sourceManifest": "data/design/archer-attack-input-manifest-v1.json",
+  "contract": "data/design/archer-attack-production-contract-v1.json",
+  "hardStopBeforeGeneration": [
+    "repository identity equals phathompongsae-ops/Auto-Battler",
+    "worktree base/head source resolves exactly to 5305c84e80a7117c69a2f8048f9f5ca76e051d09",
+    "Neutral Master SHA-256 equals 4911e7e3ba59241ee011be3e62f1b64230dcf9b3c24c6aeb23dc939d83311013",
+    "Neutral Master decodes as 640x960 RGBA PNG with alpha",
+    "Idle exact eight frame hashes match approval overlay",
+    "Move exact eight frame hashes match approval overlay",
+    "Idle and Move protected-byte snapshots captured before generation"
+  ],
+  "attackPackageChecks": [
+    "frame count between 6 and 8 and smallest readable count justified",
+    "every frame decodes as 640x960 RGBA PNG with alpha",
+    "per-frame SHA-256 recorded",
+    "source-map/provenance traces every frame to exact Neutral Master",
+    "alpha bounds measured and no crop",
+    "anchor/bounds/support baseline measured; preferred [0.5,0.92] retained unless evidence requires a hard stop/review",
+    "root motion is in-place with zero accumulated world travel",
+    "runtimeFlipX=true",
+    "loop=false semantics recorded",
+    "releaseCue has exact frameIndex, normalizedTime, and projectile-release semantic meaning",
+    "identity continuity: face/head, hood, green hair, pointed ears, large green eyes, bow, costume, palette, scale, lighting",
+    "motion reads as bow attack at board scale",
+    "no baked projectile, hit VFX, background, enemy, UI"
+  ],
+  "reviewArtifacts": [
+    "contact sheet",
+    "preview GIF",
+    "board-scale sample",
+    "releaseCue marker diagnostic",
+    "optional Idle -> Attack -> Idle transition diagnostic",
+    "optional Move -> Attack diagnostic"
+  ],
+  "readabilityChecks": {
+    "board": ["bow silhouette", "draw/release readability", "hood/ears", "green/gold contrast", "no crop", "scale consistency", "HP-bar zone interference"],
+    "bench": ["face opening", "hood/hair separation", "gold hood trim", "eye contrast", "bow identity"],
+    "knownRisk": "bench-scale readability is the highest-risk context"
+  },
+  "transitionChecks": [
+    "Idle -> Attack anchor/scale/bounds/silhouette/bow orientation/first-frame pop",
+    "Attack -> Idle recovery pop and anchor/scale continuity",
+    "Move -> Attack anchor/support/scale/silhouette/bow orientation jump"
+  ],
+  "regressionAndRepositoryChecks": [
+    "run relevant existing validators read-only without modifying them",
+    "JSON parse/schema checks",
+    "design-data audit",
+    "changed-path audit",
+    "git diff --check",
+    "protected-byte comparison confirms Neutral Master unchanged",
+    "protected-byte comparison confirms approved Idle unchanged",
+    "protected-byte comparison confirms approved Move unchanged",
+    "confirm no src/runtime/gameplay/Core Logic changes",
+    "confirm no other-character production",
+    "confirm no PR merge"
+  ],
+  "tooling": {
+    "required": ["Python", "Pillow", "Node/npm", "SHA-256 tooling", "existing asset validators", "GIF/contact-sheet tooling"],
+    "numpyPolicy": "Install a pinned compatible numpy version only if the chosen Attack generator actually requires numpy; otherwise do not install it. Record installed version if used.",
+    "frameworkPolicy": "Do not add a large framework for this package."
+  },
+  "technicalPassDoesNotApprove": true,
+  "requiredEndState": {
+    "attackPackageApproved": false,
+    "canonicalApproved": false,
+    "runtimeEligible": false,
+    "runtimeIntegrated": false
+  }
+}

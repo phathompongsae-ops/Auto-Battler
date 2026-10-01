@@ -1,0 +1,39 @@
+{
+  "assetId": "hero.archer.attack.chibi-production-candidate-v2",
+  "unitId": "hero.archer",
+  "state": "attack",
+  "fps": 12,
+  "frameCount": 10,
+  "loop": false,
+  "anchor": [
+    0.5,
+    0.92
+  ],
+  "canvas": [
+    640,
+    960
+  ],
+  "rootMotion": "in-place",
+  "runtimeFlipX": true,
+  "eventMarkers": [
+    {
+      "name": "projectileRelease",
+      "normalizedTime": 0.55,
+      "frameIndex": 5
+    }
+  ],
+  "sourceNeutralMaster": {
+    "sha256": "4911e7e3ba59241ee011be3e62f1b64230dcf9b3c24c6aeb23dc939d83311013"
+  },
+  "productionMethod": "pose-based-articulated-mesh-warp-v2",
+  "status": {
+    "neutralMasterApproved": true,
+    "idlePackageApproved": true,
+    "movePackageApproved": true,
+    "attackGenerated": true,
+    "attackPackageApproved": false,
+    "canonicalApproved": false,
+    "runtimeEligible": false,
+    "runtimeIntegrated": false
+  }
+}
