@@ -1,0 +1,97 @@
+{
+  "record": "class1-neutral-master-batch-exact-package-approval-v1",
+  "schemaVersion": 1,
+  "project": "phathompongsae-ops/Auto-Battler",
+  "scope": "Exact Package Approval layer for Class 1 Neutral Master Batch v1 — approval record + byte-for-byte package import only. No artwork regenerated, no PNG edited, no Archer file modified, no src/ or Combat change, no Motion Production or Runtime Integration started.",
+
+  "humanDecision": {
+    "verdict": "APPROVED",
+    "approvedBy": "user (explicit message, delivered with the package upload)",
+    "approvedClasses": ["fighter", "swordman", "mage", "summoner", "acolyte", "merchant"],
+    "archerRosterInclusion": "CONFIRMED — existing exact approved Archer master joins the Class 1 roster by reference; no new Archer approval and no Archer binary change",
+    "boardPreviewDecision": "DEFERRED_UNTIL_AFTER_DEMO"
+  },
+
+  "sourcePackage": {
+    "fileName": "class_1_neutral_master_batch_v1_human_review_package.zip",
+    "sha256Expected": "c794b8f7ecc46781e3b941b59c5c188348879b06052ac7b43d8052f2007aa007",
+    "sha256Measured": "c794b8f7ecc46781e3b941b59c5c188348879b06052ac7b43d8052f2007aa007",
+    "sha256Match": true,
+    "sizeBytes": 10755272,
+    "zipEntries": 38,
+    "zipCrcCheck": "PASS",
+    "pathTraversal": "none",
+    "note": "ZIP itself is not committed to the repository (matching the v3.1/v3.2 package convention); its content was extracted and imported byte-for-byte under importRoot below, verified file-by-file by SHA-256 against the freshly measured extraction. The zip hash above is the direct measurement taken by this approval task, re-checkable against any retained copy of the original upload."
+  },
+
+  "importRoot": "docs/assets/review/character-production/class-1-batch/master-batch-v1",
+  "importVerification": "all 26 files re-hashed after copy; byte-identical to extraction (diff of sorted sha256 lists empty)",
+
+  "exactArcherBenchmark": {
+    "packagePath": "exact-approved-archer-reference/archer-production-master-candidate-v1.png",
+    "sha256": "4911e7e3ba59241ee011be3e62f1b64230dcf9b3c24c6aeb23dc939d83311013",
+    "byteIdenticalToApprovedMaster": true,
+    "note": "measured, not trusted from the manifest; equals the exact approved Archer Neutral Master hash on record since the Archer master approval"
+  },
+
+  "technicalContract": {
+    "format": "PNG", "mode": "RGBA", "bitDepth": 8, "canvas": [640, 960],
+    "baselineMaxOpaqueY": 854, "baselineHalfOpenY": 855,
+    "anchorReviewCandidate": [0.5, 0.92],
+    "runtimeAuthorization": false
+  },
+
+  "candidates": [
+    { "classId": "fighter",  "path": "candidates/fighter/hero.fighter_neutral_master_candidate_v1.png",  "sha256": "4b2ec5558971c3730da352f5ba2a39d928bbf5c722d40e38256dd6b4d48a19c4", "dimensions": [640, 960], "alphaBounds": "528x730+56+125", "borderOpaquePixels": 0 },
+    { "classId": "swordman", "path": "candidates/swordman/hero.swordman_neutral_master_candidate_v1.png", "sha256": "2a1fc6f93f384fbc92486a8e42975a10bb84d8f9cd35b13b155a9668638861ed", "dimensions": [640, 960], "alphaBounds": "599x730+20+125", "borderOpaquePixels": 0 },
+    { "classId": "mage",     "path": "candidates/mage/hero.mage_neutral_master_candidate_v1.png",         "sha256": "6587abdf0b4427ed9c95acb98a6d7c618e8be653fb13cdcaa9be1472fcb96315", "dimensions": [640, 960], "alphaBounds": "541x730+49+125", "borderOpaquePixels": 0 },
+    { "classId": "summoner", "path": "candidates/summoner/hero.summoner_neutral_master_candidate_v1.png", "sha256": "731531aaa1d3efc462a12d2265ad602e6e4711a83f054d8f84b5bb00f3956ae3", "dimensions": [640, 960], "alphaBounds": "534x730+53+125", "borderOpaquePixels": 0 },
+    { "classId": "acolyte",  "path": "candidates/acolyte/hero.acolyte_neutral_master_candidate_v1.png",   "sha256": "0853ab6d8f91e4100732c7f3628b31a09a38a762dc999dfbecef3cc23804a9c8", "dimensions": [640, 960], "alphaBounds": "550x730+45+125", "borderOpaquePixels": 0 },
+    { "classId": "merchant", "path": "candidates/merchant/hero.merchant_neutral_master_candidate_v1.png", "sha256": "053785f1283a02c49897445edf038e3f95b30cb2733b81c206f648e986b157d3", "dimensions": [640, 960], "alphaBounds": "533x730+53+125", "borderOpaquePixels": 0 }
+  ],
+
+  "rosterCompleteness": {
+    "required": ["fighter", "swordman", "archer", "mage", "summoner", "acolyte", "merchant"],
+    "newlyApprovedCandidates": 6,
+    "archerByReference": true,
+    "complete": true
+  },
+
+  "boardPreview": {
+    "status": "DEFERRED_UNTIL_AFTER_DEMO",
+    "deferredFile": "review/class-1-board-scale-roster.png",
+    "reason": "Current preview is wider than the intended 8x8 runtime isometric board.",
+    "futureFollowUpOnly": {
+      "runtimeScaleBoard": true,
+      "boardSize": "8x8",
+      "formation": "3-5 unit formation",
+      "sevenUnitHorizontalShowcase": false
+    },
+    "doNotRegenerateNow": true
+  },
+
+  "approvalFlags": {
+    "humanVisualApproval": true,
+    "class1NeutralMasterBatchApproved": true,
+    "exactPackageApproved": true,
+    "canonicalApproved": false,
+    "motionProductionAuthorized": false,
+    "runtimeIntegrationAuthorized": false,
+    "merged": false
+  },
+
+  "prohibitionsHeld": {
+    "artworkRegenerated": false,
+    "pngBinariesEdited": false,
+    "imagesResizedOrRecolored": false,
+    "archerModified": false,
+    "motionProductionStarted": false,
+    "runtimeIntegrationStarted": false,
+    "srcModified": false,
+    "gameplayOrCombatModified": false,
+    "prMerged": false
+  },
+
+  "validator": "tools/validate-class1-neutral-master-batch-exact-package-approval-v1.mjs",
+  "nextAuthorizedGate": "Human decision on canonical promotion and/or Class 1 Motion Production authorization — not started by this record."
+}

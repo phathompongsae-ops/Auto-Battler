@@ -1,0 +1,405 @@
+{
+  "roster": {
+    "fighter": {
+      "path": "candidates/fighter/hero.fighter_neutral_master_candidate_v1.png",
+      "sha256": "4b2ec5558971c3730da352f5ba2a39d928bbf5c722d40e38256dd6b4d48a19c4",
+      "dimensions": [
+        640,
+        960
+      ],
+      "mode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        56,
+        125,
+        584,
+        855
+      ],
+      "alphaBoundsGeometry": "528x730+56+125",
+      "baselineMaxOpaqueY": 854,
+      "baselineHalfOpenY": 855,
+      "transparentBorder": true,
+      "fileSizeBytes": 387714,
+      "chunks": [
+        "IHDR",
+        "IDAT",
+        "IDAT",
+        "IDAT",
+        "IDAT",
+        "IDAT",
+        "IDAT",
+        "IEND"
+      ]
+    },
+    "swordman": {
+      "path": "candidates/swordman/hero.swordman_neutral_master_candidate_v1.png",
+      "sha256": "2a1fc6f93f384fbc92486a8e42975a10bb84d8f9cd35b13b155a9668638861ed",
+      "dimensions": [
+        640,
+        960
+      ],
+      "mode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        20,
+        125,
+        619,
+        855
+      ],
+      "alphaBoundsGeometry": "599x730+20+125",
+      "baselineMaxOpaqueY": 854,
+      "baselineHalfOpenY": 855,
+      "transparentBorder": true,
+      "fileSizeBytes": 293059,
+      "chunks": [
+        "IHDR",
+        "IDAT",
+        "IDAT",
+        "IDAT",
+        "IDAT",
+        "IDAT",
+        "IEND"
+      ]
+    },
+    "archer": {
+      "path": "exact-approved-archer-reference/archer-production-master-candidate-v1.png",
+      "sha256": "4911e7e3ba59241ee011be3e62f1b64230dcf9b3c24c6aeb23dc939d83311013",
+      "dimensions": [
+        640,
+        960
+      ],
+      "mode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        71,
+        125,
+        572,
+        855
+      ],
+      "alphaBoundsGeometry": "501x730+71+125",
+      "baselineMaxOpaqueY": 854,
+      "baselineHalfOpenY": 855,
+      "transparentBorder": true,
+      "fileSizeBytes": 569259,
+      "chunks": [
+        "IHDR",
+        "cHRM",
+        "bKGD",
+        "tIME",
+        "IDAT",
+        "IDAT",
+        "IDAT",
+        "IDAT",
+        "IDAT",
+        "IDAT",
+        "IDAT",
+        "IDAT",
+        "IDAT",
+        "IDAT",
+        "IDAT",
+        "IDAT",
+        "IDAT",
+        "IDAT",
+        "IDAT",
+        "IDAT",
+        "IDAT",
+        "IDAT",
+        "IEND"
+      ]
+    },
+    "mage": {
+      "path": "candidates/mage/hero.mage_neutral_master_candidate_v1.png",
+      "sha256": "6587abdf0b4427ed9c95acb98a6d7c618e8be653fb13cdcaa9be1472fcb96315",
+      "dimensions": [
+        640,
+        960
+      ],
+      "mode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        49,
+        125,
+        590,
+        855
+      ],
+      "alphaBoundsGeometry": "541x730+49+125",
+      "baselineMaxOpaqueY": 854,
+      "baselineHalfOpenY": 855,
+      "transparentBorder": true,
+      "fileSizeBytes": 336486,
+      "chunks": [
+        "IHDR",
+        "IDAT",
+        "IDAT",
+        "IDAT",
+        "IDAT",
+        "IDAT",
+        "IDAT",
+        "IEND"
+      ]
+    },
+    "summoner": {
+      "path": "candidates/summoner/hero.summoner_neutral_master_candidate_v1.png",
+      "sha256": "731531aaa1d3efc462a12d2265ad602e6e4711a83f054d8f84b5bb00f3956ae3",
+      "dimensions": [
+        640,
+        960
+      ],
+      "mode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        53,
+        125,
+        587,
+        855
+      ],
+      "alphaBoundsGeometry": "534x730+53+125",
+      "baselineMaxOpaqueY": 854,
+      "baselineHalfOpenY": 855,
+      "transparentBorder": true,
+      "fileSizeBytes": 403104,
+      "chunks": [
+        "IHDR",
+        "IDAT",
+        "IDAT",
+        "IDAT",
+        "IDAT",
+        "IDAT",
+        "IDAT",
+        "IDAT",
+        "IEND"
+      ]
+    },
+    "acolyte": {
+      "path": "candidates/acolyte/hero.acolyte_neutral_master_candidate_v1.png",
+      "sha256": "0853ab6d8f91e4100732c7f3628b31a09a38a762dc999dfbecef3cc23804a9c8",
+      "dimensions": [
+        640,
+        960
+      ],
+      "mode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        45,
+        125,
+        595,
+        855
+      ],
+      "alphaBoundsGeometry": "550x730+45+125",
+      "baselineMaxOpaqueY": 854,
+      "baselineHalfOpenY": 855,
+      "transparentBorder": true,
+      "fileSizeBytes": 350757,
+      "chunks": [
+        "IHDR",
+        "IDAT",
+        "IDAT",
+        "IDAT",
+        "IDAT",
+        "IDAT",
+        "IDAT",
+        "IEND"
+      ]
+    },
+    "merchant": {
+      "path": "candidates/merchant/hero.merchant_neutral_master_candidate_v1.png",
+      "sha256": "053785f1283a02c49897445edf038e3f95b30cb2733b81c206f648e986b157d3",
+      "dimensions": [
+        640,
+        960
+      ],
+      "mode": "RGBA",
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "alphaBoundsHalfOpen": [
+        53,
+        125,
+        586,
+        855
+      ],
+      "alphaBoundsGeometry": "533x730+53+125",
+      "baselineMaxOpaqueY": 854,
+      "baselineHalfOpenY": 855,
+      "transparentBorder": true,
+      "fileSizeBytes": 366042,
+      "chunks": [
+        "IHDR",
+        "IDAT",
+        "IDAT",
+        "IDAT",
+        "IDAT",
+        "IDAT",
+        "IDAT",
+        "IEND"
+      ]
+    }
+  },
+  "pairwiseSilhouetteMetrics": [
+    {
+      "a": "fighter",
+      "b": "swordman",
+      "normalizedSilhouetteIoU": 0.5156,
+      "conflict": false
+    },
+    {
+      "a": "fighter",
+      "b": "archer",
+      "normalizedSilhouetteIoU": 0.6089,
+      "conflict": false
+    },
+    {
+      "a": "fighter",
+      "b": "mage",
+      "normalizedSilhouetteIoU": 0.5182,
+      "conflict": false
+    },
+    {
+      "a": "fighter",
+      "b": "summoner",
+      "normalizedSilhouetteIoU": 0.6566,
+      "conflict": false
+    },
+    {
+      "a": "fighter",
+      "b": "acolyte",
+      "normalizedSilhouetteIoU": 0.5109,
+      "conflict": false
+    },
+    {
+      "a": "fighter",
+      "b": "merchant",
+      "normalizedSilhouetteIoU": 0.6539,
+      "conflict": false
+    },
+    {
+      "a": "swordman",
+      "b": "archer",
+      "normalizedSilhouetteIoU": 0.4275,
+      "conflict": false
+    },
+    {
+      "a": "swordman",
+      "b": "mage",
+      "normalizedSilhouetteIoU": 0.5362,
+      "conflict": false
+    },
+    {
+      "a": "swordman",
+      "b": "summoner",
+      "normalizedSilhouetteIoU": 0.4262,
+      "conflict": false
+    },
+    {
+      "a": "swordman",
+      "b": "acolyte",
+      "normalizedSilhouetteIoU": 0.6144,
+      "conflict": false
+    },
+    {
+      "a": "swordman",
+      "b": "merchant",
+      "normalizedSilhouetteIoU": 0.5681,
+      "conflict": false
+    },
+    {
+      "a": "archer",
+      "b": "mage",
+      "normalizedSilhouetteIoU": 0.5055,
+      "conflict": false
+    },
+    {
+      "a": "archer",
+      "b": "summoner",
+      "normalizedSilhouetteIoU": 0.6563,
+      "conflict": false
+    },
+    {
+      "a": "archer",
+      "b": "acolyte",
+      "normalizedSilhouetteIoU": 0.4915,
+      "conflict": false
+    },
+    {
+      "a": "archer",
+      "b": "merchant",
+      "normalizedSilhouetteIoU": 0.5365,
+      "conflict": false
+    },
+    {
+      "a": "mage",
+      "b": "summoner",
+      "normalizedSilhouetteIoU": 0.4995,
+      "conflict": false
+    },
+    {
+      "a": "mage",
+      "b": "acolyte",
+      "normalizedSilhouetteIoU": 0.5924,
+      "conflict": false
+    },
+    {
+      "a": "mage",
+      "b": "merchant",
+      "normalizedSilhouetteIoU": 0.5719,
+      "conflict": false
+    },
+    {
+      "a": "summoner",
+      "b": "acolyte",
+      "normalizedSilhouetteIoU": 0.4676,
+      "conflict": false
+    },
+    {
+      "a": "summoner",
+      "b": "merchant",
+      "normalizedSilhouetteIoU": 0.5832,
+      "conflict": false
+    },
+    {
+      "a": "acolyte",
+      "b": "merchant",
+      "normalizedSilhouetteIoU": 0.6172,
+      "conflict": false
+    }
+  ],
+  "pairwiseConflictThreshold": 0.88,
+  "pairwiseConflicts": [],
+  "contractChecks": {
+    "pngSignature7Of7": true,
+    "rgba7Of7": true,
+    "dimensions640x960_7Of7": true,
+    "bitDepth8_7Of7": true,
+    "transparentBorder7Of7": true,
+    "baselineHalfOpenY855_7Of7": true,
+    "canvasContainment7Of7": true,
+    "duplicateHashes": [],
+    "corruption": false,
+    "accidentalBackground": false,
+    "seriousAnatomyOrWeaponDefectObserved": false
+  },
+  "internalRosterQa": {
+    "styleConsistencyAgainstArcher": "PASS_FOR_HUMAN_REVIEW",
+    "faceDiversity": "PASS_FOR_HUMAN_REVIEW",
+    "silhouetteUniqueness": "PASS",
+    "colorFamilyUniqueness": "PASS",
+    "weaponCueUniqueness": "PASS",
+    "boardReadability": "PASS_FOR_HUMAN_REVIEW",
+    "benchReadability": "PASS_FOR_HUMAN_REVIEW",
+    "shopCardContainment": "PASS",
+    "humanVisualApproval": false
+  },
+  "approvalFlags": {
+    "neutralMasterApproved": false,
+    "exactPackageApproved": false,
+    "canonicalApproved": false,
+    "runtimeEligible": false,
+    "motionAuthorized": false,
+    "runtimeIntegrated": false
+  }
+}
