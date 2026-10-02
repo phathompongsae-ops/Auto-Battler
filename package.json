@@ -1,7 +1,19 @@
 {
-  "name":"realmfront-web-alpha",
-  "version":"0.1.0",
-  "private":true,
-  "type":"module",
-  "scripts":{"test":"node --test tests/fantasy-core.test.js"}
+  "name": "auto-battler-rpg",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "phaser": "^4.2.1"
+  },
+  "devDependencies": {
+    "typescript": "^7.0.2",
+    "vite": "^8.3.2"
+  }
 }
