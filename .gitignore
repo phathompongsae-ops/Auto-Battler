@@ -9,6 +9,9 @@ dist-ssr/
 # Vite cache
 .vite/
 
+# Browser test output
+test-results/
+
 # Logs
 logs/
 *.log

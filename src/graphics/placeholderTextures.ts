@@ -19,9 +19,87 @@ export function playerFrame(dir: Direction, index: number): string {
   return `${dir}-${index}`;
 }
 
+export const SLIME_KEY = 'slime';
+export const LOOT_KEY = 'loot-gem';
+
 export function createPlaceholderTextures(scene: Phaser.Scene): void {
   createTileset(scene);
   createPlayerSheet(scene);
+  createSlimeSheet(scene);
+  createLootGem(scene);
+}
+
+/** Two-frame squishy slime; frames `slime-0` and `slime-1`. */
+function createSlimeSheet(scene: Phaser.Scene): void {
+  const s = 32;
+  const texture = scene.textures.createCanvas(SLIME_KEY, s * 2, s);
+  if (!texture) throw new Error('Could not create slime texture');
+  const ctx = texture.getContext();
+
+  for (let frame = 0; frame < 2; frame++) {
+    const ox = frame * s;
+    const squash = frame === 1 ? 1 : 0;
+    const w = 11 + squash; // half-width
+    const h = 8 - squash; // half-height
+    const cy = 22 + squash;
+
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
+    ctx.beginPath();
+    ctx.ellipse(ox + 16, 29, 10, 3, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#1f4d1a';
+    ctx.beginPath();
+    ctx.ellipse(ox + 16, cy, w + 1, h + 1, 0, Math.PI, 0);
+    ctx.lineTo(ox + 16 + w + 1, cy + 5);
+    ctx.lineTo(ox + 16 - w - 1, cy + 5);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.fillStyle = '#6cc04a';
+    ctx.beginPath();
+    ctx.ellipse(ox + 16, cy, w, h, 0, Math.PI, 0);
+    ctx.lineTo(ox + 16 + w, cy + 4);
+    ctx.lineTo(ox + 16 - w, cy + 4);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.fillStyle = '#b6ee8f';
+    ctx.fillRect(ox + 10, cy - h + 2, 4, 2);
+
+    ctx.fillStyle = '#1d1b26';
+    ctx.fillRect(ox + 12, cy - 2, 2, 3);
+    ctx.fillRect(ox + 18, cy - 2, 2, 3);
+
+    texture.add(`${SLIME_KEY}-${frame}`, 0, ox, 0, s, s);
+  }
+  texture.refresh();
+}
+
+/** White gem shape; tinted per item at runtime. */
+function createLootGem(scene: Phaser.Scene): void {
+  const texture = scene.textures.createCanvas(LOOT_KEY, 12, 12);
+  if (!texture) throw new Error('Could not create loot texture');
+  const ctx = texture.getContext();
+  ctx.fillStyle = '#1d1b26';
+  ctx.beginPath();
+  ctx.moveTo(6, 0);
+  ctx.lineTo(12, 6);
+  ctx.lineTo(6, 12);
+  ctx.lineTo(0, 6);
+  ctx.closePath();
+  ctx.fill();
+  ctx.fillStyle = '#ffffff';
+  ctx.beginPath();
+  ctx.moveTo(6, 2);
+  ctx.lineTo(10, 6);
+  ctx.lineTo(6, 10);
+  ctx.lineTo(2, 6);
+  ctx.closePath();
+  ctx.fill();
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+  ctx.fillRect(6, 6, 3, 3);
+  texture.refresh();
 }
 
 function createTileset(scene: Phaser.Scene): void {

@@ -10,8 +10,22 @@ export type Tile = (typeof Tile)[keyof typeof Tile];
 
 export const TILE_COUNT = 5;
 
-/** Tiles the player cannot walk through. */
+/** Tiles nothing can walk through. */
 export const SOLID_TILES: Tile[] = [Tile.Wall, Tile.Water];
+
+/** Tiles that stop projectiles (they fly over water). */
+export const PROJECTILE_BLOCKING_TILES: Tile[] = [Tile.Wall];
+
+/** Where the player appears and respawns, in world pixels (on the south path). */
+export const PLAYER_SPAWN = { x: 640, y: 608 };
+
+/** Monster spawn points (tile coordinates). Kept away from the player spawn. */
+export const MONSTER_SPAWNS: { monster: 'slime'; tileX: number; tileY: number }[] = [
+  { monster: 'slime', tileX: 8, tileY: 23 },
+  { monster: 'slime', tileX: 31, tileY: 23 },
+  { monster: 'slime', tileX: 9, tileY: 7 },
+  { monster: 'slime', tileX: 33, tileY: 15 },
+];
 
 export const TEST_MAP_WIDTH = 40;
 export const TEST_MAP_HEIGHT = 30;
