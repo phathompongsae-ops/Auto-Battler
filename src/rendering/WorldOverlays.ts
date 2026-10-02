@@ -1,10 +1,9 @@
 import Phaser from 'phaser';
 import type { CombatEntity } from '../combat/types';
-import { LOOT_DROP } from '../data/itemData';
+import { ITEMS, LOOT_DROP } from '../data/itemData';
 import type { CombatWorld } from '../game/CombatWorld';
-import type { Projectile } from '../combat/ProjectileSystem';
+import type { GameEvents } from '../game/GameEvents';
 import { LOOT_KEY } from '../graphics/placeholderTextures';
-import type { LootDrop } from '../loot/LootSystem';
 
 const BAR_WIDTH = 26;
 const BAR_DEPTH = 950_000;
@@ -36,11 +35,11 @@ export class WorldOverlays {
     scene.tweens.add({ targets: this.guardAura, alpha: 0.5, yoyo: true, repeat: -1, duration: 300 });
 
     const ev = world.events;
-    ev.on('projectileSpawned', ({ projectile }) => this.addProjectile(projectile));
-    ev.on('projectileRemoved', ({ projectile }) => this.removeProjectile(projectile.id));
-    ev.on('lootDropped', ({ drop }) => this.addLoot(drop));
-    ev.on('lootPicked', ({ drop }) => this.removeLoot(drop.id));
-    ev.on('lootExpired', ({ drop }) => this.removeLoot(drop.id));
+    ev.on('projectileSpawned', (e) => this.addProjectile(e));
+    ev.on('projectileRemoved', ({ projectileId }) => this.removeProjectile(projectileId));
+    ev.on('lootDropped', (e) => this.addLoot(e));
+    ev.on('lootPicked', ({ dropId }) => this.removeLoot(dropId));
+    ev.on('lootExpired', ({ dropId }) => this.removeLoot(dropId));
   }
 
   update(now: number): void {
@@ -88,7 +87,7 @@ export class WorldOverlays {
     g.fillStyle(color, 1).fillRect(x, y, Math.max(0, Math.round(BAR_WIDTH * ratio)), 3);
   }
 
-  private addProjectile(p: Projectile): void {
+  private addProjectile(p: GameEvents['projectileSpawned']): void {
     const view = this.projectilePool.pop() ?? this.scene.add.circle(0, 0, 1);
     view
       .setRadius(p.radius)
@@ -97,7 +96,7 @@ export class WorldOverlays {
       .setPosition(p.x, p.y)
       .setDepth(BAR_DEPTH - 1)
       .setVisible(true);
-    this.projectileViews.set(p.id, view);
+    this.projectileViews.set(p.projectileId, view);
   }
 
   private removeProjectile(id: number): void {
@@ -107,10 +106,13 @@ export class WorldOverlays {
     this.projectilePool.push(view.setVisible(false));
   }
 
-  private addLoot(drop: LootDrop): void {
-    const view = this.scene.add.image(drop.x, drop.y, LOOT_KEY).setTint(drop.item.color).setDepth(drop.y - 2);
+  private addLoot(drop: GameEvents['lootDropped']): void {
+    const view = this.scene.add
+      .image(drop.x, drop.y, LOOT_KEY)
+      .setTint(ITEMS[drop.itemId].color)
+      .setDepth(drop.y - 2);
     this.scene.tweens.add({ targets: view, y: drop.y - 4, yoyo: true, repeat: -1, duration: 450, ease: 'Sine.easeInOut' });
-    this.lootViews.set(drop.id, view);
+    this.lootViews.set(drop.dropId, view);
   }
 
   private removeLoot(id: number): void {

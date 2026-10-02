@@ -1,7 +1,6 @@
 import type { EventBus } from '../core/EventBus';
 import { distance, type Point } from '../core/math';
 import { SKILLS, type SkillDef, type SkillId } from '../data/skillData';
-import { STATUSES } from '../data/statusData';
 import type { GameEvents } from '../game/GameEvents';
 import type { CombatSystem } from './CombatSystem';
 import type { ProjectileSystem } from './ProjectileSystem';
@@ -58,14 +57,14 @@ export class SkillSystem {
     const target = this.validTarget(caster, options.target ?? null);
     const reason = this.check(caster, skill, target, now);
     if (reason) {
-      if (!options.quiet) this.events.emit('skillFailed', { caster, skill, reason });
+      if (!options.quiet) this.events.emit('skillFailed', { casterId: caster.id, skillId, reason });
       return { ok: false, reason };
     }
 
     caster.combat.mp -= skill.mpCost;
     caster.combat.cooldowns.set(skillId, now + skill.cooldown);
-    this.events.emit('skillUsed', { caster, skill, target });
-    this.execute(caster, skill, target, options.aim, now);
+    this.events.emit('skillUsed', { casterId: caster.id, skillId, targetId: target?.id ?? null });
+    this.execute(caster, skillId, skill, target, options.aim, now);
     return { ok: true };
   }
 
@@ -76,6 +75,7 @@ export class SkillSystem {
 
   private execute(
     caster: CombatEntity,
+    skillId: SkillId,
     skill: SkillDef,
     target: CombatEntity | null,
     aim: Point | undefined,
@@ -84,7 +84,7 @@ export class SkillSystem {
     const effect = skill.effect;
     switch (effect.kind) {
       case 'damage':
-        if (target) this.combat.dealDamage(caster, target, skill, effect.power);
+        if (target) this.combat.dealDamage(caster, target, skillId, effect.power);
         break;
       case 'projectile': {
         const dir = target
@@ -92,7 +92,7 @@ export class SkillSystem {
           : (aim ?? { x: 0, y: 1 });
         this.projectiles.spawn(
           caster,
-          skill,
+          skillId,
           { ...effect, maxDistance: skill.range },
           dir.x,
           dir.y,
@@ -100,7 +100,7 @@ export class SkillSystem {
         break;
       }
       case 'status':
-        this.statuses.apply(caster, STATUSES[effect.statusId], effect.duration, now);
+        this.statuses.apply(caster, effect.statusId, effect.duration, now);
         break;
       case 'heal':
         this.combat.heal(caster, effect.amount);

@@ -11,14 +11,14 @@ export class ProgressionSystem {
     const c = entity.combat;
     if (amount <= 0 || c.level >= MAX_LEVEL) return;
     c.exp += amount;
-    this.events.emit('expGained', { entity, amount });
+    this.events.emit('expGained', { entityId: entity.id, amount });
 
     while (c.level < MAX_LEVEL && c.exp >= expToNext(c.level)) {
       c.exp -= expToNext(c.level);
       c.level += 1;
       c.refreshStats();
       c.restore();
-      this.events.emit('levelUp', { entity, level: c.level });
+      this.events.emit('levelUp', { entityId: entity.id, level: c.level });
     }
     if (c.level >= MAX_LEVEL) c.exp = 0;
   }

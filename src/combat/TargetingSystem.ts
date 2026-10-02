@@ -40,7 +40,7 @@ export class TargetingSystem {
   select(target: CombatEntity | null): void {
     if (target === this.current) return;
     this.current = target;
-    this.events.emit('targetChanged', { target });
+    this.events.emit('targetChanged', { targetId: target?.id ?? null });
   }
 
   selectNearest(from: CombatEntity, entities: readonly CombatEntity[]): CombatEntity | null {

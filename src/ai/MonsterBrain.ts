@@ -3,12 +3,14 @@ import type { CombatEntity } from '../combat/types';
 import { distance } from '../core/math';
 import { SKILLS } from '../data/skillData';
 import type { MonsterDef } from '../data/monsterData';
+import type { SeparationAgent } from './separation';
 import { StateMachine, type State } from './StateMachine';
 
 export type MonsterAiState = 'idle' | 'chase' | 'attack' | 'return' | 'dead';
 
 /** What the brain needs from a monster body. Implemented by the Monster entity. */
-export interface MonsterAgent extends CombatEntity {
+export interface MonsterAgent extends CombatEntity, SeparationAgent {
+  readonly combat: CombatEntity['combat'];
   readonly def: MonsterDef;
   spawnX: number;
   spawnY: number;

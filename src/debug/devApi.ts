@@ -27,22 +27,22 @@ export function createDevApi(world: CombatWorld, overlays: WorldOverlays) {
     log.push({ type, t: world.now, ...extra });
 
   const ev = world.events;
-  ev.on('damage', (e) => record('damage', { source: e.source.id, target: e.target.id, skill: e.skill.id, amount: e.amount, crit: e.crit }));
-  ev.on('heal', (e) => record('heal', { target: e.target.id, amount: e.amount }));
-  ev.on('death', (e) => record('death', { entity: e.entity.id, source: e.killer?.id }));
-  ev.on('respawn', (e) => record('respawn', { entity: e.entity.id }));
-  ev.on('skillUsed', (e) => record('skillUsed', { source: e.caster.id, skill: e.skill.id, target: e.target?.id }));
-  ev.on('skillFailed', (e) => record('skillFailed', { source: e.caster.id, skill: e.skill.id, reason: e.reason }));
-  ev.on('projectileSpawned', (e) => record('projectileSpawned', { source: e.projectile.owner.id, skill: e.projectile.skill.id }));
-  ev.on('projectileRemoved', (e) => record('projectileRemoved', { skill: e.projectile.skill.id, reason: e.reason }));
-  ev.on('statusApplied', (e) => record('statusApplied', { target: e.target.id, skill: e.status.id }));
-  ev.on('statusExpired', (e) => record('statusExpired', { target: e.target.id, skill: e.status.id }));
-  ev.on('expGained', (e) => record('expGained', { entity: e.entity.id, amount: e.amount }));
-  ev.on('levelUp', (e) => record('levelUp', { entity: e.entity.id, level: e.level }));
-  ev.on('lootDropped', (e) => record('lootDropped', { item: e.drop.item.id }));
-  ev.on('lootPicked', (e) => record('lootPicked', { item: e.drop.item.id }));
-  ev.on('lootExpired', (e) => record('lootExpired', { item: e.drop.item.id }));
-  ev.on('targetChanged', (e) => record('targetChanged', { target: e.target?.id }));
+  ev.on('damage', (e) => record('damage', { source: e.sourceId, target: e.targetId, skill: e.skillId, amount: e.amount, crit: e.crit }));
+  ev.on('heal', (e) => record('heal', { target: e.targetId, amount: e.amount }));
+  ev.on('death', (e) => record('death', { entity: e.entityId, source: e.killerId ?? undefined }));
+  ev.on('respawn', (e) => record('respawn', { entity: e.entityId }));
+  ev.on('skillUsed', (e) => record('skillUsed', { source: e.casterId, skill: e.skillId, target: e.targetId ?? undefined }));
+  ev.on('skillFailed', (e) => record('skillFailed', { source: e.casterId, skill: e.skillId, reason: e.reason }));
+  ev.on('projectileSpawned', (e) => record('projectileSpawned', { source: e.ownerId, skill: e.skillId }));
+  ev.on('projectileRemoved', (e) => record('projectileRemoved', { skill: e.skillId, reason: e.reason }));
+  ev.on('statusApplied', (e) => record('statusApplied', { target: e.targetId, skill: e.statusId }));
+  ev.on('statusExpired', (e) => record('statusExpired', { target: e.targetId, skill: e.statusId }));
+  ev.on('expGained', (e) => record('expGained', { entity: e.entityId, amount: e.amount }));
+  ev.on('levelUp', (e) => record('levelUp', { entity: e.entityId, level: e.level }));
+  ev.on('lootDropped', (e) => record('lootDropped', { item: e.itemId }));
+  ev.on('lootPicked', (e) => record('lootPicked', { item: e.itemId }));
+  ev.on('lootExpired', (e) => record('lootExpired', { item: e.itemId }));
+  ev.on('targetChanged', (e) => record('targetChanged', { target: e.targetId ?? undefined }));
 
   const monster = (id: string) => {
     const m = world.monsters.find((x) => x.id === id);
@@ -110,8 +110,17 @@ export function createDevApi(world: CombatWorld, overlays: WorldOverlays) {
         respawnAt: world.playerRespawnAt,
       };
     },
-    drops: () => world.loot.drops.map((d) => ({ id: d.id, item: d.item.id, x: d.x, y: d.y })),
+    drops: () => world.loot.drops.map((d) => ({ id: d.id, item: d.itemId, x: d.x, y: d.y })),
     projectiles: () => world.projectiles.active.length,
+    projectilePositions: () => world.projectiles.active.map((p) => ({ id: p.id, x: p.x, y: p.y })),
+    /** Simulation clock, freeze state and whether physics is paused. */
+    clock: () => ({
+      now: world.now,
+      frozen: world.frozen,
+      physicsPaused: world.player.scene.physics.world.isPaused,
+    }),
+    hitStop: (ms: number) => world.requestHitStop(ms),
+    monsterIds: () => world.monsters.map((m) => m.id),
     /** Back to a clean slate: player at spawn, monsters home, nothing on the ground. */
     reset: () => {
       world.respawnPlayer();

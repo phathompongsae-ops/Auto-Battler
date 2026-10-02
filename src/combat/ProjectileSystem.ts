@@ -1,13 +1,13 @@
 import type { EventBus } from '../core/EventBus';
-import type { SkillDef } from '../data/skillData';
-import type { GameEvents } from '../game/GameEvents';
+import type { SkillId } from '../data/skillData';
+import type { GameEvents, ProjectileEndReason } from '../game/GameEvents';
 import type { CombatSystem } from './CombatSystem';
 import type { CombatEntity } from './types';
 
 export interface Projectile {
   id: number;
   owner: CombatEntity;
-  skill: SkillDef;
+  skillId: SkillId;
   power: number;
   x: number;
   y: number;
@@ -47,12 +47,12 @@ export class ProjectileSystem {
     private readonly combat: CombatSystem,
   ) {}
 
-  spawn(owner: CombatEntity, skill: SkillDef, spec: ProjectileSpec, dirX: number, dirY: number): Projectile {
+  spawn(owner: CombatEntity, skillId: SkillId, spec: ProjectileSpec, dirX: number, dirY: number): Projectile {
     const len = Math.hypot(dirX, dirY) || 1;
     const p = this.pool.pop() ?? ({} as Projectile);
     p.id = this.nextId++;
     p.owner = owner;
-    p.skill = skill;
+    p.skillId = skillId;
     p.power = spec.power;
     p.dirX = dirX / len;
     p.dirY = dirY / len;
@@ -64,7 +64,15 @@ export class ProjectileSystem {
     p.traveled = 0;
     p.maxDistance = spec.maxDistance;
     this.active.push(p);
-    this.events.emit('projectileSpawned', { projectile: p });
+    this.events.emit('projectileSpawned', {
+      projectileId: p.id,
+      ownerId: owner.id,
+      skillId,
+      x: p.x,
+      y: p.y,
+      radius: p.radius,
+      color: p.color,
+    });
     return p;
   }
 
@@ -84,7 +92,7 @@ export class ProjectileSystem {
 
         const hit = this.findHit(p, targets);
         if (hit) {
-          this.combat.dealDamage(p.owner, hit, p.skill, p.power);
+          this.combat.dealDamage(p.owner, hit, p.skillId, p.power);
           this.remove(i, 'hit');
           removed = true;
         } else if (world.blocksProjectile(p.x, p.y)) {
@@ -110,11 +118,18 @@ export class ProjectileSystem {
     return null;
   }
 
-  private remove(index: number, reason: 'hit' | 'wall' | 'expired'): void {
+  private remove(index: number, reason: ProjectileEndReason): void {
     const p = this.active[index];
     this.active[index] = this.active[this.active.length - 1];
     this.active.pop();
-    this.events.emit('projectileRemoved', { projectile: p, reason });
+    this.events.emit('projectileRemoved', {
+      projectileId: p.id,
+      skillId: p.skillId,
+      reason,
+      x: p.x,
+      y: p.y,
+      color: p.color,
+    });
     this.pool.push(p);
   }
 }

@@ -43,5 +43,8 @@ const MONSTER_DEFS = {
   },
 } satisfies Record<string, MonsterDef>;
 
+/** Push (px/s) between fully overlapping monsters; fades to 0 at touching distance. */
+export const MONSTER_SEPARATION_STRENGTH = 120;
+
 export type MonsterId = keyof typeof MONSTER_DEFS;
 export const MONSTERS: Record<MonsterId, MonsterDef> = MONSTER_DEFS;

@@ -98,7 +98,8 @@ export async function combatSuite(b, t, shot) {
     '18. skills fail with no_mp and cost nothing',
     fails.map((f) => f.skill).join() === 'power_strike,fire_bolt,guard' &&
       dmg.length === 0 &&
-      p.mp < 5.5 &&
+      p.mp >= 5 &&
+      p.mp < 6.5 && // only regen, nothing spent
       Object.keys(p.cooldowns).length === 0 &&
       (await api('projectiles()')) === 0 &&
       p.statuses.length === 0,
@@ -261,6 +262,61 @@ export async function combatSuite(b, t, shot) {
   p = await player();
   t.check('20. player respawns at spawn with full HP/MP', p.hp === p.stats.maxHp && p.mp === p.stats.maxMp && p.x === PLAYER_SPAWN.x && p.y === PLAYER_SPAWN.y && p.state === 'idle', `pos=(${p.x},${p.y}) hp=${p.hp}`);
 
+  // ------------------------------------------------------------------ hit stop
+  t.section('Hit stop');
+  await arena();
+  await api('setPeaceful(false)');
+  await api(`placeMonster('slime-1', ${PLAYER_SPAWN.x + 300}, ${PLAYER_SPAWN.y}, true)`); // outside aggro
+  await api(`placeMonster('slime-2', ${PLAYER_SPAWN.x - 130}, ${PLAYER_SPAWN.y}, true)`); // will chase
+  await api(`selectTarget('slime-1')`);
+  await waitMonsterState('slime-2', ['chase'], 1000);
+  await b.press('KeyE');
+  await sleep(60);
+  await api('hitStop(450)');
+  await sleep(60);
+  const frozenA = await b.eval(`({ clock: debug.clock(), proj: debug.projectilePositions(), m: debug.monster('slime-2'), cd: debug.player().cooldowns.fire_bolt })`);
+  await sleep(220);
+  const frozenB = await b.eval(`({ clock: debug.clock(), proj: debug.projectilePositions(), m: debug.monster('slime-2'), cd: debug.player().cooldowns.fire_bolt })`);
+  t.check('hit stop freezes the simulation clock and physics', frozenA.clock.frozen && frozenB.clock.frozen && frozenA.clock.now === frozenB.clock.now && frozenB.clock.physicsPaused, JSON.stringify(frozenB.clock));
+  t.check(
+    'hit stop freezes projectiles',
+    frozenA.proj.length === 1 && frozenB.proj.length === 1 && frozenA.proj[0].x === frozenB.proj[0].x,
+    `x ${frozenA.proj[0]?.x.toFixed(1)} → ${frozenB.proj[0]?.x.toFixed(1)}`,
+  );
+  t.check(
+    'hit stop freezes AI movement and timers',
+    frozenA.m.state === 'chase' && frozenA.m.x === frozenB.m.x && frozenA.m.y === frozenB.m.y && frozenA.cd === frozenB.cd,
+    `slime x ${frozenA.m.x.toFixed(1)} → ${frozenB.m.x.toFixed(1)}, cooldown ${frozenA.cd?.toFixed(0)} → ${frozenB.cd?.toFixed(0)}`,
+  );
+  await b.waitFor(`!debug.clock().frozen`, { timeout: 1000, label: 'hit stop end' });
+  await sleep(150);
+  const after = await b.eval(`({ clock: debug.clock(), m: debug.monster('slime-2') })`);
+  t.check('simulation resumes after hit stop', !after.clock.physicsPaused && after.clock.now > frozenB.clock.now && after.m.x !== frozenB.m.x, `now +${(after.clock.now - frozenB.clock.now).toFixed(0)} ms`);
+  await b.waitFor(`debug.log.some(e => e.type === 'projectileRemoved')`, { timeout: 1500, label: 'bolt finishes after resume' });
+
+  // ------------------------------------------------------------------ separation
+  t.section('Monster separation');
+  const minPairDistance = `(() => { const ms = debug.monsterIds().map(id => debug.monster(id)).filter(m => !m.dead);
+    let min = Infinity; for (let i = 0; i < ms.length; i++) for (let j = i + 1; j < ms.length; j++)
+      min = Math.min(min, Math.hypot(ms[i].x - ms[j].x, ms[i].y - ms[j].y)); return min; })()`;
+  await api('reset()');
+  await api('setPeaceful(true)');
+  await b.eval(`debug.monsterIds().forEach(id => debug.placeMonster(id, 400, 700, true))`);
+  await sleep(1500);
+  let gap = await b.eval(minPairDistance);
+  t.check('stacked idle monsters spread apart', gap >= 20, `closest pair ${gap.toFixed(1)} px (touching = 24)`);
+  await shot('combat-08-separation');
+
+  await api('reset()');
+  await api('setPeaceful(false)');
+  await b.eval(`['slime-1','slime-2','slime-3'].forEach((id, i) => debug.placeMonster(id, ${PLAYER_SPAWN.x - 100} + i * 4, ${PLAYER_SPAWN.y + 60}, true))`);
+  await api('setPlayerHp(100000)');
+  await sleep(2500);
+  gap = await b.eval(minPairDistance);
+  const attackers = await b.eval(`['slime-1','slime-2','slime-3'].filter(id => ['attack','chase'].includes(debug.monster(id).state)).length`);
+  t.check('monsters attacking together do not stack', gap >= 16 && attackers === 3, `closest pair ${gap.toFixed(1)} px, engaged ${attackers}/3`);
+  await api('reset()');
+
   // ------------------------------------------------------------------ click/tap targeting
   t.section('Pointer targeting');
   await arena();
@@ -301,8 +357,12 @@ export async function combatPerformance(b, t) {
   await fight;
   await b.keyUp('Space');
   console.log(`  FPS ${stats.fps.toFixed(1)} (Phaser ${stats.phaserFps.toFixed(1)}), frame p95 ${stats.p95.toFixed(1)} ms, max ${stats.max.toFixed(1)} ms, frames >20ms: ${stats.over20}/${stats.frames}`);
-  t.check('perf. steady frame rate during first fight (≥55 FPS, p95 < 20 ms)', stats.fps >= 55 && stats.p95 < 20, `fps=${stats.fps.toFixed(1)} p95=${stats.p95.toFixed(1)}`);
-  t.check('perf. no hitches during first fight (worst frame < 50 ms)', stats.max < 50, `max=${stats.max.toFixed(1)} ms, >20ms: ${stats.over20}`);
+  // CI runners have no GPU (software WebGL on shared CPUs), so frame timing there is
+  // reported but not enforced. Locally these catch hitches like mid-fight shader compiles.
+  const enforce = !process.env.CI;
+  const note = enforce ? '' : ' (report-only on CI)';
+  t.check('perf. steady frame rate during first fight (≥55 FPS, p95 < 20 ms)', !enforce || (stats.fps >= 55 && stats.p95 < 20), `fps=${stats.fps.toFixed(1)} p95=${stats.p95.toFixed(1)}${note}`);
+  t.check('perf. no hitches during first fight (worst frame < 50 ms)', !enforce || stats.max < 50, `max=${stats.max.toFixed(1)} ms, >20ms: ${stats.over20}${note}`);
   await b.eval('debug.reset(); debug.setPeaceful(true)');
   return stats;
 }

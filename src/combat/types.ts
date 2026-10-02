@@ -15,9 +15,12 @@ export type StatKey = keyof CombatStats;
 
 export type Team = 'player' | 'monster';
 
+/** Stable identifier for a combat entity ('player', 'slime-1', ...). */
+export type EntityId = string;
+
 /** Anything that can take part in combat. Implemented by game entities. */
 export interface CombatEntity {
-  readonly id: string;
+  readonly id: EntityId;
   readonly combat: CombatantState;
   readonly x: number;
   readonly y: number;

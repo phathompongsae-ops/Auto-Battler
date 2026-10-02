@@ -1,0 +1,47 @@
+# Type-check, build and run the headless-Chrome browser test suite on every push.
+# Frame-timing checks are report-only here (CI=true): runners have no GPU.
+name: CI
+
+on:
+  push:
+    branches-ignore: [gh-pages] # deploy output, no source to test
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type-check
+        run: npm run typecheck
+
+      - name: Build
+        run: npm run build
+
+      - name: Browser tests (headless Chrome)
+        run: npm run test:browser
+
+      - name: Upload test screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-test-results
+          path: test-results/
+          if-no-files-found: ignore

@@ -1,6 +1,6 @@
 import type { EventBus } from '../core/EventBus';
 import { defaultRng, type Rng } from '../core/rng';
-import type { SkillDef } from '../data/skillData';
+import { SKILLS, type SkillId } from '../data/skillData';
 import type { GameEvents } from '../game/GameEvents';
 import { rollDamage, type DamageRoll } from './damage';
 import type { CombatEntity } from './types';
@@ -14,7 +14,7 @@ export class CombatSystem {
   dealDamage(
     source: CombatEntity,
     target: CombatEntity,
-    skill: SkillDef,
+    skillId: SkillId,
     power: number,
   ): DamageRoll | null {
     if (target.combat.dead) return null;
@@ -22,12 +22,12 @@ export class CombatSystem {
     const roll = rollDamage(source.combat.stats, target.combat.stats, power, this.rng);
     target.combat.hp = Math.max(0, target.combat.hp - roll.amount);
     this.events.emit('damage', {
-      source,
-      target,
-      skill,
+      sourceId: source.id,
+      targetId: target.id,
+      skillId,
       amount: roll.amount,
       crit: roll.crit,
-      heavy: roll.crit || !!skill.heavy,
+      heavy: roll.crit || !!SKILLS[skillId].heavy,
     });
 
     if (target.combat.hp === 0) this.kill(target, source);
@@ -39,7 +39,7 @@ export class CombatSystem {
     if (c.dead) return 0;
     const healed = Math.min(amount, c.stats.maxHp - c.hp);
     c.hp += healed;
-    this.events.emit('heal', { target, amount: healed });
+    this.events.emit('heal', { targetId: target.id, amount: healed });
     return healed;
   }
 
@@ -50,6 +50,6 @@ export class CombatSystem {
     c.dead = true;
     c.statuses.length = 0;
     c.refreshStats();
-    this.events.emit('death', { entity: target, killer });
+    this.events.emit('death', { entityId: target.id, killerId: killer?.id ?? null });
   }
 }

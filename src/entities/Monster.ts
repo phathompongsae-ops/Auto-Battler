@@ -17,6 +17,9 @@ export class Monster extends Phaser.Physics.Arcade.Sprite implements MonsterAgen
   declare body: Phaser.Physics.Arcade.Body;
 
   private deathTween: Phaser.Tweens.Tween | null = null;
+  /** Velocity the brain asked for (separation is added on top). */
+  private moveX = 0;
+  private moveY = 0;
 
   constructor(
     scene: Phaser.Scene,
@@ -60,12 +63,21 @@ export class Monster extends Phaser.Physics.Arcade.Sprite implements MonsterAgen
       return;
     }
     const speed = this.combat.stats.moveSpeed;
-    this.body.setVelocity((dx / len) * speed, (dy / len) * speed);
+    this.moveX = (dx / len) * speed;
+    this.moveY = (dy / len) * speed;
+    this.body.setVelocity(this.moveX, this.moveY);
     if (Math.abs(dx) > 1) this.setFlipX(dx < 0);
   }
 
   halt(): void {
+    this.moveX = 0;
+    this.moveY = 0;
     this.body.setVelocity(0, 0);
+  }
+
+  /** Final velocity = the brain's intended movement + separation from neighbours. */
+  applySeparation(vx: number, vy: number): void {
+    this.body.setVelocity(this.moveX + vx, this.moveY + vy);
   }
 
   snapToSpawn(): void {

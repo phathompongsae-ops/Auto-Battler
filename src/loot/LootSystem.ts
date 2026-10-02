@@ -2,13 +2,13 @@ import type { CombatEntity } from '../combat/types';
 import type { EventBus } from '../core/EventBus';
 import { distance } from '../core/math';
 import { defaultRng, type Rng } from '../core/rng';
-import { ITEMS, LOOT_DROP, LOOT_TABLES, type ItemDef, type ItemId, type LootTableId } from '../data/itemData';
+import { LOOT_DROP, LOOT_TABLES, type ItemId, type LootTableId } from '../data/itemData';
 import type { GameEvents } from '../game/GameEvents';
 import type { Inventory } from './Inventory';
 
 export interface LootDrop {
   id: number;
-  item: ItemDef;
+  itemId: ItemId;
   x: number;
   y: number;
   droppedAt: number;
@@ -40,14 +40,14 @@ export class LootSystem {
   spawn(itemId: ItemId, x: number, y: number, now: number): LootDrop {
     const drop: LootDrop = {
       id: this.nextId++,
-      item: ITEMS[itemId],
+      itemId,
       x,
       y,
       droppedAt: now,
       expiresAt: now + LOOT_DROP.lifetime,
     };
     this.drops.push(drop);
-    this.events.emit('lootDropped', { drop });
+    this.events.emit('lootDropped', { dropId: drop.id, itemId, x, y, expiresAt: drop.expiresAt });
     return drop;
   }
 
@@ -57,16 +57,18 @@ export class LootSystem {
       const drop = this.drops[i];
       if (now >= drop.expiresAt) {
         this.drops.splice(i, 1);
-        this.events.emit('lootExpired', { drop });
+        this.events.emit('lootExpired', { dropId: drop.id, itemId: drop.itemId });
       } else if (!collector.combat.dead && distance(collector, drop) <= LOOT_DROP.pickupRadius) {
         this.drops.splice(i, 1);
-        this.inventory.add(drop.item.id as ItemId);
-        this.events.emit('lootPicked', { drop, by: collector });
+        this.inventory.add(drop.itemId);
+        this.events.emit('lootPicked', { dropId: drop.id, itemId: drop.itemId, byId: collector.id });
       }
     }
   }
 
   clear(): void {
-    for (const drop of this.drops.splice(0)) this.events.emit('lootExpired', { drop });
+    for (const drop of this.drops.splice(0)) {
+      this.events.emit('lootExpired', { dropId: drop.id, itemId: drop.itemId });
+    }
   }
 }

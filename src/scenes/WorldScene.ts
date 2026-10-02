@@ -102,8 +102,14 @@ export class WorldScene extends Phaser.Scene {
     }
   }
 
-  update(time: number, delta: number): void {
-    this.world.update(time, delta, this.controls.getDirection());
-    this.overlays.update(time);
+  update(_time: number, delta: number): void {
+    this.world.update(delta, this.controls.getDirection());
+
+    // Hit stop freezes the simulation; keep physics in step with it.
+    const physics = this.physics.world;
+    if (this.world.frozen && !physics.isPaused) physics.pause();
+    else if (!this.world.frozen && physics.isPaused) physics.resume();
+
+    this.overlays.update(this.world.now);
   }
 }
