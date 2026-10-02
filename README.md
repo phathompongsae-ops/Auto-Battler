@@ -1,47 +1,43 @@
-# Realmfront — Fantasy Settlement War
+# Aetheria Online Demo
 
-Realmfront is a compact web-first pixel-art fantasy settlement war game.
+A new lightweight 2D MMORPG-style web game prototype built with Phaser 3.
 
-## Current Alpha Loop
+## Current vertical slice
 
-Build Dawnkeep -> recruit a 3-5 unit team -> run expeditions -> auto-battle -> collect resources -> upgrade the settlement -> resolve a Season War every three in-game months -> capture three territories per rival -> assault both rival capitals -> Campaign Victory.
+Town spawn -> talk to Elder -> accept starter quest -> walk to field -> defeat one Slime -> gain EXP + Slime Core -> return to town -> turn in quest.
 
-## Locked Direction
+## Controls
 
-The source of truth is `docs/REALMFRONT_LOCKED_DIRECTION.md`.
+Desktop:
+- Move: WASD or arrow keys
+- Interact: E
+- Attack: Space
 
-Key constraints:
-- 2D isometric pixel-art presentation
-- simple Kairosoft-like auto combat
-- no skill tree, mana, ultimate, combo, PvP, gacha, deep economy, or giant tech tree
-- Human player faction vs Arcane Covenant and Ashen Horde
-- Gold, Wood, Stone, Crystal only
-- five expedition regions unlocked by Town Hall Lv.1-5
-- campaign target: about 8-12 Season Wars
+Mobile:
+- On-screen D-pad
+- INTERACT / ATTACK buttons
 
-## Run Locally
-
-No build framework is required.
+## Run locally
 
 ```bash
-python3 -m http.server 4173
+npm install
+npm run dev
 ```
 
-Open `http://127.0.0.1:4173/`.
-
-## Tests
+## Test and build
 
 ```bash
 npm test
-node --check app.js
-node --check src/fantasy-core.js
+npm run build
 ```
 
-GitHub Actions also captures visual QA screenshots for settlement, battle, expedition, Season War, and Army screens on desktop/mobile.
+## Project direction
 
-## Web Build
+- Web-first, desktop + mobile browser
+- JavaScript + Phaser 3
+- PixelLab MCP is the intended production-art pipeline
+- First demo scope: one town, one field, one dungeon
+- Four initial classes: Warrior, Archer, Mage, Cleric
+- AI party and pet systems are future-compatible, not part of this first vertical slice
 
-GitHub Pages deploys from the workflow in `.github/workflows/pages.yml`.
-
-Live build:
-https://phathompongsae-ops.github.io/Auto-Battler/
+The previous Auto-Battler / Realmfront project remains recoverable from the backup branch created before this rebuild.
