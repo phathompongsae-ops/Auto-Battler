@@ -1,87 +1,18 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#171b24">
-  <meta name="description" content="Realmfront — a compact fantasy settlement war simulation.">
-  <title>Realmfront — Fantasy Settlement War</title>
-  <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#151e2b" />
+  <title>Aetheria Online Demo</title>
+  <style>
+    html,body,#game{margin:0;width:100%;height:100%;overflow:hidden;background:#101722}
+    body{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+    canvas{display:block}
+  </style>
 </head>
 <body>
-  <div id="app">
-    <header class="topbar">
-      <div class="brand">
-        <span class="crest" aria-hidden="true"><i></i></span>
-        <div><strong>REALMFRONT</strong><small>Settlement War Alpha</small></div>
-      </div>
-      <div id="resourceHud" class="resources" aria-label="Resources"></div>
-      <div class="timebox">
-        <strong id="monthLabel">Year 1 · Month 1</strong>
-        <small id="seasonLabel">Season 1</small>
-      </div>
-    </header>
-
-    <main class="game-shell">
-      <section class="world-panel" aria-label="Dawnkeep settlement">
-        <canvas id="cityCanvas" width="960" height="620"></canvas>
-        <div class="vignette"></div>
-        <div class="city-overlay">
-          <div class="city-chip">
-            <b id="cityName">Dawnkeep</b>
-            <span id="cityLevel">Town Hall Lv.1</span>
-          </div>
-          <div class="war-clock">
-            <span>Season War</span>
-            <b id="warCountdown">3 months</b>
-          </div>
-        </div>
-        <div id="warAlert" class="war-alert hidden" aria-live="assertive">
-          <small>THE FRONTIER STIRS</small>
-          <b>SEASON WAR READY</b>
-          <span>Choose a rival and march before the next expedition.</span>
-        </div>
-        <div id="floatingLayer" class="floating-layer" aria-hidden="true"></div>
-        <div id="toast" class="toast" aria-live="polite"></div>
-      </section>
-
-      <aside class="side-panel">
-        <div class="tabs" role="tablist" aria-label="Game menus">
-          <button class="tab active" data-tab="build">Build</button>
-          <button class="tab" data-tab="army">Army</button>
-          <button class="tab" data-tab="expedition">Expedition</button>
-          <button class="tab" data-tab="territory">Territory</button>
-        </div>
-        <div id="panelContent" class="panel-content"></div>
-      </aside>
-    </main>
-
-    <nav class="bottom-actions" aria-label="Campaign controls">
-      <button id="saveBtn">Save</button>
-      <button id="newBtn">New Game</button>
-      <button id="helpBtn">Guide</button>
-      <button id="soundBtn" aria-pressed="true">Sound On</button>
-      <button id="warBtn" class="danger" disabled>Season War</button>
-    </nav>
-  </div>
-
-  <div id="modal" class="modal hidden" role="dialog" aria-modal="true" aria-label="Game dialog">
-    <div class="modal-card">
-      <button id="closeModal" class="close" aria-label="Close dialog">×</button>
-      <div id="modalBody"></div>
-    </div>
-  </div>
-
-  <script>
-    window.addEventListener("error", function (e) {
-      var p=document.getElementById("panelContent");
-      if(p) p.innerHTML='<div style="padding:12px;color:#ffd0d0;background:#4a2028;border:1px solid #a45460;border-radius:10px"><b>Runtime error</b><br><code>'+String(e.message||"Unknown error")+'</code><br><small>'+String(e.filename||"")+' '+String(e.lineno||"")+'</small></div>';
-    });
-    window.addEventListener("unhandledrejection", function (e) {
-      var p=document.getElementById("panelContent");
-      if(p) p.innerHTML='<div style="padding:12px;color:#ffd0d0;background:#4a2028;border:1px solid #a45460;border-radius:10px"><b>Module error</b><br><code>'+String(e.reason&&e.reason.message||e.reason||"Unknown rejection")+'</code></div>';
-    });
-  </script>
-  <script type="module" src="app.js"></script>
+  <div id="game"></div>
+  <script type="module" src="./src/main.js"></script>
 </body>
 </html>
