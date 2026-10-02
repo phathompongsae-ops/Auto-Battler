@@ -45,18 +45,27 @@ jobs:
       - name: Checkout PR head
         uses: actions/checkout@v4
 
-      - name: Build site directory
+      - name: Set up Node
         if: github.event.action != 'closed'
-        run: |
-          mkdir -p _site
-          cp autochess.html _site/index.html
-          cp -r assets _site/assets
-          cp -r src _site/src
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        if: github.event.action != 'closed'
+        run: npm ci
+
+      # vite.config.ts uses a relative base ('./'), so the same build works from
+      # the pr-preview/pr-<number>/ subdirectory without any path rewriting.
+      - name: Type-check and build
+        if: github.event.action != 'closed'
+        run: npm run build
 
       - name: Deploy / remove PR preview
         uses: rossjrw/pr-preview-action@v1
         with:
-          source-dir: ./_site
+          source-dir: ./dist
           preview-branch: gh-pages
           umbrella-dir: pr-preview
           action: auto
