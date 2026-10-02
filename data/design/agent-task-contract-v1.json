@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "taskId": "example-task-id",
+  "title": "Example Agent Task",
+  "repository": "phathompongsae-ops/Auto-Battler",
+  "owner": "coco|cc|user",
+  "status": "READY_FOR_COCO|COCO_WORKING|READY_FOR_CC|CC_WORKING|READY_FOR_HUMAN_REVIEW|APPROVED|REWORK_REQUIRED|BLOCKED|DONE",
+  "base": {
+    "ref": null,
+    "sha": null
+  },
+  "scope": {
+    "allow": [],
+    "deny": [
+      "merge-without-explicit-user-authorization",
+      "fabricated-assets-or-shas",
+      "self-approval"
+    ]
+  },
+  "inputs": [],
+  "requiredOutputs": [],
+  "validation": [],
+  "handoff": {
+    "nextOwner": null,
+    "transitionCondition": null
+  },
+  "blocker": null,
+  "reporting": {
+    "requireBranch": true,
+    "requireFullCommitSha": true,
+    "requirePrNumberWhenRepoChanged": true,
+    "requireActualTestsRun": true
+  }
+}

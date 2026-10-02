@@ -1,0 +1,23 @@
+name: Agent Dispatch Plan v1
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'data/agent-tasks/**'
+      - 'data/design/agent-task-transition-policy-v1.json'
+      - 'tools/plan-agent-dispatch-v1.mjs'
+
+permissions:
+  contents: read
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Build dry-run dispatch plan
+        run: node tools/plan-agent-dispatch-v1.mjs

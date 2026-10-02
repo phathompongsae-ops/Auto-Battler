@@ -1,0 +1,67 @@
+{
+  "schemaVersion": 1,
+  "taskId": "archer-attack-v3-current",
+  "title": "Archer Attack v3 Pose-Guided Frame Production and Integration",
+  "repository": "phathompongsae-ops/Auto-Battler",
+  "owner": "coco",
+  "status": "BLOCKED",
+  "base": {
+    "ref": "cc/archer-attack-v3-pose-guided-handoff-v1",
+    "sha": "d949bbec0ae61891e9794e28d0c1a3b49b719a56"
+  },
+  "scope": {
+    "allow": [
+      "produce Archer Attack v3 pose-guided image frames outside runtime",
+      "create human-review contact sheet and animation preview",
+      "handoff exact produced binaries to CC for repository integration"
+    ],
+    "deny": [
+      "merge any PR",
+      "modify Core Combat/Game Loop/Camera/Board/Pathfinding",
+      "set canonicalApproved/runtimeEligible/runtimeIntegrated true",
+      "fabricate missing frames, SHAs, tests, or approvals",
+      "reuse rejected Attack v2 mesh-warp as final motion"
+    ]
+  },
+  "inputs": [
+    {
+      "type": "approved-master",
+      "path": "docs/assets/review/character-production/archer/master-v1/archer-production-master-candidate-v1.png",
+      "sha256": "4911e7e3ba59241ee011be3e62f1b64230dcf9b3c24c6aeb23dc939d83311013"
+    },
+    {
+      "type": "handoff-spec",
+      "pr": 76,
+      "path": "data/design/archer-attack-v3-pose-guided-handoff-package-v1.json"
+    }
+  ],
+  "requiredOutputs": [
+    "10 final PNG frames 000-009",
+    "contact sheet",
+    "animated preview",
+    "frame-to-pose manifest",
+    "CC import handoff with exact file paths"
+  ],
+  "validation": [
+    "identity consistency",
+    "hand/bow/grip continuity",
+    "real draw progression",
+    "full draw/release/recovery readability",
+    "human visual PASS before exact-file approval"
+  ],
+  "handoff": {
+    "nextOwner": "cc",
+    "transitionCondition": "10 real frames exist and human visual review is ready; then set status READY_FOR_CC"
+  },
+  "blocker": {
+    "code": "IMAGE_CAPABLE_SESSION_NEEDS_EXACT_MASTER_BINARY",
+    "resolver": "user/coco",
+    "resolution": "Make the exact approved master PNG binary available to the image-capable Coco session; verify SHA before generation."
+  },
+  "reporting": {
+    "requireBranch": false,
+    "requireFullCommitSha": false,
+    "requirePrNumberWhenRepoChanged": true,
+    "requireActualTestsRun": true
+  }
+}
