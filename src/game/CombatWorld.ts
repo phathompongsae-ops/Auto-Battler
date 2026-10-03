@@ -20,6 +20,7 @@ import { Inventory } from '../loot/Inventory';
 import { Wallet } from '../economy/Wallet';
 import { OffsetClock } from '../core/clock';
 import { SpecialShop } from '../pets/specialShop';
+import { RewardLedger } from '../dungeon/rewards';
 import { LootSystem } from '../loot/LootSystem';
 import { useItem as applyItem, type UseItemResult } from '../items/useItem';
 import { ProgressionSystem } from '../progression/ProgressionSystem';
@@ -53,6 +54,8 @@ export class CombatWorld implements MonsterWorld {
    */
   readonly clock = new OffsetClock();
   readonly specialShop = new SpecialShop(this.clock);
+  /** Dungeon clears already claimed (idempotent rewards). */
+  readonly rewardLedger = new RewardLedger();
   readonly loot = new LootSystem(this.events, this.inventory);
 
   readonly monsters: Monster[] = [];

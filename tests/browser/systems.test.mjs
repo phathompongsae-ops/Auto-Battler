@@ -74,3 +74,20 @@ export async function petSuite(b, t) {
   await b.eval('debug.reset()');
   await sleep(100);
 }
+
+export async function dungeonRewardSuite(b, t) {
+  t.section('Dungeon reward claim in the running game');
+  await b.eval('debug.reset(); debug.setPeaceful(true)');
+  const preview = await b.eval(`debug.rollDungeonReward('demo_dungeon', 'hard', 9)`);
+  const first = await b.eval(`debug.claimDungeonReward('demo_dungeon', 'hard', 'run-1', 9)`);
+  const second = await b.eval(`debug.claimDungeonReward('demo_dungeon', 'hard', 'run-1', 9)`);
+  const inv = await b.eval('debug.player().inventory');
+  const eq = await b.eval('debug.equipment()');
+  t.check(
+    'D-1. a claim grants the rolled reward once',
+    first.ok && !second.ok && second.reason === 'already_claimed' && JSON.stringify(first.reward) === JSON.stringify(preview) &&
+      inv.boss_fragment === 2 && eq.gold === preview.gold && eq.items.length === preview.equipment.length,
+    JSON.stringify({ preview, inv, gold: eq.gold }),
+  );
+  await b.eval('debug.reset()');
+}

@@ -12,6 +12,8 @@ import { EGG_ITEM, type EggTier, type PetPassiveId, type PetRarity, type PetSpec
 import { openEgg, useRandomEggTicket } from '../pets/eggActions';
 import type { PetInstance } from '../pets/pets';
 import { shopCycleId } from '../pets/specialShop';
+import type { DifficultyId } from '../data/dungeonDifficulty';
+import { clearId, rollBossReward } from '../dungeon/rewards';
 
 let devPetCounter = 0;
 import type { WorldOverlays } from '../rendering/WorldOverlays';
@@ -179,6 +181,20 @@ export function createDevApi(world: CombatWorld, overlays: WorldOverlays) {
     /** Move the game clock (shop refresh / crafting) forward by `ms`. */
     advanceClock: (ms: number) => world.clock.advance(ms),
 
+    // --- Dungeon rewards (dev only) ---------------------------------------
+    /** Preview a boss reward from a fixed seed (nothing granted). */
+    rollDungeonReward: (dungeonId: string, difficulty: DifficultyId, seed = 1) => rollBossReward(dungeonId, difficulty, seededRng(seed)),
+    /** Claim a clear once: grants items, gold and equipment (enchants rolled from the same seed). */
+    claimDungeonReward: (dungeonId: string, difficulty: DifficultyId, runId: string, seed = 1) => {
+      const rng = seededRng(seed);
+      const reward = rollBossReward(dungeonId, difficulty, rng);
+      return world.rewardLedger.claim(clearId(dungeonId, difficulty, runId), reward, (r) => {
+        for (const [id, n] of Object.entries(r.items) as [ItemId, number][]) world.inventory.add(id, n);
+        world.wallet.add('gold', r.gold);
+        for (const e of r.equipment) world.player.equipment.add(createEquipment(e.defId, rng));
+      });
+    },
+
     // --- Equipment (dev only) ---------------------------------------------
     /** New item with enchants rolled from `seed`; returns its instance id. */
     grantEquipment: (defId: string, seed = 1) => {
@@ -256,6 +272,7 @@ export function createDevApi(world: CombatWorld, overlays: WorldOverlays) {
       world.player.pets.clear();
       world.specialShop.state = { cycleId: null, ticketsBought: 0 };
       world.clock.offsetMs = 0;
+      world.rewardLedger.claimed.clear();
       world.wallet.assign({});
       world.player.statModifiers.clear();
       world.player.combat.reset();
