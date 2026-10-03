@@ -8,6 +8,7 @@ import { combatPerformance, combatSuite } from './combat.test.mjs';
 import { hudSuite, hudTouchSuite } from './hud.test.mjs';
 import { delayedHitSuite } from './delayedHit.test.mjs';
 import { dragSuite, movementSuite } from './movement.test.mjs';
+import { progressionSuite } from './progression.test.mjs';
 
 const PORT = 5199;
 const URL = `http://127.0.0.1:${PORT}/`;
@@ -47,6 +48,7 @@ try {
   await attackAnimationSuite(b, t, shot);
   await powerSlashSuite(b, t, shot);
   await delayedHitSuite(b, t);
+  await progressionSuite(b, t);
   await hudSuite(b, t, shot);
   await combatSuite(b, t, shot);
   await combatPerformance(b, t);

@@ -1,6 +1,7 @@
 import type { HitCancelReason, SkillFailReason } from '../combat/SkillSystem';
 import type { EntityId } from '../combat/types';
 import type { ItemId } from '../data/itemData';
+import type { JobId } from '../data/jobData';
 import type { SkillId } from '../data/skillData';
 import type { StatusId } from '../data/statusData';
 
@@ -52,4 +53,6 @@ export type GameEvents = {
   lootPicked: { dropId: number; itemId: ItemId; byId: EntityId };
   lootExpired: { dropId: number; itemId: ItemId };
   targetChanged: { targetId: EntityId | null };
+  itemUsed: { entityId: EntityId; itemId: ItemId };
+  jobChanged: { entityId: EntityId; jobId: JobId };
 };

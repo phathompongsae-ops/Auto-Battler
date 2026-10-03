@@ -1,4 +1,4 @@
-# Type-check, build and run the headless-Chrome browser test suite on every push.
+# Type-check, build, run unit tests and the headless-Chrome browser test suite on every push.
 # Frame-timing checks are report-only here (CI=true): runners have no GPU.
 name: CI
 
@@ -34,6 +34,9 @@ jobs:
 
       - name: Build
         run: npm run build
+
+      - name: Unit tests (engine-independent)
+        run: npm run test:unit
 
       - name: Browser tests (headless Chrome)
         run: npm run test:browser

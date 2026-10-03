@@ -1,7 +1,6 @@
 import Phaser from 'phaser';
 import { PLAYER_WALK_FPS } from '../config';
 import { CombatantState } from '../combat/CombatantState';
-import { statsForLevel } from '../combat/stats';
 import type { CombatEntity } from '../combat/types';
 import {
   actionHitDelayMs,
@@ -16,10 +15,13 @@ import {
   type CharacterArt,
   type CharacterVisualLayout,
 } from '../data/characterArt';
-import { PLAYER_BASE_STATS, PLAYER_GROWTH, PLAYER_HIT_RADIUS } from '../data/playerData';
+import { PLAYER_HIT_RADIUS } from '../data/playerData';
 import type { SkillId } from '../data/skillData';
 import { PLAYER_KEY, PLAYER_PLACEHOLDER_LAYOUT, playerFrame } from '../graphics/placeholderTextures';
 import { DIRECTIONS, DIRECTION_VECTORS, type Direction } from '../input/Direction';
+import { CharacterProgress } from '../progression/CharacterProgress';
+import type { StatModifier } from '../stats/modifiers';
+import { playerCombatStats } from '../stats/playerCombatStats';
 
 export type PlayerState = 'idle' | 'walk' | 'dead';
 
@@ -51,6 +53,13 @@ export class Player extends Phaser.Physics.Arcade.Sprite implements CombatEntity
   readonly combat: CombatantState;
   /** Where the current art is drawn; overhead UI and auras are placed from it. */
   readonly layout: CharacterVisualLayout;
+  /** Job, base / allocated stats, job bonuses, skill points (persistent stat inputs). */
+  readonly progress = new CharacterProgress();
+  /**
+   * Stat modifiers from equipment, pets, buffs and debuffs. Empty until those
+   * systems exist; call combat.refreshStats() after changing it.
+   */
+  readonly extraModifiers: StatModifier[] = [];
 
   state: PlayerState = 'idle';
   facing: Direction = 'down';
@@ -82,7 +91,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite implements CombatEntity
     scene.physics.add.existing(this);
 
     this.combat = new CombatantState('player', 'Player', 'player', (level) =>
-      statsForLevel(PLAYER_BASE_STATS, PLAYER_GROWTH, level),
+      playerCombatStats(this.progress, level, this.extraModifiers),
     );
     this.layout = art ? artLayout(art) : PLAYER_PLACEHOLDER_LAYOUT;
 

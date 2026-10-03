@@ -1,7 +1,11 @@
 import type { MonsterAiState } from '../ai/MonsterBrain';
 import type { GameEvents } from '../game/GameEvents';
 import type { CombatWorld } from '../game/CombatWorld';
+import type { ItemId } from '../data/itemData';
 import type { WorldOverlays } from '../rendering/WorldOverlays';
+import { finalPrimary } from '../stats/modifiers';
+import { playerDerivedStats } from '../stats/playerCombatStats';
+import type { PrimaryStat } from '../stats/primaryStats';
 
 export interface EventRecord {
   type: keyof GameEvents;
@@ -111,6 +115,30 @@ export function createDevApi(world: CombatWorld, overlays: WorldOverlays) {
         respawnAt: world.playerRespawnAt,
       };
     },
+    /** Persistent stat inputs, points and derived stats. */
+    progress: () => {
+      const p = world.player;
+      const level = p.combat.level;
+      return {
+        ...p.progress.toData(),
+        level,
+        earnedStatPoints: p.progress.earned(level),
+        spentStatPoints: p.progress.spent(),
+        remainingStatPoints: p.progress.remaining(level),
+        final: finalPrimary([...p.progress.modifiers(), ...p.extraModifiers]),
+        derived: playerDerivedStats(p.progress, level, p.extraModifiers),
+      };
+    },
+    /** Jump to a level (no EXP, no level-up events); stats refresh. */
+    setLevel: (level: number) => {
+      world.player.combat.level = level;
+      world.player.combat.exp = 0;
+      world.player.combat.refreshStats();
+    },
+    allocateStat: (stat: PrimaryStat, amount: number) => world.allocatePlayerStat(stat, amount),
+    changeJob: (jobId: string) => world.changePlayerJob(jobId),
+    grantItem: (itemId: ItemId, amount = 1) => world.inventory.add(itemId, amount),
+    useItem: (itemId: string) => world.usePlayerItem(itemId),
     drops: () => world.loot.drops.map((d) => ({ id: d.id, item: d.itemId, x: d.x, y: d.y })),
     projectiles: () => world.projectiles.active.length,
     projectilePositions: () => world.projectiles.active.map((p) => ({ id: p.id, x: p.x, y: p.y })),
@@ -127,6 +155,8 @@ export function createDevApi(world: CombatWorld, overlays: WorldOverlays) {
       world.respawnPlayer();
       world.player.combat.level = 1;
       world.player.combat.exp = 0;
+      world.player.progress.assign({});
+      world.player.extraModifiers.length = 0;
       world.player.combat.reset();
       world.inventory.clear();
       world.loot.clear();

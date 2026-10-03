@@ -10,6 +10,7 @@ import { EventBus } from '../core/EventBus';
 import type { Point } from '../core/math';
 import { distance } from '../core/math';
 import type { Rng } from '../core/rng';
+import type { ItemId } from '../data/itemData';
 import { MONSTER_SEPARATION_STRENGTH } from '../data/monsterData';
 import { PLAYER_RESPAWN_DELAY, TARGETING } from '../data/playerData';
 import type { Monster } from '../entities/Monster';
@@ -17,7 +18,11 @@ import type { Player } from '../entities/Player';
 import type { InputController } from '../input/InputController';
 import { Inventory } from '../loot/Inventory';
 import { LootSystem } from '../loot/LootSystem';
+import { useItem as applyItem, type UseItemResult } from '../items/useItem';
 import { ProgressionSystem } from '../progression/ProgressionSystem';
+import { allocateStat, changeJob } from '../progression/statActions';
+import type { JobId } from '../data/jobData';
+import type { PrimaryStat } from '../stats/primaryStats';
 import type { GameEvents } from './GameEvents';
 import { PlayerCombatController } from './PlayerCombatController';
 
@@ -133,6 +138,27 @@ export class CombatWorld implements MonsterWorld {
     this.targeting.validate(this.player);
 
     if (this.playerRespawnAt !== null && now >= this.playerRespawnAt) this.respawnPlayer();
+  }
+
+  // --- Player progression -------------------------------------------------
+
+  /** Spend free stat points on one primary stat. */
+  allocatePlayerStat(stat: PrimaryStat, amount: number) {
+    return allocateStat(this.player, stat, amount);
+  }
+
+  /** Take a job (class) at the player's current level. */
+  changePlayerJob(jobId: string) {
+    const result = changeJob(this.player, jobId);
+    if (result.ok) this.events.emit('jobChanged', { entityId: this.player.id, jobId: jobId as JobId });
+    return result;
+  }
+
+  /** Use one of the player's items (e.g. the Stat Reset test item). */
+  usePlayerItem(itemId: string): UseItemResult {
+    const result = applyItem(this.inventory, this.player, itemId);
+    if (result.ok) this.events.emit('itemUsed', { entityId: this.player.id, itemId: itemId as ItemId });
+    return result;
   }
 
   respawnPlayer(): void {
