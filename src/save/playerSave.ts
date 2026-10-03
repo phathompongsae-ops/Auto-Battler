@@ -1,19 +1,27 @@
 import { isJobId, type JobId } from '../data/jobData';
 import { ITEMS, type ItemId } from '../data/itemData';
 import { NOVICE_BASE_STATS } from '../data/statData';
+import { earnedSkillPoints } from '../progression/CharacterProgress';
+import { classGrowthMaxLevel } from '../stats/classBaseStats';
 import { isPrimaryStat, PRIMARY_STATS, zeroPrimary, type PrimaryStats } from '../stats/primaryStats';
 
 /*
- * Versioned player save, v1. Plain data with stable ids only (classId
+ * Versioned player save. Plain data with stable ids only (classId
  * "warrior", never a display name). Stores inputs, never derived values
  * like ATK or Max HP: those are recalculated on load. Shaped so the same
  * record can later live on a server.
  */
 
-export const PLAYER_SAVE_VERSION = 1;
+export const PLAYER_SAVE_VERSION = 2;
 
-export interface PlayerSaveV1 {
-  schemaVersion: 1;
+/**
+ * v2 (current). Change from v1: `skillPoints` (unspent, never earnable in v1)
+ * became `skillPointsSpent`, since earned skill points are now derived from
+ * job and level. Stat inputs are unchanged; combat stats are re-derived
+ * under Class Base Growth v1 on load.
+ */
+export interface PlayerSaveV2 {
+  schemaVersion: 2;
   characterId: string;
   classId: JobId;
   level: number;
@@ -27,7 +35,8 @@ export interface PlayerSaveV1 {
   };
   /** Redundant with level and allocated; stored for server checks and validated on load. */
   unspentStatPoints: number;
-  skillPoints: number;
+  /** Earned skill points are derived from job and level; only spending is stored. */
+  skillPointsSpent: number;
 
   /** Stackable items by stable item id. */
   inventory: { itemId: ItemId; count: number }[];
@@ -45,21 +54,24 @@ export interface PlayerSaveV1 {
   dungeons: Record<string, { cleared: string[] }>;
 }
 
-export type PlayerSave = PlayerSaveV1;
+export type PlayerSave = PlayerSaveV2;
+
+/** v1 differs from v2 only in `skillPoints` vs `skillPointsSpent`. */
+export type PlayerSaveV1 = Omit<PlayerSaveV2, 'schemaVersion' | 'skillPointsSpent'> & { schemaVersion: 1; skillPoints: number };
 
 export class SaveError extends Error {}
 
 /** A brand-new character's save (Lv1 Novice). */
 export function newPlayerSave(characterId: string): PlayerSave {
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     characterId,
     classId: 'novice',
     level: 1,
     exp: 0,
     stats: { base: { ...NOVICE_BASE_STATS }, allocated: zeroPrimary(), jobBonuses: {} },
     unspentStatPoints: 0,
-    skillPoints: 0,
+    skillPointsSpent: 0,
     inventory: [],
     equipment: {},
     activePetId: null,
@@ -85,14 +97,23 @@ export function deserializePlayerSave(text: string): PlayerSave {
   return validate(migrate(raw));
 }
 
-/**
- * Upgrade older saves step by step to the current version. v1 is the first
- * version; future versions add `case n:` steps here.
- */
+/** Upgrade older saves step by step to the current version, then validate. */
 function migrate(raw: unknown): unknown {
-  const version = (raw as { schemaVersion?: unknown } | null)?.schemaVersion;
-  if (version === PLAYER_SAVE_VERSION) return raw;
-  throw new SaveError(`unsupported save version: ${String(version)}`);
+  let save = raw as Record<string, unknown> | null;
+  if (save?.schemaVersion === 1) save = migrateV1toV2(save);
+  if (save?.schemaVersion === PLAYER_SAVE_VERSION) return save;
+  throw new SaveError(`unsupported save version: ${String(save?.schemaVersion)}`);
+}
+
+/**
+ * v1 → v2. v1 had no way to earn or spend skill points, so nothing was spent.
+ * Everything else carries over unchanged; validation then checks the result
+ * under the current rules (e.g. a class above its growth range is rejected).
+ */
+function migrateV1toV2(v1: Record<string, unknown>): Record<string, unknown> {
+  const { skillPoints: _unspentInV1, ...rest } = v1;
+  void _unspentInV1;
+  return { ...rest, schemaVersion: 2, skillPointsSpent: 0 };
 }
 
 const isObject = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);
@@ -147,7 +168,10 @@ function validate(raw: unknown): PlayerSave {
   const spent = PRIMARY_STATS.reduce((n, stat) => n + allocated[stat], 0);
   if (spent > earned) throw new SaveError('more stat points allocated than earned');
   if (s.unspentStatPoints !== earned - spent) throw new SaveError('unspentStatPoints does not match level and allocation');
-  if (!isCount(s.skillPoints)) throw new SaveError('skillPoints invalid');
+  const levelCap = classGrowthMaxLevel(s.classId);
+  if (levelCap !== null && s.level > levelCap) throw new SaveError(`level ${s.level} is above ${s.classId}'s maximum ${levelCap}`);
+  if (!isCount(s.skillPointsSpent)) throw new SaveError('skillPointsSpent invalid');
+  if (s.skillPointsSpent > earnedSkillPoints(s.classId, s.level)) throw new SaveError('more skill points spent than earned');
 
   if (!Array.isArray(s.inventory)) throw new SaveError('inventory invalid');
   const inventory = s.inventory.map((entry, i) => {
@@ -164,14 +188,14 @@ function validate(raw: unknown): PlayerSave {
   if (s.activePetId !== null && typeof s.activePetId !== 'string') throw new SaveError('activePetId invalid');
 
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     characterId: s.characterId,
     classId: s.classId,
     level: s.level,
     exp: s.exp,
     stats: { base, allocated, jobBonuses },
     unspentStatPoints: s.unspentStatPoints,
-    skillPoints: s.skillPoints,
+    skillPointsSpent: s.skillPointsSpent,
     inventory,
     equipment: record(s.equipment, 'equipment', (x): x is string | null => x === null || typeof x === 'string'),
     activePetId: s.activePetId,

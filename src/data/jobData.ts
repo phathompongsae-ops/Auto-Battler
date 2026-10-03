@@ -14,6 +14,15 @@ export type JobTier = 0 | 1 | 2;
 /** Level at which a job of each tier can be taken. */
 export const JOB_CHANGE_LEVEL: Record<Exclude<JobTier, 0>, number> = { 1: 11, 2: 40 };
 
+/**
+ * Skill points per tier: +perLevel for each level from fromLevel to toLevel,
+ * earned once a job of that tier is held. Levels only; quests never grant
+ * skill points. Tier 2 is not designed yet.
+ */
+export const SKILL_POINT_PROGRESSION: Partial<Record<Exclude<JobTier, 0>, { fromLevel: number; toLevel: number; perLevel: number }>> = {
+  1: { fromLevel: 11, toLevel: 40, perLevel: 1 },
+};
+
 export interface JobDef {
   id: string;
   name: string;

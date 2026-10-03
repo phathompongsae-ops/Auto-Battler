@@ -84,7 +84,7 @@ export class ActionCluster {
     for (const { slot, skillId } of this.slots) {
       if (!skillId) continue;
       const skill = SKILLS[skillId];
-      slot.setCooldown(this.world.skills.cooldownRemaining(player, skillId, now), skill.cooldown);
+      slot.setCooldown(this.world.skills.cooldownRemaining(player, skillId, now), this.world.skills.cooldownDuration(player, skillId));
       slot.setDisabled(c.dead || c.mp < skill.mpCost);
     }
   }

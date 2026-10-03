@@ -30,7 +30,7 @@ function midGame(): SaveTarget {
   changeJob(t, 'warrior');
   allocateStat(t, 'str', 6);
   allocateStat(t, 'vit', 3);
-  t.progress.skillPoints = 4;
+  t.progress.skillPointsSpent = 4;
   t.inventory.add('slime_gel', 7);
   t.inventory.add('stat_reset_test', 1);
   t.hooks.currencies = { gold: 250 };
@@ -122,5 +122,42 @@ describe('player save v1', () => {
     assert.throws(() => deserializePlayerSave(bad((s) => ((s.stats as PlayerSave['stats']).allocated.str = 50))), /more stat points/);
     assert.throws(() => deserializePlayerSave(bad((s) => (s.unspentStatPoints = 99))), /unspentStatPoints/);
     assert.throws(() => deserializePlayerSave(bad((s) => (s.inventory = [{ itemId: 'nope', count: 1 }]))), /inventory/);
+  });
+});
+
+describe('save schema migration', () => {
+  const asV1 = (save: PlayerSave) => {
+    const { skillPointsSpent: _spent, ...rest } = save;
+    void _spent;
+    return JSON.stringify({ ...rest, schemaVersion: 1, skillPoints: 0 });
+  };
+
+  test('current version is 2', () => {
+    assert.equal(PLAYER_SAVE_VERSION, 2);
+    assert.equal(capturePlayerSave(midGame()).schemaVersion, 2);
+  });
+
+  test('a v1 save migrates to v2 with its stat inputs intact and nothing spent', () => {
+    const t = midGame();
+    t.progress.skillPointsSpent = 0;
+    const current = capturePlayerSave(t);
+    const migrated = deserializePlayerSave(asV1(current));
+    assert.equal(migrated.schemaVersion, 2);
+    assert.equal(migrated.skillPointsSpent, 0);
+    assert.equal('skillPoints' in migrated, false);
+    assert.deepEqual(migrated, current);
+  });
+
+  test('a v1 save that breaks current rules is rejected with a clear error', () => {
+    const bad = JSON.parse(asV1(capturePlayerSave(midGame())));
+    bad.level = 45; // Warrior (Class 1) growth ends at Lv40
+    bad.unspentStatPoints = 44 - 9;
+    assert.throws(() => deserializePlayerSave(JSON.stringify(bad)), /above warrior's maximum 40/);
+  });
+
+  test('skill points spent beyond what job and level earned are rejected', () => {
+    const save = capturePlayerSave(midGame());
+    save.skillPointsSpent = 6; // Lv15 Warrior earned 5
+    assert.throws(() => deserializePlayerSave(serializePlayerSave(save)), /more skill points spent/);
   });
 });

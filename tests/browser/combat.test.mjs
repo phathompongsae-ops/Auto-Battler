@@ -19,6 +19,8 @@ export async function combatSuite(b, t, shot) {
     await api('reset()');
     await api('setPeaceful(true)');
     await api('setRng(0.5)');
+    // MP checks below test skill costs from a fixed pool, whatever the derived max MP is.
+    await api('setPlayerMp(50)');
     await api(`placeMonster('slime-1', ${PLAYER_SPAWN.x}, ${PLAYER_SPAWN.y - 48}, true)`);
     await sleep(150);
     await api('clearLog()');
@@ -40,7 +42,8 @@ export async function combatSuite(b, t, shot) {
   await sleep(100);
   let dmg = await events(`e => e.type === 'damage' && e.source === 'player' && e.skill === 'basic_attack'`);
   let m = await monster('slime-1');
-  t.check('2. basic attack damages monster', dmg.length === 1 && m.hp === 60 - dmg[0].amount, `hits=${dmg.length} hp=${m.hp} dmg=${dmg[0]?.amount}`);
+  const physical = Math.round((p.stats.attack * 1 * 100) / (100 + 2));
+  t.check('2. basic attack damages monster', dmg.length === 1 && m.hp === 60 - dmg[0].amount && dmg[0].amount === physical, `hits=${dmg.length} hp=${m.hp} dmg=${dmg[0]?.amount}`);
   const basicDamage = dmg[0]?.amount ?? 0;
 
   await b.press('Space'); // still on 500 ms cooldown
@@ -122,6 +125,8 @@ export async function combatSuite(b, t, shot) {
   t.check('16. Fire Bolt spends 12 MP', p.mp >= 38 && p.mp < 39, `mp=${p.mp.toFixed(2)}`);
   await b.waitFor(`debug.log.some(e => e.type === 'damage' && e.skill === 'fire_bolt')`, { timeout: 1500, label: 'fire bolt hit' });
   dmg = await events(`e => e.type === 'damage' && e.skill === 'fire_bolt'`);
+  const magic = Math.round((p.stats.magicAttack * 1.6 * 100) / (100 + 2));
+  t.check('15c. Fire Bolt uses the magic path (MATK vs MDEF)', dmg[0]?.amount === magic, `dmg=${dmg[0]?.amount} expected=${magic}`);
   t.check('15. Fire Bolt projectile travels and hits target', spawned.length === 1 && inFlight === 1 && dmg.length === 1 && dmg[0].target === 'slime-1' && (await api('projectiles()')) === 0, `spawned=${spawned.length} inFlight=${inFlight} hit=${dmg[0]?.target}`);
 
   await api('resetCooldowns()');
@@ -182,7 +187,8 @@ export async function combatSuite(b, t, shot) {
   p = await player();
   const levelUps = await events(`e => e.type === 'levelUp'`);
   t.check('22. level-up occurs and refills HP/MP', p.level === 2 && levelUps.length === 1 && p.exp === 10 && p.hp === p.stats.maxHp && p.mp === p.stats.maxMp, `lv=${p.level} exp=${p.exp} hp=${p.hp}/${p.stats.maxHp}`);
-  t.check('22b. level-up increases stats', p.stats.maxHp > statsBefore.maxHp && p.stats.attack > statsBefore.attack && p.stats.defense > statsBefore.defense, `hp ${statsBefore.maxHp}→${p.stats.maxHp} atk ${statsBefore.attack}→${p.stats.attack}`);
+  const prog = await b.eval('debug.progress()');
+  t.check('22b. Novice level-up grants a free stat point; base stays fixed (no legacy growth)', prog.remainingStatPoints === 1 && JSON.stringify(p.stats) === JSON.stringify(statsBefore), `points=${prog.remainingStatPoints} hp ${statsBefore.maxHp}->${p.stats.maxHp}`);
   await shot('combat-04-levelup');
 
   // ------------------------------------------------------------------ loot

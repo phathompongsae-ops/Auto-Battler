@@ -33,6 +33,7 @@ export function createDevApi(world: CombatWorld, overlays: WorldOverlays) {
   const ev = world.events;
   ev.on('damage', (e) => record('damage', { source: e.sourceId, target: e.targetId, skill: e.skillId, amount: e.amount, crit: e.crit }));
   ev.on('heal', (e) => record('heal', { target: e.targetId, amount: e.amount }));
+  ev.on('miss', (e) => record('miss', { source: e.sourceId, target: e.targetId, skill: e.skillId }));
   ev.on('death', (e) => record('death', { entity: e.entityId, source: e.killerId ?? undefined }));
   ev.on('respawn', (e) => record('respawn', { entity: e.entityId }));
   ev.on('skillUsed', (e) => record('skillUsed', { source: e.casterId, skill: e.skillId, target: e.targetId ?? undefined }));
@@ -125,8 +126,10 @@ export function createDevApi(world: CombatWorld, overlays: WorldOverlays) {
         earnedStatPoints: p.progress.earned(level),
         spentStatPoints: p.progress.spent(),
         remainingStatPoints: p.progress.remaining(level),
+        earnedSkillPoints: p.progress.earnedSkillPoints(level),
+        remainingSkillPoints: p.progress.remainingSkillPoints(level),
         final: finalPrimary([...p.progress.modifiers(), ...p.statModifiers.list()]),
-        derived: playerDerivedStats(p.progress, level, p.statModifiers.list()),
+        derived: playerDerivedStats(p.progress, level, p.statModifiers.list(), p.combat.statuses),
       };
     },
     /** Jump to a level (no EXP, no level-up events); stats refresh. */

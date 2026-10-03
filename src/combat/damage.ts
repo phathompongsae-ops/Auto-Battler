@@ -1,24 +1,46 @@
 import type { Rng } from '../core/rng';
+import { HIT_CHANCE, MITIGATION_SCALE } from '../data/combatRules';
+import type { DamageType } from '../data/skillData';
 import type { CombatStats } from './types';
 
-export interface DamageRoll {
-  amount: number;
-  crit: boolean;
+/*
+ * Pure damage rules (locked v1). No engine code; randomness comes from the
+ * injected Rng so tests and a future server control every roll.
+ */
+
+export type AttackResult = { hit: false } | { hit: true; amount: number; crit: boolean };
+
+/** Hit chance = 95% + attacker accuracy - defender evasion, clamped to 70%..100%. */
+export function hitChance(accuracy: number, evasion: number): number {
+  return Math.min(HIT_CHANCE.max, Math.max(HIT_CHANCE.min, HIT_CHANCE.base + accuracy - evasion));
 }
 
-export const DAMAGE_VARIANCE = 0.1; // ±10%
-export const DEFENSE_FACTOR = 0.5; // each point of defense blocks this much damage
+/** Damage after DEF / MDEF, before crit: ATK × multiplier × 100 / (100 + defense). */
+export function mitigatedDamage(attack: number, multiplier: number, defense: number): number {
+  return (attack * multiplier * MITIGATION_SCALE) / (MITIGATION_SCALE + Math.max(0, defense));
+}
 
-/** Pure damage formula. Always deals at least 1. */
-export function rollDamage(
+/**
+ * Resolve one damaging attack: hit roll, then mitigation, then crit (applied
+ * after DEF/MDEF). Physical uses ATK vs DEF, magic uses MATK vs MDEF. A miss
+ * deals nothing; a hit deals at least 1.
+ *
+ * Roll order: rng() for hit (hit when below the hit chance), then rng() for
+ * crit (crit when below the crit chance) only on a hit.
+ */
+export function resolveAttack(
   attacker: Readonly<CombatStats>,
   defender: Readonly<CombatStats>,
-  power: number,
+  multiplier: number,
+  type: DamageType,
   rng: Rng,
-): DamageRoll {
+): AttackResult {
+  if (rng() >= hitChance(attacker.accuracy, defender.evasion)) return { hit: false };
+  const base =
+    type === 'magic'
+      ? mitigatedDamage(attacker.magicAttack, multiplier, defender.magicDefense)
+      : mitigatedDamage(attacker.attack, multiplier, defender.defense);
   const crit = rng() < attacker.critChance;
-  const variance = 1 - DAMAGE_VARIANCE + rng() * DAMAGE_VARIANCE * 2;
-  const raw = attacker.attack * power * variance - defender.defense * DEFENSE_FACTOR;
-  const amount = Math.max(1, Math.round(raw * (crit ? attacker.critMultiplier : 1)));
-  return { amount, crit };
+  const amount = Math.max(1, Math.round(base * (crit ? attacker.critMultiplier : 1)));
+  return { hit: true, amount, crit };
 }

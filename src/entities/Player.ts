@@ -22,6 +22,8 @@ import { DIRECTIONS, DIRECTION_VECTORS, type Direction } from '../input/Directio
 import { CharacterProgress } from '../progression/CharacterProgress';
 import { ModifierStack } from '../stats/ModifierStack';
 import { playerCombatStats } from '../stats/playerCombatStats';
+import { classGrowthMaxLevel } from '../stats/classBaseStats';
+import { MAX_LEVEL } from '../data/progressionData';
 
 export type PlayerState = 'idle' | 'walk' | 'dead';
 
@@ -90,8 +92,14 @@ export class Player extends Phaser.Physics.Arcade.Sprite implements CombatEntity
     scene.add.existing(this);
     scene.physics.add.existing(this);
 
-    this.combat = new CombatantState('player', 'Player', 'player', (level) =>
-      playerCombatStats(this.progress, level, this.statModifiers.list()),
+    this.combat = new CombatantState(
+      'player',
+      'Player',
+      'player',
+      (level, statuses) => playerCombatStats(this.progress, level, this.statModifiers.list(), statuses),
+      1,
+      // A class can't level past its last base-growth anchor (Class 1: Lv40).
+      () => classGrowthMaxLevel(this.progress.classId) ?? MAX_LEVEL,
     );
     this.layout = art ? artLayout(art) : PLAYER_PLACEHOLDER_LAYOUT;
 

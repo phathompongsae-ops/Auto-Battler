@@ -1,67 +1,71 @@
-import { statsForLevel } from '../combat/stats';
+import type { ActiveStatus } from '../combat/CombatantState';
+import { statusModifiers } from '../combat/stats';
 import type { CombatStats } from '../combat/types';
+import { BASE_CRIT_MULTIPLIER } from '../data/combatRules';
 import { JOBS } from '../data/jobData';
-import { PLAYER_BASE_STATS, PLAYER_GROWTH } from '../data/playerData';
-import { STAT_CONTRIBUTION_ORIGIN } from '../data/statData';
+import { PLAYER_FIXED_STATS } from '../data/playerData';
 import type { CharacterProgress } from '../progression/CharacterProgress';
+import { classBaseStats } from './classBaseStats';
 import { deriveStats, type DerivedStats } from './derivedStats';
 import type { StatModifier } from './modifiers';
 
-/**
- * The current game's per-level numbers, as the base the stat layer builds
- * on. Unchanged from before the stat system: no rebalance.
- */
-export function legacyDerivedBase(level: number): { base: Partial<DerivedStats>; legacy: CombatStats } {
-  const legacy = statsForLevel(PLAYER_BASE_STATS, PLAYER_GROWTH, level);
+/** Class Base Growth at `level`, as derived-stat base values (before any primary stat). */
+export function playerDerivedBase(progress: CharacterProgress, level: number): Partial<DerivedStats> {
+  const b = classBaseStats(progress.classId, level);
   return {
-    legacy,
-    base: {
-      maxHp: legacy.maxHp,
-      maxMp: legacy.maxMp,
-      physicalAtk: legacy.attack,
-      // Fire Bolt still uses ATK until magic damage is designed; same starting value.
-      magicAtk: legacy.attack,
-      def: legacy.defense,
-      critRate: legacy.critChance,
-      critDamage: legacy.critMultiplier - 1,
-    },
+    maxHp: b.hp,
+    maxMp: b.mp,
+    physicalAtk: b.atk,
+    magicAtk: b.matk,
+    def: b.def,
+    mdef: b.mdef,
+    critDamage: BASE_CRIT_MULTIPLIER - 1,
   };
 }
 
-/** Full derived stats for a player at `level`, including future gear/pet/buff modifiers. */
+/**
+ * Full derived stats: class base + every primary-stat point (base, allocated,
+ * job, equipment, pet, buff, debuff) + flat / percent modifiers.
+ */
 export function playerDerivedStats(
   progress: CharacterProgress,
   level: number,
   extra: readonly StatModifier[] = [],
+  statuses: readonly ActiveStatus[] = [],
 ): DerivedStats {
   return deriveStats({
-    modifiers: [...progress.modifiers(), ...extra],
-    base: legacyDerivedBase(level).base,
+    modifiers: [...progress.modifiers(), ...extra, ...statusModifiers(statuses)],
+    base: playerDerivedBase(progress, level),
     attackStyle: JOBS[progress.classId].attackStyle,
-    origin: STAT_CONTRIBUTION_ORIGIN,
   });
 }
 
 /**
- * Derived stats mapped onto the fields combat uses today. Stats combat
- * doesn't read yet (MATK, MDEF, accuracy, evasion, ASPD, cast time, heal
- * power) are calculated by playerDerivedStats() and waiting for their systems.
+ * Derived stats as combat uses them. Integer stats (HP, MP, ATK, MATK, DEF,
+ * MDEF) round to the nearest whole number; percent-type stats stay exact.
  */
 export function playerCombatStats(
   progress: CharacterProgress,
   level: number,
   extra: readonly StatModifier[] = [],
+  statuses: readonly ActiveStatus[] = [],
 ): CombatStats {
-  const { legacy } = legacyDerivedBase(level);
-  const d = playerDerivedStats(progress, level, extra);
+  const d = playerDerivedStats(progress, level, extra, statuses);
   return {
     maxHp: Math.round(d.maxHp),
     maxMp: Math.round(d.maxMp),
     attack: Math.round(d.physicalAtk),
+    magicAttack: Math.round(d.magicAtk),
     defense: Math.round(d.def),
-    moveSpeed: legacy.moveSpeed,
+    magicDefense: Math.round(d.mdef),
+    accuracy: d.accuracy,
+    evasion: d.evasion,
+    attackSpeed: d.aspd,
     critChance: d.critRate,
     critMultiplier: 1 + d.critDamage,
-    mpRegen: legacy.mpRegen,
+    castTime: d.castTime,
+    healPower: d.healPower,
+    moveSpeed: PLAYER_FIXED_STATS.moveSpeed,
+    mpRegen: PLAYER_FIXED_STATS.mpRegen,
   };
 }

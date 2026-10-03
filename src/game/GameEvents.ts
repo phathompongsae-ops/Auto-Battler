@@ -22,6 +22,8 @@ export type GameEvents = {
     heavy: boolean;
   };
   heal: { targetId: EntityId; amount: number };
+  /** A damaging attack missed (hit roll failed); no damage and no on-hit effects. */
+  miss: { sourceId: EntityId; targetId: EntityId; skillId: SkillId };
   death: { entityId: EntityId; killerId: EntityId | null };
   respawn: { entityId: EntityId };
   skillUsed: { casterId: EntityId; skillId: SkillId; targetId: EntityId | null };

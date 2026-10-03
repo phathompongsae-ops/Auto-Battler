@@ -1,5 +1,6 @@
 import { FREE_STAT_POINTS_PER_LEVEL, NOVICE_BASE_STATS } from '../data/statData';
-import { isJobId, JOB_CHANGE_LEVEL, JOBS, STARTING_JOB, type JobId } from '../data/jobData';
+import { isJobId, JOB_CHANGE_LEVEL, JOBS, SKILL_POINT_PROGRESSION, STARTING_JOB, type JobId } from '../data/jobData';
+import { classGrowthMaxLevel } from '../stats/classBaseStats';
 import { primaryModifier, type StatModifier } from '../stats/modifiers';
 import { clonePrimary, isPrimaryStat, PRIMARY_STATS, sumPrimary, zeroPrimary, type PrimaryStat, type PrimaryStats } from '../stats/primaryStats';
 
@@ -9,7 +10,21 @@ export function earnedStatPoints(level: number): number {
 }
 
 export type AllocateError = 'invalid_stat' | 'invalid_amount' | 'not_enough_points';
-export type JobChangeError = 'unknown_job' | 'level_too_low' | 'not_allowed_from_current_job';
+export type JobChangeError = 'unknown_job' | 'level_too_low' | 'level_too_high' | 'not_allowed_from_current_job';
+
+/**
+ * Skill points earned at `level` by a character whose job is `classId`: the
+ * sum over every tier up to the job's tier. Novice earns none.
+ */
+export function earnedSkillPoints(classId: JobId, level: number): number {
+  let total = 0;
+  for (let tier = 1; tier <= JOBS[classId].tier; tier++) {
+    const rule = SKILL_POINT_PROGRESSION[tier as 1 | 2];
+    if (!rule || level < rule.fromLevel) continue;
+    total += (Math.min(level, rule.toLevel) - rule.fromLevel + 1) * rule.perLevel;
+  }
+  return total;
+}
 
 export interface CharacterProgressData {
   classId: JobId;
@@ -17,7 +32,8 @@ export interface CharacterProgressData {
   allocated: PrimaryStats;
   /** Bonus granted by each job taken, kept separate per job. */
   jobBonuses: Partial<Record<JobId, Partial<PrimaryStats>>>;
-  skillPoints: number;
+  /** Skill points spent (skill trees aren't designed yet). Earned points are derived from job and level. */
+  skillPointsSpent: number;
 }
 
 /**
@@ -30,7 +46,7 @@ export class CharacterProgress {
   readonly base: PrimaryStats;
   readonly allocated: PrimaryStats;
   readonly jobBonuses: Partial<Record<JobId, Partial<PrimaryStats>>>;
-  skillPoints: number;
+  skillPointsSpent: number;
 
   constructor(data?: Partial<CharacterProgressData>) {
     this.classId = data?.classId ?? STARTING_JOB;
@@ -39,7 +55,7 @@ export class CharacterProgress {
     this.jobBonuses = Object.fromEntries(
       Object.entries(data?.jobBonuses ?? {}).map(([job, bonus]) => [job, { ...bonus }]),
     ) as Partial<Record<JobId, Partial<PrimaryStats>>>;
-    this.skillPoints = data?.skillPoints ?? 0;
+    this.skillPointsSpent = data?.skillPointsSpent ?? 0;
   }
 
   earned(level: number): number {
@@ -63,6 +79,14 @@ export class CharacterProgress {
     return { ok: true };
   }
 
+  earnedSkillPoints(level: number): number {
+    return earnedSkillPoints(this.classId, level);
+  }
+
+  remainingSkillPoints(level: number): number {
+    return this.earnedSkillPoints(level) - this.skillPointsSpent;
+  }
+
   /** Return every allocated point. Touches nothing else. Returns how many came back. */
   resetAllocated(): number {
     const refunded = this.spent();
@@ -76,6 +100,8 @@ export class CharacterProgress {
     const job = JOBS[jobId];
     if (job.tier === 0 || !job.from.includes(this.classId)) return { ok: false, reason: 'not_allowed_from_current_job' };
     if (level < JOB_CHANGE_LEVEL[job.tier]) return { ok: false, reason: 'level_too_low' };
+    const growthEnd = classGrowthMaxLevel(jobId);
+    if (growthEnd !== null && level > growthEnd) return { ok: false, reason: 'level_too_high' };
     return { ok: true };
   }
 
@@ -115,7 +141,7 @@ export class CharacterProgress {
     Object.assign(this.allocated, fresh.allocated);
     for (const key of Object.keys(this.jobBonuses)) delete this.jobBonuses[key as JobId];
     Object.assign(this.jobBonuses, fresh.jobBonuses);
-    this.skillPoints = fresh.skillPoints;
+    this.skillPointsSpent = fresh.skillPointsSpent;
   }
 
   toData(): CharacterProgressData {
@@ -124,7 +150,7 @@ export class CharacterProgress {
       base: clonePrimary(this.base),
       allocated: clonePrimary(this.allocated),
       jobBonuses: Object.fromEntries(Object.entries(this.jobBonuses).map(([j, b]) => [j, { ...b }])),
-      skillPoints: this.skillPoints,
+      skillPointsSpent: this.skillPointsSpent,
     };
   }
 }

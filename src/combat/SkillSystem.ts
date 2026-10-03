@@ -2,6 +2,8 @@ import type { EventBus } from '../core/EventBus';
 import { distance, type Point } from '../core/math';
 import { SKILLS, type SkillDef, type SkillId } from '../data/skillData';
 import type { GameEvents } from '../game/GameEvents';
+import { effectiveHeal } from '../stats/castAndHeal';
+import { attackInterval } from './attackSpeed';
 import type { CombatSystem } from './CombatSystem';
 import type { ProjectileSystem } from './ProjectileSystem';
 import type { StatusSystem } from './StatusSystem';
@@ -49,6 +51,16 @@ export class SkillSystem {
     private readonly projectiles: ProjectileSystem,
   ) {}
 
+  /**
+   * Cooldown a use of this skill starts. Basic attacks (usesAttackSpeed) use
+   * their cooldown as the base attack interval, shortened by the caster's ASPD;
+   * every other skill keeps its configured cooldown.
+   */
+  cooldownDuration(caster: CombatEntity, skillId: SkillId): number {
+    const skill = SKILLS[skillId];
+    return skill.usesAttackSpeed ? attackInterval(skill.cooldown, caster.combat.stats.attackSpeed) : skill.cooldown;
+  }
+
   cooldownRemaining(caster: CombatEntity, skillId: SkillId, now: number): number {
     return Math.max(0, (caster.combat.cooldowns.get(skillId) ?? 0) - now);
   }
@@ -75,7 +87,7 @@ export class SkillSystem {
     }
 
     caster.combat.mp -= skill.mpCost;
-    caster.combat.cooldowns.set(skillId, now + skill.cooldown);
+    caster.combat.cooldowns.set(skillId, now + this.cooldownDuration(caster, skillId));
     this.events.emit('skillUsed', { casterId: caster.id, skillId, targetId: target?.id ?? null });
     this.execute(caster, skillId, skill, target, options.aim, now);
     return { ok: true };
@@ -156,7 +168,7 @@ export class SkillSystem {
         this.statuses.apply(caster, effect.statusId, effect.duration, now);
         break;
       case 'heal':
-        this.combat.heal(caster, effect.amount);
+        this.combat.heal(caster, effectiveHeal(effect.amount, caster.combat.stats.healPower));
         break;
     }
   }

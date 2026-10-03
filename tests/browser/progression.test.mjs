@@ -9,7 +9,7 @@ export async function progressionSuite(b, t) {
   let p = await b.eval('debug.progress()');
   let combat = await b.eval('debug.player().stats');
   t.check('S1. Lv1 Novice: 5 in every stat, no free points', p.classId === 'novice' && Object.values(p.final).every((v) => v === 5) && p.remainingStatPoints === 0, JSON.stringify(p.final));
-  t.check('S2. fresh character keeps the current combat numbers', combat.maxHp === 120 && combat.attack === 12 && combat.defense === 4, JSON.stringify(combat));
+  t.check('S2. fresh Novice: class base + its six starting 5s', combat.maxHp === 425 && combat.maxMp === 175 && combat.attack === 35 && combat.magicAttack === 30 && combat.defense === 13 && combat.magicDefense === 13, JSON.stringify(combat));
   const lv1 = await b.eval(`debug.allocateStat('str', 1)`);
   t.check('S3. allocating with no points is rejected', lv1.ok === false && lv1.reason === 'not_enough_points', JSON.stringify(lv1));
 
@@ -26,7 +26,7 @@ export async function progressionSuite(b, t) {
   after = await b.eval('debug.player().stats');
   t.check(
     'S6. Warrior job bonus applies automatically, separate from allocated, no points used',
-    job.ok && p.classId === 'warrior' && p.jobBonuses.warrior.str === 3 && p.allocated.str === 0 && p.final.str === 8 && p.remainingStatPoints === 8 && after.attack === before.attack + 6,
+    job.ok && p.classId === 'warrior' && p.jobBonuses.warrior.str === 3 && p.allocated.str === 0 && p.final.str === 8 && p.remainingStatPoints === 8 && after.attack === 70 + (5 + 3) * 2 && after.maxHp === 700 + (5 + 2 + 2) * 25,
     JSON.stringify({ job, jobBonuses: p.jobBonuses, allocated: p.allocated, remaining: p.remainingStatPoints, attack: after.attack }),
   );
 
@@ -65,6 +65,6 @@ export async function progressionSuite(b, t) {
   await b.eval('debug.reset()');
   p = await b.eval('debug.progress()');
   combat = await b.eval('debug.player().stats');
-  t.check('S8. world reset returns to a clean Lv1 Novice', p.classId === 'novice' && p.level === 1 && p.spentStatPoints === 0 && Object.keys(p.jobBonuses).length === 0 && combat.maxHp === 120, JSON.stringify({ classId: p.classId, level: p.level }));
+  t.check('S8. world reset returns to a clean Lv1 Novice', p.classId === 'novice' && p.level === 1 && p.spentStatPoints === 0 && Object.keys(p.jobBonuses).length === 0 && combat.maxHp === 425, JSON.stringify({ classId: p.classId, level: p.level }));
   await sleep(100);
 }

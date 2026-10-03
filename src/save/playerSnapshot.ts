@@ -24,14 +24,14 @@ export function capturePlayerSave(t: SaveTarget): PlayerSave {
   const data = t.progress.toData();
   const level = t.combat.level;
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     characterId: t.characterId,
     classId: data.classId,
     level,
     exp: t.combat.exp,
     stats: { base: data.base, allocated: data.allocated, jobBonuses: data.jobBonuses },
     unspentStatPoints: t.progress.remaining(level),
-    skillPoints: data.skillPoints,
+    skillPointsSpent: data.skillPointsSpent,
     inventory: t.inventory.entries().map(([itemId, count]) => ({ itemId, count })),
     ...structuredClone(t.hooks),
   };
@@ -45,7 +45,7 @@ export function applyPlayerSave(t: SaveTarget, save: PlayerSave): void {
     base: save.stats.base,
     allocated: save.stats.allocated,
     jobBonuses: save.stats.jobBonuses,
-    skillPoints: save.skillPoints,
+    skillPointsSpent: save.skillPointsSpent,
   });
   t.combat.level = save.level;
   t.combat.exp = save.exp;

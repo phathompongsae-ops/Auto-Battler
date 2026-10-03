@@ -1,6 +1,6 @@
 import { PRIMARY_STAT_RULES } from '../data/statData';
 import { finalPrimary, type DerivedStatKey, type StatModifier } from './modifiers';
-import { zeroPrimary, type PrimaryStats } from './primaryStats';
+import type { PrimaryStats } from './primaryStats';
 
 /*
  * Derived stats are always calculated, never stored: persist the inputs
@@ -55,11 +55,6 @@ export interface DeriveInput {
   /** Values before primary stats: class/level base numbers. Missing keys are 0. */
   base?: Partial<DerivedStats>;
   attackStyle: AttackStyle;
-  /**
-   * Primary stats that contribute nothing. Zero gives the literal formulas;
-   * see STAT_CONTRIBUTION_ORIGIN for the live game's compatibility origin.
-   */
-  origin?: Readonly<PrimaryStats>;
 }
 
 export function emptyDerived(): DerivedStats {
@@ -73,9 +68,9 @@ export function deriveStats(input: DeriveInput): DerivedStats {
   const out = emptyDerived();
   Object.assign(out, input.base);
 
+  // Every point of every final primary stat contributes (no free first points).
   const p = finalPrimary(input.modifiers);
-  const o = input.origin ?? zeroPrimary();
-  const d = (stat: keyof PrimaryStats) => p[stat] - o[stat];
+  const d = (stat: keyof PrimaryStats) => p[stat];
   const r = PRIMARY_STAT_RULES;
 
   out.physicalAtk += input.attackStyle === 'ranged' ? d('dex') * r.dex.rangedPhysicalAtk : d('str') * r.str.meleePhysicalAtk;

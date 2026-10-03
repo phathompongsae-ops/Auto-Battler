@@ -2,8 +2,7 @@ import assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
 import { CombatantState } from '../../src/combat/CombatantState';
 import { JOB_CHANGE_LEVEL, JOBS, type JobId } from '../../src/data/jobData';
-import { PLAYER_BASE_STATS } from '../../src/data/playerData';
-import { NOVICE_BASE_STATS, STAT_CONTRIBUTION_ORIGIN } from '../../src/data/statData';
+import { NOVICE_BASE_STATS } from '../../src/data/statData';
 import { useItem } from '../../src/items/useItem';
 import { Inventory } from '../../src/loot/Inventory';
 import { CharacterProgress, earnedStatPoints } from '../../src/progression/CharacterProgress';
@@ -218,35 +217,47 @@ describe('modifier pipeline', () => {
   });
 });
 
-describe('live game compatibility', () => {
-  test('a fresh Lv1 Novice keeps the current combat numbers (no rebalance)', () => {
-    assert.deepEqual(STAT_CONTRIBUTION_ORIGIN, NOVICE_BASE_STATS);
-    const owner = makeOwner(1);
-    const s = owner.combat.stats;
-    assert.equal(s.maxHp, PLAYER_BASE_STATS.maxHp);
-    assert.equal(s.maxMp, PLAYER_BASE_STATS.maxMp);
-    assert.equal(s.attack, PLAYER_BASE_STATS.attack);
-    assert.equal(s.defense, PLAYER_BASE_STATS.defense);
-    close(s.critChance, PLAYER_BASE_STATS.critChance);
-    close(s.critMultiplier, PLAYER_BASE_STATS.critMultiplier);
+describe('player combat stats (literal stats on class base growth)', () => {
+  test('a fresh Lv1 Novice: base 300/100/25/20/8/8 plus its six starting 5s', () => {
+    const s = makeOwner(1).combat.stats;
+    assert.equal(s.maxHp, 300 + 5 * 25);
+    assert.equal(s.maxMp, 100 + 5 * 15);
+    assert.equal(s.attack, 25 + 5 * 2);
+    assert.equal(s.magicAttack, 20 + 5 * 2);
+    assert.equal(s.defense, 8 + 5);
+    assert.equal(s.magicDefense, 8 + 5);
+    close(s.accuracy, 5 * 0.002);
+    close(s.evasion, 5 * 0.001);
+    close(s.attackSpeed, 5 * 0.002);
+    close(s.critChance, 5 * 0.0015);
+    close(s.critMultiplier, 1.5 + 5 * 0.003);
+    close(s.castTime, 5 * -0.001);
+    close(s.healPower, 5 * 0.004);
   });
 
-  test('allocated points and job bonuses apply the locked per-point rates in combat', () => {
+  test('allocated points apply the locked per-point rates in combat', () => {
     const owner = makeOwner(11);
     const before = { ...owner.combat.stats };
     assert.deepEqual(allocateStat(owner, 'vit', 2), { ok: true });
     assert.equal(owner.combat.stats.maxHp, before.maxHp + 50);
     assert.equal(owner.combat.stats.defense, before.defense + 2);
+  });
+
+  test('a Lv11 Warrior: Warrior base + Novice 5s + Warrior job bonus', () => {
+    const owner = makeOwner(11);
     assert.deepEqual(changeJob(owner, 'warrior'), { ok: true });
-    assert.equal(owner.combat.stats.attack, before.attack + 6); // STR +3 × 2
-    assert.equal(owner.combat.stats.maxHp, before.maxHp + 100); // VIT +2 alloc +2 job
+    const s = owner.combat.stats;
+    assert.equal(s.maxHp, 700 + 7 * 25); // VIT 5 + 2
+    assert.equal(s.attack, 70 + 8 * 2); // STR 5 + 3
+    assert.equal(s.defense, 25 + 7);
+    assert.equal(s.magicAttack, 25 + 5 * 2);
   });
 });
 
 describe('stat reset item', () => {
   test('returns exactly the allocated points and nothing else changes', () => {
     const owner = makeOwner(20);
-    owner.progress.skillPoints = 7;
+    owner.progress.skillPointsSpent = 7;
     changeJob(owner, 'warrior');
     allocateStat(owner, 'str', 10);
     allocateStat(owner, 'luk', 5);
@@ -262,7 +273,7 @@ describe('stat reset item', () => {
     assert.deepEqual(owner.progress.base, before.base);
     assert.deepEqual(owner.progress.jobBonuses, before.jobBonuses);
     assert.equal(owner.progress.classId, 'warrior');
-    assert.equal(owner.progress.skillPoints, 7);
+    assert.equal(owner.progress.skillPointsSpent, 7);
     assert.equal(owner.combat.level, 20);
   });
 

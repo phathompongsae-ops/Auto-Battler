@@ -29,7 +29,7 @@ export async function hudSuite(b, t, shot) {
   const regions = await b.eval(`['player', 'minimap', 'menu', 'quests', 'actions', 'joystick'].filter((r) => !document.querySelector('[data-hud=' + r + ']'))`);
   t.check('H1. every HUD region renders', regions.length === 0, regions.length ? `missing: ${regions}` : '');
 
-  await b.eval('debug.setPlayerHp(60); debug.setPlayerMp(25)');
+  await b.eval('(() => { const s = debug.player().stats; debug.setPlayerHp(s.maxHp / 2); debug.setPlayerMp(s.maxMp / 2); })()');
   await sleep(150);
   const bars = await b.eval(`({ hp: document.querySelector('[data-bar=hp]').dataset.ratio, mp: document.querySelector('[data-bar=mp]').dataset.ratio,
     level: document.querySelector('.hud-portrait__level').textContent })`);

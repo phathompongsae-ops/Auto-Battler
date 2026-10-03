@@ -1,23 +1,13 @@
-import type { CombatStats } from '../combat/types';
 import type { SkillId } from './skillData';
 
-export const PLAYER_BASE_STATS: CombatStats = {
-  maxHp: 120,
-  maxMp: 50,
-  attack: 12,
-  defense: 4,
+/**
+ * Player combat values that don't come from stats or class growth. Every
+ * other number (HP, MP, ATK, MATK, DEF, MDEF, hit, crit, speed) is derived:
+ * see src/stats/playerCombatStats.ts.
+ */
+export const PLAYER_FIXED_STATS = {
   moveSpeed: 160,
-  critChance: 0.1,
-  critMultiplier: 1.5,
   mpRegen: 1.5,
-};
-
-/** Added to the base stats for every level above 1. */
-export const PLAYER_GROWTH: Partial<CombatStats> = {
-  maxHp: 12,
-  maxMp: 5,
-  attack: 2,
-  defense: 1,
 };
 
 export const PLAYER_RESPAWN_DELAY = 3000; // ms
@@ -27,7 +17,12 @@ export const PLAYER_BASIC_ATTACK: SkillId = 'basic_attack';
 
 export type SkillSlot = 'skill1' | 'skill2' | 'skill3';
 
-/** Which skill each skill action triggers. */
+/**
+ * Which skill each skill action triggers. DEMO: this is the current Warrior
+ * demo kit, used by the Lv1 Novice until real job change and skill trees
+ * exist. It is presentation/combat behaviour only and never saved as the
+ * character's class (see src/data/demoConfig.ts).
+ */
 export const PLAYER_LOADOUT: Record<SkillSlot, SkillId> = {
   skill1: 'power_strike',
   skill2: 'fire_bolt',

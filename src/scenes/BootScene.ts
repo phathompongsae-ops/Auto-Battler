@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { WARRIOR_ART } from '../data/characterArt';
+import { DEMO_PLAYER_PRESENTATION } from '../data/demoConfig';
 import {
   applyCharacterArtFilter,
   characterArtDisabled,
@@ -15,12 +15,12 @@ export class BootScene extends Phaser.Scene {
 
   preload(): void {
     // A failed sheet is not fatal: the player falls back to placeholder art.
-    if (!characterArtDisabled()) preloadCharacterArt(this, WARRIOR_ART);
+    if (!characterArtDisabled()) preloadCharacterArt(this, DEMO_PLAYER_PRESENTATION.art);
   }
 
   create(): void {
     createPlaceholderTextures(this);
-    applyCharacterArtFilter(this, WARRIOR_ART);
+    applyCharacterArtFilter(this, DEMO_PLAYER_PRESENTATION.art);
     this.scene.start('World');
   }
 }

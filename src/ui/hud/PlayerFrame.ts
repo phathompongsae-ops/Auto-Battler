@@ -1,4 +1,5 @@
 import type { CharacterArt } from '../../data/characterArt';
+import { JOBS } from '../../data/jobData';
 import { expToNext } from '../../data/progressionData';
 import type { Player } from '../../entities/Player';
 import { Bar } from '../components/Bar';
@@ -13,6 +14,7 @@ export class PlayerFrame {
   private readonly exp = new Bar('exp', { thin: true });
   private readonly level: HTMLSpanElement;
   private readonly expText: HTMLSpanElement;
+  private readonly nameEl: HTMLSpanElement;
 
   constructor(
     private readonly player: Player,
@@ -29,8 +31,10 @@ export class PlayerFrame {
     }
 
     this.expText = h('span', { className: 'ui-caption' });
+    // The character's real job, not the (demo) art's name.
+    this.nameEl = h('span', { className: 'ui-label', attrs: { 'data-hud': 'job' } });
     const name = h('div', { className: 'hud-player__name' }, [
-      h('span', { className: 'ui-label', text: art?.displayName ?? 'Player' }),
+      this.nameEl,
       this.expText,
     ]);
     const info = h('div', { className: 'hud-player__info' }, [name, this.hp.el, this.mp.el, this.exp.el]);
@@ -44,6 +48,7 @@ export class PlayerFrame {
     this.mp.set(c.mp, c.stats.maxMp);
     const need = expToNext(c.level);
     this.exp.set(c.exp, need);
+    setText(this.nameEl, JOBS[this.player.progress.classId].name);
     setText(this.level, `Lv ${c.level}`);
     setText(this.expText, `EXP ${Math.floor((c.exp / Math.max(1, need)) * 100)}%`);
   }

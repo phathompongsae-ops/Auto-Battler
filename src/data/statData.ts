@@ -21,17 +21,3 @@ export const PRIMARY_STAT_RULES = {
   int: { magicAtk: 2, maxMp: 15, healPower: 0.004, mdef: 1 },
   luk: { critRate: 0.0015, critDamage: 0.003 },
 } as const;
-
-/**
- * Compatibility with the current, not-yet-redesigned combat numbers.
- *
- * The playable game's existing base values (120 HP, 12 ATK, ...) were tuned
- * for a Level 1 character that already has 5 in every stat. Primary-stat
- * contributions are therefore counted from this origin: a fresh Novice plays
- * exactly as before, and every point above it (allocated, job, equipment,
- * pet, buff) adds the locked per-point amount.
- *
- * When combat is formally redesigned, set this to all zeros and re-tune the
- * base values; the formulas themselves don't change.
- */
-export const STAT_CONTRIBUTION_ORIGIN: Readonly<PrimaryStats> = NOVICE_BASE_STATS;

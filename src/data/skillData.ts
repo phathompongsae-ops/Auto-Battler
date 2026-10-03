@@ -5,9 +5,13 @@ export type SkillTargetType =
   | 'enemy_or_direction' // aims at the target if any, otherwise the facing direction
   | 'self';
 
+/** Physical uses ATK vs DEF; magic uses MATK vs MDEF. */
+export type DamageType = 'physical' | 'magic';
+
+/** power = skill multiplier. Damage effects always declare their type. */
 export type SkillEffect =
-  | { kind: 'damage'; power: number }
-  | { kind: 'projectile'; power: number; speed: number; radius: number; color: number }
+  | { kind: 'damage'; power: number; damageType: DamageType }
+  | { kind: 'projectile'; power: number; damageType: DamageType; speed: number; radius: number; color: number }
   | { kind: 'status'; statusId: StatusId; duration: number }
   | { kind: 'heal'; amount: number };
 
@@ -34,6 +38,11 @@ export interface SkillDef {
   effect: SkillEffect;
   /** Strong hits get screen shake and a brief hit stop. */
   heavy?: boolean;
+  /**
+   * Normal/basic attack: the cooldown is a base attack interval divided by
+   * (1 + ASPD). Skills leave this unset and keep their configured cooldown.
+   */
+  usesAttackSpeed?: boolean;
   /** Melee only: delayed hit that lands on the swing's hit frame. */
   windup?: SkillWindup;
   /** Colour for the swing / cast effect. */
@@ -48,7 +57,9 @@ const SKILL_DEFS = {
     cooldown: 500,
     range: 40,
     target: 'enemy',
-    effect: { kind: 'damage', power: 1 },
+    effect: { kind: 'damage', power: 1, damageType: 'physical' },
+    // Normal attack: its cooldown is the base attack interval, shortened by ASPD.
+    usesAttackSpeed: true,
     color: 0xffffff,
   },
   power_strike: {
@@ -58,7 +69,7 @@ const SKILL_DEFS = {
     cooldown: 4000,
     range: 44,
     target: 'enemy',
-    effect: { kind: 'damage', power: 2.2 },
+    effect: { kind: 'damage', power: 2.2, damageType: 'physical' },
     heavy: true,
     // Lands on the Warrior's Power Slash hit frame (frame 5 at 16 fps).
     // Stepping away before the blade lands, or the target leaving reach, wastes the swing.
@@ -72,7 +83,7 @@ const SKILL_DEFS = {
     cooldown: 2500,
     range: 320,
     target: 'enemy_or_direction',
-    effect: { kind: 'projectile', power: 1.6, speed: 380, radius: 6, color: 0xff7b2e },
+    effect: { kind: 'projectile', power: 1.6, damageType: 'magic', speed: 380, radius: 6, color: 0xff7b2e },
     color: 0xff7b2e,
   },
   guard: {
@@ -92,7 +103,8 @@ const SKILL_DEFS = {
     cooldown: 1200,
     range: 26,
     target: 'enemy',
-    effect: { kind: 'damage', power: 1 },
+    effect: { kind: 'damage', power: 1, damageType: 'physical' },
+    usesAttackSpeed: true,
     color: 0x9be36b,
   },
 } satisfies Record<string, SkillDef>;

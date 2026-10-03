@@ -76,6 +76,11 @@ export class CombatEffects {
       }
     });
 
+    ev.on('miss', ({ targetId }) => {
+      const target = world.getEntity(targetId);
+      if (target) this.text.show(target.x, textY(target, 'damage'), 'Miss', { color: '#c9d1e3', size: 13 });
+    });
+
     ev.on('heal', ({ targetId, amount }) => {
       const target = world.getEntity(targetId);
       if (target && amount > 0) this.text.show(target.x, textY(target, 'heal'), `+${amount}`, { color: '#7ee787' });

@@ -1,7 +1,8 @@
 import Phaser from 'phaser';
 import type { MonsterAgent, MonsterBrain } from '../ai/MonsterBrain';
 import { CombatantState } from '../combat/CombatantState';
-import type { MonsterDef } from '../data/monsterData';
+import { applyStatusModifiers } from '../combat/stats';
+import { monsterCombatStats, type MonsterDef } from '../data/monsterData';
 
 const ARRIVE_EPSILON = 2; // px
 
@@ -32,7 +33,8 @@ export class Monster extends Phaser.Physics.Arcade.Sprite implements MonsterAgen
     scene.add.existing(this);
     scene.physics.add.existing(this);
 
-    this.combat = new CombatantState(id, def.name, 'monster', () => ({ ...def.stats }), def.level);
+    const stats = monsterCombatStats(def.stats);
+    this.combat = new CombatantState(id, def.name, 'monster', (_level, statuses) => applyStatusModifiers(stats, statuses), def.level);
     this.hitRadius = def.hitRadius;
     this.homeX = spawnX;
     this.homeY = spawnY;
