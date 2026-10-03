@@ -14,6 +14,7 @@ import { KeyboardActionSource } from '../input/KeyboardActionSource';
 import { KeyboardSource } from '../input/KeyboardSource';
 import { TouchDragSource } from '../input/TouchDragSource';
 import { VirtualActionSource } from '../input/VirtualActionSource';
+import { ActionEffects } from '../rendering/ActionEffects';
 import { CombatEffects } from '../rendering/CombatEffects';
 import { prewarmShaders } from '../rendering/prewarm';
 import { WorldOverlays } from '../rendering/WorldOverlays';
@@ -98,6 +99,7 @@ export class WorldScene extends Phaser.Scene {
     this.physics.add.collider(monsters, ground);
 
     new CombatEffects(this, this.world);
+    new ActionEffects(this, this.world);
     this.overlays = new WorldOverlays(this, this.world);
     this.hud = new Hud(this, {
       world: this.world,

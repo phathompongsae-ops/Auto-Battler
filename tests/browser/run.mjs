@@ -2,7 +2,7 @@
 //   npm run test:browser            (screenshots go to test-results/)
 import { join } from 'node:path';
 import { createServer } from 'vite';
-import { attackAnimationSuite } from './animation.test.mjs';
+import { attackAnimationSuite, powerSlashSuite } from './animation.test.mjs';
 import { Browser, Checks, ensureDir, sleep } from './cdp.mjs';
 import { combatPerformance, combatSuite } from './combat.test.mjs';
 import { hudSuite, hudTouchSuite } from './hud.test.mjs';
@@ -44,6 +44,7 @@ try {
   );
 
   await attackAnimationSuite(b, t, shot);
+  await powerSlashSuite(b, t, shot);
   await hudSuite(b, t, shot);
   await combatSuite(b, t, shot);
   await combatPerformance(b, t);

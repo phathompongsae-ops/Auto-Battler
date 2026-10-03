@@ -116,6 +116,7 @@ export class CombatWorld implements MonsterWorld {
 
     this.player.move(playerDirection);
     this.controller.update(now);
+    this.skills.update(now);
 
     for (const monster of this.monsters) {
       monster.brain.update(now, dtMs);

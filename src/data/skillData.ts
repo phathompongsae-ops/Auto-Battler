@@ -21,6 +21,12 @@ export interface SkillDef {
   effect: SkillEffect;
   /** Strong hits get screen shake and a brief hit stop. */
   heavy?: boolean;
+  /**
+   * Melee only: damage lands this long after the cast instead of instantly,
+   * so it meets the swing's hit frame in the character art. Cost, cooldown
+   * and targeting still happen at cast time.
+   */
+  windupMs?: number;
   /** Colour for the swing / cast effect. */
   color?: number;
 }
@@ -45,6 +51,8 @@ const SKILL_DEFS = {
     target: 'enemy',
     effect: { kind: 'damage', power: 2.2 },
     heavy: true,
+    // Lands on the Warrior's Power Slash hit frame (frame 5 at 16 fps).
+    windupMs: 312,
     color: 0xffd166,
   },
   fire_bolt: {

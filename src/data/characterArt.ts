@@ -10,7 +10,7 @@ import type { SkillId } from './skillData';
 export type CharacterAnimState = 'idle' | 'walk';
 
 /** One-shot animations that play over idle and return to it when done. */
-export type CharacterAction = 'attack';
+export type CharacterAction = 'attack' | 'powerSlash';
 
 /** Directions that have their own art. `left` is drawn by mirroring `right`. */
 export type ArtDirection = Exclude<Direction, 'left'>;
@@ -33,12 +33,33 @@ export interface CharacterAnimArt {
   readonly offsetY?: number;
 }
 
+/**
+ * Phaser-drawn effects for an action, all optional. Arc and afterimage play
+ * on the hit frame; the impact flash plays on the target when damage lands.
+ * Sizes are world pixels; the arc is centred on the facing direction.
+ */
+export interface ActionVfx {
+  readonly arc?: {
+    readonly color: number;
+    readonly radius: number;
+    readonly thickness: number;
+    readonly sweepDeg: number;
+    /** Distance from the body centre toward the facing. */
+    readonly reach: number;
+    readonly durationMs: number;
+  };
+  readonly impact?: { readonly color: number; readonly radius: number; readonly durationMs: number };
+  /** Fading additive copy of the hit pose: a short sword trail. */
+  readonly afterimage?: { readonly color: number; readonly alpha: number; readonly durationMs: number };
+}
+
 export interface CharacterActionArt extends CharacterAnimArt {
   /**
    * Frame index (0-based) where the strike lands. Damage numbers, VFX or a
    * future delayed-damage model sync to this instead of the animation's start.
    */
   readonly hitFrame: number;
+  readonly vfx?: ActionVfx;
 }
 
 /**
@@ -107,6 +128,12 @@ const strip = (
   visibleHeight,
 });
 
+const POWER_SLASH_VFX: ActionVfx = {
+  arc: { color: 0xffd166, radius: 22, thickness: 5, sweepDeg: 150, reach: 10, durationMs: 200 },
+  impact: { color: 0xfff1a8, radius: 14, durationMs: 160 },
+  afterimage: { color: 0xffe2a0, alpha: 0.55, durationMs: 140 },
+};
+
 export const WARRIOR_ART: CharacterArt = {
   displayName: 'Warrior',
   portrait: {
@@ -145,9 +172,15 @@ export const WARRIOR_ART: CharacterArt = {
       // 8 frames = 444 ms. Frame 4 is the forward cut. West mirrors this strip.
       right: { ...strip('attack_east', 8, 18, 124), hitFrame: 4 },
     },
+    powerSlash: {
+      // 10 frames at 16 fps = 625 ms: wind-up 1-4, cut on 5, follow-through, return.
+      // Frame 5 lands at 312.5 ms; power_strike's windupMs matches it.
+      down: { ...strip('power_slash_south', 10, 16, 122), hitFrame: 5, vfx: POWER_SLASH_VFX },
+    },
   },
   skillActions: {
     basic_attack: 'attack',
+    power_strike: 'powerSlash',
   },
 };
 

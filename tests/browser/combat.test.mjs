@@ -70,7 +70,8 @@ export async function combatSuite(b, t, shot) {
   await arena();
   await api(`selectTarget('slime-1')`);
   await b.press('KeyQ');
-  await sleep(120);
+  // Power Strike's damage lands after its wind-up (windupMs), on the swing's hit frame.
+  await sleep(380);
   dmg = await events(`e => e.type === 'damage' && e.skill === 'power_strike'`);
   p = await player();
   m = await monster('slime-1');

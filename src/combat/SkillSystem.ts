@@ -28,7 +28,18 @@ export function reach(caster: CombatEntity, target: CombatEntity): number {
  * One code path for every skill, player or monster: validate (alive,
  * cooldown, target, range, MP), pay, then run the data-defined effect.
  */
+interface PendingHit {
+  caster: CombatEntity;
+  target: CombatEntity;
+  skillId: SkillId;
+  power: number;
+  at: number;
+}
+
 export class SkillSystem {
+  /** Melee hits waiting for their wind-up (see SkillDef.windupMs). */
+  private readonly pending: PendingHit[] = [];
+
   constructor(
     private readonly events: EventBus<GameEvents>,
     private readonly combat: CombatSystem,
@@ -68,6 +79,22 @@ export class SkillSystem {
     return { ok: true };
   }
 
+  /** Land wind-up hits that are due. A hit is lost if either side died meanwhile. */
+  update(now: number): void {
+    for (let i = this.pending.length - 1; i >= 0; i--) {
+      const hit = this.pending[i];
+      if (hit.at > now) continue;
+      this.pending.splice(i, 1);
+      if (hit.caster.combat.dead || hit.target.combat.dead) continue;
+      this.combat.dealDamage(hit.caster, hit.target, hit.skillId, hit.power);
+    }
+  }
+
+  /** Drop every pending hit (world reset). */
+  clear(): void {
+    this.pending.length = 0;
+  }
+
   private validTarget(caster: CombatEntity, target: CombatEntity | null): CombatEntity | null {
     if (!target || target.combat.dead || target.combat.team === caster.combat.team) return null;
     return target;
@@ -84,7 +111,9 @@ export class SkillSystem {
     const effect = skill.effect;
     switch (effect.kind) {
       case 'damage':
-        if (target) this.combat.dealDamage(caster, target, skillId, effect.power);
+        if (!target) break;
+        if (skill.windupMs) this.pending.push({ caster, target, skillId, power: effect.power, at: now + skill.windupMs });
+        else this.combat.dealDamage(caster, target, skillId, effect.power);
         break;
       case 'projectile': {
         const dir = target

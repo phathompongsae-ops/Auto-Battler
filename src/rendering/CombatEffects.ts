@@ -67,7 +67,9 @@ export class CombatEffects {
       });
       const source = world.getEntity(sourceId);
       const skill = SKILLS[skillId];
-      if (source && skill.effect.kind === 'damage') this.slash(source, target, skill.color ?? 0xffffff, heavy);
+      // Player skills with their own action VFX (e.g. Power Slash) draw their arc on the hit frame instead.
+      const ownArc = source === world.player && !!world.player.skillVfx(skillId)?.arc;
+      if (source && skill.effect.kind === 'damage' && !ownArc) this.slash(source, target, skill.color ?? 0xffffff, heavy);
       if (heavy) {
         this.scene.cameras.main.shake(SHAKE.duration, SHAKE.intensity);
         world.requestHitStop(HIT_STOP_MS);

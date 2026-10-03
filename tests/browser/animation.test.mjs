@@ -134,6 +134,89 @@ export async function attackAnimationSuite(b, t, shot) {
   }
 }
 
+// Like record(), plus the time of each player damage event, for hit/impact alignment.
+const recordSkill = (ms, skill) => `new Promise((resolve) => {
+  const w = game.scene.getScene('World'), p = w.player;
+  const rows = [], hits = [], damage = [];
+  let start = null;
+  const offUsed = w.world.events.on('skillUsed', (e) => { if (e.casterId === p.id && e.skillId === '${skill}' && start === null) start = performance.now(); });
+  const offDmg = w.world.events.on('damage', (e) => { if (e.sourceId === p.id && e.skillId === '${skill}') damage.push(performance.now()); });
+  const onHit = (e) => hits.push({ ...e, t: performance.now() });
+  p.on('action-hit', onHit);
+  const t0 = performance.now();
+  const tick = () => {
+    rows.push({ anim: p.anims.currentAnim && p.anims.currentAnim.key, action: p.action,
+      body: [p.body.left - p.x, p.body.top - p.y, p.body.width, p.body.height].map((v) => +v.toFixed(2)) });
+    if (performance.now() - t0 < ${ms}) return requestAnimationFrame(tick);
+    offUsed(); offDmg(); p.off('action-hit', onHit);
+    const rel = (t) => (start === null ? null : t - start);
+    resolve({ rows, hits: hits.map((h) => ({ action: h.action, direction: h.direction, dt: rel(h.t) })), damage: damage.map(rel) });
+  };
+  tick();
+})`;
+
+const prepPowerTarget = `(() => {
+  const p = game.scene.getScene('World').player;
+  debug.placeMonster('slime-1', p.x, p.y + 28);
+  debug.setMonsterHp('slime-1', 100000);
+  debug.selectTarget('slime-1');
+  debug.resetCooldowns();
+  debug.setPlayerMp(50);
+})()`;
+
+/** Warrior Power Slash (south): plays, keeps the body, lands damage on its hit frame, returns to idle. */
+export async function powerSlashSuite(b, t, shot) {
+  t.section('Warrior Power Slash (south)');
+  await b.eval('debug.reset(); debug.setPeaceful(true)');
+  await sleep(250);
+
+  // idle -> Power Slash -> idle
+  await b.eval(prepPowerTarget);
+  await sleep(100);
+  const expected = await b.eval(`game.scene.getScene('World').player.actionHitDelay('powerSlash', 'down')`);
+  const rec = b.eval(recordSkill(1100, 'power_strike'));
+  await b.press('KeyQ');
+  const { rows, hits, damage } = await rec;
+  const slashRows = rows.filter((r) => r.anim === 'player-powerSlash-down');
+  t.check('P1. Power Slash plays its south animation', slashRows.length > 0, `${slashRows.length} frames`);
+  t.check('P2. collision body never moves', sameBody(rows) === '[-8,4,16,10]');
+  const hitDt = hits[0]?.dt;
+  t.check(
+    'P3. hit frame fires once at its configured time',
+    hits.length === 1 && hits[0].action === 'powerSlash' && Math.abs(hitDt - expected) < 70,
+    `hits=${hits.length} dt=${hitDt?.toFixed(0)}ms expected=${expected?.toFixed(0)}ms`,
+  );
+  t.check(
+    'P4. damage lands on the hit frame (within one frame)',
+    damage.length === 1 && hits.length === 1 && Math.abs(damage[0] - hitDt) < 40,
+    `damage=${damage[0]?.toFixed(0)}ms hit=${hitDt?.toFixed(0)}ms`,
+  );
+  const last = rows[rows.length - 1];
+  t.check('P5. returns to idle after the slash', last.anim === 'player-idle-down' && last.action === null, `${last.anim}/${last.action}`);
+  await shot('animation-power-slash');
+
+  // walk -> stop -> Power Slash -> walk
+  await b.keyDown('ArrowDown');
+  await sleep(200);
+  await b.keyUp('ArrowDown');
+  await sleep(120);
+  await b.eval(prepPowerTarget);
+  await sleep(80);
+  await b.press('KeyQ');
+  await sleep(200);
+  let s = await b.eval(STATE);
+  const mid = s.anim === 'player-powerSlash-down';
+  const before = s;
+  await b.keyDown('ArrowRight');
+  await sleep(250);
+  s = await b.eval(STATE);
+  await b.keyUp('ArrowRight');
+  t.check('P6. walking right after Power Slash is immediate', mid && s.anim === 'player-walk-right' && s.x - before.x > 25 && s.action === null, `${s.anim} dx=${(s.x - before.x).toFixed(1)}`);
+  await sleep(150);
+  await b.eval('debug.reset()');
+  await sleep(200);
+}
+
 /** idle -> walk -> stop -> attack -> idle -> walk again, in one facing. */
 async function attackDirection(b, t, shot, dir, key, dx, dy) {
   const tag = `D-${dir}`;

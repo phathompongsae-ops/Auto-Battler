@@ -7,6 +7,7 @@ import {
   actionHitDelayMs,
   artLayout,
   artScale,
+  type ActionVfx,
   type ArtDirection,
   type CharacterAction,
   type CharacterActionArt,
@@ -132,6 +133,17 @@ export class Player extends Phaser.Physics.Arcade.Sprite implements CombatEntity
   actionHitDelay(action: CharacterAction, dir: Direction = this.facing): number | null {
     const art = this.actionArt(action, dir);
     return art ? actionHitDelayMs(art) : null;
+  }
+
+  /** VFX configured for an action in a facing. */
+  actionVfx(action: CharacterAction, dir: Direction = this.facing): ActionVfx | undefined {
+    return this.actionArt(action, dir)?.vfx;
+  }
+
+  /** VFX of the action a skill plays in the current facing (undefined if none). */
+  skillVfx(skillId: SkillId): ActionVfx | undefined {
+    const action = this.art?.skillActions[skillId];
+    return action ? this.actionVfx(action) : undefined;
   }
 
   /** Play the animation this character's art assigns to a skill, if any. */

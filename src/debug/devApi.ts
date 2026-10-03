@@ -130,6 +130,7 @@ export function createDevApi(world: CombatWorld, overlays: WorldOverlays) {
       world.inventory.clear();
       world.loot.clear();
       world.projectiles.clear();
+      world.skills.clear();
       world.targeting.select(null);
       for (const m of world.monsters) {
         m.spawnX = m.homeX;
