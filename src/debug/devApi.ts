@@ -125,8 +125,8 @@ export function createDevApi(world: CombatWorld, overlays: WorldOverlays) {
         earnedStatPoints: p.progress.earned(level),
         spentStatPoints: p.progress.spent(),
         remainingStatPoints: p.progress.remaining(level),
-        final: finalPrimary([...p.progress.modifiers(), ...p.extraModifiers]),
-        derived: playerDerivedStats(p.progress, level, p.extraModifiers),
+        final: finalPrimary([...p.progress.modifiers(), ...p.statModifiers.list()]),
+        derived: playerDerivedStats(p.progress, level, p.statModifiers.list()),
       };
     },
     /** Jump to a level (no EXP, no level-up events); stats refresh. */
@@ -167,7 +167,7 @@ export function createDevApi(world: CombatWorld, overlays: WorldOverlays) {
       world.player.combat.level = 1;
       world.player.combat.exp = 0;
       world.player.progress.assign({});
-      world.player.extraModifiers.length = 0;
+      world.player.statModifiers.clear();
       world.player.combat.reset();
       world.inventory.clear();
       world.loot.clear();

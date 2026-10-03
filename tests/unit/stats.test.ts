@@ -10,6 +10,7 @@ import { CharacterProgress, earnedStatPoints } from '../../src/progression/Chara
 import { allocateStat, changeJob, type StatOwner } from '../../src/progression/statActions';
 import { DERIVED_STAT_KEYS, deriveStats, emptyDerived } from '../../src/stats/derivedStats';
 import { finalPrimary, MODIFIER_SOURCES, primaryBySource, primaryModifier } from '../../src/stats/modifiers';
+import { ModifierStack } from '../../src/stats/ModifierStack';
 import { playerCombatStats } from '../../src/stats/playerCombatStats';
 import { PRIMARY_STATS, zeroPrimary, type PrimaryStats } from '../../src/stats/primaryStats';
 
@@ -272,5 +273,37 @@ describe('stat reset item', () => {
     inventory.add('slime_gel');
     assert.deepEqual(useItem(inventory, owner, 'slime_gel'), { ok: false, reason: 'not_usable' });
     assert.deepEqual(useItem(inventory, owner, 'nope'), { ok: false, reason: 'unknown_item' });
+  });
+});
+
+describe('modifier stack (future equipment / pet / buff hook)', () => {
+  test('set replaces by id; replaceSource swaps only that source', () => {
+    let changes = 0;
+    const stack = new ModifierStack(() => changes++);
+    stack.set(primaryModifier('equipment', 'item:sword', { str: 2 }));
+    stack.set(primaryModifier('equipment', 'item:sword', { str: 4 }));
+    stack.set(primaryModifier('pet', 'pet:wolf', { agi: 1 }));
+    assert.equal(stack.list().length, 2);
+    assert.equal(finalPrimary(stack.list()).str, 4);
+    stack.replaceSource('equipment', [primaryModifier('equipment', 'item:axe', { str: 6 }), primaryModifier('equipment', 'item:ring', { luk: 1 })]);
+    assert.deepEqual(stack.list().map((m) => m.id).sort(), ['item:axe', 'item:ring', 'pet:wolf']);
+    assert.throws(() => stack.replaceSource('equipment', [primaryModifier('buff', 'x', {})]));
+    stack.clear();
+    assert.equal(stack.list().length, 0);
+    assert.equal(changes, 5);
+  });
+
+  test('extra sources reach live combat stats without touching progress', () => {
+    const progress = new CharacterProgress();
+    let combat: CombatantState | null = null;
+    const stack = new ModifierStack(() => combat?.refreshStats());
+    combat = new CombatantState('p', 'P', 'player', (lv) => playerCombatStats(progress, lv, stack.list()), 1);
+    const before = { ...combat.stats };
+    stack.set(primaryModifier('equipment', 'item:helm', { vit: 2 }));
+    stack.set({ source: 'buff', id: 'status:might', flat: { physicalAtk: 5 } });
+    stack.set(primaryModifier('debuff', 'status:frail', { vit: -1 }));
+    assert.equal(combat.stats.maxHp, before.maxHp + 25);
+    assert.equal(combat.stats.attack, before.attack + 5);
+    assert.deepEqual(progress.allocated, zeroPrimary());
   });
 });

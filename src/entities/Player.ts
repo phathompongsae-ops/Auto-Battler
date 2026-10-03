@@ -20,7 +20,7 @@ import type { SkillId } from '../data/skillData';
 import { PLAYER_KEY, PLAYER_PLACEHOLDER_LAYOUT, playerFrame } from '../graphics/placeholderTextures';
 import { DIRECTIONS, DIRECTION_VECTORS, type Direction } from '../input/Direction';
 import { CharacterProgress } from '../progression/CharacterProgress';
-import type { StatModifier } from '../stats/modifiers';
+import { ModifierStack } from '../stats/ModifierStack';
 import { playerCombatStats } from '../stats/playerCombatStats';
 
 export type PlayerState = 'idle' | 'walk' | 'dead';
@@ -56,10 +56,10 @@ export class Player extends Phaser.Physics.Arcade.Sprite implements CombatEntity
   /** Job, base / allocated stats, job bonuses, skill points (persistent stat inputs). */
   readonly progress = new CharacterProgress();
   /**
-   * Stat modifiers from equipment, pets, buffs and debuffs. Empty until those
-   * systems exist; call combat.refreshStats() after changing it.
+   * Stat modifiers from equipment, pets, buffs and debuffs (empty until those
+   * systems exist). Changing it re-derives combat stats.
    */
-  readonly extraModifiers: StatModifier[] = [];
+  readonly statModifiers = new ModifierStack(() => this.combat.refreshStats());
 
   state: PlayerState = 'idle';
   facing: Direction = 'down';
@@ -91,7 +91,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite implements CombatEntity
     scene.physics.add.existing(this);
 
     this.combat = new CombatantState('player', 'Player', 'player', (level) =>
-      playerCombatStats(this.progress, level, this.extraModifiers),
+      playerCombatStats(this.progress, level, this.statModifiers.list()),
     );
     this.layout = art ? artLayout(art) : PLAYER_PLACEHOLDER_LAYOUT;
 
