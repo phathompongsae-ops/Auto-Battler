@@ -7,6 +7,8 @@ import type { ProjectileSystem } from './ProjectileSystem';
 import type { StatusSystem } from './StatusSystem';
 import type { CombatEntity } from './types';
 
+export type HitCancelReason = 'moved' | 'out_of_range' | 'dead';
+
 export type SkillFailReason = 'dead' | 'cooldown' | 'no_target' | 'out_of_range' | 'no_mp';
 
 export type SkillResult = { ok: true } | { ok: false; reason: SkillFailReason };
@@ -37,7 +39,7 @@ interface PendingHit {
 }
 
 export class SkillSystem {
-  /** Melee hits waiting for their wind-up (see SkillDef.windupMs). */
+  /** Melee hits waiting for their wind-up (see SkillDef.windup). */
   private readonly pending: PendingHit[] = [];
 
   constructor(
@@ -79,15 +81,37 @@ export class SkillSystem {
     return { ok: true };
   }
 
-  /** Land wind-up hits that are due. A hit is lost if either side died meanwhile. */
+  /**
+   * Land wind-up hits that are due. A hit is lost if either side died, or if
+   * its skill rechecks range and the target is now out of reach.
+   */
   update(now: number): void {
     for (let i = this.pending.length - 1; i >= 0; i--) {
       const hit = this.pending[i];
       if (hit.at > now) continue;
       this.pending.splice(i, 1);
-      if (hit.caster.combat.dead || hit.target.combat.dead) continue;
-      this.combat.dealDamage(hit.caster, hit.target, hit.skillId, hit.power);
+      const skill = SKILLS[hit.skillId];
+      if (hit.caster.combat.dead || hit.target.combat.dead) this.cancelled(hit, 'dead');
+      else if (skill.windup?.recheckRange && reach(hit.caster, hit.target) > skill.range) this.cancelled(hit, 'out_of_range');
+      else this.combat.dealDamage(hit.caster, hit.target, hit.skillId, hit.power);
     }
+  }
+
+  /**
+   * The caster moved: drop its pending hits whose skill cancels on movement.
+   * Hits that already landed are unaffected; nothing is refunded.
+   */
+  interruptMovement(caster: CombatEntity): void {
+    for (let i = this.pending.length - 1; i >= 0; i--) {
+      const hit = this.pending[i];
+      if (hit.caster !== caster || !SKILLS[hit.skillId].windup?.cancelOnMove) continue;
+      this.pending.splice(i, 1);
+      this.cancelled(hit, 'moved');
+    }
+  }
+
+  private cancelled(hit: PendingHit, reason: HitCancelReason): void {
+    this.events.emit('hitCancelled', { casterId: hit.caster.id, targetId: hit.target.id, skillId: hit.skillId, reason });
   }
 
   /** Drop every pending hit (world reset). */
@@ -112,7 +136,7 @@ export class SkillSystem {
     switch (effect.kind) {
       case 'damage':
         if (!target) break;
-        if (skill.windupMs) this.pending.push({ caster, target, skillId, power: effect.power, at: now + skill.windupMs });
+        if (skill.windup) this.pending.push({ caster, target, skillId, power: effect.power, at: now + skill.windup.ms });
         else this.combat.dealDamage(caster, target, skillId, effect.power);
         break;
       case 'projectile': {

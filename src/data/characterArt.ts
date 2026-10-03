@@ -174,7 +174,7 @@ export const WARRIOR_ART: CharacterArt = {
     },
     powerSlash: {
       // 10 frames at 16 fps = 625 ms: wind-up 1-4, cut on 5, follow-through, return.
-      // Frame 5 lands at 312.5 ms; power_strike's windupMs matches it.
+      // Frame 5 lands at 312.5 ms; power_strike's windup.ms matches it.
       down: { ...strip('power_slash_south', 10, 16, 122), hitFrame: 5, vfx: POWER_SLASH_VFX },
     },
   },

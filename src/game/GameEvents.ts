@@ -1,4 +1,4 @@
-import type { SkillFailReason } from '../combat/SkillSystem';
+import type { HitCancelReason, SkillFailReason } from '../combat/SkillSystem';
 import type { EntityId } from '../combat/types';
 import type { ItemId } from '../data/itemData';
 import type { SkillId } from '../data/skillData';
@@ -25,6 +25,8 @@ export type GameEvents = {
   respawn: { entityId: EntityId };
   skillUsed: { casterId: EntityId; skillId: SkillId; targetId: EntityId | null };
   skillFailed: { casterId: EntityId; skillId: SkillId; reason: SkillFailReason };
+  /** A delayed (wind-up) hit was dropped before it landed. */
+  hitCancelled: { casterId: EntityId; targetId: EntityId; skillId: SkillId; reason: HitCancelReason };
   projectileSpawned: {
     projectileId: number;
     ownerId: EntityId;

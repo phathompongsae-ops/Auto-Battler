@@ -33,6 +33,7 @@ export function createDevApi(world: CombatWorld, overlays: WorldOverlays) {
   ev.on('respawn', (e) => record('respawn', { entity: e.entityId }));
   ev.on('skillUsed', (e) => record('skillUsed', { source: e.casterId, skill: e.skillId, target: e.targetId ?? undefined }));
   ev.on('skillFailed', (e) => record('skillFailed', { source: e.casterId, skill: e.skillId, reason: e.reason }));
+  ev.on('hitCancelled', (e) => record('hitCancelled', { source: e.casterId, target: e.targetId, skill: e.skillId, reason: e.reason }));
   ev.on('projectileSpawned', (e) => record('projectileSpawned', { source: e.ownerId, skill: e.skillId }));
   ev.on('projectileRemoved', (e) => record('projectileRemoved', { skill: e.skillId, reason: e.reason }));
   ev.on('statusApplied', (e) => record('statusApplied', { target: e.targetId, skill: e.statusId }));

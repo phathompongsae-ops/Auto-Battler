@@ -11,6 +11,19 @@ export type SkillEffect =
   | { kind: 'status'; statusId: StatusId; duration: number }
   | { kind: 'heal'; amount: number };
 
+/**
+ * Damage lands `ms` after the cast instead of instantly, so it meets the
+ * swing's hit frame in the character art. Cost, cooldown and targeting still
+ * happen at cast time and are never refunded.
+ */
+export interface SkillWindup {
+  ms: number;
+  /** Any movement by the caster before the hit lands cancels it. */
+  cancelOnMove?: boolean;
+  /** The target must still be within the skill's range when the hit lands, or it misses. */
+  recheckRange?: boolean;
+}
+
 export interface SkillDef {
   id: string;
   name: string;
@@ -21,12 +34,8 @@ export interface SkillDef {
   effect: SkillEffect;
   /** Strong hits get screen shake and a brief hit stop. */
   heavy?: boolean;
-  /**
-   * Melee only: damage lands this long after the cast instead of instantly,
-   * so it meets the swing's hit frame in the character art. Cost, cooldown
-   * and targeting still happen at cast time.
-   */
-  windupMs?: number;
+  /** Melee only: delayed hit that lands on the swing's hit frame. */
+  windup?: SkillWindup;
   /** Colour for the swing / cast effect. */
   color?: number;
 }
@@ -52,7 +61,8 @@ const SKILL_DEFS = {
     effect: { kind: 'damage', power: 2.2 },
     heavy: true,
     // Lands on the Warrior's Power Slash hit frame (frame 5 at 16 fps).
-    windupMs: 312,
+    // Stepping away before the blade lands, or the target leaving reach, wastes the swing.
+    windup: { ms: 312, cancelOnMove: true, recheckRange: true },
     color: 0xffd166,
   },
   fire_bolt: {

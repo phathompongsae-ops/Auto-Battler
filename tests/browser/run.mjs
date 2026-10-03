@@ -6,6 +6,7 @@ import { attackAnimationSuite, powerSlashSuite } from './animation.test.mjs';
 import { Browser, Checks, ensureDir, sleep } from './cdp.mjs';
 import { combatPerformance, combatSuite } from './combat.test.mjs';
 import { hudSuite, hudTouchSuite } from './hud.test.mjs';
+import { delayedHitSuite } from './delayedHit.test.mjs';
 import { dragSuite, movementSuite } from './movement.test.mjs';
 
 const PORT = 5199;
@@ -45,6 +46,7 @@ try {
 
   await attackAnimationSuite(b, t, shot);
   await powerSlashSuite(b, t, shot);
+  await delayedHitSuite(b, t);
   await hudSuite(b, t, shot);
   await combatSuite(b, t, shot);
   await combatPerformance(b, t);

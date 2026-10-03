@@ -115,6 +115,8 @@ export class CombatWorld implements MonsterWorld {
     const now = this.now;
 
     this.player.move(playerDirection);
+    // Moving breaks a melee wind-up that hasn't landed yet (skills opt in via windup.cancelOnMove).
+    if (playerDirection && !this.player.combat.dead) this.skills.interruptMovement(this.player);
     this.controller.update(now);
     this.skills.update(now);
 
