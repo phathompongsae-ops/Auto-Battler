@@ -17,6 +17,7 @@ import { VirtualActionSource } from '../input/VirtualActionSource';
 import { CombatEffects } from '../rendering/CombatEffects';
 import { prewarmShaders } from '../rendering/prewarm';
 import { WorldOverlays } from '../rendering/WorldOverlays';
+import { Hud } from '../ui/hud/Hud';
 import {
   buildTestMap,
   MONSTER_SPAWNS,
@@ -36,6 +37,7 @@ export class WorldScene extends Phaser.Scene {
   virtualActions!: VirtualActionSource;
   world!: CombatWorld;
   private overlays!: WorldOverlays;
+  hud!: Hud;
 
   constructor() {
     super('World');
@@ -66,8 +68,9 @@ export class WorldScene extends Phaser.Scene {
     camera.startFollow(this.player, true, CAMERA_LERP, CAMERA_LERP);
 
     this.virtualActions = new VirtualActionSource();
+    const drag = new TouchDragSource(this);
     this.controls = new InputController(
-      [new KeyboardSource(this), new TouchDragSource(this)],
+      [new KeyboardSource(this), drag],
       [new KeyboardActionSource(this), this.virtualActions],
     );
 
@@ -96,9 +99,18 @@ export class WorldScene extends Phaser.Scene {
 
     new CombatEffects(this, this.world);
     this.overlays = new WorldOverlays(this, this.world);
+    this.hud = new Hud(this, {
+      world: this.world,
+      art: playerArt,
+      actions: this.virtualActions,
+      drag,
+      tiles: buildTestMap(),
+      areaName: 'Green Meadow',
+    });
     prewarmShaders(this);
 
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      this.hud.destroy();
       this.controls.destroy();
       this.world.events.clear();
     });
@@ -118,5 +130,6 @@ export class WorldScene extends Phaser.Scene {
     else if (!this.world.frozen && physics.isPaused) physics.resume();
 
     this.overlays.update(this.world.now);
+    this.hud.update(this.world.now);
   }
 }

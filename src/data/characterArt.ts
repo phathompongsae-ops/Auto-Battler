@@ -57,7 +57,18 @@ export interface CharacterVisualLayout {
   readonly effectPadding: { readonly x: number; readonly y: number };
 }
 
+/** Face crop for the HUD portrait, taken from one of the character's images. */
+export interface CharacterPortrait {
+  readonly url: string;
+  /** CSS background-size / background-position that frame the face. */
+  readonly size: string;
+  readonly position: string;
+}
+
 export interface CharacterArt {
+  /** Class name shown in the UI. */
+  readonly displayName: string;
+  readonly portrait: CharacterPortrait;
   /** Square cell size of every strip, in source pixels. */
   readonly frameSize: number;
   /** Source-pixel row the feet stand on in every frame. */
@@ -97,6 +108,12 @@ const strip = (
 });
 
 export const WARRIOR_ART: CharacterArt = {
+  displayName: 'Warrior',
+  portrait: {
+    url: 'assets/characters/warrior/warrior_chibi_front_master_v3.png',
+    size: '230%',
+    position: '50% 22%',
+  },
   frameSize: 192,
   feetY: 157,
   referenceHeight: 125,

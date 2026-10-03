@@ -1,0 +1,224 @@
+/*
+ * HUD layout. Five anchored regions around an open centre:
+ *   top-left player frame · top-right minimap + menu · left-middle quests
+ *   bottom-left joystick · bottom-right action cluster
+ */
+
+.hud {
+  position: absolute;
+  inset: 0;
+  z-index: var(--ui-z-hud);
+  padding: max(var(--ui-space-4), env(safe-area-inset-top)) max(var(--ui-space-4), env(safe-area-inset-right))
+    max(var(--ui-space-4), env(safe-area-inset-bottom)) max(var(--ui-space-4), env(safe-area-inset-left));
+}
+.hud__region {
+  position: absolute;
+  display: flex;
+  gap: var(--ui-space-3);
+}
+.hud__top-left {
+  left: var(--ui-space-4);
+  top: var(--ui-space-4);
+}
+.hud__top-right {
+  right: var(--ui-space-4);
+  top: var(--ui-space-4);
+  flex-direction: column;
+  align-items: flex-end;
+}
+.hud__left-middle {
+  left: var(--ui-space-4);
+  top: 34%;
+}
+.hud__bottom-left {
+  left: 0;
+  bottom: 0;
+}
+.hud__bottom-right {
+  right: var(--ui-space-4);
+  bottom: var(--ui-space-4);
+}
+
+/* ------------------------------------------------------- player frame */
+.hud-player {
+  display: flex;
+  align-items: center;
+  gap: var(--ui-space-3);
+  padding: var(--ui-space-2) var(--ui-space-4) var(--ui-space-2) var(--ui-space-2);
+  border-radius: calc(var(--ui-radius-lg) * 2) var(--ui-radius-md) var(--ui-radius-md) calc(var(--ui-radius-lg) * 2);
+}
+.hud-portrait {
+  position: relative;
+  flex: none;
+  width: calc(52px * var(--ui-scale));
+  height: calc(52px * var(--ui-scale));
+  border-radius: var(--ui-radius-round);
+  border: 2px solid var(--ui-gold);
+  background-color: #28324a;
+  background-repeat: no-repeat;
+  box-shadow: var(--ui-shadow-sm), inset 0 0 0 2px rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--ui-text-xl);
+  font-weight: var(--ui-weight-bold);
+  color: var(--ui-gold-bright);
+}
+.hud-portrait__level {
+  position: absolute;
+  left: 50%;
+  bottom: calc(-7px * var(--ui-scale));
+  transform: translateX(-50%);
+  padding: 0 calc(5px * var(--ui-scale));
+  font-size: var(--ui-text-xs);
+  font-weight: var(--ui-weight-bold);
+  line-height: calc(14px * var(--ui-scale));
+  color: var(--ui-text-inverse);
+  background: var(--ui-gold);
+  border: 1px solid var(--ui-gold-deep);
+  border-radius: var(--ui-radius-round);
+  white-space: nowrap;
+}
+.hud-player__info {
+  display: flex;
+  flex-direction: column;
+  gap: calc(3px * var(--ui-scale));
+  width: calc(170px * var(--ui-scale));
+}
+.hud-player__name {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+/* ------------------------------------------------------------ minimap */
+.hud-minimap {
+  position: relative;
+  width: calc(132px * var(--ui-scale));
+  height: calc(100px * var(--ui-scale));
+  padding: 0;
+  overflow: hidden;
+  border-radius: var(--ui-radius-lg);
+}
+.hud-minimap canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
+}
+.hud-minimap__label {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: calc(2px * var(--ui-scale)) var(--ui-space-3);
+  font-size: var(--ui-text-xs);
+  color: var(--ui-text);
+  background: linear-gradient(0deg, rgba(8, 12, 20, 0.85), transparent);
+  text-shadow: var(--ui-text-shadow);
+}
+
+/* ------------------------------------------------------------- menu bar */
+.hud-menu {
+  display: flex;
+  gap: var(--ui-space-2);
+}
+.hud-menu .ui-button--icon {
+  background: var(--ui-surface);
+}
+
+/* ------------------------------------------------------- quest tracker */
+.hud-quests {
+  width: calc(190px * var(--ui-scale));
+  padding: var(--ui-space-2) var(--ui-space-3);
+  background: linear-gradient(90deg, var(--ui-surface), transparent);
+  border: none;
+  border-left: 2px solid var(--ui-gold);
+  border-radius: 0 var(--ui-radius-md) var(--ui-radius-md) 0;
+  box-shadow: none;
+}
+.hud-quest {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--ui-space-3);
+  padding: calc(2px * var(--ui-scale)) 0;
+}
+.hud-quest__title {
+  font-size: var(--ui-text-sm);
+  font-weight: var(--ui-weight-bold);
+  color: var(--ui-gold-bright);
+  text-shadow: var(--ui-text-shadow);
+}
+.hud-quest__progress {
+  font-size: var(--ui-text-sm);
+  font-variant-numeric: tabular-nums;
+  color: var(--ui-text);
+  text-shadow: var(--ui-text-shadow);
+}
+.hud-quest.is-complete .hud-quest__progress {
+  color: var(--ui-success);
+}
+
+/* ------------------------------------------------------------ joystick */
+.hud-joystick {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.hud-joystick__hint {
+  position: absolute;
+  left: calc(36px * var(--ui-scale));
+  bottom: calc(36px * var(--ui-scale));
+  width: calc(110px * var(--ui-scale));
+  height: calc(110px * var(--ui-scale));
+  border-radius: var(--ui-radius-round);
+  border: 1px solid rgba(244, 236, 219, 0.14);
+  background: radial-gradient(circle, rgba(244, 236, 219, 0.06), rgba(244, 236, 219, 0.02) 70%);
+  transition: opacity var(--ui-medium) var(--ui-ease);
+}
+.hud-joystick__base,
+.hud-joystick__knob {
+  position: absolute;
+  border-radius: var(--ui-radius-round);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+.hud-joystick__base {
+  width: calc(110px * var(--ui-scale));
+  height: calc(110px * var(--ui-scale));
+  border: 1px solid rgba(244, 236, 219, 0.3);
+  background: rgba(14, 20, 33, 0.25);
+}
+.hud-joystick__knob {
+  width: calc(46px * var(--ui-scale));
+  height: calc(46px * var(--ui-scale));
+  background: radial-gradient(circle at 35% 30%, rgba(255, 255, 255, 0.45), rgba(244, 236, 219, 0.2));
+  border: 1px solid rgba(244, 236, 219, 0.5);
+  box-shadow: var(--ui-shadow-sm);
+}
+.hud-joystick[data-active='false'] .hud-joystick__base,
+.hud-joystick[data-active='false'] .hud-joystick__knob {
+  display: none;
+}
+.hud-joystick[data-active='true'] .hud-joystick__hint {
+  opacity: 0;
+}
+/* The idle hint ring is only for touch screens; desktop moves with the keyboard. */
+.ui-root[data-touch='false'] .hud-joystick__hint {
+  display: none;
+}
+
+/* ------------------------------------------------------ action cluster */
+.hud-actions {
+  position: relative;
+  width: calc(250px * var(--ui-scale));
+  height: calc(200px * var(--ui-scale));
+}
+.hud-actions > .ui-slot {
+  position: absolute;
+  transform: translate(-50%, -50%);
+}
+.hud-actions > .ui-slot.is-pressed {
+  transform: translate(-50%, -50%) scale(0.92);
+}

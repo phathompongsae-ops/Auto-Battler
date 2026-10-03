@@ -5,6 +5,7 @@ import { createServer } from 'vite';
 import { attackAnimationSuite } from './animation.test.mjs';
 import { Browser, Checks, ensureDir, sleep } from './cdp.mjs';
 import { combatPerformance, combatSuite } from './combat.test.mjs';
+import { hudSuite, hudTouchSuite } from './hud.test.mjs';
 import { dragSuite, movementSuite } from './movement.test.mjs';
 
 const PORT = 5199;
@@ -43,6 +44,7 @@ try {
   );
 
   await attackAnimationSuite(b, t, shot);
+  await hudSuite(b, t, shot);
   await combatSuite(b, t, shot);
   await combatPerformance(b, t);
 
@@ -56,6 +58,7 @@ try {
   await dragSuite(b, t, 'touch', (phase, x, y) =>
     b.touch({ start: 'touchStart', move: 'touchMove', end: 'touchEnd' }[phase], x, y),
   );
+  await hudTouchSuite(b, t, shot);
 
   t.section('Console');
   t.check('26. no console errors or exceptions', b.consoleErrors.length === 0, b.consoleErrors.join(' | '));

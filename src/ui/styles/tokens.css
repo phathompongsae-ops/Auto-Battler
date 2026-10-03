@@ -1,0 +1,95 @@
+/*
+ * UI design tokens. Every component reads these variables; restyling the
+ * game UI means changing values here, not component CSS.
+ *
+ * Sizes are multiplied by --ui-scale, which UiRoot sets from the canvas size
+ * so the HUD grows and shrinks with the game view.
+ */
+.ui-root {
+  --ui-scale: 1;
+
+  /* Surfaces: dark slate/navy, translucent so the world shows through. */
+  --ui-surface: rgba(17, 24, 39, 0.78);
+  --ui-surface-strong: rgba(14, 20, 33, 0.92);
+  --ui-surface-raised: rgba(35, 46, 68, 0.88);
+  --ui-surface-sunken: rgba(8, 12, 20, 0.6);
+  --ui-scrim: rgba(6, 9, 15, 0.55);
+
+  /* Lines */
+  --ui-border: rgba(214, 190, 128, 0.28);
+  --ui-border-strong: rgba(222, 196, 128, 0.6);
+  --ui-border-subtle: rgba(255, 255, 255, 0.08);
+
+  /* Text: cream/white, readable on the dark surfaces. */
+  --ui-text: #f4ecdb;
+  --ui-text-muted: #b9b2a3;
+  --ui-text-faint: #7f7a70;
+  --ui-text-inverse: #1a1408;
+
+  /* Accent: soft gold */
+  --ui-gold: #e3c27a;
+  --ui-gold-bright: #f3d898;
+  --ui-gold-deep: #9c7a3a;
+
+  /* Resource colours */
+  --ui-hp: #e0524a;
+  --ui-hp-deep: #8f2621;
+  --ui-mp: #4f8cff;
+  --ui-mp-deep: #22448f;
+  --ui-exp: #e8b84a;
+  --ui-exp-deep: #8a6418;
+
+  /* Feedback */
+  --ui-danger: #ff6b6b;
+  --ui-success: #7ee787;
+  --ui-info: #7fd4ff;
+
+  /* Spacing scale (4px base) */
+  --ui-space-1: calc(2px * var(--ui-scale));
+  --ui-space-2: calc(4px * var(--ui-scale));
+  --ui-space-3: calc(8px * var(--ui-scale));
+  --ui-space-4: calc(12px * var(--ui-scale));
+  --ui-space-5: calc(16px * var(--ui-scale));
+  --ui-space-6: calc(24px * var(--ui-scale));
+
+  /* Radius */
+  --ui-radius-sm: calc(4px * var(--ui-scale));
+  --ui-radius-md: calc(8px * var(--ui-scale));
+  --ui-radius-lg: calc(12px * var(--ui-scale));
+  --ui-radius-round: 999px;
+
+  /* Typography */
+  --ui-font: 'Nunito', 'Segoe UI', system-ui, -apple-system, Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --ui-font-display: 'Segoe UI Semibold', 'Segoe UI', system-ui, -apple-system, Roboto, sans-serif;
+  --ui-text-xs: calc(10px * var(--ui-scale));
+  --ui-text-sm: calc(12px * var(--ui-scale));
+  --ui-text-md: calc(14px * var(--ui-scale));
+  --ui-text-lg: calc(17px * var(--ui-scale));
+  --ui-text-xl: calc(21px * var(--ui-scale));
+  --ui-weight-normal: 500;
+  --ui-weight-bold: 700;
+
+  /* Depth: subtle only */
+  --ui-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35);
+  --ui-shadow-md: 0 4px 14px rgba(0, 0, 0, 0.35);
+  --ui-shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.45);
+  --ui-text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+
+  /* Component sizes */
+  --ui-bar-height: calc(10px * var(--ui-scale));
+  --ui-slot-size: calc(46px * var(--ui-scale));
+  --ui-slot-size-lg: calc(84px * var(--ui-scale));
+  --ui-slot-size-sm: calc(38px * var(--ui-scale));
+  --ui-icon-button: calc(34px * var(--ui-scale));
+  --ui-hit-min: 40px; /* never shrink touch targets below this */
+
+  /* Motion */
+  --ui-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ui-fast: 120ms;
+  --ui-medium: 200ms;
+
+  /* Layers inside the UI root */
+  --ui-z-hud: 10;
+  --ui-z-window: 20;
+  --ui-z-toast: 30;
+}

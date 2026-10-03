@@ -6,8 +6,14 @@ import { SKILLS, type SkillId } from '../data/skillData';
 import type { CombatWorld } from '../game/CombatWorld';
 
 const REFRESH_MS = 100;
+/** Top centre, between the HUD's player frame and minimap. */
+const DEBUG_X = 250;
+const DEBUG_Y = 8;
 
-/** Dev-only text readout of player, target, cooldowns, inventory and monster AI. */
+/**
+ * Dev-only text readout of player, target, cooldowns, inventory and monster AI.
+ * Hidden by default so it doesn't cover the HUD; toggle with the backquote key.
+ */
 export class DebugPanel {
   private readonly text: Phaser.GameObjects.Text;
 
@@ -16,7 +22,7 @@ export class DebugPanel {
     private readonly world: CombatWorld,
   ) {
     this.text = scene.add
-      .text(8, 8, '', {
+      .text(DEBUG_X, DEBUG_Y, '', {
         fontFamily: 'monospace',
         fontSize: '11px',
         color: '#ffffff',
@@ -25,12 +31,18 @@ export class DebugPanel {
         lineSpacing: 2,
       })
       .setScrollFactor(0)
-      .setDepth(Number.MAX_SAFE_INTEGER);
+      .setDepth(Number.MAX_SAFE_INTEGER)
+      .setVisible(false);
+    scene.input.keyboard?.on('keydown-BACKTICK', () => {
+      this.text.setVisible(!this.text.visible);
+      this.refresh();
+    });
     scene.time.addEvent({ delay: REFRESH_MS, loop: true, callback: this.refresh, callbackScope: this });
     this.refresh();
   }
 
   private refresh(): void {
+    if (!this.text.visible) return;
     const w = this.world;
     const now = w.now;
     const p = w.player;
