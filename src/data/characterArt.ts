@@ -140,6 +140,10 @@ export const WARRIOR_ART: CharacterArt = {
       // 8 frames at 18 fps = 444 ms, inside the 500 ms basic-attack cooldown.
       // Frame 4 is the blade sweeping across the front of the body.
       down: { ...strip('attack_south', 8, 18, 124), hitFrame: 4 },
+      // 7 frames = 389 ms. Frame 4 is the downward cut to the right hip.
+      up: { ...strip('attack_north', 7, 18, 125), hitFrame: 4 },
+      // 8 frames = 444 ms. Frame 4 is the forward cut. West mirrors this strip.
+      right: { ...strip('attack_east', 8, 18, 124), hitFrame: 4 },
     },
   },
   skillActions: {

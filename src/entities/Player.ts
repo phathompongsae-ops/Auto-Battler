@@ -4,6 +4,7 @@ import { CombatantState } from '../combat/CombatantState';
 import { statsForLevel } from '../combat/stats';
 import type { CombatEntity } from '../combat/types';
 import {
+  actionHitDelayMs,
   artLayout,
   artScale,
   type ArtDirection,
@@ -125,6 +126,12 @@ export class Player extends Phaser.Physics.Arcade.Sprite implements CombatEntity
     const action = this.action ?? this.queuedAction;
     if (action) this.playAction(action);
     else this.playAnim(this.state, this.facing);
+  }
+
+  /** Time from an action's start to its hit frame in a facing, or null without art. */
+  actionHitDelay(action: CharacterAction, dir: Direction = this.facing): number | null {
+    const art = this.actionArt(action, dir);
+    return art ? actionHitDelayMs(art) : null;
   }
 
   /** Play the animation this character's art assigns to a skill, if any. */

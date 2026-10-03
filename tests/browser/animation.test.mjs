@@ -124,4 +124,66 @@ export async function attackAnimationSuite(b, t, shot) {
 
   await b.eval('debug.reset()');
   await sleep(300);
+
+  for (const [dir, key, dx, dy] of [
+    ['up', 'ArrowUp', 0, -28],
+    ['right', 'ArrowRight', 28, 0],
+    ['left', 'ArrowLeft', -28, 0],
+  ]) {
+    await attackDirection(b, t, shot, dir, key, dx, dy);
+  }
+}
+
+/** idle -> walk -> stop -> attack -> idle -> walk again, in one facing. */
+async function attackDirection(b, t, shot, dir, key, dx, dy) {
+  const tag = `D-${dir}`;
+  await b.eval('debug.reset(); debug.setPeaceful(true)');
+  await sleep(250);
+
+  await b.keyDown(key);
+  await sleep(250);
+  await b.keyUp(key);
+  await sleep(120);
+  let s = await b.eval(STATE);
+  t.check(`${tag}1. walks then stops in idle facing ${dir}`, s.anim === `player-idle-${dir}` && s.facing === dir, s.anim);
+
+  await b.eval(`(() => {
+    const p = game.scene.getScene('World').player;
+    debug.placeMonster('slime-1', p.x + ${dx}, p.y + ${dy});
+    debug.setMonsterHp('slime-1', 100000);
+    debug.selectTarget('slime-1');
+    debug.resetCooldowns();
+  })()`);
+  await sleep(100);
+
+  const expected = await b.eval(`game.scene.getScene('World').player.actionHitDelay('attack', '${dir}')`);
+  const rec = b.eval(record(800));
+  await b.press('Space');
+  const { rows, hits } = await rec;
+  const flipped = await b.eval(`game.scene.getScene('World').player.flipX`);
+  const attackRows = rows.filter((r) => r.anim === `player-attack-${dir}`);
+  t.check(`${tag}2. attack plays the ${dir} attack animation`, attackRows.length > 0, `${attackRows.length} frames`);
+  const body = sameBody(rows);
+  t.check(`${tag}3. collision body never moves`, body === '[-8,4,16,10]', body ?? 'changed');
+  const dt = hits[0]?.dt;
+  t.check(
+    `${tag}4. hit frame fires once at its configured time`,
+    expected !== null && hits.length === 1 && hits[0].direction === dir && Math.abs(dt - expected) < 70,
+    `hits=${hits.length} dt=${dt?.toFixed(0)}ms expected=${expected?.toFixed(0)}ms`,
+  );
+  const last = rows[rows.length - 1];
+  t.check(`${tag}5. returns to idle facing ${dir}`, last.anim === `player-idle-${dir}` && last.action === null, `${last.anim}/${last.action}`);
+  if (dir === 'left') t.check(`${tag}6. west mirrors the east strip`, flipped === true, `flipX=${flipped}`);
+  await shot(`animation-attack-${dir}`);
+
+  const before = await b.eval(STATE);
+  await b.keyDown(key);
+  await sleep(250);
+  s = await b.eval(STATE);
+  await b.keyUp(key);
+  const moved = Math.hypot(s.x - before.x, s.y - before.y);
+  t.check(`${tag}7. walks again immediately after attacking`, s.anim === `player-walk-${dir}` && moved > 25, `${s.anim} moved=${moved.toFixed(1)}`);
+  await sleep(120);
+  await b.eval('debug.reset()');
+  await sleep(200);
 }
