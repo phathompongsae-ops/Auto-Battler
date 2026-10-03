@@ -138,6 +138,17 @@ export function createDevApi(world: CombatWorld, overlays: WorldOverlays) {
     allocateStat: (stat: PrimaryStat, amount: number) => world.allocatePlayerStat(stat, amount),
     changeJob: (jobId: string) => world.changePlayerJob(jobId),
     grantItem: (itemId: ItemId, amount = 1) => world.inventory.add(itemId, amount),
+    /** Serialized player save (JSON string). */
+    save: () => world.savePlayer(),
+    /** Load a save string; returns { ok } or { ok: false, error }. */
+    load: (text: string) => {
+      try {
+        world.loadPlayer(text);
+        return { ok: true };
+      } catch (e) {
+        return { ok: false, error: String(e instanceof Error ? e.message : e) };
+      }
+    },
     useItem: (itemId: string) => world.usePlayerItem(itemId),
     drops: () => world.loot.drops.map((d) => ({ id: d.id, item: d.itemId, x: d.x, y: d.y })),
     projectiles: () => world.projectiles.active.length,

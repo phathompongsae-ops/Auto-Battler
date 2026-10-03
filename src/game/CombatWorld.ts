@@ -21,6 +21,8 @@ import { LootSystem } from '../loot/LootSystem';
 import { useItem as applyItem, type UseItemResult } from '../items/useItem';
 import { ProgressionSystem } from '../progression/ProgressionSystem';
 import { allocateStat, changeJob } from '../progression/statActions';
+import { deserializePlayerSave, serializePlayerSave } from '../save/playerSave';
+import { applyPlayerSave, capturePlayerSave, emptyHooks, type PersistedHooks, type SaveTarget } from '../save/playerSnapshot';
 import type { JobId } from '../data/jobData';
 import type { PrimaryStat } from '../stats/primaryStats';
 import type { GameEvents } from './GameEvents';
@@ -159,6 +161,37 @@ export class CombatWorld implements MonsterWorld {
     const result = applyItem(this.inventory, this.player, itemId);
     if (result.ok) this.events.emit('itemUsed', { entityId: this.player.id, itemId: itemId as ItemId });
     return result;
+  }
+
+  // --- Player save --------------------------------------------------------
+
+  /** Stable id of the local character; a server would assign this. */
+  characterId = 'local-1';
+  /** Save data for systems that don't exist yet (equipment, pet, currencies...). */
+  saveHooks: PersistedHooks = emptyHooks();
+
+  /** Serialized v1 save of the player (inputs only; derived stats are recalculated on load). */
+  savePlayer(): string {
+    return serializePlayerSave(capturePlayerSave(this.saveTarget()));
+  }
+
+  /** Validate and load a serialized save. Throws SaveError and changes nothing if it's invalid. */
+  loadPlayer(text: string): void {
+    const save = deserializePlayerSave(text);
+    const target = this.saveTarget();
+    applyPlayerSave(target, save);
+    this.characterId = target.characterId;
+    this.saveHooks = target.hooks;
+  }
+
+  private saveTarget(): SaveTarget {
+    return {
+      characterId: this.characterId,
+      progress: this.player.progress,
+      combat: this.player.combat,
+      inventory: this.inventory,
+      hooks: this.saveHooks,
+    };
   }
 
   respawnPlayer(): void {

@@ -40,6 +40,28 @@ export async function progressionSuite(b, t) {
     JSON.stringify({ used, remaining: p.remainingStatPoints, classId: p.classId, inv }),
   );
 
+  // Save round trip in the live game: build a mid-game state, save, wipe, load.
+  await b.eval(`(() => { debug.setLevel(15); debug.allocateStat('str', 4); debug.allocateStat('luk', 3); debug.grantItem('slime_gel', 5); })()`);
+  const saved = await b.eval(`({ text: debug.save(), progress: debug.progress(), stats: debug.player().stats, inv: debug.player().inventory })`);
+  await b.eval('debug.reset()');
+  const wiped = await b.eval('debug.progress()');
+  const loaded = await b.eval(`debug.load(${JSON.stringify(saved.text)})`);
+  const restored = await b.eval(`({ progress: debug.progress(), stats: debug.player().stats, inv: debug.player().inventory })`);
+  t.check(
+    'S9. save -> reset -> load restores job, level, allocated, job bonus, inventory and stats',
+    wiped.classId === 'novice' &&
+      loaded.ok &&
+      JSON.stringify(restored.progress) === JSON.stringify(saved.progress) &&
+      JSON.stringify(restored.stats) === JSON.stringify(saved.stats) &&
+      JSON.stringify(restored.inv) === JSON.stringify(saved.inv),
+    JSON.stringify({ loaded, classId: restored.progress.classId, level: restored.progress.level, allocated: restored.progress.allocated, inv: restored.inv }),
+  );
+  const tampered = JSON.parse(saved.text);
+  tampered.stats.allocated.str = 99;
+  const rejected = await b.eval(`debug.load(${JSON.stringify(JSON.stringify(tampered))})`);
+  const unchanged = await b.eval('debug.progress()');
+  t.check('S10. an invalid save is rejected and live state is untouched', !rejected.ok && JSON.stringify(unchanged) === JSON.stringify(restored.progress), JSON.stringify(rejected));
+
   await b.eval('debug.reset()');
   p = await b.eval('debug.progress()');
   combat = await b.eval('debug.player().stats');
