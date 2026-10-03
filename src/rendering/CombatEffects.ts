@@ -5,6 +5,7 @@ import { ITEMS } from '../data/itemData';
 import { SKILLS } from '../data/skillData';
 import { STATUSES } from '../data/statusData';
 import type { CombatWorld } from '../game/CombatWorld';
+import { bodyCenterY, textAnchorY } from './characterLayout';
 import { FloatingText } from './FloatingText';
 
 /** A view that can flash when hit. Player and Monster both implement it. */
@@ -27,6 +28,13 @@ const FAIL_MESSAGES: Record<SkillFailReason, string> = {
   no_mp: 'Not enough MP',
 };
 
+/** Bottom of monster floating text, relative to the monster position. */
+const MONSTER_TEXT_ANCHOR_Y = -16;
+
+/** How far above an entity's text anchor each kind of message starts. */
+const TEXT_LIFT = { damage: 0, heal: 0, fail: 6, death: 8, exp: 14, loot: 14, levelUp: 24 } as const;
+type TextKind = keyof typeof TEXT_LIFT;
+
 const hex = (color: number) => `#${color.toString(16).padStart(6, '0')}`;
 
 /**
@@ -44,12 +52,16 @@ export class CombatEffects {
     this.text = new FloatingText(scene);
     const ev = world.events;
     const isPlayer = (id: string | null) => id === world.player.id;
+    // The player's art sets where its text and body-centred effects go; monsters keep fixed offsets.
+    const textY = (e: CombatEntity, kind: TextKind) =>
+      e.y + (e === world.player ? textAnchorY(world.player.layout) : MONSTER_TEXT_ANCHOR_Y) - TEXT_LIFT[kind];
+    const centerY = (e: CombatEntity) => e.y + (e === world.player ? bodyCenterY(world.player.layout) : 0);
 
     ev.on('damage', ({ sourceId, targetId, skillId, amount, crit, heavy }) => {
       const target = world.getEntity(targetId);
       if (!target) return;
       this.flash(target);
-      this.text.show(target.x, target.y - 16, crit ? `${amount}!` : `${amount}`, {
+      this.text.show(target.x, textY(target, 'damage'), crit ? `${amount}!` : `${amount}`, {
         color: isPlayer(targetId) ? '#ff6b6b' : crit ? '#ffd166' : '#ffffff',
         size: crit ? 20 : heavy ? 17 : 14,
       });
@@ -64,36 +76,36 @@ export class CombatEffects {
 
     ev.on('heal', ({ targetId, amount }) => {
       const target = world.getEntity(targetId);
-      if (target && amount > 0) this.text.show(target.x, target.y - 16, `+${amount}`, { color: '#7ee787' });
+      if (target && amount > 0) this.text.show(target.x, textY(target, 'heal'), `+${amount}`, { color: '#7ee787' });
     });
 
     ev.on('skillFailed', ({ casterId, reason }) => {
       if (!isPlayer(casterId) || !FAIL_MESSAGES[reason]) return;
       const p = world.player;
-      this.text.show(p.x, p.y - 22, FAIL_MESSAGES[reason], { color: '#c9d1e3', size: 12, rise: 14 });
+      this.text.show(p.x, textY(p, 'fail'), FAIL_MESSAGES[reason], { color: '#c9d1e3', size: 12, rise: 14 });
     });
 
     ev.on('expGained', ({ entityId, amount }) => {
       const e = world.getEntity(entityId);
-      if (e) this.text.show(e.x, e.y - 30, `+${amount} EXP`, { color: '#c39bff', size: 13, duration: 1000 });
+      if (e) this.text.show(e.x, textY(e, 'exp'), `+${amount} EXP`, { color: '#c39bff', size: 13, duration: 1000 });
     });
 
     ev.on('levelUp', ({ entityId, level }) => {
       const e = world.getEntity(entityId);
       if (!e) return;
-      this.text.show(e.x, e.y - 40, `LEVEL UP! Lv.${level}`, { color: '#ffe066', size: 18, rise: 40, duration: 1600 });
-      this.ring(e.x, e.y, 0xffe066, 48, 500);
+      this.text.show(e.x, textY(e, 'levelUp'), `LEVEL UP! Lv.${level}`, { color: '#ffe066', size: 18, rise: 40, duration: 1600 });
+      this.ring(e.x, centerY(e), 0xffe066, 48, 500);
     });
 
     ev.on('lootPicked', ({ itemId, byId }) => {
       const by = world.getEntity(byId);
       const item = ITEMS[itemId];
-      if (by) this.text.show(by.x, by.y - 30, `+1 ${item.name}`, { color: hex(item.color), size: 13 });
+      if (by) this.text.show(by.x, textY(by, 'loot'), `+1 ${item.name}`, { color: hex(item.color), size: 13 });
     });
 
     ev.on('statusApplied', ({ targetId, statusId }) => {
       const target = world.getEntity(targetId);
-      if (target) this.ring(target.x, target.y, STATUSES[statusId].color, 30, 350);
+      if (target) this.ring(target.x, centerY(target), STATUSES[statusId].color, 30, 350);
     });
 
     ev.on('projectileRemoved', ({ x, y, color, reason }) => {
@@ -103,7 +115,7 @@ export class CombatEffects {
     ev.on('death', ({ entityId }) => {
       if (!isPlayer(entityId)) return;
       const p = world.player;
-      this.text.show(p.x, p.y - 24, 'You were defeated', { color: '#ff6b6b', size: 16, duration: 2500, rise: 10 });
+      this.text.show(p.x, textY(p, 'death'), 'You were defeated', { color: '#ff6b6b', size: 16, duration: 2500, rise: 10 });
     });
   }
 

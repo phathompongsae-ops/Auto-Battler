@@ -1,11 +1,13 @@
 import Phaser from 'phaser';
 import { CAMERA_LERP, TILE_SIZE } from '../config';
+import { WARRIOR_ART } from '../data/characterArt';
 import { MONSTERS } from '../data/monsterData';
 import { DebugPanel } from '../debug/DebugPanel';
 import { createDevApi } from '../debug/devApi';
 import { Monster } from '../entities/Monster';
 import { Player } from '../entities/Player';
 import { CombatWorld } from '../game/CombatWorld';
+import { isCharacterArtReady } from '../graphics/characterArt';
 import { TILESET_KEY } from '../graphics/placeholderTextures';
 import { InputController } from '../input/InputController';
 import { KeyboardActionSource } from '../input/KeyboardActionSource';
@@ -55,7 +57,8 @@ export class WorldScene extends Phaser.Scene {
     const worldHeight = TEST_MAP_HEIGHT * TILE_SIZE;
     this.physics.world.setBounds(0, 0, worldWidth, worldHeight);
 
-    this.player = new Player(this, PLAYER_SPAWN.x, PLAYER_SPAWN.y);
+    const playerArt = isCharacterArtReady(this, WARRIOR_ART) ? WARRIOR_ART : null;
+    this.player = new Player(this, PLAYER_SPAWN.x, PLAYER_SPAWN.y, playerArt);
     this.physics.add.collider(this.player, ground);
 
     const camera = this.cameras.main;
@@ -75,6 +78,10 @@ export class WorldScene extends Phaser.Scene {
       },
     };
     this.world = new CombatWorld(this.player, this.controls, projectileWorld, PLAYER_SPAWN);
+    // Skill animations are presentation only; damage timing stays with the simulation.
+    this.world.events.on('skillUsed', ({ casterId, skillId }) => {
+      if (casterId === this.player.id) this.player.playSkillAction(skillId);
+    });
 
     const monsters: Monster[] = [];
     MONSTER_SPAWNS.forEach((spawn, i) => {

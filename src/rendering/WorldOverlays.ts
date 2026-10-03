@@ -4,8 +4,11 @@ import { ITEMS, LOOT_DROP } from '../data/itemData';
 import type { CombatWorld } from '../game/CombatWorld';
 import type { GameEvents } from '../game/GameEvents';
 import { LOOT_KEY } from '../graphics/placeholderTextures';
+import { auraEllipse, barOffsetY } from './characterLayout';
 
 const BAR_WIDTH = 26;
+/** Monsters still use the placeholder-era fixed offset. */
+const MONSTER_BAR_OFFSET_Y = -22;
 const BAR_DEPTH = 950_000;
 
 /**
@@ -16,6 +19,7 @@ export class WorldOverlays {
   private readonly bars: Phaser.GameObjects.Graphics;
   private readonly targetMarker: Phaser.GameObjects.Ellipse;
   private readonly guardAura: Phaser.GameObjects.Ellipse;
+  private readonly aura: ReturnType<typeof auraEllipse>;
   private readonly projectileViews = new Map<number, Phaser.GameObjects.Arc>();
   private readonly projectilePool: Phaser.GameObjects.Arc[] = [];
   private readonly lootViews = new Map<number, Phaser.GameObjects.Image>();
@@ -30,7 +34,11 @@ export class WorldOverlays {
     this.targetMarker.isFilled = false;
     scene.tweens.add({ targets: this.targetMarker, scale: 1.15, yoyo: true, repeat: -1, duration: 400 });
 
-    this.guardAura = scene.add.ellipse(0, 0, 36, 40).setStrokeStyle(2, 0x7fd4ff).setVisible(false);
+    this.aura = auraEllipse(world.player.layout);
+    this.guardAura = scene.add
+      .ellipse(0, 0, this.aura.width, this.aura.height)
+      .setStrokeStyle(2, 0x7fd4ff)
+      .setVisible(false);
     this.guardAura.setFillStyle(0x7fd4ff, 0.12);
     scene.tweens.add({ targets: this.guardAura, alpha: 0.5, yoyo: true, repeat: -1, duration: 300 });
 
@@ -52,7 +60,7 @@ export class WorldOverlays {
     const player = this.world.player;
     const guarded = player.combat.hasStatus('guard');
     this.guardAura.setVisible(guarded);
-    if (guarded) this.guardAura.setPosition(player.x, player.y + 2).setDepth(player.y + 1);
+    if (guarded) this.guardAura.setPosition(player.x, player.y + this.aura.offsetY).setDepth(player.y + 1);
 
     for (const p of this.world.projectiles.active) {
       this.projectileViews.get(p.id)?.setPosition(p.x, p.y);
@@ -76,7 +84,7 @@ export class WorldOverlays {
       if (!isPlayer && !damaged && entity !== this.world.targeting.current) continue;
 
       const x = Math.round(entity.x - BAR_WIDTH / 2);
-      const y = Math.round(entity.y - 22);
+      const y = Math.round(entity.y + (isPlayer ? barOffsetY(this.world.player.layout) : MONSTER_BAR_OFFSET_Y));
       this.bar(g, x, y, c.hp / c.stats.maxHp, isPlayer ? 0x5ad35a : 0xe0524a);
       if (isPlayer) this.bar(g, x, y + 4, c.mp / c.stats.maxMp, 0x4f8cff);
     }

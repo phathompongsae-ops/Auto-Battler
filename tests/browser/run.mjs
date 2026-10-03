@@ -2,6 +2,7 @@
 //   npm run test:browser            (screenshots go to test-results/)
 import { join } from 'node:path';
 import { createServer } from 'vite';
+import { attackAnimationSuite } from './animation.test.mjs';
 import { Browser, Checks, ensureDir, sleep } from './cdp.mjs';
 import { combatPerformance, combatSuite } from './combat.test.mjs';
 import { dragSuite, movementSuite } from './movement.test.mjs';
@@ -41,6 +42,7 @@ try {
     b.mouse({ start: 'mousePressed', move: 'mouseMoved', end: 'mouseReleased' }[phase], x, y),
   );
 
+  await attackAnimationSuite(b, t, shot);
   await combatSuite(b, t, shot);
   await combatPerformance(b, t);
 

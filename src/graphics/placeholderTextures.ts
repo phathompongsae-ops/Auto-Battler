@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { TILE_SIZE } from '../config';
+import type { CharacterVisualLayout } from '../data/characterArt';
 import { DIRECTIONS, type Direction } from '../input/Direction';
 import { Tile, TILE_COUNT } from '../world/testMap';
 
@@ -14,6 +15,17 @@ export const PLAYER_FRAME_SIZE = 32;
 
 /** Frames per facing: 0 = idle, 1 = left foot forward, 2 = right foot forward. */
 export const PLAYER_FRAMES_PER_DIRECTION = 3;
+
+/**
+ * Layout of the drawn placeholder player: head top at y-13, feet at y+13,
+ * a 14px-wide body. Padding keeps the guard aura at its original 36×40.
+ */
+export const PLAYER_PLACEHOLDER_LAYOUT: CharacterVisualLayout = {
+  feetOffset: 13,
+  height: 26,
+  bodyWidth: 14,
+  effectPadding: { x: 11, y: 7 },
+};
 
 export function playerFrame(dir: Direction, index: number): string {
   return `${dir}-${index}`;
