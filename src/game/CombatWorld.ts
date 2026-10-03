@@ -18,6 +18,8 @@ import type { Player } from '../entities/Player';
 import type { InputController } from '../input/InputController';
 import { Inventory } from '../loot/Inventory';
 import { Wallet } from '../economy/Wallet';
+import { OffsetClock } from '../core/clock';
+import { SpecialShop } from '../pets/specialShop';
 import { LootSystem } from '../loot/LootSystem';
 import { useItem as applyItem, type UseItemResult } from '../items/useItem';
 import { ProgressionSystem } from '../progression/ProgressionSystem';
@@ -45,6 +47,12 @@ export class CombatWorld implements MonsterWorld {
   readonly inventory = new Inventory();
   /** Currencies (gold). */
   readonly wallet = new Wallet();
+  /**
+   * Calendar time for shop refresh / crafting. DEMO: local clock (untrusted);
+   * the offset lets dev tools simulate time. A server will own this later.
+   */
+  readonly clock = new OffsetClock();
+  readonly specialShop = new SpecialShop(this.clock);
   readonly loot = new LootSystem(this.events, this.inventory);
 
   readonly monsters: Monster[] = [];

@@ -39,3 +39,38 @@ export async function equipmentSuite(b, t) {
   await b.eval('debug.reset()');
   await sleep(100);
 }
+
+export async function petSuite(b, t) {
+  t.section('Pets, eggs and the Special Shop in the running game');
+  await b.eval('debug.reset(); debug.setPeaceful(true)');
+  await sleep(100);
+
+  const bare = await stats(b);
+  const dragon = await b.eval(`debug.grantPet('dragon', 'legendary', 50)`);
+  const inactive = await stats(b);
+  await b.eval(`debug.activatePet(${JSON.stringify(dragon)})`);
+  const active = await stats(b);
+  t.check('P-1. an owned but inactive pet adds nothing', inactive.maxHp === bare.maxHp && inactive.maxMp === bare.maxMp);
+  t.check(
+    'P-2. Legendary Lv50 INT Dragon: all +15, INT +25 on live stats',
+    active.maxHp === bare.maxHp + 15 * 25 && active.maxMp === bare.maxMp + 25 * 15 && active.magicAttack === bare.magicAttack + 25 * 2 && active.attack === bare.attack + 15 * 2,
+    `hp ${bare.maxHp}->${active.maxHp} mp ${bare.maxMp}->${active.maxMp}`,
+  );
+  await b.eval('debug.activatePet(null)');
+  const off = await stats(b);
+  t.check('P-3. deactivating removes the pet bonus', off.maxHp === bare.maxHp && off.maxMp === bare.maxMp);
+
+  const first = await b.eval('debug.buyEggTicket()');
+  const second = await b.eval('debug.buyEggTicket()');
+  await b.eval('debug.advanceClock(24 * 3600 * 1000)');
+  const nextDay = await b.eval('debug.buyEggTicket()');
+  t.check('P-4. one Random Egg Ticket per refresh cycle', first.ok && !second.ok && second.reason === 'limit_reached' && nextDay.ok, JSON.stringify({ first, second, nextDay }));
+
+  const used = await b.eval('debug.useEggTicket(3)');
+  const opened = await b.eval(`debug.openEgg(${JSON.stringify(used.tier)}, 5)`);
+  const pets = await b.eval('debug.pets()');
+  t.check('P-5. ticket -> egg -> pet', used.ok && opened.ok && pets.owned.length === 2 && pets.owned.some((p) => p.petInstanceId === opened.pet.petInstanceId), JSON.stringify({ used, pet: opened.pet }));
+
+  await b.eval('debug.reset()');
+  await sleep(100);
+}

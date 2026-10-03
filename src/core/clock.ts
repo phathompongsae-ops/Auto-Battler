@@ -30,3 +30,18 @@ export class ManualClock implements Clock {
     this.time += ms;
   }
 }
+
+/** Local time plus an adjustable offset: lets dev tools jump to the next shop refresh. */
+export class OffsetClock implements Clock {
+  offsetMs = 0;
+
+  constructor(private readonly base: Clock = localClock) {}
+
+  now(): number {
+    return this.base.now() + this.offsetMs;
+  }
+
+  advance(ms: number): void {
+    this.offsetMs += ms;
+  }
+}

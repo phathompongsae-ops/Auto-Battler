@@ -8,6 +8,12 @@ import { rerollEnchants } from '../equipment/enchant';
 import { attemptEnhancement, enhancementVfxTier, type EnhanceOptions } from '../equipment/enhancement';
 import { createEquipment } from '../equipment/factory';
 import { evaluateSets } from '../equipment/sets';
+import { EGG_ITEM, type EggTier, type PetPassiveId, type PetRarity, type PetSpeciesId } from '../data/petData';
+import { openEgg, useRandomEggTicket } from '../pets/eggActions';
+import type { PetInstance } from '../pets/pets';
+import { shopCycleId } from '../pets/specialShop';
+
+let devPetCounter = 0;
 import type { WorldOverlays } from '../rendering/WorldOverlays';
 import { finalPrimary } from '../stats/modifiers';
 import { playerDerivedStats } from '../stats/playerCombatStats';
@@ -149,6 +155,30 @@ export function createDevApi(world: CombatWorld, overlays: WorldOverlays) {
     grantItem: (itemId: ItemId, amount = 1) => world.inventory.add(itemId, amount),
     grantGold: (amount: number) => world.wallet.add('gold', amount),
 
+    // --- Pets, eggs, shop (dev only) ---------------------------------------
+    grantPet: (speciesId: PetSpeciesId, rarity: PetRarity, level = 1, passiveIds: PetPassiveId[] = []) => {
+      const pet: PetInstance = {
+        petInstanceId: `dev-pet-${++devPetCounter}`,
+        speciesId,
+        rarity,
+        level,
+        mutation: { mutated: passiveIds.length > 0, passiveIds, variant: null },
+      };
+      world.player.pets.add(pet);
+      return pet.petInstanceId;
+    },
+    setPetLevel: (petInstanceId: string, level: number) => world.player.pets.setLevel(petInstanceId, level),
+    activatePet: (petInstanceId: string | null) => world.player.pets.setActive(petInstanceId),
+    pets: () => ({ active: world.player.pets.activeId, owned: [...world.player.pets.owned.values()] }),
+    grantEgg: (tier: EggTier, amount = 1) => world.inventory.add(EGG_ITEM[tier], amount),
+    openEgg: (tier: EggTier, seed = 1) => openEgg(world.inventory, world.player.pets, tier, seededRng(seed), () => `dev-pet-${++devPetCounter}`),
+    grantEggTicket: (amount = 1) => world.inventory.add('random_egg_ticket', amount),
+    buyEggTicket: () => world.specialShop.buyRandomEggTicket(world.inventory, world.wallet),
+    useEggTicket: (seed = 1) => useRandomEggTicket(world.inventory, seededRng(seed)),
+    shop: () => ({ ...world.specialShop.state, ticketsLeft: world.specialShop.ticketsLeft(), cycleId: shopCycleId(world.clock.now()) }),
+    /** Move the game clock (shop refresh / crafting) forward by `ms`. */
+    advanceClock: (ms: number) => world.clock.advance(ms),
+
     // --- Equipment (dev only) ---------------------------------------------
     /** New item with enchants rolled from `seed`; returns its instance id. */
     grantEquipment: (defId: string, seed = 1) => {
@@ -223,6 +253,9 @@ export function createDevApi(world: CombatWorld, overlays: WorldOverlays) {
       world.player.combat.exp = 0;
       world.player.progress.assign({});
       world.player.equipment.clear();
+      world.player.pets.clear();
+      world.specialShop.state = { cycleId: null, ticketsBought: 0 };
+      world.clock.offsetMs = 0;
       world.wallet.assign({});
       world.player.statModifiers.clear();
       world.player.combat.reset();

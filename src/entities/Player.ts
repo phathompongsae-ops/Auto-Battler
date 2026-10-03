@@ -22,6 +22,7 @@ import { DIRECTIONS, DIRECTION_VECTORS, type Direction } from '../input/Directio
 import { CharacterProgress } from '../progression/CharacterProgress';
 import { ModifierStack } from '../stats/ModifierStack';
 import { EquipmentManager } from '../equipment/equipment';
+import { PetCollection } from '../pets/pets';
 import { playerCombatStats } from '../stats/playerCombatStats';
 import { classGrowthMaxLevel } from '../stats/classBaseStats';
 import { MAX_LEVEL } from '../data/progressionData';
@@ -63,6 +64,8 @@ export class Player extends Phaser.Physics.Arcade.Sprite implements CombatEntity
    * systems exist). Changing it re-derives combat stats.
    */
   readonly statModifiers = new ModifierStack(() => this.combat.refreshStats());
+  /** Owned pets; only the active one feeds the 'pet' modifier source. */
+  readonly pets = new PetCollection((modifiers) => this.statModifiers.replaceSource('pet', modifiers));
   /** Owned and equipped gear; changes replace the 'equipment' modifier source. */
   readonly equipment = new EquipmentManager(
     () => this.progress.classId,
