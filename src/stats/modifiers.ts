@@ -36,6 +36,26 @@ export interface StatModifier {
   flat?: Partial<Record<DerivedStatKey, number>>;
   /** Multiplies derived stats last: 0.1 = +10%. Summed per stat across modifiers. */
   percent?: Partial<Record<DerivedStatKey, number>>;
+  /**
+   * Combat effects that aren't stats, summed per key across modifiers:
+   * 'damageReduction' (fraction of incoming damage), 'skillDamage:<skillId>'
+   * (+fraction damage for one skill), 'skillCooldown:<skillId>' (-fraction
+   * cooldown for one skill). See effectKey().
+   */
+  effects?: Readonly<Record<string, number>>;
+}
+
+export const effectKey = {
+  damageReduction: 'damageReduction',
+  skillDamage: (skillId: string) => `skillDamage:${skillId}`,
+  skillCooldown: (skillId: string) => `skillCooldown:${skillId}`,
+} as const;
+
+/** Effect values summed across modifiers. */
+export function sumEffects(modifiers: readonly StatModifier[]): Record<string, number> {
+  const out: Record<string, number> = {};
+  for (const m of modifiers) for (const [k, v] of Object.entries(m.effects ?? {})) out[k] = (out[k] ?? 0) + v;
+  return out;
 }
 
 /** Final primary stats: the sum of every modifier's primary part. */

@@ -21,6 +21,7 @@ import { PLAYER_KEY, PLAYER_PLACEHOLDER_LAYOUT, playerFrame } from '../graphics/
 import { DIRECTIONS, DIRECTION_VECTORS, type Direction } from '../input/Direction';
 import { CharacterProgress } from '../progression/CharacterProgress';
 import { ModifierStack } from '../stats/ModifierStack';
+import { EquipmentManager } from '../equipment/equipment';
 import { playerCombatStats } from '../stats/playerCombatStats';
 import { classGrowthMaxLevel } from '../stats/classBaseStats';
 import { MAX_LEVEL } from '../data/progressionData';
@@ -62,6 +63,11 @@ export class Player extends Phaser.Physics.Arcade.Sprite implements CombatEntity
    * systems exist). Changing it re-derives combat stats.
    */
   readonly statModifiers = new ModifierStack(() => this.combat.refreshStats());
+  /** Owned and equipped gear; changes replace the 'equipment' modifier source. */
+  readonly equipment = new EquipmentManager(
+    () => this.progress.classId,
+    (modifiers) => this.statModifiers.replaceSource('equipment', modifiers),
+  );
 
   state: PlayerState = 'idle';
   facing: Direction = 'down';

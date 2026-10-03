@@ -2,6 +2,12 @@ import type { MonsterAiState } from '../ai/MonsterBrain';
 import type { GameEvents } from '../game/GameEvents';
 import type { CombatWorld } from '../game/CombatWorld';
 import type { ItemId } from '../data/itemData';
+import { defaultRng, seededRng } from '../core/rng';
+import { MAX_ENHANCEMENT, type EquipmentSlot } from '../data/equipmentData';
+import { rerollEnchants } from '../equipment/enchant';
+import { attemptEnhancement, enhancementVfxTier, type EnhanceOptions } from '../equipment/enhancement';
+import { createEquipment } from '../equipment/factory';
+import { evaluateSets } from '../equipment/sets';
 import type { WorldOverlays } from '../rendering/WorldOverlays';
 import { finalPrimary } from '../stats/modifiers';
 import { playerDerivedStats } from '../stats/playerCombatStats';
@@ -141,6 +147,52 @@ export function createDevApi(world: CombatWorld, overlays: WorldOverlays) {
     allocateStat: (stat: PrimaryStat, amount: number) => world.allocatePlayerStat(stat, amount),
     changeJob: (jobId: string) => world.changePlayerJob(jobId),
     grantItem: (itemId: ItemId, amount = 1) => world.inventory.add(itemId, amount),
+    grantGold: (amount: number) => world.wallet.add('gold', amount),
+
+    // --- Equipment (dev only) ---------------------------------------------
+    /** New item with enchants rolled from `seed`; returns its instance id. */
+    grantEquipment: (defId: string, seed = 1) => {
+      const item = createEquipment(defId, seededRng(seed));
+      world.player.equipment.add(item);
+      return item.instanceId;
+    },
+    equip: (instanceId: string, slot?: EquipmentSlot) => world.player.equipment.equip(instanceId, slot),
+    unequip: (slot: EquipmentSlot) => world.player.equipment.unequip(slot),
+    /** Test-only: set an item's enhancement directly (0..15). */
+    setEnhancement: (instanceId: string, level: number) => {
+      const item = world.player.equipment.items.get(instanceId);
+      if (!item || !Number.isInteger(level) || level < 0 || level > MAX_ENHANCEMENT) return false;
+      item.enhancement = level;
+      world.player.equipment.changed();
+      return true;
+    },
+    /** One enhancement attempt; `roll` fixes the success roll (0..1) for deterministic tests. */
+    enhance: (instanceId: string, options: EnhanceOptions & { roll?: number } = {}) => {
+      const item = world.player.equipment.items.get(instanceId);
+      if (!item) return { ok: false, reason: 'unknown_item' };
+      const rng = options.roll === undefined ? defaultRng : () => options.roll as number;
+      const result = attemptEnhancement(item, { inventory: world.inventory, wallet: world.wallet, rng }, options);
+      world.player.equipment.changed();
+      return result;
+    },
+    rerollEnchants: (instanceId: string, locked: number[] = [], seed = 1) => {
+      const item = world.player.equipment.items.get(instanceId);
+      if (!item) return { ok: false, reason: 'unknown_item' };
+      const result = rerollEnchants(item, locked, { inventory: world.inventory, wallet: world.wallet, rng: seededRng(seed) });
+      world.player.equipment.changed();
+      return result;
+    },
+    equipment: () => {
+      const eq = world.player.equipment;
+      const sets = evaluateSets(eq.equipped, eq.items);
+      return {
+        equipped: { ...eq.equipped },
+        items: [...eq.items.values()].map((i) => ({ ...i, vfxTier: enhancementVfxTier(i.enhancement) })),
+        setCounts: sets.counts,
+        activeSets: sets.active.map((a) => `${a.setId}:${a.threshold}`),
+        gold: world.wallet.get('gold'),
+      };
+    },
     /** Serialized player save (JSON string). */
     save: () => world.savePlayer(),
     /** Load a save string; returns { ok } or { ok: false, error }. */
@@ -170,6 +222,8 @@ export function createDevApi(world: CombatWorld, overlays: WorldOverlays) {
       world.player.combat.level = 1;
       world.player.combat.exp = 0;
       world.player.progress.assign({});
+      world.player.equipment.clear();
+      world.wallet.assign({});
       world.player.statModifiers.clear();
       world.player.combat.reset();
       world.inventory.clear();

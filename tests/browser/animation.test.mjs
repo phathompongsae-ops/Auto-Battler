@@ -157,6 +157,7 @@ const recordSkill = (ms, skill) => `new Promise((resolve) => {
 
 const prepPowerTarget = `(() => {
   const p = game.scene.getScene('World').player;
+  debug.setRng(0.5); // always hit, no crit: P4 needs the swing to connect
   debug.placeMonster('slime-1', p.x, p.y + 28);
   debug.setMonsterHp('slime-1', 100000);
   debug.selectTarget('slime-1');
@@ -213,7 +214,7 @@ export async function powerSlashSuite(b, t, shot) {
   await b.keyUp('ArrowRight');
   t.check('P6. walking right after Power Slash is immediate', mid && s.anim === 'player-walk-right' && s.x - before.x > 25 && s.action === null, `${s.anim} dx=${(s.x - before.x).toFixed(1)}`);
   await sleep(150);
-  await b.eval('debug.reset()');
+  await b.eval('debug.setRng(null); debug.reset()');
   await sleep(200);
 }
 

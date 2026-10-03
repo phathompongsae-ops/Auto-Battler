@@ -31,6 +31,12 @@ export interface CombatStats {
   healPower: number;
   moveSpeed: number; // pixels per second
   mpRegen: number; // MP per second
+  /** Fraction of incoming damage removed after mitigation and crit (capped in combatRules). */
+  damageReduction: number;
+  /** Skill id → extra damage fraction for that skill (e.g. a set bonus). */
+  skillDamageBonus: Readonly<Record<string, number>>;
+  /** Skill id → cooldown reduction fraction for that skill. Never applies to ASPD-based attacks. */
+  skillCooldownReduction: Readonly<Record<string, number>>;
 }
 
 export type StatKey = keyof CombatStats;

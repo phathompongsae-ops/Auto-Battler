@@ -65,6 +65,9 @@ export function monsterCombatStats(stats: MonsterStats): CombatStats {
     attackSpeed: 0,
     castTime: 0,
     healPower: 0,
+    damageReduction: 0,
+    skillDamageBonus: {},
+    skillCooldownReduction: {},
     ...stats,
   };
 }

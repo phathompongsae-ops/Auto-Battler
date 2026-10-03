@@ -26,7 +26,9 @@ export class CombatSystem {
   dealDamage(source: CombatEntity, target: CombatEntity, skillId: SkillId, power: number): AttackResult | null {
     if (target.combat.dead) return null;
 
-    const result = resolveAttack(source.combat.stats, target.combat.stats, power, damageTypeOf(skillId), this.rng);
+    // Skill-specific damage bonuses (e.g. a set bonus on one skill) scale the skill multiplier.
+    const multiplier = power * (1 + (source.combat.stats.skillDamageBonus[skillId] ?? 0));
+    const result = resolveAttack(source.combat.stats, target.combat.stats, multiplier, damageTypeOf(skillId), this.rng);
     if (!result.hit) {
       this.events.emit('miss', { sourceId: source.id, targetId: target.id, skillId });
       return result;

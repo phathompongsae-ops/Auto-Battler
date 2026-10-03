@@ -13,6 +13,8 @@ const scenario = (script) => `(() => {
   w.scene.pause();
   try {
     debug.reset(); debug.setPeaceful(true); debug.clearLog();
+    // Fixed rolls: always hit, never crit, so only the wind-up rules decide the outcome.
+    debug.setRng(0.5);
     debug.placeMonster('slime-1', p.x, p.y + 28);
     debug.setMonsterHp('slime-1', 100000);
     debug.selectTarget('slime-1');
@@ -32,6 +34,7 @@ const scenario = (script) => `(() => {
       mp: p.combat.mp, cooldown: Math.round((p.combat.cooldowns.get('power_strike') ?? 0) - world.now) };
   } finally {
     w.virtualActions.release('skill1');
+    debug.setRng(null);
     w.scene.resume();
   }
 })()`;
@@ -66,13 +69,15 @@ export async function delayedHitSuite(b, t) {
     w.scene.pause();
     try {
       debug.reset(); debug.setPeaceful(true); debug.clearLog();
+    // Fixed rolls: always hit, never crit, so only the wind-up rules decide the outcome.
+    debug.setRng(0.5);
       debug.placeMonster('slime-1', p.x, p.y + 28);
       debug.setMonsterHp('slime-1', 100000);
       debug.selectTarget('slime-1');
       w.virtualActions.press('attack'); world.update(${TICK}, null); w.virtualActions.release('attack');
       world.update(${TICK}, 'left');
       return debug.log.filter((e) => e.type === 'damage' && e.skill === 'basic_attack').length;
-    } finally { w.virtualActions.release('attack'); w.scene.resume(); }
+    } finally { w.virtualActions.release('attack'); debug.setRng(null); w.scene.resume(); }
   })()`);
   t.check('W7. basic attack still hits instantly and ignores movement', basic === 1, `damage=${basic}`);
 

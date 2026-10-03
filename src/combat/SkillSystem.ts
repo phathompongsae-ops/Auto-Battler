@@ -2,6 +2,7 @@ import type { EventBus } from '../core/EventBus';
 import { distance, type Point } from '../core/math';
 import { SKILLS, type SkillDef, type SkillId } from '../data/skillData';
 import type { GameEvents } from '../game/GameEvents';
+import { MAX_SKILL_COOLDOWN_REDUCTION } from '../data/combatRules';
 import { effectiveHeal } from '../stats/castAndHeal';
 import { attackInterval } from './attackSpeed';
 import type { CombatSystem } from './CombatSystem';
@@ -58,7 +59,9 @@ export class SkillSystem {
    */
   cooldownDuration(caster: CombatEntity, skillId: SkillId): number {
     const skill = SKILLS[skillId];
-    return skill.usesAttackSpeed ? attackInterval(skill.cooldown, caster.combat.stats.attackSpeed) : skill.cooldown;
+    if (skill.usesAttackSpeed) return attackInterval(skill.cooldown, caster.combat.stats.attackSpeed);
+    const reduction = Math.min(MAX_SKILL_COOLDOWN_REDUCTION, Math.max(0, caster.combat.stats.skillCooldownReduction[skillId] ?? 0));
+    return skill.cooldown * (1 - reduction);
   }
 
   cooldownRemaining(caster: CombatEntity, skillId: SkillId, now: number): number {

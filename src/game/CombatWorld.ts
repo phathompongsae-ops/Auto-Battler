@@ -17,6 +17,7 @@ import type { Monster } from '../entities/Monster';
 import type { Player } from '../entities/Player';
 import type { InputController } from '../input/InputController';
 import { Inventory } from '../loot/Inventory';
+import { Wallet } from '../economy/Wallet';
 import { LootSystem } from '../loot/LootSystem';
 import { useItem as applyItem, type UseItemResult } from '../items/useItem';
 import { ProgressionSystem } from '../progression/ProgressionSystem';
@@ -42,6 +43,8 @@ export class CombatWorld implements MonsterWorld {
   readonly targeting = new TargetingSystem(this.events, TARGETING.acquireRange, TARGETING.loseRange);
   readonly progression = new ProgressionSystem(this.events);
   readonly inventory = new Inventory();
+  /** Currencies (gold). */
+  readonly wallet = new Wallet();
   readonly loot = new LootSystem(this.events, this.inventory);
 
   readonly monsters: Monster[] = [];
@@ -152,7 +155,11 @@ export class CombatWorld implements MonsterWorld {
   /** Take a job (class) at the player's current level. */
   changePlayerJob(jobId: string) {
     const result = changeJob(this.player, jobId);
-    if (result.ok) this.events.emit('jobChanged', { entityId: this.player.id, jobId: jobId as JobId });
+    if (result.ok) {
+      // Gear the new job can't use goes back to the bag.
+      this.player.equipment.revalidate();
+      this.events.emit('jobChanged', { entityId: this.player.id, jobId: jobId as JobId });
+    }
     return result;
   }
 

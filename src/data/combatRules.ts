@@ -17,5 +17,11 @@ export const MITIGATION_SCALE = 100;
  */
 export const MIN_ATTACK_INTERVAL_MS = 100;
 
+/** Damage reduction from gear/effects never exceeds this fraction (safety cap, not a tuned value). */
+export const MAX_DAMAGE_REDUCTION = 0.5;
+
+/** Skill cooldown reduction from gear/effects never exceeds this fraction (safety cap). */
+export const MAX_SKILL_COOLDOWN_REDUCTION = 0.5;
+
 /** Casts never get shorter than this, however much cast-time reduction stacks. */
 export const MIN_CAST_TIME_MS = 0;

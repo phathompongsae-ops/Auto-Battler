@@ -37,7 +37,7 @@ function stats(over: Partial<CombatStats> = {}): CombatStats {
   return {
     maxHp: 100, maxMp: 0, attack: 100, magicAttack: 100, defense: 0, magicDefense: 0,
     accuracy: 0, evasion: 0, attackSpeed: 0, critChance: 0, critMultiplier: 1.5,
-    castTime: 0, healPower: 0, moveSpeed: 0, mpRegen: 0, ...over,
+    castTime: 0, healPower: 0, moveSpeed: 0, mpRegen: 0, damageReduction: 0, skillDamageBonus: {}, skillCooldownReduction: {}, ...over,
   };
 }
 
