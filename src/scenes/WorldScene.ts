@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { CAMERA_LERP, TILE_SIZE } from '../config';
 import { presentationFor } from '../data/demoConfig';
 import { STARTING_JOB } from '../data/jobData';
+import { INTERNAL_DEMO_QUESTS, QUESTS } from '../data/questData';
 import { MONSTERS } from '../data/monsterData';
 import { DebugPanel } from '../debug/DebugPanel';
 import { createDevApi } from '../debug/devApi';
@@ -89,7 +90,8 @@ export class WorldScene extends Phaser.Scene {
     };
     // DEMO: every demo map id is hosted by this one prototype map, so they share its collision.
     const navGrid = tileGrid(tiles, TILE_SIZE, SOLID_TILES);
-    this.world = new CombatWorld(this.player, this.controls, projectileWorld, PLAYER_SPAWN, () => navGrid);
+    const fixtureQuests = import.meta.env.DEV && new URLSearchParams(window.location.search).has('questFixtures');
+    this.world = new CombatWorld(this.player, this.controls, projectileWorld, PLAYER_SPAWN, () => navGrid, fixtureQuests ? QUESTS : INTERNAL_DEMO_QUESTS);
     // Skill animations are presentation only; damage timing stays with the simulation.
     this.world.events.on('skillUsed', ({ casterId, skillId }) => {
       if (casterId === this.player.id) this.player.playSkillAction(skillId);

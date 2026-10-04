@@ -43,7 +43,7 @@ import { applyPlayerSave, capturePlayerSave, emptyHooks, type PersistedHooks, ty
 import type { PrimaryStat } from '../stats/primaryStats';
 import type { GameEvents } from './GameEvents';
 import { grantKillRewards } from './killRewards';
-import { QUESTS } from '../data/questData';
+import { INTERNAL_DEMO_QUESTS, type QuestDef } from '../data/questData';
 import { FeatureUnlocks } from '../features/FeatureUnlocks';
 import { QuestSystem, type QuestRewardSink } from '../quests/QuestSystem';
 import { FeatureProgression } from '../features/FeatureProgression';
@@ -168,6 +168,7 @@ export class CombatWorld implements MonsterWorld {
     readonly playerSpawn: Point,
     /** Collision tiles per map id, for Auto Move path checks (none = unchecked paths). */
     navGrid: (mapId: string) => CollisionGrid | undefined = () => undefined,
+    questDefs: Readonly<Record<string, QuestDef>> = INTERNAL_DEMO_QUESTS,
   ) {
     this.register(player);
     this.navGrid = navGrid;
@@ -187,7 +188,7 @@ export class CombatWorld implements MonsterWorld {
       addItem: (itemId, count) => this.acquireItem(itemId, count, 'quest'),
     };
     this.quests = new QuestSystem(
-      QUESTS,
+      questDefs,
       { level: () => player.combat.level, classId: () => player.progress.classId, serverDay: () => this.serverDay.day() },
       this.features,
       questRewards,

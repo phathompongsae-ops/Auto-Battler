@@ -79,10 +79,15 @@ export interface QuestDef {
   repeat?: { reset: 'daily' | 'weekly' };
 }
 
-/** Every quest the game knows. Production content will be added beside the demo fixtures. */
-export const QUESTS: Readonly<Record<string, QuestDef>> = {
-  ...DEMO_TEST_QUESTS,
+/** Active Internal Demo content: Job Change is the only required quest chain. */
+export const INTERNAL_DEMO_QUESTS: Readonly<Record<string, QuestDef>> = {
   ...JOB_QUESTS,
   ...DAILY_QUESTS,
   ...WEEKLY_QUESTS,
+};
+
+/** All known definitions, including legacy fixtures for tests and save validation. */
+export const QUESTS: Readonly<Record<string, QuestDef>> = {
+  ...DEMO_TEST_QUESTS,
+  ...INTERNAL_DEMO_QUESTS,
 };
