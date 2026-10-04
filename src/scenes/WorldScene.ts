@@ -10,6 +10,7 @@ import { CombatWorld } from '../game/CombatWorld';
 import { isCharacterArtReady } from '../graphics/characterArt';
 import { TILESET_KEY } from '../graphics/placeholderTextures';
 import { InputController } from '../input/InputController';
+import { tileGrid } from '../navigation/pathing';
 import { KeyboardActionSource } from '../input/KeyboardActionSource';
 import { KeyboardSource } from '../input/KeyboardSource';
 import { TouchDragSource } from '../input/TouchDragSource';
@@ -45,8 +46,9 @@ export class WorldScene extends Phaser.Scene {
   }
 
   create(): void {
+    const tiles = buildTestMap();
     const map = this.make.tilemap({
-      data: buildTestMap(),
+      data: tiles,
       tileWidth: TILE_SIZE,
       tileHeight: TILE_SIZE,
     });
@@ -83,7 +85,9 @@ export class WorldScene extends Phaser.Scene {
         return !tile || PROJECTILE_BLOCKING_TILES.includes(tile.index as Tile);
       },
     };
-    this.world = new CombatWorld(this.player, this.controls, projectileWorld, PLAYER_SPAWN);
+    // DEMO: every demo map id is hosted by this one prototype map, so they share its collision.
+    const navGrid = tileGrid(tiles, TILE_SIZE, SOLID_TILES);
+    this.world = new CombatWorld(this.player, this.controls, projectileWorld, PLAYER_SPAWN, () => navGrid);
     // Skill animations are presentation only; damage timing stays with the simulation.
     this.world.events.on('skillUsed', ({ casterId, skillId }) => {
       if (casterId === this.player.id) this.player.playSkillAction(skillId);

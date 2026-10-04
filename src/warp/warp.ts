@@ -1,4 +1,4 @@
-import { DUNGEON_WARPS, PORTALS, TOWNS, type Location } from '../data/warpData';
+import { DUNGEON_WARPS, PORTALS, TOWNS, type Location, type LocationKind, type PortalDef } from '../data/warpData';
 import type { Inventory } from '../loot/Inventory';
 
 /** Towns unlocked and dungeons discovered by the character (persisted). */
@@ -57,9 +57,20 @@ export function useDungeonWarp(ctx: WarpContext, dungeonId: string): WarpResult 
   return { ok: true, destination: { kind: 'dungeon', mapId: dungeon.entranceMapId }, leftDungeon: ctx.location.kind === 'dungeon' };
 }
 
+/** Kind of map an id names: a town, a dungeon map, otherwise a field. */
+export function locationKind(mapId: string): LocationKind {
+  if (mapId in TOWNS) return 'town';
+  if (Object.values(DUNGEON_WARPS).some((d) => d.entranceMapId === mapId || d.bossRoomMapId === mapId)) return 'dungeon';
+  return 'field';
+}
+
 /** Take a normal portal from the current map. Free; separate from scrolls. */
-export function usePortal(location: Location, portalId: string): { ok: true; toMapId: string } | { ok: false; reason: 'unknown_portal' | 'not_here' } {
-  const portal = PORTALS[portalId];
+export function usePortal(
+  location: Location,
+  portalId: string,
+  portals: Readonly<Record<string, PortalDef>> = PORTALS,
+): { ok: true; toMapId: string } | { ok: false; reason: 'unknown_portal' | 'not_here' } {
+  const portal = portals[portalId];
   if (!portal) return { ok: false, reason: 'unknown_portal' };
   if (portal.from !== location.mapId) return { ok: false, reason: 'not_here' };
   return { ok: true, toMapId: portal.to };

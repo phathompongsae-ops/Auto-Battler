@@ -11,6 +11,7 @@ import { dragSuite, movementSuite } from './movement.test.mjs';
 import { progressionSuite } from './progression.test.mjs';
 import { dungeonRewardSuite, equipmentSuite, petSuite } from './systems.test.mjs';
 import { questSuite } from './quests.test.mjs';
+import { navigationSuite } from './navigation.test.mjs';
 
 const PORT = 5199;
 const URL = `http://127.0.0.1:${PORT}/`;
@@ -55,6 +56,7 @@ try {
   await petSuite(b, t);
   await dungeonRewardSuite(b, t);
   await questSuite(b, t);
+  await navigationSuite(b, t);
   await hudSuite(b, t, shot);
   await combatSuite(b, t, shot);
   await combatPerformance(b, t);

@@ -5,6 +5,7 @@ import type { JobId } from '../data/jobData';
 import type { DifficultyId } from '../data/dungeonDifficulty';
 import type { FeatureId } from '../data/featureData';
 import type { QuestType } from '../data/questData';
+import type { NavigationState } from '../navigation/AutoMove';
 import type { SkillId } from '../data/skillData';
 import type { StatusId } from '../data/statusData';
 
@@ -77,6 +78,11 @@ export type GameEvents = {
   dungeonCleared: { runId: string; dungeonId: string; difficulty: DifficultyId };
   /** An enhancement attempt was made (success or failure). */
   equipmentEnhanced: { instanceId: string; success: boolean; from: number; to: number };
+
+  /** Auto Move state changed (started, paused/resumed, next step, arrived, cancelled, failed). */
+  navigationChanged: NavigationState;
+  /** The player changed map through a portal. */
+  mapChanged: { fromMapId: string; toMapId: string; portalId: string };
 
   // --- Quest Engine
   questAvailable: { questId: string; title: string; questType: QuestType };

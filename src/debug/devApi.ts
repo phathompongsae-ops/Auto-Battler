@@ -21,7 +21,8 @@ import type { Location } from '../data/warpData';
 import type { RewardZone } from '../energy/fieldEnergy';
 import { FIELD_ENERGY } from '../data/energyData';
 import { expToNext } from '../progression/expCurve';
-import { defaultUnlocks, useDungeonWarp, useTownWarp } from '../warp/warp';
+import { defaultUnlocks, locationKind, useDungeonWarp, useTownWarp } from '../warp/warp';
+import { PROTOTYPE_MAP_ID } from '../data/navigation/demoNavigation';
 
 let devPetCounter = 0;
 let devJobCounter = 0;
@@ -47,6 +48,7 @@ export interface EventRecord {
   energySpent?: number;
   energyLeft?: number;
   quest?: string;
+  status?: string;
 }
 
 /**
@@ -83,6 +85,9 @@ export function createDevApi(world: CombatWorld, overlays: WorldOverlays) {
   ev.on('questCompleted', (e) => record('questCompleted', { quest: e.questId }));
   ev.on('questClaimed', (e) => record('questClaimed', { quest: e.questId }));
   ev.on('featureUnlocked', (e) => record('featureUnlocked', { item: e.featureId }));
+  ev.on('navigationChanged', (e) => record('navigationChanged', { target: e.targetId ?? undefined, status: e.status, reason: e.reason ?? undefined }));
+  ev.on('mapChanged', (e) => record('mapChanged', { target: e.toMapId, item: e.portalId }));
+  ev.on('locationReached', (e) => record('locationReached', { target: e.locationId }));
 
   const monster = (id: string) => {
     const m = world.monsters.find((x) => x.id === id);
@@ -285,6 +290,20 @@ export function createDevApi(world: CombatWorld, overlays: WorldOverlays) {
       world.quests.refresh();
     },
 
+    // --- Navigation / Auto Move (dev only) --------------------------------
+    navState: () => ({ ...world.autoMove.state(), mapId: world.location.mapId, x: world.player.x, y: world.player.y }),
+    navigateTo: (targetId: string) => world.autoMove.navigateTo(targetId),
+    navigateToQuest: (questId: string, objectiveIndex = 0) => world.autoMove.navigateToQuestObjective(questId, objectiveIndex),
+    cancelNavigation: () => world.autoMove.cancel(),
+    /** Every navigation target, and whether a route reaches it from the current map. */
+    navTargets: () =>
+      world.navigation.all().map((t) => ({ id: t.id, type: t.type, mapId: t.mapId, x: t.x, y: t.y, reachable: !!world.navigation.route(world.location.mapId, t) })),
+    /** Test setup only: put the player somewhere (and optionally on another map id) without walking. */
+    teleport: (x: number, y: number, mapId?: string) => {
+      if (mapId) world.location = { kind: locationKind(mapId), mapId };
+      world.player.body.reset(x, y);
+    },
+
     // --- Crafting and warp (dev only) -------------------------------------
     startCraft: (recipeId: string) => world.crafting.start(recipeId, world.inventory, world.wallet, () => `dev-job-${++devJobCounter}`),
     claimCraft: (jobId: string, seed = 1) => {
@@ -378,6 +397,8 @@ export function createDevApi(world: CombatWorld, overlays: WorldOverlays) {
       world.serverDay.override = null;
       world.daily.record = { day: null, ...freshDaily() };
       world.zone = 'field';
+      world.autoMove.clear();
+      world.location = { kind: 'field', mapId: PROTOTYPE_MAP_ID };
       world.quests.reset();
       world.features.unlocked.clear();
       world.quests.refresh();

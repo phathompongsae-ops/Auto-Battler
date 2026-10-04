@@ -42,6 +42,12 @@ import { grantKillRewards } from './killRewards';
 import { QUESTS } from '../data/questData';
 import { FeatureUnlocks } from '../features/FeatureUnlocks';
 import { QuestSystem } from '../quests/QuestSystem';
+import { NAVIGATION } from '../data/navigationData';
+import { PROTOTYPE_MAP_ID } from '../data/navigation/demoNavigation';
+import type { Location } from '../data/warpData';
+import { AutoMove } from '../navigation/AutoMove';
+import { NavIndex, portalTransition } from '../navigation/NavIndex';
+import { LPathPlanner, type CollisionGrid } from '../navigation/pathing';
 import { enhanceAndReport, type EnhanceOptions, type EnhanceResult } from '../equipment/enhancement';
 import { PlayerCombatController } from './PlayerCombatController';
 
@@ -110,6 +116,16 @@ export class CombatWorld implements MonsterWorld {
   /** Last server day seen; a new day can make quests available. */
   private lastServerDay = 0;
 
+  /**
+   * Map the player is on. DEMO: the prototype test map stands in for
+   * demo_field and physically hosts every demo map id (not saved yet).
+   */
+  location: Location = { kind: 'field', mapId: PROTOTYPE_MAP_ID };
+  /** Navigation targets and the portal map graph. */
+  readonly navigation: NavIndex;
+  /** Quest / [Go] navigation. Manual movement input cancels it (AutoMove.drive, called in update()). */
+  readonly autoMove: AutoMove;
+
   /** Unlocked feature ids (Feature Unlock hook). */
   readonly features = new FeatureUnlocks();
   /** Data-driven quests, progressed by world events. */
@@ -120,6 +136,8 @@ export class CombatWorld implements MonsterWorld {
     input: InputController,
     private readonly map: ProjectileWorld,
     readonly playerSpawn: Point,
+    /** Collision tiles per map id, for Auto Move path checks (none = unchecked paths). */
+    navGrid: (mapId: string) => CollisionGrid | undefined = () => undefined,
   ) {
     this.register(player);
     this.controller = new PlayerCombatController(player, input, this.skills, this.targeting, () => this.monsters);
@@ -144,6 +162,23 @@ export class CombatWorld implements MonsterWorld {
       player.id,
     );
     this.quests.refresh();
+
+    this.navigation = new NavIndex(NAVIGATION);
+    this.autoMove = new AutoMove(
+      this.navigation,
+      new LPathPlanner(navGrid),
+      {
+        mapId: () => this.location.mapId,
+        position: () => ({ x: this.player.x, y: this.player.y }),
+        inCombat: () =>
+          this.monsters.some((m) => !m.combat.dead && m.brain.target === this.player && (m.brain.state === 'chase' || m.brain.state === 'attack')),
+        isDead: () => this.player.combat.dead,
+        takePortal: (portalId) => this.takePortal(portalId),
+        reachLocation: (locationId) => this.reachLocation(locationId),
+      },
+      (state) => this.events.emit('navigationChanged', state),
+      this.quests,
+    );
   }
 
   addMonster(monster: Monster): void {
@@ -189,9 +224,11 @@ export class CombatWorld implements MonsterWorld {
     this.now += dtMs;
     const now = this.now;
 
-    this.player.move(playerDirection);
+    // Manual input always wins and cancels Auto Move; otherwise Auto Move may steer the same player.
+    const direction = this.autoMove.drive(playerDirection, dtMs, this.player.combat.stats.moveSpeed);
+    this.player.move(direction);
     // Moving breaks a melee wind-up that hasn't landed yet (skills opt in via windup.cancelOnMove).
-    if (playerDirection && !this.player.combat.dead) this.skills.interruptMovement(this.player);
+    if (direction && !this.player.combat.dead) this.skills.interruptMovement(this.player);
     this.controller.update(now);
     this.skills.update(now);
 
@@ -274,6 +311,21 @@ export class CombatWorld implements MonsterWorld {
     this.events.emit('locationReached', { locationId });
   }
 
+  /**
+   * The real portal transition: the warp portal must start on the current map;
+   * the player moves to the far side's arrival point on the new map.
+   * DEMO: no scene change yet (all demo map ids share the prototype map).
+   */
+  takePortal(portalId: string): boolean {
+    const from = this.location;
+    const t = portalTransition(this.navigation, from, portalId);
+    if (!t.ok) return false;
+    this.location = t.location;
+    this.player.body.reset(t.arrival.x, t.arrival.y);
+    this.events.emit('mapChanged', { fromMapId: from.mapId, toMapId: t.location.mapId, portalId });
+    return true;
+  }
+
   /** Add items obtained through gameplay and report the acquisition. */
   acquireItem(itemId: ItemId, amount: number, source: GameEvents['itemAcquired']['source']): void {
     if (!(amount > 0)) return;
@@ -334,8 +386,9 @@ export class CombatWorld implements MonsterWorld {
     applyPlayerSave(target, save);
     this.characterId = target.characterId;
     this.saveHooks = target.hooks;
-    // A run in progress belongs to the state being replaced.
+    // A run in progress belongs to the state being replaced; Auto Move never resumes from a save.
     this.leaveDungeon();
+    this.autoMove.clear();
     // The server cap may have risen since the save was made.
     this.lastLevelCap = 0;
     this.settleLevelCap();

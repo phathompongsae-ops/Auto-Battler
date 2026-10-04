@@ -1,0 +1,70 @@
+import { LOOT_TABLES, type ItemId } from '../data/itemData';
+import { MONSTERS } from '../data/monsterData';
+import type { NavTarget } from '../data/navigationData';
+import type { QuestDef, QuestObjective } from '../data/questData';
+import type { QuestSystem } from '../quests/QuestSystem';
+import type { NavIndex } from './NavIndex';
+
+export type NavResolution =
+  | { ok: true; target: NavTarget }
+  | {
+      ok: false;
+      reason: 'unknown_quest' | 'quest_not_active' | 'unknown_objective' | 'objective_complete' | 'no_target';
+    };
+
+/** Monster ids whose loot table can drop `itemId` (real data; nothing invented). */
+function monstersDropping(itemId: ItemId): string[] {
+  return Object.values(MONSTERS)
+    .filter((m) => LOOT_TABLES[m.lootTable]?.some((e) => e.itemId === itemId))
+    .map((m) => m.id);
+}
+
+/**
+ * Where an objective wants the player to go. Only configured navigation data
+ * is used; when nothing fits the result is `no_target`, never a guess.
+ *
+ * talk → the NPC; visit → the location marker; kill → a zone listing the
+ * monster; collect → a zone whose monsters drop the item; dungeon_clear → the
+ * dungeon entrance; enhance → the configured enhancement station (none yet).
+ * `preferMapId` breaks ties in favour of the current map.
+ */
+export function resolveObjectiveTarget(objective: QuestObjective, nav: NavIndex, preferMapId?: string): NavResolution {
+  let target: NavTarget | undefined;
+  switch (objective.kind) {
+    case 'talk':
+      target = nav.find((t) => t.type === 'npc' && t.npcId === objective.npcId, preferMapId);
+      break;
+    case 'visit':
+      target = nav.find((t) => t.type === 'location' && t.locationId === objective.locationId, preferMapId);
+      break;
+    case 'kill':
+      target = nav.find((t) => t.type === 'monster_zone' && !!t.monsterIds?.includes(objective.monsterId), preferMapId);
+      break;
+    case 'collect': {
+      const sources = monstersDropping(objective.itemId);
+      target = nav.find((t) => t.type === 'monster_zone' && !!t.monsterIds?.some((m) => sources.includes(m)), preferMapId);
+      break;
+    }
+    case 'dungeon_clear':
+      target = nav.find((t) => t.type === 'dungeon_entrance' && t.dungeonId === objective.dungeonId, preferMapId);
+      break;
+    case 'enhance': {
+      const id = nav.data.stations.enhance;
+      target = id ? nav.target(id) : undefined;
+      break;
+    }
+  }
+  return target ? { ok: true, target } : { ok: false, reason: 'no_target' };
+}
+
+/** Navigation for objective `index` of an ACTIVE quest (tracked or not). */
+export function resolveQuestObjective(quests: QuestSystem, questId: string, index: number, nav: NavIndex, preferMapId?: string): NavResolution {
+  const def: QuestDef | undefined = quests.defs[questId];
+  if (!def) return { ok: false, reason: 'unknown_quest' };
+  if (quests.status(questId) !== 'active') return { ok: false, reason: 'quest_not_active' };
+  const objective = def.objectives[index];
+  if (!objective) return { ok: false, reason: 'unknown_objective' };
+  const progress = quests.progress(questId)[index];
+  if (progress.current >= progress.required) return { ok: false, reason: 'objective_complete' };
+  return resolveObjectiveTarget(objective, nav, preferMapId);
+}
