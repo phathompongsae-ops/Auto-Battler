@@ -14,8 +14,11 @@ import type { PetInstance } from '../pets/pets';
 import { shopCycleId } from '../pets/specialShop';
 import type { DifficultyId } from '../data/dungeonDifficulty';
 import { clearId, rollBossReward } from '../dungeon/rewards';
+import type { Location } from '../data/warpData';
+import { defaultUnlocks, useDungeonWarp, useTownWarp } from '../warp/warp';
 
 let devPetCounter = 0;
+let devJobCounter = 0;
 import type { WorldOverlays } from '../rendering/WorldOverlays';
 import { finalPrimary } from '../stats/modifiers';
 import { playerDerivedStats } from '../stats/playerCombatStats';
@@ -195,6 +198,21 @@ export function createDevApi(world: CombatWorld, overlays: WorldOverlays) {
       });
     },
 
+    // --- Crafting and warp (dev only) -------------------------------------
+    startCraft: (recipeId: string) => world.crafting.start(recipeId, world.inventory, world.wallet, () => `dev-job-${++devJobCounter}`),
+    claimCraft: (jobId: string, seed = 1) => {
+      const result = world.crafting.claim(jobId, seededRng(seed), () => `dev-craft-${devJobCounter}-${jobId}`);
+      if (result.ok) world.player.equipment.add(result.item);
+      return result;
+    },
+    craftJobs: () => structuredClone(world.crafting.jobs),
+    discoverDungeon: (dungeonId: string) => world.warpUnlocks.dungeons.add(dungeonId),
+    /** Try a warp scroll from a test location (maps don't exist yet). */
+    warp: (kind: 'town' | 'dungeon', location: Location, options: { inCombat?: boolean; dungeonId?: string } = {}) => {
+      const ctx = { location, inCombat: !!options.inCombat, inventory: world.inventory, unlocks: world.warpUnlocks };
+      return kind === 'town' ? useTownWarp(ctx) : useDungeonWarp(ctx, options.dungeonId ?? '');
+    },
+
     // --- Equipment (dev only) ---------------------------------------------
     /** New item with enchants rolled from `seed`; returns its instance id. */
     grantEquipment: (defId: string, seed = 1) => {
@@ -273,6 +291,8 @@ export function createDevApi(world: CombatWorld, overlays: WorldOverlays) {
       world.specialShop.state = { cycleId: null, ticketsBought: 0 };
       world.clock.offsetMs = 0;
       world.rewardLedger.claimed.clear();
+      world.crafting.jobs = [];
+      Object.assign(world.warpUnlocks, defaultUnlocks());
       world.wallet.assign({});
       world.player.statModifiers.clear();
       world.player.combat.reset();

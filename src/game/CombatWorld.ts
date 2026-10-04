@@ -21,6 +21,8 @@ import { Wallet } from '../economy/Wallet';
 import { OffsetClock } from '../core/clock';
 import { SpecialShop } from '../pets/specialShop';
 import { RewardLedger } from '../dungeon/rewards';
+import { CraftingQueue } from '../crafting/crafting';
+import { defaultUnlocks } from '../warp/warp';
 import { LootSystem } from '../loot/LootSystem';
 import { useItem as applyItem, type UseItemResult } from '../items/useItem';
 import { ProgressionSystem } from '../progression/ProgressionSystem';
@@ -56,6 +58,10 @@ export class CombatWorld implements MonsterWorld {
   readonly specialShop = new SpecialShop(this.clock);
   /** Dungeon clears already claimed (idempotent rewards). */
   readonly rewardLedger = new RewardLedger();
+  /** Timed equipment crafting on the same clock as the shop. */
+  readonly crafting = new CraftingQueue(this.clock);
+  /** Unlocked towns and discovered dungeons (warp destinations). */
+  readonly warpUnlocks = defaultUnlocks();
   readonly loot = new LootSystem(this.events, this.inventory);
 
   readonly monsters: Monster[] = [];
@@ -208,6 +214,13 @@ export class CombatWorld implements MonsterWorld {
       progress: this.player.progress,
       combat: this.player.combat,
       inventory: this.inventory,
+      wallet: this.wallet,
+      equipment: this.player.equipment,
+      pets: this.player.pets,
+      shop: this.specialShop,
+      crafting: this.crafting,
+      warp: this.warpUnlocks,
+      ledger: this.rewardLedger,
       hooks: this.saveHooks,
     };
   }

@@ -16,13 +16,13 @@ import * as playerData from '../../src/data/playerData';
 import { SKILLS } from '../../src/data/skillData';
 import { NOVICE_BASE_STATS } from '../../src/data/statData';
 import type { GameEvents } from '../../src/game/GameEvents';
-import { Inventory } from '../../src/loot/Inventory';
 import { CharacterProgress, earnedSkillPoints, earnedStatPoints } from '../../src/progression/CharacterProgress';
 import { changeJob } from '../../src/progression/statActions';
-import { capturePlayerSave, emptyHooks } from '../../src/save/playerSnapshot';
+import { capturePlayerSave } from '../../src/save/playerSnapshot';
 import { effectiveCastTime, effectiveHeal } from '../../src/stats/castAndHeal';
 import { classBaseStats, classGrowthMaxLevel, ClassGrowthRangeError } from '../../src/stats/classBaseStats';
 import { playerCombatStats } from '../../src/stats/playerCombatStats';
+import { makeSaveTarget } from './fixtures';
 
 const close = (actual: number, expected: number, msg?: string) =>
   assert.ok(Math.abs(actual - expected) < 1e-9, `${msg ?? ''} expected ${expected}, got ${actual}`);
@@ -280,9 +280,8 @@ describe('Guard through the buff modifier source', () => {
 
 describe('Novice vs demo Warrior', () => {
   test('the demo Warrior presentation is not the character class and is not saved', () => {
-    const owner = playerOwner(1);
     assert.equal(DEMO_PLAYER_PRESENTATION.art.displayName, 'Warrior');
-    const save = capturePlayerSave({ characterId: 'c', progress: owner.progress, combat: owner.combat, inventory: new Inventory(), hooks: emptyHooks() });
+    const save = capturePlayerSave(makeSaveTarget(1));
     assert.equal(save.classId, 'novice');
     assert.deepEqual(save.stats.jobBonuses, {});
     assert.equal(JSON.stringify(save).includes('warrior'), false);
