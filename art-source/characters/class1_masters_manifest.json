@@ -414,17 +414,18 @@
     }
   },
   "qaSheets": {
-    "sourceScale": "art-source/characters/qa/class1_south_compare_1x.png",
-    "gameScale": "art-source/characters/qa/class1_south_compare_gamescale.png",
-    "gameScaleEnlarged": "art-source/characters/qa/class1_south_compare_gamescale_x4.png",
-    "readability": "art-source/characters/qa/class1_south_readability_gamescale.png",
-    "readabilityEnlarged": "art-source/characters/qa/class1_south_readability_gamescale_x4.png",
+    "sourceScale": "art-source/characters/deprecated/qa/class1_south_compare_1x.png",
+    "gameScale": "art-source/characters/deprecated/qa/class1_south_compare_gamescale.png",
+    "gameScaleEnlarged": "art-source/characters/deprecated/qa/class1_south_compare_gamescale_x4.png",
+    "readability": "art-source/characters/deprecated/qa/class1_south_readability_gamescale.png",
+    "readabilityEnlarged": "art-source/characters/deprecated/qa/class1_south_readability_gamescale_x4.png",
     "readabilityRows": "field grass #5f9e4f (game tile), path #c8a96b (game tile), town paving #d9d4c7 (stand-in), dungeon floor #2b2a33 (stand-in)",
     "all5SourceScale": "art-source/characters/qa/class1_all5_south_compare_1x.png",
     "all5GameScale": "art-source/characters/qa/class1_all5_south_gamescale.png",
     "all5GameScaleEnlarged": "art-source/characters/qa/class1_all5_south_gamescale_x4.png",
     "all5Readability": "art-source/characters/qa/class1_all5_south_readability_gamescale.png",
-    "all5ReadabilityEnlarged": "art-source/characters/qa/class1_all5_south_readability_gamescale_x4.png"
+    "all5ReadabilityEnlarged": "art-source/characters/qa/class1_all5_south_readability_gamescale_x4.png",
+    "legacyThreeClassNote": "The three-class sheets show the deprecated legacy Archer/Cleric and live in deprecated/qa/."
   },
   "designSources": {
     "sheet": "art-source/characters/design/class1_design_sheet_reference.png",

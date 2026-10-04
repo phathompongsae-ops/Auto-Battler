@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Class 1 Animation QA</title>
+<style>
+  :root { --bg: #8a8f98; --panel: #6f747d; --ink: #f4f4f4; --guide: rgba(255, 70, 70, .55); }
+  body { margin: 0; padding: 16px; background: var(--bg); color: var(--ink); font: 13px/1.4 system-ui, sans-serif; }
+  h1 { font-size: 16px; margin: 0 0 8px; }
+  .bar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; align-items: center; }
+  button { background: var(--panel); color: var(--ink); border: 1px solid #ffffff55; border-radius: 4px; padding: 4px 10px; cursor: pointer; }
+  button.on { background: #3d4250; }
+  table { border-collapse: collapse; }
+  th, td { padding: 4px 6px; text-align: center; vertical-align: middle; }
+  th { font-weight: 600; }
+  td.cls { text-align: left; font-weight: 600; text-transform: capitalize; }
+  canvas { image-rendering: pixelated; background: #7b808a; display: block; }
+  .note { opacity: .85; margin-top: 10px; max-width: 900px; }
+</style>
+</head>
+<body>
+<h1>Class 1 core animation QA (standalone; reads production strips, no game code)</h1>
+<div class="bar">
+  <span>Animation:</span>
+  <button data-anim="idle" class="on">Idle</button>
+  <button data-anim="walk">Walk</button>
+  <button data-anim="attack">Basic Attack</button>
+  <span style="margin-left:12px">Scale:</span>
+  <button data-scale="1" class="on">1× source</button>
+  <button data-scale="0.32">Game (~40 px, smooth)</button>
+  <label style="margin-left:12px"><input type="checkbox" id="guides" checked> feet y=153 / centre x=95</label>
+</div>
+<table id="grid"></table>
+<p class="note">West plays the East strip mirrored about x=95, exactly as the renderer mirrors the Warrior. Attack strips play once then hold the first frame for 0.4 s; the red frame number marks the recorded hit/release frame. Warrior North idle uses the new 4-frame candidate (warrior_idle_v2_north.png); the in-game file is still the 1-frame static.</p>
+<script>
+const ROOT = '../../../public/assets/characters/';
+const CLASSES = ['warrior', 'archer', 'mage', 'cleric', 'ninja'];
+const DIRS = ['south', 'north', 'east', 'west'];
+// Recommended playback (fps) and hit/release frame per direction (0-based, east also used for west).
+const SPEC = {
+  warrior: { idle: 4, walk: 10, attack: 18, hit: { south: 4, north: 4, east: 4 } },
+  archer:  { idle: 5, walk: 10, attack: 16, hit: { south: 5, north: 5, east: 4 } },
+  mage:    { idle: 5, walk: 10, attack: 16, hit: { south: 4, north: 3, east: 4 } },
+  cleric:  { idle: 5, walk: 10, attack: 18, hit: { south: 4, north: 4, east: 4 } },
+  ninja:   { idle: 5, walk: 10, attack: 20, hit: { south: 3, north: 3, east: 2 } },
+};
+const file = (c, a, d) => {
+  const src = d === 'west' ? 'east' : d;
+  if (c === 'warrior' && a === 'idle' && src === 'north') return ROOT + 'warrior/anims/warrior_idle_v2_north.png';
+  return `${ROOT}${c}/anims/${c}_${a}_${src}.png`;
+};
+let anim = 'idle', scale = 1, guides = true;
+const cells = [];
+function build() {
+  const grid = document.getElementById('grid');
+  grid.innerHTML = '<tr><th></th>' + DIRS.map((d) => `<th>${d}</th>`).join('') + '</tr>';
+  cells.length = 0;
+  for (const c of CLASSES) {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td class="cls">${c}</td>`;
+    for (const d of DIRS) {
+      const td = document.createElement('td');
+      const cv = document.createElement('canvas');
+      const size = Math.round(192 * scale);
+      cv.width = size; cv.height = size;
+      td.append(cv); tr.append(td);
+      const img = new Image();
+      const cell = { c, d, cv, img, frames: 1, ready: false, t0: performance.now() };
+      img.onload = () => { cell.frames = Math.max(1, Math.round(img.width / 192)); cell.ready = true; };
+      img.onerror = () => { const g = cv.getContext('2d'); g.fillStyle = '#fff'; g.fillText('missing', 8, 16); };
+      img.src = file(c, anim, d);
+      cells.push(cell);
+    }
+    grid.append(tr);
+  }
+}
+function frameAt(cell, now) {
+  const fps = SPEC[cell.c][anim];
+  if (anim !== 'attack') return Math.floor(((now - cell.t0) / 1000) * fps) % cell.frames;
+  const playMs = (cell.frames / fps) * 1000, cycle = playMs + 400;
+  const t = (now - cell.t0) % cycle;
+  return t < playMs ? Math.min(cell.frames - 1, Math.floor((t / 1000) * fps)) : 0;
+}
+function draw(now) {
+  for (const cell of cells) {
+    if (!cell.ready) continue;
+    const g = cell.cv.getContext('2d');
+    const s = cell.cv.width / 192;
+    g.setTransform(1, 0, 0, 1, 0, 0);
+    g.clearRect(0, 0, cell.cv.width, cell.cv.height);
+    g.imageSmoothingEnabled = scale < 1;
+    const f = frameAt(cell, now);
+    if (cell.d === 'west') { g.setTransform(-1, 0, 0, 1, 190 * s, 0); } // mirror about x=95
+    g.drawImage(cell.img, f * 192, 0, 192, 192, 0, 0, 192 * s, 192 * s);
+    g.setTransform(1, 0, 0, 1, 0, 0);
+    if (guides && scale === 1) {
+      g.fillStyle = 'rgba(255,70,70,.55)'; g.fillRect(0, 153, 192, 1);
+      g.fillStyle = 'rgba(60,255,60,.35)'; g.fillRect(95, 0, 1, 192);
+    }
+    if (anim === 'attack' && scale === 1) {
+      const hit = SPEC[cell.c].hit[cell.d === 'west' ? 'east' : cell.d];
+      g.fillStyle = f === hit ? '#ff4040' : '#ffffffaa';
+      g.fillText(`f${f}${f === hit ? ' HIT' : ''}`, 4, 12);
+    }
+  }
+  requestAnimationFrame(draw);
+}
+for (const b of document.querySelectorAll('[data-anim]')) b.onclick = () => {
+  anim = b.dataset.anim; document.querySelectorAll('[data-anim]').forEach((x) => x.classList.toggle('on', x === b)); build();
+};
+for (const b of document.querySelectorAll('[data-scale]')) b.onclick = () => {
+  scale = Number(b.dataset.scale); document.querySelectorAll('[data-scale]').forEach((x) => x.classList.toggle('on', x === b)); build();
+};
+document.getElementById('guides').onchange = (e) => { guides = e.target.checked; };
+build();
+requestAnimationFrame(draw);
+</script>
+</body>
+</html>

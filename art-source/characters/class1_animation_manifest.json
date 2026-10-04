@@ -1,0 +1,597 @@
+{
+  "phase": "Class 1 directions + core animation set (Idle / Walk / Basic Attack)",
+  "date": "2026-10-04",
+  "standard": {
+    "canvas": "192x192 transparent",
+    "feetY": 153,
+    "centerX": 95,
+    "view": "low top-down",
+    "gameHeight": "~40 px (render scale 40/125)",
+    "resampling": "none — integer translation / mirror only; no scaling, no smoothing",
+    "frameCanvasNote": "Some PixelLab frames arrive on a 204x204 canvas (= 192 + 6 px padding per side, verified pixel-exact); the padding is removed before alignment."
+  },
+  "pipeline": {
+    "rotation": "create_character mode=v3 with reference_image_url = commit-pinned GitHub raw URL of the locked South master (2724fef); 5 generations per class.",
+    "southRotation": "PixelLab south rotation overwritten with the exact locked master (save_to_asset), so every South animation starts from the master pixels.",
+    "animation": "animate_character mode=v3 custom action_description; idle 4f / walk 8f with keep_first_frame=false; attack 8f + reference frame (reference dropped in the strip). Seeds: PixelLab default (not set).",
+    "rejectedMethods": [
+      "template mode (breathing-idle / walking-8-frames): redraws the character each frame — taller/slimmer body, different face, ponytail side flip. Rejected for all classes.",
+      "skeleton-v3 (breathing-idle): identity stable but re-posed the Archer bow horizontally (weapon jump vs walk). Rejected."
+    ],
+    "alignment": "Per-direction integer offset measured on the static rotation (feet to y=153, boot/body centre to x=95) and applied to every frame of that direction.",
+    "walkGrounding": "Walk strips: per-frame integer vertical re-registration so the lowest planted-foot row sits on y=153 (removes whole-body float; the body bob relative to the feet is kept).",
+    "production": "Horizontal strips of 192x192 cells in public/assets/characters/<class>/anims/<class>_<anim>_<dir>.png (same convention as the Warrior). West is not stored: the renderer mirrors East.",
+    "gameplayCode": "Not changed. characterArt.ts does not reference the new strips yet."
+  },
+  "recommendedPlayback": {
+    "idle": "5 fps loop (Warrior currently 4 fps in code)",
+    "walk": "10 fps loop",
+    "attackFps": {
+      "warrior": 18,
+      "archer": 16,
+      "mage": 16,
+      "cleric": 18,
+      "ninja": 20
+    },
+    "attackNote": "All attacks 8 frames: 444-500 ms, inside a 500 ms basic-attack cooldown; Ninja fastest (400 ms)."
+  },
+  "classes": {
+    "warrior": {
+      "status": "EXISTING COMBAT ASSETS KEPT — new static direction set + North idle candidate added",
+      "pixellabCharacterId": "449dc2ec-9a0b-4b5a-8d16-afac668c059a",
+      "directions": {
+        "south": {
+          "file": "public/assets/characters/warrior/directions/warrior_south.png",
+          "source": "warrior_chibi_front_master_v3.png (copy)",
+          "offset": [
+            0,
+            0
+          ]
+        },
+        "north": {
+          "file": "public/assets/characters/warrior/directions/warrior_north.png",
+          "raw": "art-source/characters/raw/warrior/directions/warrior_north_pixellab_raw.png",
+          "offset": [
+            0,
+            -3
+          ]
+        },
+        "east": {
+          "file": "public/assets/characters/warrior/directions/warrior_east.png",
+          "raw": "art-source/characters/raw/warrior/directions/warrior_east_pixellab_raw.png",
+          "offset": [
+            1,
+            -3
+          ]
+        },
+        "west": {
+          "file": "public/assets/characters/warrior/directions/warrior_west.png",
+          "source": "mirror of East about x=95",
+          "mirrorValid": "yes (sword hand swaps, as the in-game mirror already does)"
+        },
+        "note": "Old warrior_chibi_back/right/left_v1.png are the same PixelLab rotations at feet y=157; left untouched."
+      },
+      "animations": {
+        "existing": {
+          "note": "Unchanged and still the in-game assets (anims/warrior_*). Feet sit at y~156-157 in these strips; the renderer normalises per animation (characterArt.ts visibleHeight / feetY=157).",
+          "idle": {
+            "south": "4f @4fps",
+            "east": "4f @4fps",
+            "north": "1 static frame (warrior_idle_north.png)"
+          },
+          "walk": {
+            "south": "8f @10fps",
+            "north": "8f @10fps",
+            "east": "8f @10fps"
+          },
+          "attack": {
+            "south": "8f @18fps hitFrame 4",
+            "north": "7f @18fps hitFrame 4",
+            "east": "8f @18fps hitFrame 4",
+            "west": "runtime mirror of East"
+          },
+          "powerSlash": {
+            "south": "10f @16fps hitFrame 5 (skill, out of scope)"
+          },
+          "integration": "Kept: Player.ts syncs damage to hitFrame and browser tests check Power Slash timing; same PixelLab character so style already matches."
+        },
+        "idleNorthCandidate": {
+          "strip": "public/assets/characters/warrior/anims/warrior_idle_v2_north.png",
+          "raw": "art-source/characters/raw/warrior/idle_v2/north/",
+          "frames": 4,
+          "fps": 4,
+          "loop": true,
+          "pixellabGroup": "4926ff4f-ef39-4bde-9476-efcf79f296b6",
+          "alignment": "matches the existing warrior_walk_north.png (feet y=156, axis x=95), not the new y=153 standard, so it can drop into the current Warrior pipeline",
+          "status": "CANDIDATE — not wired (in-game north idle is still 1 static frame; switching needs characterArt.ts frames 1 -> 4)",
+          "note": "The older PixelLab idle_skel north was unusable (rendered facing south)."
+        }
+      }
+    },
+    "archer": {
+      "status": "COMPLETE — ready for review",
+      "pixellabCharacterId": "a73365ba-860a-4574-8cc5-7a595310fce5",
+      "directions": {
+        "south": {
+          "file": "public/assets/characters/archer/directions/archer_south.png",
+          "source": "locked South production master (copy)",
+          "offset": [
+            0,
+            0
+          ]
+        },
+        "north": {
+          "file": "public/assets/characters/archer/directions/archer_north.png",
+          "raw": "art-source/characters/raw/archer/directions/archer_north_pixellab_raw.png",
+          "offset": [
+            0,
+            0
+          ],
+          "localCorrection": "Pointed ear tip removed (29 px; skin -> hair #E5A355, ear capped #B3593B) — saved back into the PixelLab north rotation via the pixel workbench (image fa36ec8e-f66a-4a03-a569-94b642895df3) before animating."
+        },
+        "east": {
+          "file": "public/assets/characters/archer/directions/archer_east.png",
+          "raw": "art-source/characters/raw/archer/directions/archer_east_pixellab_raw.png",
+          "offset": [
+            -3,
+            -5
+          ]
+        },
+        "west": {
+          "file": "public/assets/characters/archer/directions/archer_west.png",
+          "source": "mirror of East about x=95 (x' = 189 - x)",
+          "mirrorValid": "yes (bow in front, quiver on back)"
+        }
+      },
+      "animations": {
+        "idle": {
+          "frames": 4,
+          "fps": 5,
+          "loop": true,
+          "west": "runtime mirror of East (same as Warrior renderer)",
+          "directions": {
+            "south": {
+              "strip": "public/assets/characters/archer/anims/archer_idle_south.png",
+              "raw": "art-source/characters/raw/archer/idle/south/",
+              "pixellabGroup": "4a6c1615-8ce0-4527-9410-f4079b0d182e"
+            },
+            "north": {
+              "strip": "public/assets/characters/archer/anims/archer_idle_north.png",
+              "raw": "art-source/characters/raw/archer/idle/north/",
+              "pixellabGroup": "4a6c1615-8ce0-4527-9410-f4079b0d182e"
+            },
+            "east": {
+              "strip": "public/assets/characters/archer/anims/archer_idle_east.png",
+              "raw": "art-source/characters/raw/archer/idle/east/",
+              "pixellabGroup": "4a6c1615-8ce0-4527-9410-f4079b0d182e"
+            }
+          }
+        },
+        "walk": {
+          "frames": 8,
+          "fps": 10,
+          "loop": true,
+          "west": "runtime mirror of East (same as Warrior renderer)",
+          "directions": {
+            "south": {
+              "strip": "public/assets/characters/archer/anims/archer_walk_south.png",
+              "raw": "art-source/characters/raw/archer/walk/south/",
+              "pixellabGroup": "48db17b9-e6c7-468e-8633-e877bb647ff8"
+            },
+            "north": {
+              "strip": "public/assets/characters/archer/anims/archer_walk_north.png",
+              "raw": "art-source/characters/raw/archer/walk/north/",
+              "pixellabGroup": "48db17b9-e6c7-468e-8633-e877bb647ff8"
+            },
+            "east": {
+              "strip": "public/assets/characters/archer/anims/archer_walk_east.png",
+              "raw": "art-source/characters/raw/archer/walk/east/",
+              "pixellabGroup": "a58bd7ee-cd08-4cb5-87b8-040881f75bfd (re-roll: bow tipped horizontal mid-loop in the first take)"
+            }
+          },
+          "localCorrections": "ground re-registration"
+        },
+        "attack": {
+          "frames": 8,
+          "fps": 16,
+          "loop": false,
+          "west": "runtime mirror of East (same as Warrior renderer)",
+          "directions": {
+            "south": {
+              "strip": "public/assets/characters/archer/anims/archer_attack_south.png",
+              "raw": "art-source/characters/raw/archer/attack/south/",
+              "pixellabGroup": "724a8667-d7e4-4b14-a4e0-8e2be8c91802",
+              "hitFrame": 5,
+              "visualStatus": {
+                "status": "directional_attack_visual_pending",
+                "note": "Replace before external/public demo when directional projectile/cast presentation is finalized."
+              }
+            },
+            "north": {
+              "strip": "public/assets/characters/archer/anims/archer_attack_north.png",
+              "raw": "art-source/characters/raw/archer/attack/north/",
+              "pixellabGroup": "724a8667-d7e4-4b14-a4e0-8e2be8c91802",
+              "hitFrame": 5,
+              "visualStatus": {
+                "status": "directional_attack_visual_pending",
+                "note": "Replace before external/public demo when directional projectile/cast presentation is finalized."
+              }
+            },
+            "east": {
+              "strip": "public/assets/characters/archer/anims/archer_attack_east.png",
+              "raw": "art-source/characters/raw/archer/attack/east/",
+              "pixellabGroup": "724a8667-d7e4-4b14-a4e0-8e2be8c91802",
+              "hitFrame": 4
+            }
+          },
+          "hitFrameWest": 4,
+          "notes": "Draw -> release (arrow leaves) -> recover. South/North draw sideways (stylised); re-rolls 4990ced4 / 3b727ce5 were worse (ended with bow flat) and are not used."
+        }
+      },
+      "qa": "pass (internal demo) — South/North attack: directional_attack_visual_pending"
+    },
+    "mage": {
+      "status": "COMPLETE — ready for review",
+      "pixellabCharacterId": "696cb425-0aeb-4db0-8fa0-8a6defe427c4",
+      "directions": {
+        "south": {
+          "file": "public/assets/characters/mage/directions/mage_south.png",
+          "source": "locked South production master (copy)",
+          "offset": [
+            0,
+            0
+          ]
+        },
+        "north": {
+          "file": "public/assets/characters/mage/directions/mage_north.png",
+          "raw": "art-source/characters/raw/mage/directions/mage_north_pixellab_raw.png",
+          "offset": [
+            -1,
+            -1
+          ]
+        },
+        "east": {
+          "file": "public/assets/characters/mage/directions/mage_east.png",
+          "raw": "art-source/characters/raw/mage/directions/mage_east_pixellab_raw.png",
+          "offset": [
+            -5,
+            -4
+          ]
+        },
+        "west": {
+          "file": "public/assets/characters/mage/directions/mage_west.png",
+          "source": "mirror of East about x=95 (x' = 189 - x)",
+          "mirrorValid": "yes (staff in front)"
+        }
+      },
+      "animations": {
+        "idle": {
+          "frames": 4,
+          "fps": 5,
+          "loop": true,
+          "west": "runtime mirror of East (same as Warrior renderer)",
+          "directions": {
+            "south": {
+              "strip": "public/assets/characters/mage/anims/mage_idle_south.png",
+              "raw": "art-source/characters/raw/mage/idle/south/",
+              "pixellabGroup": "dff92a16-724e-4d95-91ca-7732fa4efaef"
+            },
+            "north": {
+              "strip": "public/assets/characters/mage/anims/mage_idle_north.png",
+              "raw": "art-source/characters/raw/mage/idle/north/",
+              "pixellabGroup": "dff92a16-724e-4d95-91ca-7732fa4efaef"
+            },
+            "east": {
+              "strip": "public/assets/characters/mage/anims/mage_idle_east.png",
+              "raw": "art-source/characters/raw/mage/idle/east/",
+              "pixellabGroup": "dff92a16-724e-4d95-91ca-7732fa4efaef"
+            }
+          }
+        },
+        "walk": {
+          "frames": 8,
+          "fps": 10,
+          "loop": true,
+          "west": "runtime mirror of East (same as Warrior renderer)",
+          "directions": {
+            "south": {
+              "strip": "public/assets/characters/mage/anims/mage_walk_south.png",
+              "raw": "art-source/characters/raw/mage/walk/south/",
+              "pixellabGroup": "839f84c1-0e93-49bd-afcb-b4a73d9ae6a6"
+            },
+            "north": {
+              "strip": "public/assets/characters/mage/anims/mage_walk_north.png",
+              "raw": "art-source/characters/raw/mage/walk/north/",
+              "pixellabGroup": "839f84c1-0e93-49bd-afcb-b4a73d9ae6a6"
+            },
+            "east": {
+              "strip": "public/assets/characters/mage/anims/mage_walk_east.png",
+              "raw": "art-source/characters/raw/mage/walk/east/",
+              "pixellabGroup": "839f84c1-0e93-49bd-afcb-b4a73d9ae6a6"
+            }
+          },
+          "localCorrections": "ground re-registration (north had up to 7 px float)"
+        },
+        "attack": {
+          "frames": 8,
+          "fps": 16,
+          "loop": false,
+          "west": "runtime mirror of East (same as Warrior renderer)",
+          "directions": {
+            "south": {
+              "strip": "public/assets/characters/mage/anims/mage_attack_south.png",
+              "raw": "art-source/characters/raw/mage/attack/south/",
+              "pixellabGroup": "a52f8abc-9a51-451c-9b8f-212e0c9fc884",
+              "hitFrame": 4,
+              "visualStatus": {
+                "status": "directional_attack_visual_pending",
+                "note": "Replace before external/public demo when directional projectile/cast presentation is finalized."
+              }
+            },
+            "north": {
+              "strip": "public/assets/characters/mage/anims/mage_attack_north.png",
+              "raw": "art-source/characters/raw/mage/attack/north/",
+              "pixellabGroup": "55d95c32-1f82-48ea-83b5-8ac6a5d8e664 (re-roll: first take drew a second orb on the staff)",
+              "hitFrame": 3
+            },
+            "east": {
+              "strip": "public/assets/characters/mage/anims/mage_attack_east.png",
+              "raw": "art-source/characters/raw/mage/attack/east/",
+              "pixellabGroup": "a52f8abc-9a51-451c-9b8f-212e0c9fc884 (cleaned)",
+              "hitFrame": 4
+            }
+          },
+          "hitFrameWest": 4,
+          "localCorrections": "East: unoutlined white spark blobs behind the head and detached specks removed locally (component analysis; orb flash kept as placeholder spark). Cleaned frames: art-source/characters/cleanup/mage/attack/east/; untouched raw stays in raw/. East re-roll 30c86a77 turned toward camera — not used.",
+          "notes": "Small wind-up -> staff thrust/raise with tiny orb spark -> recover. No spell VFX. South casts sideways (stylised)."
+        }
+      },
+      "qa": "pass (internal demo) — South attack: directional_attack_visual_pending"
+    },
+    "cleric": {
+      "status": "COMPLETE — ready for review",
+      "pixellabCharacterId": "dae6f2bd-913a-4cd5-bd4e-64d2c1b0abbe",
+      "directions": {
+        "south": {
+          "file": "public/assets/characters/cleric/directions/cleric_south.png",
+          "source": "locked South production master (copy)",
+          "offset": [
+            0,
+            0
+          ]
+        },
+        "north": {
+          "file": "public/assets/characters/cleric/directions/cleric_north.png",
+          "raw": "art-source/characters/raw/cleric/directions/cleric_north_pixellab_raw.png",
+          "offset": [
+            -1,
+            0
+          ]
+        },
+        "east": {
+          "file": "public/assets/characters/cleric/directions/cleric_east.png",
+          "raw": "art-source/characters/raw/cleric/directions/cleric_east_pixellab_raw.png",
+          "offset": [
+            -4,
+            -1
+          ]
+        },
+        "west": {
+          "file": "public/assets/characters/cleric/directions/cleric_west.png",
+          "source": "mirror of East about x=95 (x' = 189 - x)",
+          "mirrorValid": "yes (staff in front)"
+        }
+      },
+      "animations": {
+        "idle": {
+          "frames": 4,
+          "fps": 5,
+          "loop": true,
+          "west": "runtime mirror of East (same as Warrior renderer)",
+          "directions": {
+            "south": {
+              "strip": "public/assets/characters/cleric/anims/cleric_idle_south.png",
+              "raw": "art-source/characters/raw/cleric/idle/south/",
+              "pixellabGroup": "b294f71c-b58f-4d10-9937-e11854838a83"
+            },
+            "north": {
+              "strip": "public/assets/characters/cleric/anims/cleric_idle_north.png",
+              "raw": "art-source/characters/raw/cleric/idle/north/",
+              "pixellabGroup": "b294f71c-b58f-4d10-9937-e11854838a83"
+            },
+            "east": {
+              "strip": "public/assets/characters/cleric/anims/cleric_idle_east.png",
+              "raw": "art-source/characters/raw/cleric/idle/east/",
+              "pixellabGroup": "b294f71c-b58f-4d10-9937-e11854838a83"
+            }
+          }
+        },
+        "walk": {
+          "frames": 8,
+          "fps": 10,
+          "loop": true,
+          "west": "runtime mirror of East (same as Warrior renderer)",
+          "directions": {
+            "south": {
+              "strip": "public/assets/characters/cleric/anims/cleric_walk_south.png",
+              "raw": "art-source/characters/raw/cleric/walk/south/",
+              "pixellabGroup": "b172072d-e6e1-47b5-9069-69c6a29216f7"
+            },
+            "north": {
+              "strip": "public/assets/characters/cleric/anims/cleric_walk_north.png",
+              "raw": "art-source/characters/raw/cleric/walk/north/",
+              "pixellabGroup": "b172072d-e6e1-47b5-9069-69c6a29216f7"
+            },
+            "east": {
+              "strip": "public/assets/characters/cleric/anims/cleric_walk_east.png",
+              "raw": "art-source/characters/raw/cleric/walk/east/",
+              "pixellabGroup": "b172072d-e6e1-47b5-9069-69c6a29216f7"
+            }
+          },
+          "localCorrections": "ground re-registration"
+        },
+        "attack": {
+          "frames": 8,
+          "fps": 18,
+          "loop": false,
+          "west": "runtime mirror of East (same as Warrior renderer)",
+          "directions": {
+            "south": {
+              "strip": "public/assets/characters/cleric/anims/cleric_attack_south.png",
+              "raw": "art-source/characters/raw/cleric/attack/south/",
+              "pixellabGroup": "69f8f175-9e23-444b-a5fc-880c9f539308",
+              "hitFrame": 4
+            },
+            "north": {
+              "strip": "public/assets/characters/cleric/anims/cleric_attack_north.png",
+              "raw": "art-source/characters/raw/cleric/attack/north/",
+              "pixellabGroup": "e6cced55-a455-489a-bce7-44702db0f479 (re-roll: first take had flat white blob artefacts)",
+              "hitFrame": 4
+            },
+            "east": {
+              "strip": "public/assets/characters/cleric/anims/cleric_attack_east.png",
+              "raw": "art-source/characters/raw/cleric/attack/east/",
+              "pixellabGroup": "69f8f175-9e23-444b-a5fc-880c9f539308",
+              "hitFrame": 4
+            }
+          },
+          "hitFrameWest": 4,
+          "notes": "Compact staff strike (not a heal). North has a short white swing streak on the hit frame (motion trail, not holy VFX)."
+        }
+      },
+      "qa": "pass"
+    },
+    "ninja": {
+      "status": "COMPLETE — ready for review",
+      "pixellabCharacterId": "c5e68c9b-fa1c-49bf-b7b5-dcf41f4d9e5a",
+      "directions": {
+        "south": {
+          "file": "public/assets/characters/ninja/directions/ninja_south.png",
+          "source": "locked South production master (copy)",
+          "offset": [
+            0,
+            0
+          ]
+        },
+        "north": {
+          "file": "public/assets/characters/ninja/directions/ninja_north.png",
+          "raw": "art-source/characters/raw/ninja/directions/ninja_north_pixellab_raw.png",
+          "offset": [
+            0,
+            -1
+          ]
+        },
+        "east": {
+          "file": "public/assets/characters/ninja/directions/ninja_east.png",
+          "raw": "art-source/characters/raw/ninja/directions/ninja_east_pixellab_raw.png",
+          "offset": [
+            -3,
+            -7
+          ]
+        },
+        "west": {
+          "file": "public/assets/characters/ninja/directions/ninja_west.png",
+          "source": "mirror of East about x=95 (x' = 189 - x)",
+          "mirrorValid": "yes (symmetric twin daggers)"
+        }
+      },
+      "animations": {
+        "idle": {
+          "frames": 4,
+          "fps": 5,
+          "loop": true,
+          "west": "runtime mirror of East (same as Warrior renderer)",
+          "directions": {
+            "south": {
+              "strip": "public/assets/characters/ninja/anims/ninja_idle_south.png",
+              "raw": "art-source/characters/raw/ninja/idle/south/",
+              "pixellabGroup": "3f0a6441-9979-46fc-aadf-68d94e9c2f31"
+            },
+            "north": {
+              "strip": "public/assets/characters/ninja/anims/ninja_idle_north.png",
+              "raw": "art-source/characters/raw/ninja/idle/north/",
+              "pixellabGroup": "3f0a6441-9979-46fc-aadf-68d94e9c2f31"
+            },
+            "east": {
+              "strip": "public/assets/characters/ninja/anims/ninja_idle_east.png",
+              "raw": "art-source/characters/raw/ninja/idle/east/",
+              "pixellabGroup": "3f0a6441-9979-46fc-aadf-68d94e9c2f31"
+            }
+          },
+          "localCorrections": "north re-registered to y=153 (was 1-2 px low)"
+        },
+        "walk": {
+          "frames": 8,
+          "fps": 10,
+          "loop": true,
+          "west": "runtime mirror of East (same as Warrior renderer)",
+          "directions": {
+            "south": {
+              "strip": "public/assets/characters/ninja/anims/ninja_walk_south.png",
+              "raw": "art-source/characters/raw/ninja/walk/south/",
+              "pixellabGroup": "7834fb90-5763-4a5a-a346-3a86c8cebb03"
+            },
+            "north": {
+              "strip": "public/assets/characters/ninja/anims/ninja_walk_north.png",
+              "raw": "art-source/characters/raw/ninja/walk/north/",
+              "pixellabGroup": "7834fb90-5763-4a5a-a346-3a86c8cebb03"
+            },
+            "east": {
+              "strip": "public/assets/characters/ninja/anims/ninja_walk_east.png",
+              "raw": "art-source/characters/raw/ninja/walk/east/",
+              "pixellabGroup": "7834fb90-5763-4a5a-a346-3a86c8cebb03"
+            }
+          },
+          "localCorrections": "ground re-registration (north/east floated up to 9 px)"
+        },
+        "attack": {
+          "frames": 8,
+          "fps": 20,
+          "loop": false,
+          "west": "runtime mirror of East (same as Warrior renderer)",
+          "directions": {
+            "south": {
+              "strip": "public/assets/characters/ninja/anims/ninja_attack_south.png",
+              "raw": "art-source/characters/raw/ninja/attack/south/",
+              "pixellabGroup": "3f93ae7f-f242-4f4e-8763-d77e0fdb6bb0 (re-roll: first take lost the face mask)",
+              "hitFrame": 3
+            },
+            "north": {
+              "strip": "public/assets/characters/ninja/anims/ninja_attack_north.png",
+              "raw": "art-source/characters/raw/ninja/attack/north/",
+              "pixellabGroup": "aa75ffb8-4057-471f-9fa2-11056dc718d1",
+              "hitFrame": 3
+            },
+            "east": {
+              "strip": "public/assets/characters/ninja/anims/ninja_attack_east.png",
+              "raw": "art-source/characters/raw/ninja/attack/east/",
+              "pixellabGroup": "4586a8cb-c71d-4c44-9396-bc0a9e6854da (re-roll: first take did not return to stance)",
+              "hitFrame": 2
+            }
+          },
+          "hitFrameWest": 2,
+          "notes": "Fast compact dual-dagger strike, shortest anticipation. Mask present in every frame.",
+          "localCorrections": "East: final frame (strip frame 7) replaced with the aligned East static master to remove the turn-to-camera pop into Idle; frames 0-6 unchanged. Provenance: art-source/characters/cleanup/ninja/attack/east/."
+        }
+      },
+      "qa": "pass"
+    }
+  },
+  "qaSheets": {
+    "directionsSource": "art-source/characters/qa/class1_directions_compare_1x.png",
+    "directionsGame": "art-source/characters/qa/class1_directions_gamescale.png",
+    "directionsGameX4": "art-source/characters/qa/class1_directions_gamescale_x4.png",
+    "contactSheets": [
+      "art-source/characters/qa/class1_warrior_animations_contact.png",
+      "art-source/characters/qa/class1_archer_animations_contact.png",
+      "art-source/characters/qa/class1_mage_animations_contact.png",
+      "art-source/characters/qa/class1_cleric_animations_contact.png",
+      "art-source/characters/qa/class1_ninja_animations_contact.png"
+    ],
+    "livePreview": "art-source/characters/qa/class1_animation_preview.html (open via the Vite dev server or any static server at the repo root)"
+  },
+  "openIssues": [
+    "directional_attack_visual_pending: Archer South, Archer North, Mage South attacks aim/cast sideways. Replace before external/public demo when directional projectile/cast presentation is finalized.",
+    "Mage North walk: staff hidden behind the cloak for 4 frames; Ninja North walk turns slightly mid-cycle (minor)."
+  ]
+}
