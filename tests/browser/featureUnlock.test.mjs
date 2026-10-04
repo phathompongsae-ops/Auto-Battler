@@ -45,18 +45,35 @@ export async function featureUnlockSuite(b, t) {
     beforeWarp.reason === 'feature_locked' && warp.ok && map === 'demo_town' && JSON.stringify(await newUnlocks()) === '["warp"]',
     JSON.stringify({ beforeWarp: beforeWarp.reason, warp: warp.ok, map }),
   );
+  // The prototype hosts all map ids on one test map; return to its field setup for the Job Trial.
+  await b.eval(`debug.teleport(640, 608, 'demo_field')`);
 
   // 3. Lv11: Job Change, not Class Skills.
   await levelTo(11);
   let ids = await unlocked();
   t.check('F-3. Lv11 unlocks Job Change but not Class 1 Skills', ids.includes('job_change') && !ids.includes('class_1_skills'), JSON.stringify(ids));
 
-  // 4. The real Job Change unlocks Class 1 Skills (and the Skills menu).
-  await b.eval(`debug.forceCompleteJobTrial(); debug.chooseJob('warrior')`);
+  // 4. Complete the actual Job Quest chain and choose Warrior in the selection window.
+  await b.eval(`debug.startQuest('job_c1_01_instructor'); debug.talkToNpc('demo_job_instructor'); debug.claimQuest('job_c1_01_instructor')`);
+  await b.eval(`debug.startQuest('job_c1_02_trial')`);
+  const trialNav = await b.eval(`debug.navigateToQuest('job_c1_02_trial', 0)`);
+  await b.waitFor(`debug.navState().status !== 'moving' && debug.navState()`, { timeout: 8000, label: 'reach Job Trial marker' });
+  for (const id of ['slime-1', 'slime-2', 'slime-3']) {
+    const p = await b.eval('debug.navState()');
+    await b.eval(`debug.placeMonster('${id}', ${p.x}, ${p.y - 48}); debug.resetCooldowns(); debug.selectTarget('${id}'); debug.setMonsterHp('${id}', 5)`);
+    await b.press('Space');
+    await b.waitFor(`debug.monster('${id}').dead`, { timeout: 2000, label: `${id} dies in Job Trial` });
+  }
+  const trialClaim = await b.eval(`debug.claimQuest('job_c1_02_trial')`);
+  await b.eval(`debug.startQuest('job_c1_03_report'); debug.talkToNpc('demo_job_instructor')`);
+  const reportClaim = await b.eval(`debug.claimQuest('job_c1_03_report')`);
+  if (!trialNav.ok || !trialClaim.ok || !reportClaim.ok) throw new Error(`Job Trial did not complete: ${JSON.stringify({ trialNav, trialClaim, reportClaim })}`);
+  await b.eval(`document.querySelector('[data-window="job-select"] [data-job="warrior"]').click()`);
+  await b.eval(`document.querySelector('[data-window="job-select"] [data-action="confirm"]').click()`);
   await sleep(50);
   ids = await unlocked();
   const skillsEnabled = await b.eval(`!document.querySelector('[data-menu="skills"]').disabled`);
-  t.check('F-4. completing the Job Change unlocks Class 1 Skills and the Skills menu', ids.includes('class_1_skills') && skillsEnabled, JSON.stringify({ ids, skillsEnabled }));
+  t.check('F-4. completing the real Job Change unlocks Class 1 Skills and the Skills menu', trialNav.ok && trialClaim.ok && reportClaim.ok && ids.includes('class_1_skills') && skillsEnabled, JSON.stringify({ trialNav, trialClaim, reportClaim, ids, skillsEnabled }));
 
   // 5. Lv15: Enhancement, used through its screen.
   const itemId = await b.eval(`(() => { const id = debug.grantEquipment('knight_sword'); debug.grantItem('enhancement_stone', 5); debug.grantGold(10000); return id; })()`);
@@ -76,7 +93,11 @@ export async function featureUnlockSuite(b, t) {
   // 6. Lv16: Daily Commissions appear.
   await levelTo(16);
   const daily = (await b.eval('debug.recurringState()')).daily;
-  t.check('F-6. Lv16 unlocks Daily Commission and today\'s 3 Dailies become active', daily.length === 3 && daily.every((q) => q.status === 'active'), JSON.stringify(daily));
+  await b.eval(`document.querySelector('[data-menu="menu"]').click(); document.querySelector('[data-window="menu"] [data-screen="commissions"]').click()`);
+  await b.eval(`Array.from(document.querySelectorAll('[data-window="commissions"] [role="tab"]')).find((tab) => tab.textContent.trim() === 'Weekly').click()`);
+  const weeklyLock = await b.eval(`document.querySelector('[data-recurring-state="locked"]')?.textContent`);
+  await b.press('Escape');
+  t.check('F-6. Lv16 unlocks 3 Dailies; Weekly stays locked with its requirement', daily.length === 3 && daily.every((q) => q.status === 'active') && weeklyLock.includes('Unlocks at Lv20'), JSON.stringify({ daily, weeklyLock }));
 
   // 7-8. Lv18 Enchant; Lv20 Pet / Dungeon / Crafting / Weekly.
   await levelTo(18);

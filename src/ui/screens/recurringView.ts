@@ -54,10 +54,11 @@ export function renderRecurring(world: CombatWorld, tab: 'daily' | 'weekly'): HT
     const rq = world.recurring;
     const feature = tab === 'daily' ? DAILY_FEATURE : WEEKLY_FEATURE;
     if (!world.features.isFeatureUnlocked(feature)) {
+      const access = world.featureProgression.check(feature);
       return [
         h('div', { className: 'ui-empty', attrs: { 'data-recurring-state': 'locked' } }, [
           h('div', { className: 'ui-label', text: 'Not unlocked yet' }),
-          h('div', { className: 'ui-caption', text: tab === 'daily' ? 'Daily Commissions unlock later in your journey.' : 'Weekly quests unlock later in your journey.' }),
+          h('div', { className: 'ui-caption', text: access.ok ? '' : access.message }),
         ]),
       ];
     }
