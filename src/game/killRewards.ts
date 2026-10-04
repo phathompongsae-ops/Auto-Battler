@@ -23,11 +23,12 @@ export interface KillRewardContext {
 /**
  * Rewards for a monster the player killed. The kill itself always counts
  * (quests listen to the 'death' event, not to this). Field EXP and farming
- * drops need Field Energy; quest drops always roll; dungeon mobs give no EXP.
+ * drops need Field Energy; field quest drops always roll; dungeon mobs give
+ * nothing (all dungeon rewards come from the boss-clear claim).
  */
 export function grantKillRewards(monster: KilledMonster, ctx: KillRewardContext): KillRewardDecision {
   const decision = ctx.fieldEnergy.payForKill(ctx.zone, monster.def.tier);
   if (decision.exp) ctx.progression.grantExp(ctx.player, monster.def.expReward);
-  ctx.loot.roll(monster.def.lootTable, monster.x, monster.y, ctx.now, { farmingDrops: decision.farmingDrops });
+  ctx.loot.roll(monster.def.lootTable, monster.x, monster.y, ctx.now, { farmingDrops: decision.farmingDrops, questDrops: decision.questDrops });
   return decision;
 }

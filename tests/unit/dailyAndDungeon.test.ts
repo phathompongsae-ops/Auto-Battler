@@ -166,16 +166,6 @@ describe('dungeon Full Reward quota (5 free + up to 2 tickets)', () => {
     assert.deepEqual(r.claim(forged), { ok: false, reason: 'unknown_run' });
   });
 
-  test('dungeon mobs give 0 EXP and never touch Field Energy', () => {
-    const r = rig();
-    for (const tier of ['normal', 'elite', 'mini_boss'] as const) {
-      const decision = r.kill(tier, 'dungeon');
-      assert.deepEqual(decision, { exp: false, farmingDrops: true, energySpent: 0 });
-    }
-    assert.deepEqual(r.log.exp, []);
-    assert.equal(r.t.fieldEnergy.current(), FIELD_ENERGY.daily);
-  });
-
   test('a Full Reward claim grants the configured dungeon EXP (once)', () => {
     for (const d of ['normal', 'hard', 'hell'] as const) {
       const r = rig();
@@ -354,9 +344,9 @@ describe('Field Energy (confirmed rules)', () => {
   test('200 a day; normal 1, elite 5, mini boss 10', () => {
     const r = rig();
     assert.equal(FIELD_ENERGY.daily, 200);
-    assert.deepEqual(r.kill('normal'), { exp: true, farmingDrops: true, energySpent: 1 });
-    assert.deepEqual(r.kill('elite'), { exp: true, farmingDrops: true, energySpent: 5 });
-    assert.deepEqual(r.kill('mini_boss'), { exp: true, farmingDrops: true, energySpent: 10 });
+    assert.deepEqual(r.kill('normal'), { exp: true, farmingDrops: true, questDrops: true, energySpent: 1 });
+    assert.deepEqual(r.kill('elite'), { exp: true, farmingDrops: true, questDrops: true, energySpent: 5 });
+    assert.deepEqual(r.kill('mini_boss'), { exp: true, farmingDrops: true, questDrops: true, energySpent: 10 });
     assert.equal(r.t.fieldEnergy.current(), 184);
   });
 
@@ -364,7 +354,7 @@ describe('Field Energy (confirmed rules)', () => {
     const r = rig();
     r.t.fieldEnergy.set(0);
     const decision = r.kill('normal');
-    assert.deepEqual(decision, { exp: false, farmingDrops: false, energySpent: 0 });
+    assert.deepEqual(decision, { exp: false, farmingDrops: false, questDrops: true, energySpent: 0 });
     assert.deepEqual(r.log.exp, []);
     assert.deepEqual(r.log.drops, ['slime_sample'], 'quest drop only; no slime_gel');
     assert.equal(r.t.fieldEnergy.current(), 0);
@@ -412,14 +402,14 @@ describe('Field Energy (confirmed rules)', () => {
   test('3 Energy left + Mini Boss (cost 10): the full reward, Energy to 0; the next kill gets no normal reward', () => {
     const r = rig();
     r.t.fieldEnergy.set(3);
-    assert.deepEqual(r.kill('mini_boss'), { exp: true, farmingDrops: true, energySpent: 3 });
+    assert.deepEqual(r.kill('mini_boss'), { exp: true, farmingDrops: true, questDrops: true, energySpent: 3 });
     assert.deepEqual(r.log.exp, [30], 'full EXP, not scaled');
     assert.ok(r.log.drops.includes('slime_gel'), 'full drops');
     assert.equal(r.t.fieldEnergy.current(), 0);
 
     r.log.exp.length = 0;
     r.log.drops.length = 0;
-    assert.deepEqual(r.kill('normal'), { exp: false, farmingDrops: false, energySpent: 0 });
+    assert.deepEqual(r.kill('normal'), { exp: false, farmingDrops: false, questDrops: true, energySpent: 0 });
     assert.deepEqual(r.log.exp, []);
     assert.deepEqual(r.log.drops, ['slime_sample']);
   });
@@ -489,5 +479,82 @@ describe('save and claim safety', () => {
     const save = capturePlayerSave(r.t);
     assert.ok(save.dungeonRuns.claimed.length <= 64, `${save.dungeonRuns.claimed.length}`);
     assert.deepEqual(deserializePlayerSave(serializePlayerSave(save)).dungeonRuns, save.dungeonRuns);
+  });
+});
+
+describe('dungeon mobs are combat only (all rewards come from the boss-clear claim)', () => {
+  /** Kill one dungeon enemy with every drop roll forced to succeed; report everything it changed. */
+  const dungeonKill = (r: ReturnType<typeof rig>, tier: MonsterTier) => {
+    const before = { level: r.t.combat.level, exp: r.t.combat.exp, gold: r.t.wallet.get('gold'), inv: r.t.inventory.entries(), energy: r.t.fieldEnergy.current() };
+    const decision = r.kill(tier, 'dungeon', 0);
+    const after = { level: r.t.combat.level, exp: r.t.combat.exp, gold: r.t.wallet.get('gold'), inv: r.t.inventory.entries(), energy: r.t.fieldEnergy.current() };
+    return { decision, before, after };
+  };
+
+  for (const tier of ['normal', 'elite', 'mini_boss'] as const) {
+    test(`dungeon ${tier}: 0 EXP, 0 Gold, 0 drops (quest items included), no Energy`, () => {
+      const r = rig();
+      const { decision, before, after } = dungeonKill(r, tier);
+      assert.deepEqual(decision, { exp: false, farmingDrops: false, questDrops: false, energySpent: 0 });
+      assert.deepEqual(after, before);
+      assert.deepEqual(r.log.exp, [], 'no EXP event');
+      assert.deepEqual(r.log.drops, [], 'nothing dropped, not even slime_sample');
+      assert.equal(r.loot.drops.length, 0);
+    });
+  }
+
+  test('the same at 0 and at full Field Energy, and Energy is never consumed', () => {
+    for (const energy of [0, 3, FIELD_ENERGY.daily]) {
+      const r = rig();
+      r.t.fieldEnergy.set(energy);
+      for (const tier of ['normal', 'elite', 'mini_boss'] as const) {
+        const { decision } = dungeonKill(r, tier);
+        assert.deepEqual(decision, { exp: false, farmingDrops: false, questDrops: false, energySpent: 0 }, `${tier} @${energy}`);
+      }
+      assert.deepEqual(r.log.drops, []);
+      assert.deepEqual(r.log.exp, []);
+      assert.equal(r.t.fieldEnergy.current(), energy);
+    }
+  });
+
+  test('the loot gate can switch off quest entries too (the hook a future quest exception would use)', () => {
+    const r = rig();
+    r.loot.rng = () => 0;
+    const entries = [
+      { itemId: 'slime_gel', chance: 0.5 },
+      { itemId: 'enchant_stone', chance: 0.01, category: 'rare' },
+      { itemId: 'slime_sample', chance: 0.4, category: 'quest' },
+    ] as const;
+    assert.deepEqual(r.loot.rollEntries(entries, 0, 0, 0, { farmingDrops: false, questDrops: false }), []);
+    assert.deepEqual(r.loot.rollEntries(entries, 0, 0, 0, { farmingDrops: false, questDrops: true }).map((d) => d.itemId), ['slime_sample']);
+  });
+
+  test('field monsters are unaffected: drops with Energy, quest items at 0 Energy', () => {
+    const r = rig();
+    r.kill('normal');
+    assert.deepEqual(r.log.drops, ['slime_gel', 'slime_sample']);
+    assert.deepEqual(r.log.exp, [30]);
+    r.log.drops.length = 0;
+    r.t.fieldEnergy.set(0);
+    r.kill('normal');
+    assert.deepEqual(r.log.drops, ['slime_sample']);
+  });
+
+  test('after a run of dungeon kills, the boss-clear claim grants the configured reward normally', () => {
+    const r = rig();
+    const run = r.enter('hard');
+    for (const tier of ['normal', 'normal', 'elite', 'mini_boss'] as const) r.kill(tier, 'dungeon', 0);
+    assert.deepEqual(r.log.exp, []);
+    assert.deepEqual(r.log.drops, []);
+
+    const res = r.claim(run, seededRng(3));
+    assert.ok(res.ok && res.kind === 'full');
+    assert.equal(res.reward.exp, Math.round(DUNGEONS.demo_dungeon.bossExp * DIFFICULTIES.hard.rewards.exp));
+    assert.deepEqual(r.log.exp, [res.reward.exp]);
+    assert.equal(r.t.wallet.get('gold'), res.reward.gold);
+    assert.equal(r.t.inventory.count('boss_fragment'), 2);
+    assert.ok(r.t.equipment.items.size >= 1);
+    assert.equal(r.t.fieldEnergy.current(), FIELD_ENERGY.daily);
+    assert.deepEqual(r.claim(run), { ok: false, reason: 'already_claimed' });
   });
 });

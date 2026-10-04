@@ -218,6 +218,33 @@ export async function combatSuite(b, t, shot) {
   await api('setFieldEnergy(200)');
   await api('setRng(0.5)');
 
+  // Inside a dungeon, mobs are combat only: nothing at all, whatever the Energy.
+  await arena();
+  await api(`setZone('dungeon')`);
+  await api('setRng(0)');
+  const dgBefore = { p: await player(), gold: (await api('equipment()')).gold, energy: await api('fieldEnergy()') };
+  await api(`selectTarget('slime-1')`);
+  await api(`setMonsterHp('slime-1', 5)`);
+  await b.press('Space');
+  await sleep(150);
+  const dg = {
+    deaths: (await events(`e => e.type === 'death' && e.entity === 'slime-1'`)).length,
+    exp: (await events(`e => e.type === 'expGained'`)).length,
+    drops: (await events(`e => e.type === 'lootDropped'`)).length,
+    fieldRewards: (await events(`e => e.type === 'fieldReward'`)).length,
+    p: await player(),
+    gold: (await api('equipment()')).gold,
+    energy: await api('fieldEnergy()'),
+  };
+  t.check(
+    '22e. a dungeon mob kill grants no EXP, Gold or drops (quest items included) and uses no Energy',
+    dg.deaths === 1 && dg.exp === 0 && dg.drops === 0 && dg.fieldRewards === 0 && dg.p.exp === dgBefore.p.exp &&
+      JSON.stringify(dg.p.inventory) === JSON.stringify(dgBefore.p.inventory) && dg.gold === dgBefore.gold && dg.energy === dgBefore.energy,
+    JSON.stringify({ ...dg, p: undefined }),
+  );
+  await api(`setZone('field')`);
+  await api('setRng(0.5)');
+
   // ------------------------------------------------------------------ loot
   t.section('Loot');
   await arena();

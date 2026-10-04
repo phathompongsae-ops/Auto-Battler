@@ -15,6 +15,12 @@ export interface LootDrop {
   expiresAt: number;
 }
 
+/** Which loot categories may roll (default: all). */
+export interface LootGates {
+  farmingDrops?: boolean;
+  questDrops?: boolean;
+}
+
 /** Rolls loot tables, keeps items on the ground for a while, handles pickup. */
 export class LootSystem {
   readonly drops: LootDrop[] = [];
@@ -27,17 +33,19 @@ export class LootSystem {
   ) {}
 
   /**
-   * Roll a loot table. With `farmingDrops` false (no Field Energy) only quest
-   * entries roll; farming and rare entries are skipped entirely.
+   * Roll a loot table. `farmingDrops` gates farming and rare entries (off with
+   * no Field Energy); `questDrops` gates quest entries (off in dungeons).
+   * Skipped entries are not rolled at all.
    */
-  roll(tableId: LootTableId, x: number, y: number, now: number, options: { farmingDrops?: boolean } = {}): LootDrop[] {
+  roll(tableId: LootTableId, x: number, y: number, now: number, options: LootGates = {}): LootDrop[] {
     return this.rollEntries(LOOT_TABLES[tableId], x, y, now, options);
   }
 
-  rollEntries(entries: readonly LootEntry[], x: number, y: number, now: number, { farmingDrops = true }: { farmingDrops?: boolean } = {}): LootDrop[] {
+  rollEntries(entries: readonly LootEntry[], x: number, y: number, now: number, { farmingDrops = true, questDrops = true }: LootGates = {}): LootDrop[] {
     const dropped: LootDrop[] = [];
     for (const entry of entries) {
-      if (!farmingDrops && (entry.category ?? 'farming') !== 'quest') continue;
+      const isQuest = entry.category === 'quest';
+      if (isQuest ? !questDrops : !farmingDrops) continue;
       if (this.rng() < entry.chance) {
         const offset = dropped.length * 10;
         dropped.push(this.spawn(entry.itemId, x + offset, y, now));

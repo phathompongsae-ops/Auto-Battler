@@ -9,8 +9,10 @@ export type RewardZone = 'field' | 'dungeon';
 export interface KillRewardDecision {
   /** The monster's EXP. */
   exp: boolean;
-  /** Normal and rare farming drops. Quest drops are never gated. */
+  /** Normal and rare farming drops. */
   farmingDrops: boolean;
+  /** Quest-specific drops. */
+  questDrops: boolean;
   energySpent: number;
 }
 
@@ -32,19 +34,21 @@ export class FieldEnergy {
 
   /**
    * Decide a kill's rewards.
-   * - Dungeon: never uses Energy; mobs give no EXP (dungeon EXP comes only
-   *   from the boss-clear claim); their drops are unchanged.
+   * - Dungeon: combat only. Mobs, elites and minibosses give nothing at all
+   *   (no EXP, Gold, drops or quest items) and never use Energy; every dungeon
+   *   reward comes from the final boss-clear claim. A future quest exception
+   *   would turn on `questDrops` here.
    * - Field with Energy left: full EXP and drops; pay the tier's cost. A cost
    *   larger than what's left still grants the full reward and empties it.
    * - Field at 0 Energy: no EXP, no normal or rare farming drops, nothing
    *   spent. The kill still counts for quests, and quest drops still roll.
    */
   payForKill(zone: RewardZone, tier: MonsterTier): KillRewardDecision {
-    if (zone === 'dungeon') return { exp: false, farmingDrops: true, energySpent: 0 };
+    if (zone === 'dungeon') return { exp: false, farmingDrops: false, questDrops: false, energySpent: 0 };
     const today = this.daily.today();
-    if (today.fieldEnergy <= 0) return { exp: false, farmingDrops: false, energySpent: 0 };
+    if (today.fieldEnergy <= 0) return { exp: false, farmingDrops: false, questDrops: true, energySpent: 0 };
     const spent = Math.min(today.fieldEnergy, FIELD_ENERGY.costByTier[tier]);
     today.fieldEnergy -= spent;
-    return { exp: true, farmingDrops: true, energySpent: spent };
+    return { exp: true, farmingDrops: true, questDrops: true, energySpent: spent };
   }
 }
