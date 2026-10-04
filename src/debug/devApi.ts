@@ -26,6 +26,7 @@ import { PROTOTYPE_MAP_ID } from '../data/navigation/demoNavigation';
 import { CLASS_1_JOB_CHANGE } from '../data/jobChangeData';
 import { QUESTS } from '../data/questData';
 import { passiveModifiers } from '../skills/skillTreeRules';
+import { emptyRecurringState, selectDailyQuests, serverWeek } from '../quests/RecurringQuests';
 import type { SkillId } from '../data/skillData';
 
 let devPetCounter = 0;
@@ -236,6 +237,59 @@ export function createDevApi(world: CombatWorld, overlays: WorldOverlays) {
     /** FORCE (dev): take a Class 1 job without the Job Trial. Same effects as the real path otherwise. */
     forceChangeJob: (jobId: string) => world.changePlayerJob(jobId, { skipTrial: true }),
 
+    // --- Daily Commissions / Weekly quests (dev only) ----------------------
+    /** Today's Daily set, the Weekly quests, counters and milestones. */
+    recurringState: () => {
+      const rq = world.recurring;
+      const view = (id: string) => ({ questId: id, status: world.quests.status(id), progress: world.quests.progress(id).map((p) => p.current) });
+      return {
+        serverDay: world.serverDay.day(),
+        serverWeek: serverWeek(world.serverDay.day()),
+        state: rq.toState(),
+        daily: rq.dailyQuestIds().map(view),
+        weekly: rq.weeklyQuestIds().map(view),
+        dailyClaimsThisWeek: rq.state.weekly.dailyClaims,
+        weeklyClaimed: rq.weeklyClaimed(),
+        milestones: rq.milestones().map((m) => ({ milestone: m.milestone, reached: m.reached, claimed: m.claimed })),
+      };
+    },
+    claimWeeklyMilestone: (milestone: number) => world.recurring.claimMilestone(milestone),
+    /** The Daily set a server day would get (deterministic; nothing changes). */
+    previewDailySet: (day: number) => selectDailyQuests(day, world.player.combat.level),
+    /** RESET (dev): start the current Daily / Weekly cycle over. */
+    resetDailyCycle: () => world.recurring.resetCycle('daily'),
+    resetWeeklyCycle: () => world.recurring.resetCycle('weekly'),
+    /** FORCE (dev): unlock Daily Commissions and Weekly quests now. */
+    forceUnlockRecurring: () => {
+      for (const id of ['daily_commission', 'weekly_quests'] as const) {
+        if (world.features.unlock(id)) world.events.emit('featureUnlocked', { featureId: id });
+      }
+      world.quests.refresh();
+    },
+    /**
+     * FORCE (dev): finish an active quest's objectives by emitting the real
+     * gameplay events they listen to (kills, visits, items...). Does not claim.
+     * daily_commission objectives can't be forced (they count real Daily claims).
+     */
+    forceCompleteQuest: (questId: string) => {
+      const def = world.quests.defs[questId];
+      if (!def) return { ok: false, reason: 'unknown_quest' };
+      world.quests.progress(questId).forEach((p, i) => {
+        const o = def.objectives[i];
+        for (let n = p.current; n < p.required; n++) {
+          if (o.kind === 'talk') world.interactWithNpc(o.npcId);
+          if (o.kind === 'visit') world.reachLocation(o.locationId);
+          if (o.kind === 'collect') world.acquireItem(o.itemId, 1, 'dev');
+          if (o.kind === 'kill') world.events.emit('monsterKilled', { entityId: 'dev', monsterId: o.monsterId ?? 'slime', tier: o.tier ?? 'normal', zone: o.zone ?? 'field' });
+          if (o.kind === 'dungeon_clear') {
+            world.events.emit('dungeonCleared', { runId: 'dev', dungeonId: o.dungeonId ?? 'demo_dungeon', difficulty: o.difficulty ?? 'normal', assist: !!o.assist });
+          }
+          if (o.kind === 'enhance') world.events.emit('equipmentEnhanced', { instanceId: 'dev', success: true, from: (o.minLevel ?? 1) - 1, to: o.minLevel ?? 1 });
+        }
+      });
+      return { ok: true, status: world.quests.status(questId) };
+    },
+
     // --- Skill tree (dev only) ---------------------------------------------
     /** The current job's tree: points, every node's rank / lock reason, and the action-bar loadout. */
     skillTree: () => {
@@ -301,7 +355,7 @@ export function createDevApi(world: CombatWorld, overlays: WorldOverlays) {
           for (let i = 0; i < (o.count ?? 1); i++) {
             if (o.kind === 'talk') world.interactWithNpc(o.npcId);
             if (o.kind === 'visit') world.reachLocation(o.locationId);
-            if (o.kind === 'kill') world.events.emit('monsterKilled', { entityId: 'dev', monsterId: o.monsterId, zone: 'field' });
+            if (o.kind === 'kill') world.events.emit('monsterKilled', { entityId: 'dev', monsterId: o.monsterId ?? 'slime', tier: o.tier ?? 'normal', zone: 'field' });
           }
         }
         const claim = world.quests.claim(questId);
@@ -394,6 +448,8 @@ export function createDevApi(world: CombatWorld, overlays: WorldOverlays) {
     resetQuests: () => {
       world.quests.reset();
       world.features.unlocked.clear();
+      world.recurring.load(emptyRecurringState());
+      world.recurring.sync();
       world.quests.refresh();
       world.skillProcs.reset();
     },

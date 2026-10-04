@@ -2,7 +2,7 @@ import type { EventBus } from '../core/EventBus';
 import type { FeatureId } from '../data/featureData';
 import type { ItemId } from '../data/itemData';
 import type { JobId } from '../data/jobData';
-import type { QuestDef } from '../data/questData';
+import type { QuestDef, QuestRewards } from '../data/questData';
 import type { FeatureUnlocks } from '../features/FeatureUnlocks';
 import type { GameEvents } from '../game/GameEvents';
 import { advanceBy, required, type QuestSignal } from './objectives';
@@ -50,6 +50,14 @@ export interface QuestRewardSink {
   addItem(itemId: ItemId, count: number): void;
 }
 
+/** Grant quest-style rewards through the real systems (quest claims and Weekly milestones). */
+export function grantQuestRewards(sink: QuestRewardSink, r: QuestRewards): void {
+  if (r.gold) sink.addCurrency('gold', r.gold);
+  if (r.diamond) sink.addCurrency('diamond', r.diamond);
+  for (const item of r.items ?? []) sink.addItem(item.itemId, item.count);
+  if (r.exp) sink.grantExp(r.exp);
+}
+
 export type StartQuestResult = { ok: true } | { ok: false; reason: 'unknown_quest' | 'locked' | 'already_started' };
 export type ClaimQuestResult = { ok: true; questId: string } | { ok: false; reason: 'unknown_quest' | 'not_completed' | 'already_claimed' };
 export type TrackQuestResult = { ok: true } | { ok: false; reason: 'unknown_quest' | 'not_active' | 'tracking_full' };
@@ -64,6 +72,11 @@ export class QuestSystem {
   private tracked: string[] = [];
   private announced = new Set<string>();
   private readonly unsubscribe: (() => void)[] = [];
+  /**
+   * Recurring (Daily / Weekly) quests are only available while their cycle
+   * offers them (set by RecurringQuests). Default: never.
+   */
+  offered: (questId: string) => boolean = () => false;
 
   constructor(
     readonly defs: Readonly<Record<string, QuestDef>>,
@@ -76,9 +89,10 @@ export class QuestSystem {
     const on = <K extends keyof GameEvents>(type: K, fn: (e: GameEvents[K]) => void) => this.unsubscribe.push(this.events.on(type, fn));
     on('npcInteracted', (e) => this.signal({ kind: 'talk', npcId: e.npcId }));
     on('locationReached', (e) => this.signal({ kind: 'visit', locationId: e.locationId }));
-    on('monsterKilled', (e) => this.signal({ kind: 'kill', monsterId: e.monsterId }));
+    on('monsterKilled', (e) => this.signal({ kind: 'kill', monsterId: e.monsterId, tier: e.tier, zone: e.zone }));
     on('itemAcquired', (e) => this.signal({ kind: 'collect', itemId: e.itemId, amount: e.amount }));
-    on('dungeonCleared', (e) => this.signal({ kind: 'dungeon_clear', dungeonId: e.dungeonId, difficulty: e.difficulty }));
+    on('dungeonCleared', (e) => this.signal({ kind: 'dungeon_clear', dungeonId: e.dungeonId, difficulty: e.difficulty, assist: e.assist }));
+    on('dailyCommissionClaimed', () => this.signal({ kind: 'daily_commission' }));
     on('equipmentEnhanced', (e) => this.signal({ kind: 'enhance', success: e.success, level: e.to }));
     // Prerequisite inputs that change through events.
     on('levelUp', (e) => e.entityId === this.playerId && this.refresh());
@@ -117,6 +131,7 @@ export class QuestSystem {
   }
 
   prerequisitesMet(def: QuestDef): boolean {
+    if (def.repeat && !this.offered(def.id)) return false;
     const p = def.prerequisites;
     if (!p) return true;
     if (p.requiredLevel !== undefined && this.character.level() < p.requiredLevel) return false;
@@ -165,10 +180,7 @@ export class QuestSystem {
     record.status = 'claimed';
     this.tracked = this.tracked.filter((id) => id !== questId);
     const r = def.rewards;
-    if (r.gold) this.rewards.addCurrency('gold', r.gold);
-    if (r.diamond) this.rewards.addCurrency('diamond', r.diamond);
-    for (const item of r.items ?? []) this.rewards.addItem(item.itemId, item.count);
-    if (r.exp) this.rewards.grantExp(r.exp);
+    grantQuestRewards(this.rewards, r);
     for (const feature of [def.featureUnlockId, ...(r.unlockFeatures ?? [])]) {
       if (feature && this.features.unlock(feature)) this.events.emit('featureUnlocked', { featureId: feature });
     }
@@ -215,6 +227,16 @@ export class QuestSystem {
         this.events.emit('questCompleted', { questId });
       }
     }
+  }
+
+  /**
+   * Drop a quest's record (recurring cycle reset): progress, completion and
+   * claim are gone, it is untracked, and it may be announced again later.
+   */
+  forget(questId: string): void {
+    this.records.delete(questId);
+    this.tracked = this.tracked.filter((id) => id !== questId);
+    this.announced.delete(questId);
   }
 
   // --- Persistence --------------------------------------------------------

@@ -4,6 +4,8 @@ import type { ItemId } from './itemData';
 import type { JobId } from './jobData';
 import { DEMO_TEST_QUESTS } from './quests/demoTestQuests';
 import { JOB_QUESTS } from './quests/jobQuests';
+import { DAILY_QUESTS, WEEKLY_QUESTS } from './quests/recurringQuests';
+import type { MonsterTier } from './monsterBalance';
 
 /*
  * Quest definitions: plain data, keyed by stable id. Gameplay systems never
@@ -20,14 +22,21 @@ export type QuestType = (typeof QUEST_TYPES)[number];
  */
 export type QuestObjective =
   | { kind: 'talk'; npcId: string; count?: number }
-  | { kind: 'kill'; monsterId: string; count?: number }
+  /** Kills; each filter is optional (no monsterId = any monster; zone/tier narrow it, e.g. field Elites). */
+  | { kind: 'kill'; monsterId?: string; tier?: MonsterTier; zone?: 'field' | 'dungeon'; count?: number }
   /** Cumulative: items acquired while the quest is active (losing them later doesn't undo progress). */
   | { kind: 'collect'; itemId: ItemId; count?: number }
   | { kind: 'visit'; locationId: string; count?: number }
-  /** A successful clear of the dungeon (any difficulty unless `difficulty` is set). */
-  | { kind: 'dungeon_clear'; dungeonId: string; difficulty?: DifficultyId; count?: number }
+  /**
+   * A successful dungeon clear (once per run). No dungeonId = any dungeon; any
+   * difficulty unless set; `assist: true` = only clears resolved as an Assist
+   * (rewarded or not).
+   */
+  | { kind: 'dungeon_clear'; dungeonId?: string; difficulty?: DifficultyId; assist?: boolean; count?: number }
   /** Successful enhancements; with `minLevel`, only successes that reach at least +minLevel. */
-  | { kind: 'enhance'; minLevel?: number; count?: number };
+  | { kind: 'enhance'; minLevel?: number; count?: number }
+  /** Daily Commissions claimed (counted once per claim). */
+  | { kind: 'daily_commission'; count?: number };
 
 export type ObjectiveKind = QuestObjective['kind'];
 
@@ -74,4 +83,6 @@ export interface QuestDef {
 export const QUESTS: Readonly<Record<string, QuestDef>> = {
   ...DEMO_TEST_QUESTS,
   ...JOB_QUESTS,
+  ...DAILY_QUESTS,
+  ...WEEKLY_QUESTS,
 };

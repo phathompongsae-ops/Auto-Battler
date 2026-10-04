@@ -12,6 +12,7 @@ export type ScreenId =
   | 'inventory'
   | 'skills'
   | 'quest'
+  | 'commissions'
   | 'pet'
   | 'map'
   | 'party'
@@ -62,6 +63,16 @@ export const SCREENS: readonly ScreenDef[] = [
     tabs: [
       { id: 'active', label: 'Active' },
       { id: 'completed', label: 'Completed' },
+    ],
+  },
+  {
+    id: 'commissions',
+    title: 'Daily & Weekly',
+    icon: 'quest',
+    hotkey: 'KeyY',
+    tabs: [
+      { id: 'daily', label: 'Daily' },
+      { id: 'weekly', label: 'Weekly' },
     ],
   },
   { id: 'pet', title: 'Pet', icon: 'pet', hotkey: 'KeyP' },

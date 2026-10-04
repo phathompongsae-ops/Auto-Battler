@@ -24,7 +24,8 @@ import { QUESTS, type QuestDef } from '../../src/data/questData';
 import { FeatureUnlocks } from '../../src/features/FeatureUnlocks';
 import type { GameEvents } from '../../src/game/GameEvents';
 import { ProgressionSystem } from '../../src/progression/ProgressionSystem';
-import { QuestSystem } from '../../src/quests/QuestSystem';
+import { QuestSystem, type QuestRewardSink } from '../../src/quests/QuestSystem';
+import { RecurringQuests } from '../../src/quests/RecurringQuests';
 import { JobChange } from '../../src/progression/JobChange';
 
 /** A complete player-like save target wired the way the game wires it. */
@@ -45,21 +46,24 @@ export function makeSaveTarget(
   const wallet = new Wallet();
   const features = new FeatureUnlocks();
   const player = { id: 'p', x: 0, y: 0, hitRadius: 10, combat, progress };
+  const rewards: QuestRewardSink = {
+    grantExp: (amount) => progression.grantExp(player, amount),
+    addCurrency: (currency, amount) => wallet.add(currency, amount),
+    addItem: (itemId, count) => {
+      inventory.add(itemId, count);
+      events.emit('itemAcquired', { itemId, amount: count, source: 'quest' });
+    },
+  };
   const quests = new QuestSystem(
     questDefs,
     { level: () => combat!.level, classId: () => progress.classId, serverDay: () => serverDay.day() },
     features,
-    {
-      grantExp: (amount) => progression.grantExp(player, amount),
-      addCurrency: (currency, amount) => wallet.add(currency, amount),
-      addItem: (itemId, count) => {
-        inventory.add(itemId, count);
-        events.emit('itemAcquired', { itemId, amount: count, source: 'quest' });
-      },
-    },
+    rewards,
     events,
     'p',
   );
+  const recurring = new RecurringQuests(quests, features, serverDay, () => combat!.level, rewards, events);
+  recurring.sync();
   const target: SaveTarget & {
     stack: ModifierStack;
     clock: ManualClock;
@@ -86,6 +90,7 @@ export function makeSaveTarget(
     fieldEnergy: new FieldEnergy(daily),
     entitlements: new DungeonEntitlements(daily),
     quests,
+    recurring,
     features,
     jobChange: new JobChange({ progress, combat }, quests, features, events, 'p'),
     events,

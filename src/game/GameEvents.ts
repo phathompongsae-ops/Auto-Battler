@@ -5,6 +5,7 @@ import type { JobId, JobTier } from '../data/jobData';
 import type { DifficultyId } from '../data/dungeonDifficulty';
 import type { FeatureId } from '../data/featureData';
 import type { QuestType } from '../data/questData';
+import type { MonsterTier } from '../data/monsterBalance';
 import type { NavigationState } from '../navigation/AutoMove';
 import type { SkillId } from '../data/skillData';
 import type { SkillSlot } from '../data/playerData';
@@ -79,11 +80,12 @@ export type GameEvents = {
   /** The player reached a location / zone marker. */
   locationReached: { locationId: string };
   /** The player killed a monster (any zone; independent of reward eligibility). */
-  monsterKilled: { entityId: EntityId; monsterId: string; zone: 'field' | 'dungeon' };
+  monsterKilled: { entityId: EntityId; monsterId: string; tier: MonsterTier; zone: 'field' | 'dungeon' };
   /** Items entered the inventory through gameplay (never emitted by loading a save). */
   itemAcquired: { itemId: ItemId; amount: number; source: 'loot' | 'dungeon' | 'quest' | 'dev' };
   /** A dungeon run was cleared and its claim resolved: once per run (Full, Assist or no reward alike). */
-  dungeonCleared: { runId: string; dungeonId: string; difficulty: DifficultyId };
+  /** `assist`: the claim resolved as an Assist (rewarded or the unrewarded kind), not a Full Reward. */
+  dungeonCleared: { runId: string; dungeonId: string; difficulty: DifficultyId; assist: boolean };
   /** An enhancement attempt was made (success or failure). */
   equipmentEnhanced: { instanceId: string; success: boolean; from: number; to: number };
 
@@ -103,6 +105,13 @@ export type GameEvents = {
   skillProc: { entityId: EntityId; nodeId: string; statusId: StatusId };
   /** A monster was taunted (Provoke): it turns on the caster. */
   taunted: { casterId: EntityId; targetId: EntityId };
+
+  // --- Daily Commissions / Weekly quests
+  /** A Daily Commission's reward was claimed (once per quest per day). */
+  dailyCommissionClaimed: { questId: string; claimedThisWeek: number };
+  /** A new Daily set / Weekly cycle began. */
+  recurringReset: { cycle: 'daily' | 'weekly'; cycleId: number };
+  weeklyMilestoneClaimed: { milestone: number };
 
   // --- Quest Engine
   questAvailable: { questId: string; title: string; questType: QuestType };

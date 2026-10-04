@@ -14,6 +14,8 @@ import { isFeatureId, type FeatureId } from '../data/featureData';
 import { QUESTS } from '../data/questData';
 import { required as requiredAmount } from '../quests/objectives';
 import { MAX_TRACKED_QUESTS, type QuestLogState } from '../quests/QuestSystem';
+import { emptyRecurringState, type RecurringState } from '../quests/RecurringQuests';
+import { DAILY_QUESTS, RECURRING_CONFIG, WEEKLY_MILESTONES } from '../data/quests/recurringQuests';
 import { rankProblem, totalSpent, treeForJob } from '../skills/skillTreeRules';
 import { MAX_LEVEL } from '../data/progressionData';
 import { expToNext } from '../progression/expCurve';
@@ -91,6 +93,8 @@ export interface PlayerSaveV4 {
   questLog: QuestLogState;
   /** Unlocked feature ids. */
   features: FeatureId[];
+  /** Daily / Weekly cycle state (added within v4; missing = nothing assigned yet). */
+  recurring: RecurringState;
   /** Hook: dungeon id → cleared difficulty ids. */
   dungeons: Record<string, { cleared: string[] }>;
 }
@@ -98,7 +102,7 @@ export interface PlayerSaveV4 {
 export type PlayerSave = PlayerSaveV4;
 
 /** v3: energy was an unused hook; clears were free-form ids. */
-export type PlayerSaveV3 = Omit<PlayerSaveV4, 'schemaVersion' | 'daily' | 'dungeonRuns' | 'questLog' | 'features'> & {
+export type PlayerSaveV3 = Omit<PlayerSaveV4, 'schemaVersion' | 'daily' | 'dungeonRuns' | 'questLog' | 'features' | 'recurring'> & {
   quests: Record<string, { state: 'active' | 'completed'; progress: Record<string, number> }>;
   schemaVersion: 3;
   energy: { current: number; updatedAt: number } | null;
@@ -145,6 +149,7 @@ export function newPlayerSave(characterId: string): PlayerSave {
     daily: { day: null, ...freshDaily() },
     questLog: { records: {}, tracked: [], announced: [] },
     features: [],
+    recurring: emptyRecurringState(),
     dungeons: {},
   };
 }
@@ -380,6 +385,28 @@ function validateSkillRanks(s: Record<string, unknown>, classId: JobId, level: n
   return ranks;
 }
 
+/** Recurring cycle state; missing (an earlier v4 save) = nothing assigned (the next sync assigns today's set). */
+function validateRecurring(raw: unknown): RecurringState {
+  if (raw === undefined) return emptyRecurringState();
+  if (!isObject(raw) || !isObject(raw.daily) || !isObject(raw.weekly)) throw new SaveError('recurring invalid');
+  const { daily, weekly } = raw;
+  const cycle = (v: unknown, min: number, what: string) => {
+    if (v !== null && (!Number.isInteger(v) || (v as number) < min)) throw new SaveError(`${what} invalid`);
+    return v as number | null;
+  };
+  const questIds = uniqueStrings(daily.questIds, 'recurring.daily.questIds', (id) => id in DAILY_QUESTS);
+  if (questIds.length > RECURRING_CONFIG.dailyCount) throw new SaveError('recurring.daily.questIds: too many Daily quests');
+  if (!isCount(weekly.dailyClaims)) throw new SaveError('recurring.weekly.dailyClaims invalid');
+  if (!Array.isArray(weekly.milestonesClaimed) || !weekly.milestonesClaimed.every((m) => WEEKLY_MILESTONES.some((d) => d.claimed === m))) {
+    throw new SaveError('recurring.weekly.milestonesClaimed invalid');
+  }
+  if (new Set(weekly.milestonesClaimed).size !== weekly.milestonesClaimed.length) throw new SaveError('recurring.weekly.milestonesClaimed has duplicates');
+  return {
+    daily: { cycleId: cycle(daily.cycleId, 1, 'recurring.daily.cycleId'), questIds },
+    weekly: { cycleId: cycle(weekly.cycleId, 0, 'recurring.weekly.cycleId'), dailyClaims: weekly.dailyClaims, milestonesClaimed: [...(weekly.milestonesClaimed as number[])] },
+  };
+}
+
 /** Quest log; missing (an earlier v4 save) = empty. Checked against the quest data. */
 function validateQuestLog(raw: unknown): QuestLogState {
   if (raw === undefined) return { records: {}, tracked: [], announced: [] };
@@ -502,6 +529,7 @@ function validate(raw: unknown): PlayerSave {
     daily: validateDaily(s.daily),
     questLog: validateQuestLog(s.questLog),
     features: s.features === undefined ? [] : (uniqueStrings(s.features, 'features', isFeatureId) as FeatureId[]),
+    recurring: validateRecurring(s.recurring),
     dungeons: record(s.dungeons, 'dungeons', (x): x is PlayerSave['dungeons'][string] => isObject(x) && Array.isArray(x.cleared) && x.cleared.every((c) => typeof c === 'string')),
   };
 }

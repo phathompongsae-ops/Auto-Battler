@@ -44,7 +44,8 @@ import type { GameEvents } from './GameEvents';
 import { grantKillRewards } from './killRewards';
 import { QUESTS } from '../data/questData';
 import { FeatureUnlocks } from '../features/FeatureUnlocks';
-import { QuestSystem } from '../quests/QuestSystem';
+import { QuestSystem, type QuestRewardSink } from '../quests/QuestSystem';
+import { RecurringQuests } from '../quests/RecurringQuests';
 import { NAVIGATION } from '../data/navigationData';
 import { PROTOTYPE_MAP_ID } from '../data/navigation/demoNavigation';
 import type { Location } from '../data/warpData';
@@ -133,6 +134,8 @@ export class CombatWorld implements MonsterWorld {
   /** Quest / [Go] navigation. Manual movement input cancels it (AutoMove.drive, called in update()). */
   readonly autoMove: AutoMove;
 
+  /** Daily Commissions and Weekly quests (cycles on the shared server day). */
+  readonly recurring: RecurringQuests;
   /** The Lv11 Class 1 Job Change (trial quests → selection). */
   readonly jobChange: JobChange;
   /** The player's skill tree (learn / reset / castable skills / loadout). */
@@ -165,18 +168,22 @@ export class CombatWorld implements MonsterWorld {
     });
     this.events.on('death', ({ entityId, killerId }) => this.onDeath(entityId, killerId));
 
+    // Quest / milestone rewards: real progression, wallet and inventory (no Field Energy, no skill points).
+    const questRewards: QuestRewardSink = {
+      grantExp: (amount) => this.progression.grantExp(this.player, amount),
+      addCurrency: (currency, amount) => this.wallet.add(currency, amount),
+      addItem: (itemId, count) => this.acquireItem(itemId, count, 'quest'),
+    };
     this.quests = new QuestSystem(
       QUESTS,
       { level: () => player.combat.level, classId: () => player.progress.classId, serverDay: () => this.serverDay.day() },
       this.features,
-      {
-        grantExp: (amount) => this.progression.grantExp(this.player, amount),
-        addCurrency: (currency, amount) => this.wallet.add(currency, amount),
-        addItem: (itemId, count) => this.acquireItem(itemId, count, 'quest'),
-      },
+      questRewards,
       this.events,
       player.id,
     );
+    this.recurring = new RecurringQuests(this.quests, this.features, this.serverDay, () => player.combat.level, questRewards, this.events);
+    this.recurring.sync();
     this.quests.refresh();
 
     this.jobChange = new JobChange(player, this.quests, this.features, this.events, player.id);
@@ -281,6 +288,8 @@ export class CombatWorld implements MonsterWorld {
     const day = this.serverDay.day();
     if (day === this.lastServerDay) return;
     this.lastServerDay = day;
+    // New day: Daily set (and on a new week, Weekly state) resets once, through the shared server day.
+    this.recurring.sync();
     this.quests.refresh();
   }
 
@@ -444,6 +453,8 @@ export class CombatWorld implements MonsterWorld {
     // The server cap may have risen since the save was made.
     this.lastLevelCap = 0;
     this.settleLevelCap();
+    // A save from an earlier server day / week resets its recurring quests here, once.
+    this.recurring.sync();
     this.quests.refresh();
   }
 
@@ -462,6 +473,7 @@ export class CombatWorld implements MonsterWorld {
       ledger: this.rewardLedger,
       daily: this.daily,
       quests: this.quests,
+      recurring: this.recurring,
       features: this.features,
       hooks: this.saveHooks,
     };

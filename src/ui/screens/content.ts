@@ -3,6 +3,7 @@ import type { CombatWorld } from '../../game/CombatWorld';
 import { ItemSlot } from '../components/Slot';
 import { h } from '../dom';
 import { renderSkillTree } from './skillTreeView';
+import { renderRecurring } from './recurringView';
 import type { ScreenId } from '../data/screens';
 import type { QuestProgressSource } from '../hud/QuestTracker';
 
@@ -98,6 +99,7 @@ export const SCREEN_CONTENT: Record<ScreenId, ScreenRenderer> = {
   inventory,
   skills,
   quest,
+  commissions: (tab, { world }) => renderRecurring(world, tab === 'weekly' ? 'weekly' : 'daily'),
   pet: () => emptyState('Your companion, its skills and care.'),
   map: () => emptyState('The world map with discovered areas.'),
   party: () => emptyState('Group up with other players.'),

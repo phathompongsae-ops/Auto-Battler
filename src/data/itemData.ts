@@ -52,6 +52,9 @@ const ITEM_DEFS = {
     color: 0xff7eb6,
     use: { kind: 'addDungeonFullReward' },
   },
+  // Weekly milestone rewards. DEMO placeholders: no drop tables / opening yet.
+  material_box: { id: 'material_box', name: 'Material Box', color: 0xc9a46b },
+  weekly_chest: { id: 'weekly_chest', name: 'Weekly Chest', color: 0xffc845 },
   // Quest items: always drop for quests, even at 0 Field Energy. DEMO quest item.
   slime_sample: { id: 'slime_sample', name: 'Slime Sample', color: 0x5fd3a7 },
 } satisfies Record<string, ItemDef>;

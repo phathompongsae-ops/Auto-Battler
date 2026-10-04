@@ -32,7 +32,7 @@ export interface KillRewardContext {
  */
 export function grantKillRewards(monster: KilledMonster, ctx: KillRewardContext): KillRewardDecision {
   // Quest kill progress: every kill counts, whatever its rewards (0 Energy, dungeon...).
-  ctx.events.emit('monsterKilled', { entityId: monster.id, monsterId: monster.def.id, zone: ctx.zone });
+  ctx.events.emit('monsterKilled', { entityId: monster.id, monsterId: monster.def.id, tier: monster.def.tier, zone: ctx.zone });
   const decision = ctx.fieldEnergy.payForKill(ctx.zone, monster.def.tier);
   if (decision.exp) ctx.progression.grantExp(ctx.player, monster.def.expReward);
   ctx.loot.roll(monster.def.lootTable, monster.x, monster.y, ctx.now, { farmingDrops: decision.farmingDrops, questDrops: decision.questDrops });

@@ -54,7 +54,7 @@ export function claimDungeonClear(run: DungeonRun, ctx: ClaimContext): DungeonCl
     }
   }
   // Once per successfully cleared run, whatever the reward entitlement was (quests count clears, not rewards).
-  ctx.events.emit('dungeonCleared', { runId: run.runId, dungeonId: run.dungeonId, difficulty: run.difficulty });
+  ctx.events.emit('dungeonCleared', { runId: run.runId, dungeonId: run.dungeonId, difficulty: run.difficulty, assist: result.ok && result.kind !== 'full' });
   return result;
 }
 

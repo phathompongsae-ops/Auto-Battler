@@ -39,7 +39,8 @@ export function resolveObjectiveTarget(objective: QuestObjective, nav: NavIndex,
       target = find((t) => t.type === 'location' && t.locationId === objective.locationId);
       break;
     case 'kill':
-      target = find((t) => t.type === 'monster_zone' && !!t.monsterIds?.includes(objective.monsterId));
+      // No monster id (e.g. "any field monster"): any hunting area.
+      target = find((t) => t.type === 'monster_zone' && (!objective.monsterId || !!t.monsterIds?.includes(objective.monsterId)));
       break;
     case 'collect': {
       const sources = monstersDropping(objective.itemId);
@@ -47,7 +48,9 @@ export function resolveObjectiveTarget(objective: QuestObjective, nav: NavIndex,
       break;
     }
     case 'dungeon_clear':
-      target = find((t) => t.type === 'dungeon_entrance' && t.dungeonId === objective.dungeonId);
+      target = find((t) => t.type === 'dungeon_entrance' && (!objective.dungeonId || t.dungeonId === objective.dungeonId));
+      break;
+    case 'daily_commission':
       break;
     case 'enhance': {
       const id = nav.data.stations.enhance;

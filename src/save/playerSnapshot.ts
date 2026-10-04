@@ -5,6 +5,7 @@ import type { Wallet } from '../economy/Wallet';
 import type { DailyState } from '../daily/DailyState';
 import type { FeatureUnlocks } from '../features/FeatureUnlocks';
 import type { QuestSystem } from '../quests/QuestSystem';
+import type { RecurringQuests } from '../quests/RecurringQuests';
 import type { EquipmentManager } from '../equipment/equipment';
 import type { Inventory } from '../loot/Inventory';
 import type { PetCollection } from '../pets/pets';
@@ -37,6 +38,7 @@ export interface SaveTarget {
   /** Field Energy and dungeon entitlements for the current server day. */
   daily: DailyState;
   quests: QuestSystem;
+  recurring: RecurringQuests;
   features: FeatureUnlocks;
   hooks: PersistedHooks;
 }
@@ -65,6 +67,7 @@ export function capturePlayerSave(t: SaveTarget): PlayerSave {
     dungeonRuns: { nextSeq: t.ledger.nextSeq, claimed: [...t.ledger.claimed].sort((a, b) => a - b) },
     daily: { ...t.daily.record },
     questLog: t.quests.toState(),
+    recurring: t.recurring.toState(),
     features: [...t.features.unlocked],
     ...structuredClone(t.hooks),
   };
@@ -108,6 +111,8 @@ export function applyPlayerSave(t: SaveTarget, save: PlayerSave): void {
   // Stored as-is; a save from an earlier server day resets on first use (DailyState).
   t.daily.record = { ...s.daily };
   t.quests.load(s.questLog);
+  // Stored as-is; the owner's sync() then applies a pending Daily / Weekly reset exactly once.
+  t.recurring.load(s.recurring);
   t.features.unlocked.clear();
   for (const id of s.features) t.features.unlocked.add(id);
   t.hooks = { dungeons: s.dungeons };
