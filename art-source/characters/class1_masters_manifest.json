@@ -1,0 +1,707 @@
+{
+  "phase": "Class 1 South master set (final)",
+  "updated": "2026-10-04",
+  "standard": {
+    "canvas": {
+      "width": 192,
+      "height": 192,
+      "background": "transparent"
+    },
+    "facing": "south",
+    "view": "low top-down (same as Warrior)",
+    "resample": "nearest-neighbour only, uniform scale, integer translation; no filtering, no semi-transparent pixels",
+    "groundBaselineY": 153,
+    "groundBaselineNote": "Last row of the Warrior's boots, both in the production master and in the in-game idle/walk strips. Rows 154-157 of the Warrior are only the sword tip; the earlier 157-160 figures were alpha-bounding-box bottoms, not feet.",
+    "bodyAxisX": 95,
+    "bodyAxisNote": "Mirror axis in pixel-edge coordinates (x=95 is the line between columns 94 and 95), from head/torso symmetry.",
+    "bodyHeightTarget": "~120-125 px from top of head (hair/hood) to boot bottom",
+    "inGameTarget": "~40 world px tall (WARRIOR_ART.worldHeight 40 / referenceHeight 125 = 0.32 render scale)",
+    "measurementNote": "Y landmarks marked approx were read from 6x gridded crops; +/-1-2 px."
+  },
+  "styleMaster": {
+    "class": "warrior",
+    "file": "public/assets/characters/warrior/warrior_chibi_front_master_v3.png",
+    "modified": false,
+    "pixellabCharacterId": "449dc2ec-9a0b-4b5a-8d16-afac668c059a",
+    "pixellabSouthRotation": "https://backblaze.pixellab.ai/file/pixellab-characters/ff1b7716-70b9-405e-ba82-2204533d3d99/449dc2ec-9a0b-4b5a-8d16-afac668c059a/rotations/south.png",
+    "colors": 23,
+    "anchors": {
+      "alphaBBox": {
+        "x0": 51,
+        "x1": 139,
+        "y0": 33,
+        "y1": 157,
+        "width": 89,
+        "height": 125
+      },
+      "headTopY": 33,
+      "headTopNote": "hair spike tip; main hair mass starts ~40",
+      "eyesY": "~71-79",
+      "chinY": "~86",
+      "shoulderY": "~88 (pauldron top), ~93 shoulder line",
+      "hipY": "~118-120 (belt)",
+      "kneeY": "~135-140",
+      "feetY": 153,
+      "weaponExtent": "sword tip to y=157, x=61-66",
+      "centerAxisX": 95,
+      "bodyHeightExclWeapon": 121,
+      "headToBodyRatio": "head 33-86 = ~54 px of 121 (~0.45, about 2.2 heads tall)"
+    },
+    "status": "PRIMARY STYLE MASTER — APPROVED"
+  },
+  "masters": {
+    "archer": {
+      "status": "APPROVED DESIGN → NORMALIZED PRODUCTION MASTER — APPROVED",
+      "file": "public/assets/characters/archer/archer_south_master.png",
+      "rawSource": "art-source/characters/raw/archer_south_approved_design_pixellab_raw.png",
+      "designReference": "art-source/characters/design/archer_design_master.png",
+      "styleReference": {
+        "file": "public/assets/characters/warrior/warrior_chibi_front_master_v3.png",
+        "pixellabSouthRotation": "https://backblaze.pixellab.ai/file/pixellab-characters/ff1b7716-70b9-405e-ba82-2204533d3d99/449dc2ec-9a0b-4b5a-8d16-afac668c059a/rotations/south.png",
+        "styleOptions": {
+          "color_palette": false,
+          "detail": true,
+          "outline": true,
+          "shading": true
+        }
+      },
+      "pixellab": {
+        "tool": "create_image_pro_flash",
+        "jobId": "ab63fc65-1ec0-4b20-86f7-dbd4ed7daa42",
+        "imageId": "872a2f12-f6a0-524b-9ad3-b0ffb1293529",
+        "seed": 111,
+        "styleImage": "warrior south rotation",
+        "estimatedGenerations": 6,
+        "designInput": "Pro Flash accepts one reference image (used for the Warrior style), so the approved crop was translated into the prompt, as for Mage and Ninja.",
+        "prompt": "Chibi fantasy female ARCHER hero, full body, facing the viewer straight-on (south), standing neutral idle pose, low top-down camera, same chibi body proportions, head size, shoulder width, height and foot placement as the style reference warrior. NO hood: golden-blonde hair with bangs, gathered into a high ponytail on her left side tied with a small green leaf ornament, green eyes. Fitted green tunic armour with gold-brown trim and small gold accents, brown leather belt with a gold buckle, short green skirt, green gloves, green boots with brown leather tops. Brown wooden recurve bow held vertically in her right hand at her side, bow no taller than her body; small brown quiver on her back. Palette green, golden blonde, warm brown, gold. Simple shapes, minimal trim detail, clean readable silhouette, dark outline, transparent background, centered, feet near the bottom like the reference."
+      },
+      "audit": {
+        "keep": "golden-blonde hair, high side ponytail with green leaf tie, green eyes, green tunic armour with gold trim, brown belt, short green skirt, green boots, wooden recurve bow, quiver",
+        "adjust": "drawing-bow 3/4 pose to neutral south stance; bow held upright at her side, no taller than the body; feet to shared baseline",
+        "simplify": "armour trim and leaf details, belt straps, hair strand count"
+      },
+      "canvas": {
+        "width": 192,
+        "height": 192
+      },
+      "before": {
+        "alphaBBox": {
+          "x0": 57,
+          "x1": 127,
+          "y0": 42,
+          "y1": 157,
+          "width": 71,
+          "height": 116
+        },
+        "headTopY": "42 (leaf tie)",
+        "eyesY": "~77-84",
+        "chinY": "~90",
+        "feetY": 156,
+        "weaponExtent": "bow tip row 157",
+        "centerAxisX": 89,
+        "centerNote": "eye midpoint; ponytail skews the full-head axis right",
+        "chinToFeet": 66
+      },
+      "normalization": {
+        "scale": "17/16 (1.0625) uniform, nearest-neighbour, about origin",
+        "translate": {
+          "x": 0,
+          "y": -13
+        },
+        "mapping": "dest(X,Y) = raw(floor(X*16/17), floor((Y+13)*16/17))",
+        "scaleBasis": "Same scale as Mage/Ninja; the unscaled candidate read slightly small beside Mage/Ninja/Warrior in the lineup"
+      },
+      "after": {
+        "alphaBBox": {
+          "x0": 61,
+          "x1": 135,
+          "y0": 32,
+          "y1": 154,
+          "width": 75,
+          "height": 123
+        },
+        "headTopY": "32 (leaf tie; hair ~37)",
+        "eyesY": "~69-77",
+        "chinY": "~83",
+        "feetY": 153,
+        "weaponExtent": "bow x~61-75 down the left side, tip row 154",
+        "centerAxisX": 95,
+        "centerCheck": "leg mirror axis 94.5"
+      },
+      "paletteModified": false,
+      "colors": 73,
+      "qa": {
+        "status": "pass — approved",
+        "sourceScale": "Eye line, baseline and head size in the Warrior family; slimmer build.",
+        "gameScale": "Clear; blonde ponytail and bow read well.",
+        "readability": "Non-blocking: green outfit is close to grass, but blonde hair and outline preserve readability. Path, town, dungeon: good.",
+        "zoomCheck": "17/16 doubles every 16th row/column; not noticeable at 4x zoom."
+      },
+      "localCleanup": {
+        "note": "Local cleanup: removed unintended pointed ears from PixelLab candidate",
+        "method": "Hand-placed pixel edit on the normalized production master (82 px, rows 68-76). Left ear: protruding skin pixels at x70-76 removed and the outer hair edge closed with the sprite's own outline/hair colours (#93522E, #A46133, #DF9B4E, #CF8740, #B56C37). Right ear: skin pixels at x112-118 replaced by the head-hair edge outline and the transparent gap between head and ponytail.",
+        "paletteEffect": "no new colours (73 before and after)",
+        "geometryEffect": "alpha bbox, feet row and body centre unchanged",
+        "rawUnchanged": "art-source/characters/raw/archer_south_approved_design_pixellab_raw.png (md5 9e70402215be72037ac5e8980ca20554) is provenance only and was not edited"
+      }
+    },
+    "mage": {
+      "status": "APPROVED DESIGN → NORMALIZED PRODUCTION MASTER — APPROVED",
+      "file": "public/assets/characters/mage/mage_south_master.png",
+      "rawSource": "art-source/characters/raw/mage_south_pixellab_raw.png",
+      "designReference": "art-source/characters/design/mage_design_master.png",
+      "styleReference": {
+        "file": "public/assets/characters/warrior/warrior_chibi_front_master_v3.png",
+        "pixellabSouthRotation": "https://backblaze.pixellab.ai/file/pixellab-characters/ff1b7716-70b9-405e-ba82-2204533d3d99/449dc2ec-9a0b-4b5a-8d16-afac668c059a/rotations/south.png",
+        "styleOptions": {
+          "color_palette": false,
+          "detail": true,
+          "outline": true,
+          "shading": true
+        }
+      },
+      "pixellab": {
+        "tool": "create_image_pro_flash",
+        "jobId": "043a2a0d-161d-4d67-9590-95377b119073",
+        "imageId": "52f4d40b-247d-58c5-9923-2ace40a35aa9",
+        "seed": 105,
+        "styleImage": "warrior south rotation",
+        "estimatedGenerations": 6,
+        "prompt": "Chibi fantasy young male MAGE hero, full body, facing the viewer straight-on (south), standing neutral idle pose, low top-down camera, same chibi body proportions, head size, shoulder width, height and foot placement as the style reference warrior. NO hat: messy spiky silver-white hair, calm blue eyes. Long dark navy-blue mage robe with a high collar and hood lowered behind the neck, gold trim on the edges, small gold buttons and a gold-buckled belt, short navy cape at the back, brown boots. Holds a wooden staff vertically in his right hand at his side: the staff head is a simple gold ring holding one glowing blue orb, staff top level with his head, staff no taller than about his body. Palette navy blue, gold, silver-white, blue orb. Simple shapes, minimal trim detail, clean readable silhouette, dark outline, transparent background, centered, feet near the bottom like the reference."
+      },
+      "audit": {
+        "keep": "silver spiky hair, navy hooded robe with gold trim, gold buttons/belt, brown boots, wooden staff with gold ring + blue orb, young male face",
+        "adjust": "3/4 turn to straight south; staff head lowered to head height; cape flare tightened; feet to shared baseline",
+        "simplify": "gold filigree on robe and staff ring, hair strand count, trim patterns",
+        "note": "Approved design has NO hat (hooded robe, hood down). Earlier briefs mentioned a hat; the approved design wins."
+      },
+      "canvas": {
+        "width": 192,
+        "height": 192
+      },
+      "before": {
+        "alphaBBox": {
+          "x0": 48,
+          "x1": 129,
+          "y0": 37,
+          "y1": 155,
+          "width": 82,
+          "height": 119
+        },
+        "headTopY": "42 (one stray hair pixel at 37)",
+        "eyesY": "~75-82",
+        "chinY": "~91",
+        "feetY": 154,
+        "weaponExtent": "staff tip row 155",
+        "centerAxisX": 89.5,
+        "chinToFeet": 63
+      },
+      "normalization": {
+        "scale": "17/16 (1.0625) uniform, nearest-neighbour, about origin",
+        "translate": {
+          "x": 0,
+          "y": -11
+        },
+        "mapping": "dest(X,Y) = raw(floor(X*16/17), floor((Y+11)*16/17))",
+        "scaleBasis": "chin-to-feet 63 -> 67 (Warrior 67); the unscaled candidate read visibly smaller in the lineup; face stays within the Warrior family"
+      },
+      "after": {
+        "alphaBBox": {
+          "x0": 51,
+          "x1": 138,
+          "y0": 29,
+          "y1": 154,
+          "width": 88,
+          "height": 126
+        },
+        "headTopY": "~31 (hair)",
+        "eyesY": "~71-79",
+        "chinY": "~86",
+        "shoulderY": "~93",
+        "hipY": "~108-111 (belt)",
+        "feetY": 153,
+        "weaponExtent": "staff x~51-70, orb head y~55-80, tip row 154 (like the Warrior sword tip)",
+        "centerAxisX": 95,
+        "headToBodyRatio": "~0.45"
+      },
+      "paletteModified": false,
+      "colors": 34,
+      "qa": {
+        "status": "pass — approved",
+        "sourceScale": "Body scale, eye/chin lines and baseline match Warrior; robe gives a wider lower silhouette.",
+        "gameScale": "Clear; staff orb reads as a class marker without dominating.",
+        "readability": "Non-blocking: dark robe has lower dungeon contrast, but silver hair, gold trim and orb preserve readability. Field, path, town: strong.",
+        "zoomCheck": "17/16 doubles every 16th row/column; not noticeable at 4x zoom."
+      }
+    },
+    "cleric": {
+      "status": "APPROVED DESIGN → NORMALIZED PRODUCTION MASTER — APPROVED",
+      "file": "public/assets/characters/cleric/cleric_south_master.png",
+      "rawSource": "art-source/characters/raw/cleric_south_approved_design_pixellab_raw.png",
+      "designReference": "art-source/characters/design/cleric_design_master.png",
+      "styleReference": {
+        "file": "public/assets/characters/warrior/warrior_chibi_front_master_v3.png",
+        "pixellabSouthRotation": "https://backblaze.pixellab.ai/file/pixellab-characters/ff1b7716-70b9-405e-ba82-2204533d3d99/449dc2ec-9a0b-4b5a-8d16-afac668c059a/rotations/south.png",
+        "styleOptions": {
+          "color_palette": false,
+          "detail": true,
+          "outline": true,
+          "shading": true
+        }
+      },
+      "pixellab": {
+        "tool": "create_image_pro_flash",
+        "jobId": "d459be57-6845-4a50-a07b-3c4477343329",
+        "imageId": "e9196aa1-5b1e-5108-99f8-9c6a99868001",
+        "seed": 113,
+        "styleImage": "warrior south rotation",
+        "estimatedGenerations": 6,
+        "designInput": "Pro Flash accepts one reference image (used for the Warrior style), so the approved crop was translated into the prompt, as for Mage and Ninja.",
+        "prompt": "Chibi fantasy female CLERIC healer hero, full body, facing the viewer straight-on (south), standing neutral idle pose, low top-down camera, same chibi body proportions, head size, shoulder width, height and foot placement as the style reference warrior. NO hood or hat: very long straight platinum-blonde hair falling past the waist, soft bangs, gentle blue eyes, a small white ribbon bow at the back of her hair. Long white robe with wide sleeves, pale lavender shading, gold trim on the hems and cuffs, a gold cross emblem on the chest and a gold belt ornament, light brown shoes. Golden holy staff held vertically in her left hand at her side: gold shaft with a simple gold cross-shaped head holding one small blue gem, staff about as tall as her body. Palette white, pale lavender, gold, platinum blonde, small blue accents. Minimal gold micro-detail, compact readable silhouette, simple shapes, dark outline, transparent background, centered, feet near the bottom like the reference."
+      },
+      "audit": {
+        "keep": "very long platinum-blonde hair, white ribbon bow, blue eyes, white robe with wide sleeves and gold trim, gold chest cross, gold staff with cross head and blue gem",
+        "adjust": "straight south; staff about body height; robe shortened to show the shoes; feet to shared baseline",
+        "simplify": "ornate staff head reduced to a simple cross with one gem; gold ornament count; robe layering"
+      },
+      "canvas": {
+        "width": 192,
+        "height": 192
+      },
+      "before": {
+        "alphaBBox": {
+          "x0": 56,
+          "x1": 129,
+          "y0": 46,
+          "y1": 153,
+          "width": 74,
+          "height": 108
+        },
+        "headTopY": 46,
+        "eyesY": "~74-83",
+        "chinY": "~88",
+        "feetY": 153,
+        "centerAxisX": 93,
+        "centerNote": "eye midpoint / hem axis 92.5",
+        "chinToFeet": 65
+      },
+      "normalization": {
+        "scale": "17/16 (1.0625) uniform, nearest-neighbour, about origin",
+        "translate": {
+          "x": -4,
+          "y": -10
+        },
+        "mapping": "dest(X,Y) = raw(floor((X+4)*16/17), floor((Y+10)*16/17))",
+        "scaleBasis": "Same scale as Mage/Ninja; the unscaled candidate read visibly small beside the Mage"
+      },
+      "after": {
+        "alphaBBox": {
+          "x0": 56,
+          "x1": 134,
+          "y0": 39,
+          "y1": 153,
+          "width": 79,
+          "height": 115
+        },
+        "headTopY": 39,
+        "eyesY": "~69-78",
+        "chinY": "~84",
+        "feetY": 153,
+        "weaponExtent": "staff x~56-72, cross head y~49-64, foot ~152",
+        "centerAxisX": 95,
+        "centerCheck": "hem axis 95"
+      },
+      "paletteModified": false,
+      "colors": 79,
+      "qa": {
+        "status": "pass — approved",
+        "sourceScale": "Eye line, baseline and head size in the Warrior family; compact silhouette.",
+        "gameScale": "Clear; gold staff cross readable without dominating.",
+        "readability": "Non-blocking: light robe is closest to bright town paving, but outline and gold preserve readability. Field and dungeon: strong.",
+        "zoomCheck": "17/16 doubles every 16th row/column; not noticeable at 4x zoom."
+      },
+      "acceptedVariation": "Accepted cosmetic South-pose variation: staff held on the viewer's left (approved sheet shows the right). Not an open blocker."
+    },
+    "ninja": {
+      "status": "APPROVED DESIGN → NORMALIZED PRODUCTION MASTER — APPROVED",
+      "file": "public/assets/characters/ninja/ninja_south_master.png",
+      "rawSource": "art-source/characters/raw/ninja_south_pixellab_raw.png",
+      "designReference": "art-source/characters/design/ninja_design_master.png",
+      "styleReference": {
+        "file": "public/assets/characters/warrior/warrior_chibi_front_master_v3.png",
+        "pixellabSouthRotation": "https://backblaze.pixellab.ai/file/pixellab-characters/ff1b7716-70b9-405e-ba82-2204533d3d99/449dc2ec-9a0b-4b5a-8d16-afac668c059a/rotations/south.png",
+        "styleOptions": {
+          "color_palette": false,
+          "detail": true,
+          "outline": true,
+          "shading": true
+        }
+      },
+      "pixellab": {
+        "tool": "create_image_pro_flash",
+        "jobId": "9cc5a9f0-d2b9-48e8-83ec-9568c18846d7",
+        "imageId": "0e71db16-2d85-5039-acad-1c9f77b5a4a9",
+        "seed": 107,
+        "styleImage": "warrior south rotation",
+        "estimatedGenerations": 6,
+        "prompt": "Chibi fantasy female NINJA hero, full body, facing the viewer straight-on (south), standing neutral ready pose, low top-down camera, same chibi body proportions, head size, shoulder width, height and foot placement as the style reference warrior. Long black hair in a high ponytail tied with a red band, dark eyes, red cloth mask over nose and mouth, red scarf around the neck with two short tails. Dark charcoal-navy fitted ninja armour with red trim and a few small dark-steel plates on shoulders and shins, red-trimmed boots. One small curved steel dagger in each hand held reverse-grip, blades pointing down and slightly outward beside the hips, daggers short. Palette black, charcoal, deep red, steel grey; keep a visible lighter edge and skin around the eyes so the silhouette reads on dark ground. Simple shapes, minimal straps, clean readable silhouette, dark outline, transparent background, centered, feet near the bottom like the reference."
+      },
+      "audit": {
+        "keep": "black high ponytail with red tie, red mask + red scarf, dark armour with red trim, steel plates, twin reverse-grip curved daggers",
+        "adjust": "wide combat stance to neutral ready stance; daggers shortened; straight south; feet to shared baseline",
+        "simplify": "scarf tails shortened, armour plates and straps reduced, dark micro-detail removed; eye band / skin kept visible for dark-ground readability"
+      },
+      "canvas": {
+        "width": 192,
+        "height": 192
+      },
+      "before": {
+        "alphaBBox": {
+          "x0": 48,
+          "x1": 127,
+          "y0": 33,
+          "y1": 155,
+          "width": 80,
+          "height": 123
+        },
+        "headTopY": "33 (ponytail tie)",
+        "eyesY": "~75-82",
+        "chinY": "~92 (mask bottom)",
+        "feetY": 155,
+        "centerAxisX": 89.5,
+        "centerNote": "eye midpoint 89.8, legs 87.5; full-head axis is skewed right by the ponytail",
+        "chinToFeet": 63
+      },
+      "normalization": {
+        "scale": "17/16 (1.0625) uniform, nearest-neighbour, about origin",
+        "translate": {
+          "x": 0,
+          "y": -12
+        },
+        "mapping": "dest(X,Y) = raw(floor(X*16/17), floor((Y+12)*16/17))",
+        "scaleBasis": "chin-to-feet 63 -> 67 (Warrior 67); face width ~30 -> ~32 (Warrior ~33)"
+      },
+      "after": {
+        "alphaBBox": {
+          "x0": 51,
+          "x1": 135,
+          "y0": 24,
+          "y1": 153,
+          "width": 85,
+          "height": 130
+        },
+        "headTopY": "24 (ponytail; skull top ~37)",
+        "eyesY": "~71-79",
+        "chinY": "~86",
+        "shoulderY": "~95",
+        "hipY": "~108",
+        "feetY": 153,
+        "weaponExtent": "daggers to x~51 and x~135 at y~120-142",
+        "centerAxisX": 95,
+        "headToBodyRatio": "~0.42 from skull top",
+        "centerCheck": "face/eye midpoint 95; legs 93 (slight stance offset from the generated pose, within tolerance)"
+      },
+      "paletteModified": false,
+      "colors": 32,
+      "qa": {
+        "status": "pass — approved",
+        "sourceScale": "Head, eye/chin lines and baseline match Warrior; slimmer, slightly longer-limbed build reads as the agile class; ponytail extends upward like a hat would.",
+        "gameScale": "Clear; red mask/scarf/trim give strong separation; daggers readable.",
+        "readability": "Non-blocking: black hair blends somewhat with dark floor, but red, skin and steel preserve readability. Field, path, town: strong.",
+        "zoomCheck": "17/16 doubles every 16th row/column; not noticeable at 4x zoom.",
+        "movementSkills": "Compact, front-weighted silhouette with short scarf tails; should stay readable in straight-line dash motion."
+      }
+    }
+  },
+  "qaSheets": {
+    "sourceScale": "art-source/characters/qa/class1_south_compare_1x.png",
+    "gameScale": "art-source/characters/qa/class1_south_compare_gamescale.png",
+    "gameScaleEnlarged": "art-source/characters/qa/class1_south_compare_gamescale_x4.png",
+    "readability": "art-source/characters/qa/class1_south_readability_gamescale.png",
+    "readabilityEnlarged": "art-source/characters/qa/class1_south_readability_gamescale_x4.png",
+    "readabilityRows": "field grass #5f9e4f (game tile), path #c8a96b (game tile), town paving #d9d4c7 (stand-in), dungeon floor #2b2a33 (stand-in)",
+    "all5SourceScale": "art-source/characters/qa/class1_all5_south_compare_1x.png",
+    "all5GameScale": "art-source/characters/qa/class1_all5_south_gamescale.png",
+    "all5GameScaleEnlarged": "art-source/characters/qa/class1_all5_south_gamescale_x4.png",
+    "all5Readability": "art-source/characters/qa/class1_all5_south_readability_gamescale.png",
+    "all5ReadabilityEnlarged": "art-source/characters/qa/class1_all5_south_readability_gamescale_x4.png"
+  },
+  "designSources": {
+    "sheet": "art-source/characters/design/class1_design_sheet_reference.png",
+    "sheetNote": "User-supplied approved Class 1 sprite sheet (attached in chat 2026-10-04). Mage/Ninja design masters are unscaled pixel crops of its portrait panels.",
+    "mage": {
+      "master": "art-source/characters/design/mage_design_master.png",
+      "front": "art-source/characters/design/mage_design_front.png",
+      "crop": "x636 y160 286x190 (front crop x640 y165 165x180)"
+    },
+    "ninja": {
+      "master": "art-source/characters/design/ninja_design_master.png",
+      "front": "art-source/characters/design/ninja_design_front.png",
+      "crop": "x1234 y160 290x190 (front crop x1236 y165 150x180)"
+    },
+    "authority": "Approved sheet is authoritative for Archer, Mage, Cleric and Ninja. Its Warrior panel is NOT authoritative: the red-haired production Warrior stays the style/scale master.",
+    "archer": {
+      "master": "art-source/characters/design/archer_design_master.png",
+      "front": "art-source/characters/design/archer_design_front.png",
+      "sheet": "art-source/characters/design/class1_design_sheet_reference.png",
+      "crop": "x330 y160 290x190 (front crop x336 y165 152x180)"
+    },
+    "cleric": {
+      "master": "art-source/characters/design/cleric_design_master.png",
+      "front": "art-source/characters/design/cleric_design_front.png",
+      "sheet": "art-source/characters/design/class1_design_sheet_reference.png",
+      "crop": "x936 y160 286x190 (front crop x938 y165 180x180)"
+    }
+  },
+  "openQuestions": [],
+  "deprecated": {
+    "archer_legacy": {
+      "status": "DEPRECATED — GENERATED FROM LEGACY DESIGN REFERENCE",
+      "file": "art-source/characters/deprecated/archer_legacy_design_variant.png",
+      "rawSource": "art-source/characters/deprecated/archer_legacy_design_pixellab_raw.png",
+      "designReference": "legacy/assets/v5/body_archer.png",
+      "pixellab": {
+        "tool": "create_image_pro_flash",
+        "jobId": "ea8b7b5f-2e25-4059-af45-ecfde52e8a8e",
+        "imageId": "1167f786-cdee-5397-a04d-00af5294ee26",
+        "seed": 101,
+        "styleImage": "warrior south rotation",
+        "styleOptions": {
+          "color_palette": false,
+          "detail": true,
+          "outline": true,
+          "shading": true
+        },
+        "estimatedGenerations": 6,
+        "prompt": "Chibi fantasy female ARCHER hero, full body, facing the viewer straight-on (south), standing neutral idle pose, low top-down camera, same chibi body proportions, head size, shoulder width, height and foot placement as the style reference warrior. Green hood up over brown hair with a short brown ponytail, determined brown eyes. Green sleeveless tunic with one brown leather strap across the chest, simple brown belt, brown leather bracers, tall brown boots, short green cape behind the shoulders. Wooden recurve bow with small gold tips held vertically in her left hand at her side, bow no taller than her body; small brown quiver of arrows visible over her right shoulder. Palette green, brown, gold. Clean readable silhouette, simple shapes, dark outline, transparent background, centered, feet near the bottom like the reference."
+      },
+      "canvas": {
+        "width": 192,
+        "height": 192
+      },
+      "before": {
+        "alphaBBox": {
+          "x0": 54,
+          "x1": 125,
+          "y0": 41,
+          "y1": 155,
+          "width": 72,
+          "height": 115
+        },
+        "headTopY": 41,
+        "chinY": "~94",
+        "feetY": 155,
+        "centerAxisX": 91.5,
+        "chinToFeet": 61
+      },
+      "normalization": {
+        "scale": "13/12 (1.0833) uniform, nearest-neighbour, about origin",
+        "translate": {
+          "x": -4,
+          "y": -15
+        },
+        "mapping": "dest(X,Y) = raw(floor((X+4)*12/13), floor((Y+15)*12/13))",
+        "scaleBasis": "chin-to-feet 61 -> 66 (Warrior 67); face size then matches Warrior; total height 115 -> 124"
+      },
+      "after": {
+        "alphaBBox": {
+          "x0": 55,
+          "x1": 132,
+          "y0": 30,
+          "y1": 153,
+          "width": 78,
+          "height": 124
+        },
+        "headTopY": 30,
+        "headTopNote": "hood peak",
+        "eyesY": "~72-80",
+        "chinY": "~87",
+        "shoulderY": "~93",
+        "hipY": "~116-119 (belt)",
+        "kneeY": "~138-142",
+        "feetY": 153,
+        "centerAxisX": 95,
+        "weaponExtent": "bow on her left side x~117-132, y~80-152; quiver to x~55 over right shoulder",
+        "headToBodyRatio": "head 30-87 = ~58 px of 124 (~0.47)"
+      },
+      "paletteModified": false,
+      "colors": 71,
+      "qa": {
+        "status": "pass, awaiting review",
+        "sourceScale": "Same body scale, eye/chin lines within ~1-2 px of Warrior, same baseline.",
+        "gameScale": "Clear silhouette at ~40 px; shading not noisy; no palette reduction needed.",
+        "readability": "Field grass: readable but the weakest pairing (green hood/cape near grass hue; dark outline, hair, skin and boots carry it). Dungeon: readable, bow is faint. Path / town: good."
+      },
+      "notes": "Non-integer nearest-neighbour scale duplicates every 12th row/column: occasional 2-px steps in outlines at high zoom, not visible at 1x or game scale. Raw PixelLab pixels preserved unmodified.",
+      "styleReference": {
+        "file": "public/assets/characters/warrior/warrior_chibi_front_master_v3.png",
+        "pixellabSouthRotation": "https://backblaze.pixellab.ai/file/pixellab-characters/ff1b7716-70b9-405e-ba82-2204533d3d99/449dc2ec-9a0b-4b5a-8d16-afac668c059a/rotations/south.png",
+        "styleOptions": {
+          "color_palette": false,
+          "detail": true,
+          "outline": true,
+          "shading": true
+        }
+      },
+      "deprecatedReason": "Made from legacy/assets/v5 concepts while the approved design was missing; superseded by the approved design sheet panel.",
+      "formerProductionPath": "public/assets/characters/archer/archer_south_master.png",
+      "qaSheets": {
+        "sourceScale": "art-source/characters/deprecated/qa/class1_south_compare_1x.png",
+        "gameScale": "art-source/characters/deprecated/qa/class1_south_compare_gamescale.png",
+        "gameScaleEnlarged": "art-source/characters/deprecated/qa/class1_south_compare_gamescale_x4.png",
+        "readability": "art-source/characters/deprecated/qa/class1_south_readability_gamescale.png",
+        "readabilityEnlarged": "art-source/characters/deprecated/qa/class1_south_readability_gamescale_x4.png"
+      }
+    },
+    "cleric_legacy": {
+      "status": "DEPRECATED — GENERATED FROM LEGACY DESIGN REFERENCE",
+      "file": "art-source/characters/deprecated/cleric_legacy_design_variant.png",
+      "rawSource": "art-source/characters/deprecated/cleric_legacy_design_pixellab_raw.png",
+      "designReference": "legacy/assets/v5/body_priestess.png",
+      "pixellab": {
+        "tool": "create_image_pro_flash",
+        "jobId": "6355e4d4-5e13-4dbd-af01-286474453204",
+        "imageId": "56b5db0c-2552-5c9a-a22b-84fd71113d31",
+        "seed": 103,
+        "styleImage": "warrior south rotation",
+        "styleOptions": {
+          "color_palette": false,
+          "detail": true,
+          "outline": true,
+          "shading": true
+        },
+        "estimatedGenerations": 6,
+        "prompt": "Chibi fantasy female CLERIC healer hero, full body, facing the viewer straight-on (south), standing neutral idle pose, low top-down camera, same chibi body proportions, head size, shoulder width, height and foot placement as the style reference warrior (short compact chibi body, not tall). White hood with a blue band and a small gold cross emblem, long pale blonde hair, gentle blue eyes. White robe with a blue front panel and simple gold trim, short blue-and-white shoulder cape, white boots with gold trim. Holy staff held vertically in her right hand at her side, staff about as tall as her body: brown shaft with a simple gold ring-and-cross head and one small blue gem. Palette white, blue, gold. Minimal gold detail, clean readable compact silhouette, simple shapes, dark outline, transparent background, centered, feet near the bottom like the reference."
+      },
+      "canvas": {
+        "width": 192,
+        "height": 192
+      },
+      "before": {
+        "alphaBBox": {
+          "x0": 50,
+          "x1": 125,
+          "y0": 41,
+          "y1": 152,
+          "width": 76,
+          "height": 112
+        },
+        "headTopY": 41,
+        "chinY": "~89",
+        "feetY": 152,
+        "centerAxisX": 92.5,
+        "chinToFeet": 63
+      },
+      "normalization": {
+        "scale": "13/12 (1.0833) uniform, nearest-neighbour, about origin",
+        "translate": {
+          "x": -5,
+          "y": -12
+        },
+        "mapping": "dest(X,Y) = raw(floor((X+5)*12/13), floor((Y+12)*12/13))",
+        "scaleBasis": "chin-to-feet 63 -> 69 (Warrior 67); face size then matches Warrior; total height 112 -> 121"
+      },
+      "after": {
+        "alphaBBox": {
+          "x0": 50,
+          "x1": 131,
+          "y0": 33,
+          "y1": 153,
+          "width": 82,
+          "height": 121
+        },
+        "headTopY": 33,
+        "headTopNote": "hat cross; hat crown ~37",
+        "eyesY": "~68-77",
+        "chinY": "~84",
+        "shoulderY": "~90",
+        "hipY": "~109 (belt)",
+        "hemY": "~143",
+        "feetY": 153,
+        "centerAxisX": 95,
+        "weaponExtent": "staff on her right side x~50-71, ring head y~50-75, foot ~150",
+        "headToBodyRatio": "head 33-84 = ~52 px of 121 (~0.43)"
+      },
+      "paletteModified": false,
+      "colors": 76,
+      "qa": {
+        "status": "pass, awaiting review",
+        "sourceScale": "Same body scale and baseline as Warrior; slightly slimmer body (robe vs armour + cape), as expected.",
+        "gameScale": "Clear silhouette; staff readable without dominating; no palette reduction needed.",
+        "readability": "Strong on grass, path and dungeon. Bright town paving (stand-in): white robe sits close to the ground value; outline, blue panel and gold hair keep it readable."
+      },
+      "notes": "Same 13/12 nearest-neighbour artefact note as Archer. Raw PixelLab pixels preserved unmodified.",
+      "styleReference": {
+        "file": "public/assets/characters/warrior/warrior_chibi_front_master_v3.png",
+        "pixellabSouthRotation": "https://backblaze.pixellab.ai/file/pixellab-characters/ff1b7716-70b9-405e-ba82-2204533d3d99/449dc2ec-9a0b-4b5a-8d16-afac668c059a/rotations/south.png",
+        "styleOptions": {
+          "color_palette": false,
+          "detail": true,
+          "outline": true,
+          "shading": true
+        }
+      },
+      "deprecatedReason": "Made from legacy/assets/v5 concepts while the approved design was missing; superseded by the approved design sheet panel.",
+      "formerProductionPath": "public/assets/characters/cleric/cleric_south_master.png",
+      "qaSheets": {
+        "sourceScale": "art-source/characters/deprecated/qa/class1_south_compare_1x.png",
+        "gameScale": "art-source/characters/deprecated/qa/class1_south_compare_gamescale.png",
+        "gameScaleEnlarged": "art-source/characters/deprecated/qa/class1_south_compare_gamescale_x4.png",
+        "readability": "art-source/characters/deprecated/qa/class1_south_readability_gamescale.png",
+        "readabilityEnlarged": "art-source/characters/deprecated/qa/class1_south_readability_gamescale_x4.png"
+      }
+    }
+  },
+  "readabilityPolicy": "Readability notes are non-blocking. No recolouring until production Town / Field / Dungeon art exists; tune colours against real backgrounds then.",
+  "finalQa": {
+    "date": "2026-10-04",
+    "result": "pass",
+    "checks": {
+      "canvas": "all five 192x192",
+      "transparency": "corners transparent, no semi-transparent pixels",
+      "feetY": {
+        "warrior": 153,
+        "archer": 153,
+        "mage": 153,
+        "cleric": 153,
+        "ninja": 153
+      },
+      "centerAxisX": {
+        "warrior": 95,
+        "archer": 94.5,
+        "mage": 95,
+        "cleric": 95,
+        "ninja": "95 (face) / 93 (legs)"
+      },
+      "colours": {
+        "warrior": 23,
+        "archer": 73,
+        "mage": 34,
+        "cleric": 79,
+        "ninja": 32
+      },
+      "resampling": "nearest-neighbour only (Archer/Mage/Cleric/Ninja x17/16 uniform); no blur, no smoothing, no X/Y stretch",
+      "sourceScale": "same perspective, body scale, eye line (~70-80) and baseline; comparable outline, shading and detail density",
+      "gameScale": "all silhouettes readable at ~40 px"
+    }
+  },
+  "productionLock": {
+    "status": "LOCKED — Class 1 South production masters",
+    "rule": "Do not modify unless a future animation test exposes a genuine consistency problem.",
+    "files": {
+      "warrior": "public/assets/characters/warrior/warrior_chibi_front_master_v3.png",
+      "archer": "public/assets/characters/archer/archer_south_master.png",
+      "mage": "public/assets/characters/mage/mage_south_master.png",
+      "cleric": "public/assets/characters/cleric/cleric_south_master.png",
+      "ninja": "public/assets/characters/ninja/ninja_south_master.png"
+    }
+  },
+  "layout": {
+    "designReferences": "art-source/characters/design/",
+    "rawPixelLab": "art-source/characters/raw/",
+    "deprecated": "art-source/characters/deprecated/ (legacy-design variants, their raws, and their old QA sheets)",
+    "productionMasters": "public/assets/characters/<class>/",
+    "qa": "art-source/characters/qa/",
+    "manifest": "art-source/characters/class1_masters_manifest.json"
+  }
+}
