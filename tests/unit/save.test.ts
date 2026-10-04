@@ -59,7 +59,14 @@ function midGame() {
   t.entitlements.consumeAssistReward();
 
   t.fieldEnergy.payForKill('field', 'mini_boss');
-  t.hooks.quests = { 'slime-trouble': { state: 'active', progress: { slime: 3 } } };
+  // Quests: one claimed (with its feature-free rewards), one in progress and tracked.
+  t.quests.start('q_demo_01');
+  t.events.emit('npcInteracted', { npcId: 'demo_npc_guide' });
+  t.quests.claim('q_demo_01');
+  t.quests.start('q_demo_02');
+  t.events.emit('monsterKilled', { entityId: 'slime-1', monsterId: 'slime', zone: 'field' });
+  t.quests.track('q_demo_02');
+  t.features.unlock('warp');
   t.hooks.dungeons = { demo_dungeon: { cleared: ['normal'] } };
   return t;
 }
@@ -129,9 +136,9 @@ describe('player save v4', () => {
 
 describe('save migration', () => {
   const v3From = (save: PlayerSave): Record<string, unknown> => {
-    const { daily: _d, dungeonRuns: _r, ...rest } = save;
-    void [_d, _r];
-    return { ...rest, schemaVersion: 3, energy: null, claimedClears: [] };
+    const { daily: _d, dungeonRuns: _r, questLog: _q, features: _f, ...rest } = save;
+    void [_d, _r, _q, _f];
+    return { ...rest, schemaVersion: 3, energy: null, claimedClears: [], quests: {} };
   };
   const v2From = (save: PlayerSave): Record<string, unknown> => {
     const { equipment: _e, pets: _p, specialShop: _s, crafting: _c, warp: _w, claimedClears: _l, ...rest } = v3From(save);
@@ -147,10 +154,22 @@ describe('save migration', () => {
     assert.deepEqual(migrated.daily, { day: null, fieldEnergy: 200, dungeonFullClaims: 0, dungeonExtraAdded: 0, assistRewardsClaimed: 0 });
     assert.deepEqual(migrated.dungeonRuns, { nextSeq: 1, claimed: [] });
     // Progression, equipment, pets, crafting, warp... are untouched.
-    const { daily: _a, dungeonRuns: _b, ...restMigrated } = migrated;
-    const { daily: _c, dungeonRuns: _d, ...restCurrent } = current;
-    void [_a, _b, _c, _d];
-    assert.deepEqual(restMigrated, restCurrent);
+    assert.deepEqual(migrated.questLog, { records: {}, tracked: [], announced: [] });
+    assert.deepEqual(migrated.features, []);
+    const strip = ({ daily: _a, dungeonRuns: _b, questLog: _c, features: _d, ...rest }: PlayerSave) => (void [_a, _b, _c, _d], rest);
+    assert.deepEqual(strip(migrated), strip(current));
+  });
+
+  test('an earlier v4 save without quest data loads with an empty quest log and keeps everything else', () => {
+    const current = capturePlayerSave(midGame());
+    const { questLog: _q, features: _f, ...earlierV4 } = current;
+    void [_q, _f];
+    const legacy = { ...earlierV4, quests: { 'slime-trouble': { state: 'active', progress: { slime: 3 } } } }; // retired hook
+    const loaded = deserializePlayerSave(JSON.stringify(legacy));
+    assert.deepEqual(loaded.questLog, { records: {}, tracked: [], announced: [] });
+    assert.deepEqual(loaded.features, []);
+    assert.equal('quests' in loaded, false);
+    assert.deepEqual({ ...loaded, questLog: current.questLog, features: current.features }, current);
   });
 
   test('a v3 save at an old level cap keeps its level and EXP', () => {

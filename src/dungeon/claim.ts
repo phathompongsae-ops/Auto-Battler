@@ -1,4 +1,6 @@
+import type { EventBus } from '../core/EventBus';
 import type { Rng } from '../core/rng';
+import type { GameEvents } from '../game/GameEvents';
 import type { ItemId } from '../data/itemData';
 import type { Wallet } from '../economy/Wallet';
 import type { EquipmentManager } from '../equipment/equipment';
@@ -17,6 +19,8 @@ export interface ClaimContext {
   grantExp: (amount: number) => void;
   rng: Rng;
   newItemId?: IdSource;
+  /** Receives itemAcquired (reward items) and dungeonCleared (once per run). */
+  events: EventBus<GameEvents>;
 }
 
 export type DungeonClaimResult =
@@ -43,7 +47,19 @@ function grantItems(inventory: Inventory, items: Partial<Record<ItemId, number>>
 export function claimDungeonClear(run: DungeonRun, ctx: ClaimContext): DungeonClaimResult {
   const state = ctx.ledger.state(run);
   if (state !== 'claimable') return { ok: false, reason: state };
+  const result = resolveClaim(run, ctx);
+  if (result.ok && result.kind !== 'none') {
+    for (const [itemId, amount] of Object.entries(result.reward.items) as [ItemId, number][]) {
+      if (amount > 0) ctx.events.emit('itemAcquired', { itemId, amount, source: 'dungeon' });
+    }
+  }
+  // Once per successfully cleared run, whatever the reward entitlement was (quests count clears, not rewards).
+  ctx.events.emit('dungeonCleared', { runId: run.runId, dungeonId: run.dungeonId, difficulty: run.difficulty });
+  return result;
+}
 
+/** Pick and grant the reward for a claimable run (Full, then Assist, then none). */
+function resolveClaim(run: DungeonRun, ctx: ClaimContext): DungeonClaimResult {
   if (ctx.entitlements.consumeFullReward()) {
     const reward = rollBossReward(run.dungeonId, run.difficulty, ctx.rng);
     ctx.ledger.markClaimed(run);

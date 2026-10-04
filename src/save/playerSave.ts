@@ -10,6 +10,10 @@ import { DUNGEON_WARPS, TOWNS } from '../data/warpData';
 import { FIELD_ENERGY } from '../data/energyData';
 import { DUNGEON_DAILY, DUNGEON_RUN_CLAIM_WINDOW } from '../data/dungeonEntitlementData';
 import { freshDaily, type DailyRecord } from '../daily/DailyState';
+import { isFeatureId, type FeatureId } from '../data/featureData';
+import { QUESTS } from '../data/questData';
+import { required as requiredAmount } from '../quests/objectives';
+import { MAX_TRACKED_QUESTS, type QuestLogState } from '../quests/QuestSystem';
 import { MAX_LEVEL } from '../data/progressionData';
 import { expToNext } from '../progression/expCurve';
 import type { CraftJob } from '../crafting/crafting';
@@ -34,6 +38,10 @@ export const PLAYER_SAVE_VERSION = 4;
  * Overflow EXP at the level cap (up to one level's worth); the unused energy
  * hook became `daily` (Field Energy and dungeon entitlements for one server
  * day); `claimedClears` became the bounded `dungeonRuns` claim window.
+ *
+ * Added within v4 (optional on load, so earlier v4 saves still load with an
+ * empty quest log): `questLog` and `features`. The never-used `quests`
+ * placeholder hook is retired and ignored when present.
  */
 export interface PlayerSaveV4 {
   schemaVersion: 4;
@@ -72,8 +80,10 @@ export interface PlayerSaveV4 {
 
   /** Daily allowances for server day `day` (null = never used: fresh). Reset together on a new day. */
   daily: DailyRecord;
-  /** Hook: quest id → state and objective counters. */
-  quests: Record<string, { state: 'active' | 'completed'; progress: Record<string, number> }>;
+  /** Quest Engine state: started quests, objective progress, tracked ids, announced ids. */
+  questLog: QuestLogState;
+  /** Unlocked feature ids. */
+  features: FeatureId[];
   /** Hook: dungeon id → cleared difficulty ids. */
   dungeons: Record<string, { cleared: string[] }>;
 }
@@ -81,7 +91,8 @@ export interface PlayerSaveV4 {
 export type PlayerSave = PlayerSaveV4;
 
 /** v3: energy was an unused hook; clears were free-form ids. */
-export type PlayerSaveV3 = Omit<PlayerSaveV4, 'schemaVersion' | 'daily' | 'dungeonRuns'> & {
+export type PlayerSaveV3 = Omit<PlayerSaveV4, 'schemaVersion' | 'daily' | 'dungeonRuns' | 'questLog' | 'features'> & {
+  quests: Record<string, { state: 'active' | 'completed'; progress: Record<string, number> }>;
   schemaVersion: 3;
   energy: { current: number; updatedAt: number } | null;
   claimedClears: string[];
@@ -124,7 +135,8 @@ export function newPlayerSave(characterId: string): PlayerSave {
     warp: { towns: defaultTowns(), dungeons: [], homeTown: null },
     dungeonRuns: { nextSeq: 1, claimed: [] },
     daily: { day: null, ...freshDaily() },
-    quests: {},
+    questLog: { records: {}, tracked: [], announced: [] },
+    features: [],
     dungeons: {},
   };
 }
@@ -337,6 +349,32 @@ function validateCrafting(raw: unknown): PlayerSave['crafting'] {
   return { jobs };
 }
 
+/** Quest log; missing (an earlier v4 save) = empty. Checked against the quest data. */
+function validateQuestLog(raw: unknown): QuestLogState {
+  if (raw === undefined) return { records: {}, tracked: [], announced: [] };
+  if (!isObject(raw) || !isObject(raw.records)) throw new SaveError('questLog invalid');
+  const records: QuestLogState['records'] = {};
+  for (const [id, r] of Object.entries(raw.records)) {
+    const def = QUESTS[id];
+    if (!def) throw new SaveError(`questLog: unknown quest ${id}`);
+    if (!isObject(r) || (r.status !== 'active' && r.status !== 'completed' && r.status !== 'claimed') || !Array.isArray(r.progress)) {
+      throw new SaveError(`questLog.${id} invalid`);
+    }
+    const progress = r.progress;
+    if (progress.length !== def.objectives.length) throw new SaveError(`questLog.${id}: progress does not match its objectives`);
+    const need = def.objectives.map(requiredAmount);
+    if (!progress.every((p, i) => isCount(p) && p <= need[i])) throw new SaveError(`questLog.${id}: progress out of range`);
+    const done = progress.every((p, i) => p >= need[i]);
+    if (r.status === 'active' && done) throw new SaveError(`questLog.${id}: finished but still active`);
+    if (r.status !== 'active' && !done) throw new SaveError(`questLog.${id}: ${r.status} without finishing its objectives`);
+    records[id] = { status: r.status, progress: [...(progress as number[])] };
+  }
+  const tracked = uniqueStrings(raw.tracked ?? [], 'questLog.tracked', (id) => records[id]?.status === 'active' || records[id]?.status === 'completed');
+  if (tracked.length > MAX_TRACKED_QUESTS) throw new SaveError('questLog.tracked: too many tracked quests');
+  const announced = uniqueStrings(raw.announced ?? [], 'questLog.announced', (id) => id in QUESTS);
+  return { records, tracked, announced };
+}
+
 function validateDaily(raw: unknown): DailyRecord {
   if (!isObject(raw)) throw new SaveError('daily invalid');
   const { day, fieldEnergy, dungeonFullClaims, dungeonExtraAdded, assistRewardsClaimed } = raw;
@@ -431,7 +469,8 @@ function validate(raw: unknown): PlayerSave {
     warp: { towns, dungeons, homeTown: warp.homeTown as string | null },
     dungeonRuns: validateDungeonRuns(s.dungeonRuns),
     daily: validateDaily(s.daily),
-    quests: record(s.quests, 'quests', (x): x is PlayerSave['quests'][string] => isObject(x) && (x.state === 'active' || x.state === 'completed') && isObject(x.progress)),
+    questLog: validateQuestLog(s.questLog),
+    features: s.features === undefined ? [] : (uniqueStrings(s.features, 'features', isFeatureId) as FeatureId[]),
     dungeons: record(s.dungeons, 'dungeons', (x): x is PlayerSave['dungeons'][string] => isObject(x) && Array.isArray(x.cleared) && x.cleared.every((c) => typeof c === 'string')),
   };
 }

@@ -79,6 +79,7 @@ export class LootSystem {
         this.drops.splice(i, 1);
         this.inventory.add(drop.itemId);
         this.events.emit('lootPicked', { dropId: drop.id, itemId: drop.itemId, byId: collector.id });
+        this.events.emit('itemAcquired', { itemId: drop.itemId, amount: 1, source: 'loot' });
       }
     }
   }

@@ -3,6 +3,8 @@ import type { CraftingQueue } from '../crafting/crafting';
 import type { RewardLedger } from '../dungeon/rewards';
 import type { Wallet } from '../economy/Wallet';
 import type { DailyState } from '../daily/DailyState';
+import type { FeatureUnlocks } from '../features/FeatureUnlocks';
+import type { QuestSystem } from '../quests/QuestSystem';
 import type { EquipmentManager } from '../equipment/equipment';
 import type { Inventory } from '../loot/Inventory';
 import type { PetCollection } from '../pets/pets';
@@ -12,11 +14,11 @@ import type { WarpUnlocks } from '../warp/warp';
 import { newPlayerSave, type PlayerSave } from './playerSave';
 
 /** Save fields with no live system yet; carried through load → save untouched. */
-export type PersistedHooks = Pick<PlayerSave, 'quests' | 'dungeons'>;
+export type PersistedHooks = Pick<PlayerSave, 'dungeons'>;
 
 export function emptyHooks(): PersistedHooks {
-  const { quests, dungeons } = newPlayerSave('_');
-  return { quests, dungeons };
+  const { dungeons } = newPlayerSave('_');
+  return { dungeons };
 }
 
 /** Everything a player save is captured from / applied to. No engine types. */
@@ -34,6 +36,8 @@ export interface SaveTarget {
   ledger: RewardLedger;
   /** Field Energy and dungeon entitlements for the current server day. */
   daily: DailyState;
+  quests: QuestSystem;
+  features: FeatureUnlocks;
   hooks: PersistedHooks;
 }
 
@@ -59,6 +63,8 @@ export function capturePlayerSave(t: SaveTarget): PlayerSave {
     warp: { towns: [...t.warp.towns], dungeons: [...t.warp.dungeons], homeTown: t.warp.homeTown },
     dungeonRuns: { nextSeq: t.ledger.nextSeq, claimed: [...t.ledger.claimed].sort((a, b) => a - b) },
     daily: { ...t.daily.record },
+    questLog: t.quests.toState(),
+    features: [...t.features.unlocked],
     ...structuredClone(t.hooks),
   };
 }
@@ -99,7 +105,10 @@ export function applyPlayerSave(t: SaveTarget, save: PlayerSave): void {
   for (const seq of s.dungeonRuns.claimed) t.ledger.claimed.add(seq);
   // Stored as-is; a save from an earlier server day resets on first use (DailyState).
   t.daily.record = { ...s.daily };
-  t.hooks = { quests: s.quests, dungeons: s.dungeons };
+  t.quests.load(s.questLog);
+  t.features.unlocked.clear();
+  for (const id of s.features) t.features.unlocked.add(id);
+  t.hooks = { dungeons: s.dungeons };
 
   t.combat.refreshStats();
   t.combat.restore();

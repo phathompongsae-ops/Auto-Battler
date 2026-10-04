@@ -2,6 +2,9 @@ import type { HitCancelReason, SkillFailReason } from '../combat/SkillSystem';
 import type { EntityId } from '../combat/types';
 import type { ItemId } from '../data/itemData';
 import type { JobId } from '../data/jobData';
+import type { DifficultyId } from '../data/dungeonDifficulty';
+import type { FeatureId } from '../data/featureData';
+import type { QuestType } from '../data/questData';
 import type { SkillId } from '../data/skillData';
 import type { StatusId } from '../data/statusData';
 
@@ -60,4 +63,27 @@ export type GameEvents = {
   targetChanged: { targetId: EntityId | null };
   itemUsed: { entityId: EntityId; itemId: ItemId };
   jobChanged: { entityId: EntityId; jobId: JobId };
+
+  // --- World interactions the Quest Engine (and later Auto Move / maps) listen to.
+  /** The player interacted with an NPC. */
+  npcInteracted: { npcId: string };
+  /** The player reached a location / zone marker. */
+  locationReached: { locationId: string };
+  /** The player killed a monster (any zone; independent of reward eligibility). */
+  monsterKilled: { entityId: EntityId; monsterId: string; zone: 'field' | 'dungeon' };
+  /** Items entered the inventory through gameplay (never emitted by loading a save). */
+  itemAcquired: { itemId: ItemId; amount: number; source: 'loot' | 'dungeon' | 'quest' | 'dev' };
+  /** A dungeon run was cleared and its claim resolved: once per run (Full, Assist or no reward alike). */
+  dungeonCleared: { runId: string; dungeonId: string; difficulty: DifficultyId };
+  /** An enhancement attempt was made (success or failure). */
+  equipmentEnhanced: { instanceId: string; success: boolean; from: number; to: number };
+
+  // --- Quest Engine
+  questAvailable: { questId: string; title: string; questType: QuestType };
+  questStarted: { questId: string };
+  questProgress: { questId: string; objective: number; current: number; required: number };
+  /** Every objective done: ready to claim. */
+  questCompleted: { questId: string };
+  questClaimed: { questId: string };
+  featureUnlocked: { featureId: FeatureId };
 };

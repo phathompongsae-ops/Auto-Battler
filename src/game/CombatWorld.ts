@@ -39,6 +39,10 @@ import type { JobId } from '../data/jobData';
 import type { PrimaryStat } from '../stats/primaryStats';
 import type { GameEvents } from './GameEvents';
 import { grantKillRewards } from './killRewards';
+import { QUESTS } from '../data/questData';
+import { FeatureUnlocks } from '../features/FeatureUnlocks';
+import { QuestSystem } from '../quests/QuestSystem';
+import { enhanceAndReport, type EnhanceOptions, type EnhanceResult } from '../equipment/enhancement';
 import { PlayerCombatController } from './PlayerCombatController';
 
 /**
@@ -103,6 +107,13 @@ export class CombatWorld implements MonsterWorld {
   private rewardRng: Rng = defaultRng;
   /** Last level cap seen; when it rises, stored Overflow EXP is applied. */
   private lastLevelCap = 0;
+  /** Last server day seen; a new day can make quests available. */
+  private lastServerDay = 0;
+
+  /** Unlocked feature ids (Feature Unlock hook). */
+  readonly features = new FeatureUnlocks();
+  /** Data-driven quests, progressed by world events. */
+  readonly quests: QuestSystem;
 
   constructor(
     readonly player: Player,
@@ -119,6 +130,20 @@ export class CombatWorld implements MonsterWorld {
       if (monster && source && !this.peaceful) monster.brain.provoke(source, this.now);
     });
     this.events.on('death', ({ entityId, killerId }) => this.onDeath(entityId, killerId));
+
+    this.quests = new QuestSystem(
+      QUESTS,
+      { level: () => player.combat.level, classId: () => player.progress.classId, serverDay: () => this.serverDay.day() },
+      this.features,
+      {
+        grantExp: (amount) => this.progression.grantExp(this.player, amount),
+        addCurrency: (currency, amount) => this.wallet.add(currency, amount),
+        addItem: (itemId, count) => this.acquireItem(itemId, count, 'quest'),
+      },
+      this.events,
+      player.id,
+    );
+    this.quests.refresh();
   }
 
   addMonster(monster: Monster): void {
@@ -184,6 +209,15 @@ export class CombatWorld implements MonsterWorld {
 
     if (this.playerRespawnAt !== null && now >= this.playerRespawnAt) this.respawnPlayer();
     this.settleLevelCap();
+    this.checkServerDay();
+  }
+
+  /** A new server day can make day-gated quests available. */
+  private checkServerDay(): void {
+    const day = this.serverDay.day();
+    if (day === this.lastServerDay) return;
+    this.lastServerDay = day;
+    this.quests.refresh();
   }
 
   /** Apply stored Overflow EXP once the cap rises (new server day, job change). */
@@ -224,7 +258,36 @@ export class CombatWorld implements MonsterWorld {
       equipment: this.player.equipment,
       grantExp: (amount) => this.progression.grantExp(this.player, amount),
       rng,
+      events: this.events,
     });
+  }
+
+  // --- World interactions (NPCs, markers, items, enhancement) --------------
+
+  /** The player talked to / interacted with an NPC. No dialogue UI yet. */
+  interactWithNpc(npcId: string): void {
+    this.events.emit('npcInteracted', { npcId });
+  }
+
+  /** The player reached a location / zone marker (maps and Auto Move will call this). */
+  reachLocation(locationId: string): void {
+    this.events.emit('locationReached', { locationId });
+  }
+
+  /** Add items obtained through gameplay and report the acquisition. */
+  acquireItem(itemId: ItemId, amount: number, source: GameEvents['itemAcquired']['source']): void {
+    if (!(amount > 0)) return;
+    this.inventory.add(itemId, amount);
+    this.events.emit('itemAcquired', { itemId, amount, source });
+  }
+
+  /** One enhancement attempt on an owned item (balance unchanged); reports every attempt made. */
+  enhanceEquipment(instanceId: string, options: EnhanceOptions = {}, rng: Rng = this.rewardRng): EnhanceResult | { ok: false; reason: 'unknown_item' } {
+    const item = this.player.equipment.items.get(instanceId);
+    if (!item) return { ok: false, reason: 'unknown_item' };
+    const result = enhanceAndReport(item, { inventory: this.inventory, wallet: this.wallet, rng, events: this.events }, options);
+    this.player.equipment.changed();
+    return result;
   }
 
   // --- Player progression -------------------------------------------------
@@ -276,6 +339,7 @@ export class CombatWorld implements MonsterWorld {
     // The server cap may have risen since the save was made.
     this.lastLevelCap = 0;
     this.settleLevelCap();
+    this.quests.refresh();
   }
 
   private saveTarget(): SaveTarget {
@@ -292,6 +356,8 @@ export class CombatWorld implements MonsterWorld {
       warp: this.warpUnlocks,
       ledger: this.rewardLedger,
       daily: this.daily,
+      quests: this.quests,
+      features: this.features,
       hooks: this.saveHooks,
     };
   }
@@ -341,6 +407,7 @@ export class CombatWorld implements MonsterWorld {
         loot: this.loot,
         player: this.player,
         now: this.now,
+        events: this.events,
       });
       if (this.zone === 'field') {
         this.events.emit('fieldReward', { monsterId: monster.id, rewarded: reward.exp, energySpent: reward.energySpent, energyLeft: this.fieldEnergy.current() });

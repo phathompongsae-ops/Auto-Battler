@@ -1,7 +1,6 @@
 import assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
 import { ManualClock } from '../../src/core/clock';
-import { EventBus } from '../../src/core/EventBus';
 import { seededRng, type Rng } from '../../src/core/rng';
 import { ClockServerDay, FixedServerDay } from '../../src/core/serverDay';
 import { DailyState } from '../../src/daily/DailyState';
@@ -15,11 +14,9 @@ import { claimDungeonClear } from '../../src/dungeon/claim';
 import type { DungeonRun } from '../../src/dungeon/rewards';
 import { FieldEnergy, type RewardZone } from '../../src/energy/fieldEnergy';
 import { sequentialIds } from '../../src/equipment/factory';
-import type { GameEvents } from '../../src/game/GameEvents';
 import { grantKillRewards } from '../../src/game/killRewards';
 import { useItem } from '../../src/items/useItem';
 import { LootSystem } from '../../src/loot/LootSystem';
-import { ProgressionSystem } from '../../src/progression/ProgressionSystem';
 import { applyPlayerSave, capturePlayerSave } from '../../src/save/playerSnapshot';
 import { deserializePlayerSave, serializePlayerSave } from '../../src/save/playerSave';
 import { DEMO_QUESTS } from '../../src/ui/data/quests';
@@ -31,10 +28,8 @@ const TICKET = 'additional_dungeon_ticket';
 /** A Lv15 character with every daily system wired like the game, on a settable server day. */
 function rig(day = 1, serverDay = new FixedServerDay(day)) {
   const t = makeSaveTarget(15, undefined, serverDay);
-  const events = new EventBus<GameEvents>();
-  const progression = new ProgressionSystem(events, serverDay);
+  const { events, progression, player } = t;
   const loot = new LootSystem(events, t.inventory);
-  const player = { id: 'p', x: 0, y: 0, hitRadius: 10, combat: t.combat };
   const log = { exp: [] as number[], drops: [] as ItemId[] };
   events.on('expGained', (e) => log.exp.push(e.amount));
   events.on('lootDropped', (e) => log.drops.push(e.itemId));
@@ -43,7 +38,10 @@ function rig(day = 1, serverDay = new FixedServerDay(day)) {
   /** The game's real kill path (CombatWorld.onDeath → grantKillRewards). rng 0 = every drop succeeds. */
   const kill = (tier: MonsterTier, zone: RewardZone = 'field', rng = 0) => {
     loot.rng = () => rng;
-    return grantKillRewards({ x: 0, y: 0, def: { tier, expReward: 30, lootTable: 'slime' } }, { zone, fieldEnergy: t.fieldEnergy, progression, loot, player, now: 0 });
+    return grantKillRewards(
+      { id: 'slime-1', x: 0, y: 0, def: { id: 'slime', tier, expReward: 30, lootTable: 'slime' } },
+      { zone, fieldEnergy: t.fieldEnergy, progression, loot, player, now: 0, events },
+    );
   };
   const claim = (run: DungeonRun, rng: Rng = seededRng(run.seq)) =>
     claimDungeonClear(run, {
@@ -55,6 +53,7 @@ function rig(day = 1, serverDay = new FixedServerDay(day)) {
       grantExp: (amount) => progression.grantExp(player, amount),
       rng,
       newItemId,
+      events,
     });
   const enter = (difficulty: DifficultyId = 'normal') => t.ledger.startRun('demo_dungeon', difficulty, t.combat.level);
   const clear = (difficulty: DifficultyId = 'normal', rng?: Rng) => claim(enter(difficulty), rng);

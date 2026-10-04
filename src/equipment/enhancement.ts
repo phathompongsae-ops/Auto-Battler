@@ -1,3 +1,4 @@
+import type { EventBus } from '../core/EventBus';
 import type { Rng } from '../core/rng';
 import {
   ENHANCEMENT_COST,
@@ -9,6 +10,7 @@ import {
 import { ITEMS, type ItemId } from '../data/itemData';
 import type { Wallet } from '../economy/Wallet';
 import type { Inventory } from '../loot/Inventory';
+import type { GameEvents } from '../game/GameEvents';
 import type { EquipmentInstance } from './equipment';
 
 const STONE: ItemId = 'enhancement_stone';
@@ -73,6 +75,17 @@ export function attemptEnhancement(
   const success = ctx.rng() < chance;
   item.enhancement = success ? target : levelAfterFailure(from, !!options.protectionStone);
   return { ok: true, success, from, to: item.enhancement, chance };
+}
+
+/** One attempt (as attemptEnhancement) that also reports it for quests and other listeners. */
+export function enhanceAndReport(
+  item: EquipmentInstance,
+  ctx: { inventory: Inventory; wallet: Wallet; rng: Rng; events: EventBus<GameEvents> },
+  options: EnhanceOptions = {},
+): EnhanceResult {
+  const result = attemptEnhancement(item, ctx, options);
+  if (result.ok) ctx.events.emit('equipmentEnhanced', { instanceId: item.instanceId, success: result.success, from: result.from, to: result.to });
+  return result;
 }
 
 /** Cosmetic weapon glow tier: 0 none, 1 at +10, 2 at +12, 3 at +15. Never affects stats. */

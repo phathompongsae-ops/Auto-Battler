@@ -5,7 +5,8 @@ import type { ItemId } from '../data/itemData';
 import { defaultRng, seededRng } from '../core/rng';
 import { MAX_ENHANCEMENT, type EquipmentSlot } from '../data/equipmentData';
 import { rerollEnchants } from '../equipment/enchant';
-import { attemptEnhancement, enhancementVfxTier, type EnhanceOptions } from '../equipment/enhancement';
+import { enhancementVfxTier, type EnhanceOptions } from '../equipment/enhancement';
+import type { FeatureId } from '../data/featureData';
 import { createEquipment } from '../equipment/factory';
 import { evaluateSets } from '../equipment/sets';
 import { EGG_ITEM, type EggTier, type PetPassiveId, type PetRarity, type PetSpeciesId } from '../data/petData';
@@ -45,6 +46,7 @@ export interface EventRecord {
   rewarded?: boolean;
   energySpent?: number;
   energyLeft?: number;
+  quest?: string;
 }
 
 /**
@@ -76,6 +78,11 @@ export function createDevApi(world: CombatWorld, overlays: WorldOverlays) {
   ev.on('lootPicked', (e) => record('lootPicked', { item: e.itemId }));
   ev.on('lootExpired', (e) => record('lootExpired', { item: e.itemId }));
   ev.on('targetChanged', (e) => record('targetChanged', { target: e.targetId ?? undefined }));
+  ev.on('questAvailable', (e) => record('questAvailable', { quest: e.questId }));
+  ev.on('questProgress', (e) => record('questProgress', { quest: e.questId, amount: e.current }));
+  ev.on('questCompleted', (e) => record('questCompleted', { quest: e.questId }));
+  ev.on('questClaimed', (e) => record('questClaimed', { quest: e.questId }));
+  ev.on('featureUnlocked', (e) => record('featureUnlocked', { item: e.featureId }));
 
   const monster = (id: string) => {
     const m = world.monsters.find((x) => x.id === id);
@@ -255,6 +262,29 @@ export function createDevApi(world: CombatWorld, overlays: WorldOverlays) {
     resetDungeonDaily: () => world.dungeonEntitlements.resetToday(),
     grantDungeonTicket: (amount = 1) => world.inventory.add('additional_dungeon_ticket', amount),
 
+    // --- Quests and features (dev only) -----------------------------------
+    /** Every quest with its status (locked / available / active / completed / claimed). */
+    quests: () => world.quests.list(),
+    questProgress: (questId: string) => ({ status: world.quests.status(questId), objectives: world.quests.progress(questId) }),
+    startQuest: (questId: string) => world.quests.start(questId),
+    claimQuest: (questId: string) => world.quests.claim(questId),
+    trackQuest: (questId: string) => world.quests.track(questId),
+    untrackQuest: (questId: string) => world.quests.untrack(questId),
+    trackedQuests: () => world.quests.trackedQuestIds(),
+    /** Fire the same events real NPCs / map markers will. */
+    talkToNpc: (npcId: string) => world.interactWithNpc(npcId),
+    reachLocation: (locationId: string) => world.reachLocation(locationId),
+    /** Give an item as a gameplay acquisition (counts for collect objectives; grantItem does not). */
+    acquireItem: (itemId: ItemId, amount = 1) => world.acquireItem(itemId, amount, 'dev'),
+    features: () => [...world.features.unlocked],
+    isFeatureUnlocked: (featureId: FeatureId) => world.quests.isFeatureUnlocked(featureId),
+    /** Forget all quest progress and unlocked features, then re-announce what's available. */
+    resetQuests: () => {
+      world.quests.reset();
+      world.features.unlocked.clear();
+      world.quests.refresh();
+    },
+
     // --- Crafting and warp (dev only) -------------------------------------
     startCraft: (recipeId: string) => world.crafting.start(recipeId, world.inventory, world.wallet, () => `dev-job-${++devJobCounter}`),
     claimCraft: (jobId: string, seed = 1) => {
@@ -288,14 +318,8 @@ export function createDevApi(world: CombatWorld, overlays: WorldOverlays) {
       return true;
     },
     /** One enhancement attempt; `roll` fixes the success roll (0..1) for deterministic tests. */
-    enhance: (instanceId: string, options: EnhanceOptions & { roll?: number } = {}) => {
-      const item = world.player.equipment.items.get(instanceId);
-      if (!item) return { ok: false, reason: 'unknown_item' };
-      const rng = options.roll === undefined ? defaultRng : () => options.roll as number;
-      const result = attemptEnhancement(item, { inventory: world.inventory, wallet: world.wallet, rng }, options);
-      world.player.equipment.changed();
-      return result;
-    },
+    enhance: (instanceId: string, options: EnhanceOptions & { roll?: number } = {}) =>
+      world.enhanceEquipment(instanceId, options, options.roll === undefined ? defaultRng : () => options.roll as number),
     rerollEnchants: (instanceId: string, locked: number[] = [], seed = 1) => {
       const item = world.player.equipment.items.get(instanceId);
       if (!item) return { ok: false, reason: 'unknown_item' };
@@ -354,6 +378,9 @@ export function createDevApi(world: CombatWorld, overlays: WorldOverlays) {
       world.serverDay.override = null;
       world.daily.record = { day: null, ...freshDaily() };
       world.zone = 'field';
+      world.quests.reset();
+      world.features.unlocked.clear();
+      world.quests.refresh();
       Object.assign(world.warpUnlocks, defaultUnlocks());
       world.wallet.assign({});
       world.player.statModifiers.clear();

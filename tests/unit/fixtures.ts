@@ -19,26 +19,61 @@ import { classGrowthMaxLevel } from '../../src/stats/classBaseStats';
 import { ModifierStack } from '../../src/stats/ModifierStack';
 import { playerCombatStats } from '../../src/stats/playerCombatStats';
 import { defaultUnlocks } from '../../src/warp/warp';
+import { EventBus } from '../../src/core/EventBus';
+import { QUESTS, type QuestDef } from '../../src/data/questData';
+import { FeatureUnlocks } from '../../src/features/FeatureUnlocks';
+import type { GameEvents } from '../../src/game/GameEvents';
+import { ProgressionSystem } from '../../src/progression/ProgressionSystem';
+import { QuestSystem } from '../../src/quests/QuestSystem';
 
 /** A complete player-like save target wired the way the game wires it. */
-export function makeSaveTarget(level = 1, clock = new ManualClock(Date.UTC(2026, 9, 3, 6)), serverDay = new FixedServerDay(1)) {
+export function makeSaveTarget(
+  level = 1,
+  clock = new ManualClock(Date.UTC(2026, 9, 3, 6)),
+  serverDay = new FixedServerDay(1),
+  questDefs: Readonly<Record<string, QuestDef>> = QUESTS,
+) {
   const progress = new CharacterProgress();
   let combat: CombatantState | null = null;
   const stack = new ModifierStack(() => combat?.refreshStats());
   combat = new CombatantState('p', 'P', 'player', (lv, st) => playerCombatStats(progress, lv, stack.list(), st), level, () => classGrowthMaxLevel(progress.classId) ?? MAX_LEVEL);
   const daily = new DailyState(serverDay);
+  const events = new EventBus<GameEvents>();
+  const progression = new ProgressionSystem(events, serverDay);
+  const inventory = new Inventory();
+  const wallet = new Wallet();
+  const features = new FeatureUnlocks();
+  const player = { id: 'p', x: 0, y: 0, hitRadius: 10, combat };
+  const quests = new QuestSystem(
+    questDefs,
+    { level: () => combat!.level, classId: () => progress.classId, serverDay: () => serverDay.day() },
+    features,
+    {
+      grantExp: (amount) => progression.grantExp(player, amount),
+      addCurrency: (currency, amount) => wallet.add(currency, amount),
+      addItem: (itemId, count) => {
+        inventory.add(itemId, count);
+        events.emit('itemAcquired', { itemId, amount: count, source: 'quest' });
+      },
+    },
+    events,
+    'p',
+  );
   const target: SaveTarget & {
     stack: ModifierStack;
     clock: ManualClock;
     serverDay: FixedServerDay;
     fieldEnergy: FieldEnergy;
     entitlements: DungeonEntitlements;
+    events: EventBus<GameEvents>;
+    progression: ProgressionSystem;
+    player: typeof player;
   } = {
     characterId: 'char-1',
     progress,
     combat,
-    inventory: new Inventory(),
-    wallet: new Wallet(),
+    inventory,
+    wallet,
     equipment: new EquipmentManager(() => progress.classId, (mods) => stack.replaceSource('equipment', mods)),
     pets: new PetCollection((mods) => stack.replaceSource('pet', mods)),
     shop: new SpecialShop(clock),
@@ -48,6 +83,11 @@ export function makeSaveTarget(level = 1, clock = new ManualClock(Date.UTC(2026,
     daily,
     fieldEnergy: new FieldEnergy(daily),
     entitlements: new DungeonEntitlements(daily),
+    quests,
+    features,
+    events,
+    progression,
+    player,
     hooks: emptyHooks(),
     stack,
     clock,
