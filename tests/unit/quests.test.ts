@@ -139,7 +139,7 @@ describe('prerequisites and availability', () => {
   test('required class: opens on job change', () => {
     const s = setup(DEFS, 11);
     assert.equal(changeJob(s.t, 'warrior').ok, true);
-    s.t.events.emit('jobChanged', { entityId: 'p', jobId: 'warrior' });
+    s.t.events.emit('jobChanged', { entityId: 'p', jobId: 'warrior', fromJobId: 'novice', tier: 1 });
     assert.equal(s.status('warrior_only'), 'available');
     assert.ok(s.announced.includes('warrior_only'));
   });

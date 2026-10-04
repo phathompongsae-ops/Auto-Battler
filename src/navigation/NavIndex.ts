@@ -28,9 +28,16 @@ export class NavIndex {
     return Object.values(this.data.targets);
   }
 
-  find(predicate: (t: NavTarget) => boolean, preferMapId?: string): NavTarget | undefined {
-    const matches = this.all().filter(predicate);
-    return matches.find((t) => t.mapId === preferMapId) ?? matches[0];
+  /**
+   * Best match: a target dedicated to `questId` first, then general targets,
+   * then ones dedicated to other quests; ties go to the current map, then data order.
+   */
+  find(predicate: (t: NavTarget) => boolean, preferMapId?: string, questId?: string): NavTarget | undefined {
+    const score = (t: NavTarget) =>
+      (questId && t.questIds?.includes(questId) ? 4 : t.questIds?.length ? 0 : 2) + (t.mapId === preferMapId ? 1 : 0);
+    let best: NavTarget | undefined;
+    for (const t of this.all()) if (predicate(t) && (!best || score(t) > score(best))) best = t;
+    return best;
   }
 
   /** Portal targets usable from `mapId`, with the map each leads to. */

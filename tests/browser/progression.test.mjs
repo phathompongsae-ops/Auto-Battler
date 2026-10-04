@@ -21,7 +21,7 @@ export async function progressionSuite(b, t) {
   let after = await b.eval('debug.player().stats');
   t.check('S5. allocated VIT raises live Max HP / DEF by the locked rates', after.maxHp === before.maxHp + 50 && after.defense === before.defense + 2, `hp ${before.maxHp}->${after.maxHp} def ${before.defense}->${after.defense}`);
 
-  const job = await b.eval(`debug.changeJob('warrior')`);
+  const job = await b.eval(`debug.forceChangeJob('warrior')`);
   p = await b.eval('debug.progress()');
   after = await b.eval('debug.player().stats');
   t.check(

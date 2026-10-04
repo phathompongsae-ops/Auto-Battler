@@ -5,6 +5,7 @@ import type { TouchDragSource } from '../../input/TouchDragSource';
 import type { VirtualActionSource } from '../../input/VirtualActionSource';
 import { h } from '../dom';
 import { DEMO_QUESTS } from '../data/quests';
+import { JobSelectWindow } from '../screens/JobSelectWindow';
 import { WindowManager } from '../screens/WindowManager';
 import { UiRoot } from '../UiRoot';
 import { ActionCluster } from './ActionCluster';
@@ -31,6 +32,8 @@ export interface HudOptions {
 export class Hud {
   readonly root: UiRoot;
   readonly windows: WindowManager;
+  /** TEMPORARY DEMO Class 1 job selection (opens itself when selection is available). */
+  readonly jobSelect: JobSelectWindow;
   private readonly quests: QuestProgressSource;
   private readonly player: PlayerFrame;
   private readonly minimap: Minimap;
@@ -44,6 +47,7 @@ export class Hud {
     this.root = new UiRoot(scene.game);
     this.quests = new QuestProgressSource(world, DEMO_QUESTS);
     this.windows = new WindowManager(this.root.el, { world, quests: this.quests });
+    this.jobSelect = new JobSelectWindow(this.root.el, world, this.windows);
 
     this.player = new PlayerFrame(world.player, options.art);
     this.minimap = new Minimap(world, scene.cameras.main, options.tiles, options.areaName);
@@ -80,6 +84,7 @@ export class Hud {
     this.actions.destroy();
     this.menu.destroy();
     this.quests.destroy();
+    this.jobSelect.destroy();
     this.windows.destroy();
     this.root.destroy();
   }

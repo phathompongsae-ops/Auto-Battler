@@ -1,19 +1,41 @@
-import { WARRIOR_ART } from './characterArt';
+import { WARRIOR_ART, type CharacterArt } from './characterArt';
+import type { JobId } from './jobData';
 
 /*
- * DEMO / DEV presentation for the current playable build.
+ * How each class is drawn and which skill kit it plays. Presentation only:
+ * the character's real class, Job Bonus and stats always come from its saved
+ * job, never from here.
  *
- * Progression truth: a new character is a Lv1 Novice until a real job change
- * at Lv11. The demo nevertheless shows the Warrior sprites and plays the
- * Warrior demo kit (PLAYER_LOADOUT: Power Strike, Fire Bolt, Guard) because
- * no Novice art, Novice skills or job-change flow exist yet.
- *
- * None of this is the character's class: it isn't saved, grants no Job
- * Bonus and uses Novice stats. Remove it once Novice art/skills exist.
+ * Only Warrior has real art and a real kit. Every other class (Novice before
+ * the Lv11 Job Change, and Archer / Mage / Cleric / Ninja until their art and
+ * skills exist) uses an explicit TEMPORARY DEMO FALLBACK: the Warrior sprites
+ * and the Warrior demo kit (PLAYER_LOADOUT: Power Strike, Fire Bolt, Guard).
+ * Replace a class's entry when its art/skills land.
  */
-export const DEMO_PLAYER_PRESENTATION = {
-  /** Sprite set drawn for the player regardless of class. */
-  art: WARRIOR_ART,
-  /** Label for the kit, for debug readouts; the skills themselves are PLAYER_LOADOUT. */
-  kit: 'warrior-demo',
-} as const;
+export interface ClassPresentation {
+  art: CharacterArt;
+  /** Label for the skill kit (debug readouts); the skills themselves are PLAYER_LOADOUT for now. */
+  kit: string;
+  /** True while this class borrows another class's presentation. */
+  temporaryFallback: boolean;
+}
+
+const WARRIOR: ClassPresentation = { art: WARRIOR_ART, kit: 'warrior', temporaryFallback: false };
+/** TEMPORARY DEMO FALLBACK (see above). */
+const DEMO_FALLBACK: ClassPresentation = { art: WARRIOR_ART, kit: 'warrior-demo', temporaryFallback: true };
+
+export const CLASS_PRESENTATION: Record<JobId, ClassPresentation> = {
+  novice: DEMO_FALLBACK,
+  warrior: WARRIOR,
+  archer: DEMO_FALLBACK,
+  mage: DEMO_FALLBACK,
+  cleric: DEMO_FALLBACK,
+  ninja: DEMO_FALLBACK,
+};
+
+export function presentationFor(classId: JobId): ClassPresentation {
+  return CLASS_PRESENTATION[classId];
+}
+
+/** Every sprite set some class may use (preloaded at boot). */
+export const PRESENTATION_ARTS: readonly CharacterArt[] = [...new Set(Object.values(CLASS_PRESENTATION).map((p) => p.art))];

@@ -32,10 +32,10 @@ import { defaultUnlocks } from '../warp/warp';
 import { LootSystem } from '../loot/LootSystem';
 import { useItem as applyItem, type UseItemResult } from '../items/useItem';
 import { ProgressionSystem } from '../progression/ProgressionSystem';
-import { allocateStat, changeJob } from '../progression/statActions';
+import { allocateStat } from '../progression/statActions';
+import { JobChange } from '../progression/JobChange';
 import { deserializePlayerSave, serializePlayerSave } from '../save/playerSave';
 import { applyPlayerSave, capturePlayerSave, emptyHooks, type PersistedHooks, type SaveTarget } from '../save/playerSnapshot';
-import type { JobId } from '../data/jobData';
 import type { PrimaryStat } from '../stats/primaryStats';
 import type { GameEvents } from './GameEvents';
 import { grantKillRewards } from './killRewards';
@@ -126,6 +126,9 @@ export class CombatWorld implements MonsterWorld {
   /** Quest / [Go] navigation. Manual movement input cancels it (AutoMove.drive, called in update()). */
   readonly autoMove: AutoMove;
 
+  /** The Lv11 Class 1 Job Change (trial quests → selection). */
+  readonly jobChange: JobChange;
+
   /** Unlocked feature ids (Feature Unlock hook). */
   readonly features = new FeatureUnlocks();
   /** Data-driven quests, progressed by world events. */
@@ -162,6 +165,8 @@ export class CombatWorld implements MonsterWorld {
       player.id,
     );
     this.quests.refresh();
+
+    this.jobChange = new JobChange(player, this.quests, this.features, this.events, player.id);
 
     this.navigation = new NavIndex(NAVIGATION);
     this.autoMove = new AutoMove(
@@ -349,14 +354,14 @@ export class CombatWorld implements MonsterWorld {
     return allocateStat(this.player, stat, amount);
   }
 
-  /** Take a job (class) at the player's current level. */
-  changePlayerJob(jobId: string) {
-    const result = changeJob(this.player, jobId);
-    if (result.ok) {
-      // Gear the new job can't use goes back to the bag.
-      this.player.equipment.revalidate();
-      this.events.emit('jobChanged', { entityId: this.player.id, jobId: jobId as JobId });
-    }
+  /**
+   * Choose the Class 1 job through the real Job Change (Lv11+, still Novice,
+   * Job Trial complete; permanent). `skipTrial` is for dev force tools only.
+   */
+  changePlayerJob(jobId: string, options: { skipTrial?: boolean } = {}) {
+    const result = this.jobChange.select(jobId, options);
+    // Gear the new job can't use goes back to the bag.
+    if (result.ok) this.player.equipment.revalidate();
     return result;
   }
 

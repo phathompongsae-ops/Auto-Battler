@@ -3,6 +3,7 @@ import type { FeatureId } from './featureData';
 import type { ItemId } from './itemData';
 import type { JobId } from './jobData';
 import { DEMO_TEST_QUESTS } from './quests/demoTestQuests';
+import { JOB_QUESTS } from './quests/jobQuests';
 
 /*
  * Quest definitions: plain data, keyed by stable id. Gameplay systems never
@@ -72,4 +73,5 @@ export interface QuestDef {
 /** Every quest the game knows. Production content will be added beside the demo fixtures. */
 export const QUESTS: Readonly<Record<string, QuestDef>> = {
   ...DEMO_TEST_QUESTS,
+  ...JOB_QUESTS,
 };

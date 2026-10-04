@@ -26,27 +26,28 @@ function monstersDropping(itemId: ItemId): string[] {
  * talk → the NPC; visit → the location marker; kill → a zone listing the
  * monster; collect → a zone whose monsters drop the item; dungeon_clear → the
  * dungeon entrance; enhance → the configured enhancement station (none yet).
- * `preferMapId` breaks ties in favour of the current map.
+ * Targets dedicated to `questId` win; `preferMapId` breaks ties toward the current map.
  */
-export function resolveObjectiveTarget(objective: QuestObjective, nav: NavIndex, preferMapId?: string): NavResolution {
+export function resolveObjectiveTarget(objective: QuestObjective, nav: NavIndex, preferMapId?: string, questId?: string): NavResolution {
   let target: NavTarget | undefined;
+  const find = (predicate: (t: NavTarget) => boolean) => nav.find(predicate, preferMapId, questId);
   switch (objective.kind) {
     case 'talk':
-      target = nav.find((t) => t.type === 'npc' && t.npcId === objective.npcId, preferMapId);
+      target = find((t) => t.type === 'npc' && t.npcId === objective.npcId);
       break;
     case 'visit':
-      target = nav.find((t) => t.type === 'location' && t.locationId === objective.locationId, preferMapId);
+      target = find((t) => t.type === 'location' && t.locationId === objective.locationId);
       break;
     case 'kill':
-      target = nav.find((t) => t.type === 'monster_zone' && !!t.monsterIds?.includes(objective.monsterId), preferMapId);
+      target = find((t) => t.type === 'monster_zone' && !!t.monsterIds?.includes(objective.monsterId));
       break;
     case 'collect': {
       const sources = monstersDropping(objective.itemId);
-      target = nav.find((t) => t.type === 'monster_zone' && !!t.monsterIds?.some((m) => sources.includes(m)), preferMapId);
+      target = find((t) => t.type === 'monster_zone' && !!t.monsterIds?.some((m) => sources.includes(m)));
       break;
     }
     case 'dungeon_clear':
-      target = nav.find((t) => t.type === 'dungeon_entrance' && t.dungeonId === objective.dungeonId, preferMapId);
+      target = find((t) => t.type === 'dungeon_entrance' && t.dungeonId === objective.dungeonId);
       break;
     case 'enhance': {
       const id = nav.data.stations.enhance;
@@ -66,5 +67,5 @@ export function resolveQuestObjective(quests: QuestSystem, questId: string, inde
   if (!objective) return { ok: false, reason: 'unknown_objective' };
   const progress = quests.progress(questId)[index];
   if (progress.current >= progress.required) return { ok: false, reason: 'objective_complete' };
-  return resolveObjectiveTarget(objective, nav, preferMapId);
+  return resolveObjectiveTarget(objective, nav, preferMapId, questId);
 }

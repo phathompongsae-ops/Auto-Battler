@@ -32,15 +32,17 @@ export interface JobDef {
   /** Automatic primary-stat bonus on taking the job. Free, separate from allocated points. */
   jobBonus?: Partial<PrimaryStats>;
   attackStyle: AttackStyle;
+  /** Hook: the skill tree this job unlocks (trees are built in later phases). */
+  skillTreeId?: string;
 }
 
 const JOB_DEFS = {
   novice: { id: 'novice', name: 'Novice', tier: 0, from: [], attackStyle: 'melee' },
-  warrior: { id: 'warrior', name: 'Warrior', tier: 1, from: ['novice'], jobBonus: { str: 3, vit: 2 }, attackStyle: 'melee' },
-  archer: { id: 'archer', name: 'Archer', tier: 1, from: ['novice'], jobBonus: { dex: 3, agi: 2 }, attackStyle: 'ranged' },
-  mage: { id: 'mage', name: 'Mage', tier: 1, from: ['novice'], jobBonus: { int: 3, dex: 2 }, attackStyle: 'melee' },
-  cleric: { id: 'cleric', name: 'Cleric', tier: 1, from: ['novice'], jobBonus: { int: 3, vit: 2 }, attackStyle: 'melee' },
-  ninja: { id: 'ninja', name: 'Ninja', tier: 1, from: ['novice'], jobBonus: { agi: 3, luk: 2 }, attackStyle: 'melee' },
+  warrior: { id: 'warrior', name: 'Warrior', tier: 1, from: ['novice'], jobBonus: { str: 3, vit: 2 }, attackStyle: 'melee', skillTreeId: 'warrior_c1' },
+  archer: { id: 'archer', name: 'Archer', tier: 1, from: ['novice'], jobBonus: { dex: 3, agi: 2 }, attackStyle: 'ranged', skillTreeId: 'archer_c1' },
+  mage: { id: 'mage', name: 'Mage', tier: 1, from: ['novice'], jobBonus: { int: 3, dex: 2 }, attackStyle: 'melee', skillTreeId: 'mage_c1' },
+  cleric: { id: 'cleric', name: 'Cleric', tier: 1, from: ['novice'], jobBonus: { int: 3, vit: 2 }, attackStyle: 'melee', skillTreeId: 'cleric_c1' },
+  ninja: { id: 'ninja', name: 'Ninja', tier: 1, from: ['novice'], jobBonus: { agi: 3, luk: 2 }, attackStyle: 'melee', skillTreeId: 'ninja_c1' },
 } satisfies Record<string, JobDef>;
 
 export type JobId = keyof typeof JOB_DEFS;

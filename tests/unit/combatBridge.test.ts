@@ -10,7 +10,7 @@ import { StatusSystem } from '../../src/combat/StatusSystem';
 import type { CombatEntity, CombatStats } from '../../src/combat/types';
 import { EventBus } from '../../src/core/EventBus';
 import { CLASS_GROWTH } from '../../src/data/classGrowth';
-import { DEMO_PLAYER_PRESENTATION } from '../../src/data/demoConfig';
+import { CLASS_PRESENTATION, presentationFor } from '../../src/data/demoConfig';
 import { JOBS, type JobId } from '../../src/data/jobData';
 import * as playerData from '../../src/data/playerData';
 import { SKILLS } from '../../src/data/skillData';
@@ -280,7 +280,10 @@ describe('Guard through the buff modifier source', () => {
 
 describe('Novice vs demo Warrior', () => {
   test('the demo Warrior presentation is not the character class and is not saved', () => {
-    assert.equal(DEMO_PLAYER_PRESENTATION.art.displayName, 'Warrior');
+    assert.equal(presentationFor('novice').art.displayName, 'Warrior');
+    assert.equal(presentationFor('novice').temporaryFallback, true, 'explicitly a temporary fallback');
+    assert.equal(presentationFor('warrior').temporaryFallback, false, 'real for a Warrior');
+    for (const job of ['archer', 'mage', 'cleric', 'ninja'] as const) assert.equal(CLASS_PRESENTATION[job].temporaryFallback, true, job);
     const save = capturePlayerSave(makeSaveTarget(1));
     assert.equal(save.classId, 'novice');
     assert.deepEqual(save.stats.jobBonuses, {});

@@ -23,6 +23,8 @@ import { FIELD_ENERGY } from '../data/energyData';
 import { expToNext } from '../progression/expCurve';
 import { defaultUnlocks, locationKind, useDungeonWarp, useTownWarp } from '../warp/warp';
 import { PROTOTYPE_MAP_ID } from '../data/navigation/demoNavigation';
+import { CLASS_1_JOB_CHANGE } from '../data/jobChangeData';
+import { QUESTS } from '../data/questData';
 
 let devPetCounter = 0;
 let devJobCounter = 0;
@@ -55,6 +57,13 @@ export interface EventRecord {
  * Dev-only hooks for browser tests and manual debugging. Never included in
  * production behaviour (only attached when import.meta.env.DEV).
  */
+/** The Job Trial quest chain, following nextQuestIds from the configured first quest. */
+function jobTrialChain(): string[] {
+  const chain: string[] = [];
+  for (let id: string | undefined = CLASS_1_JOB_CHANGE.firstQuestId; id && QUESTS[id] && !chain.includes(id); id = QUESTS[id].nextQuestIds?.[0]) chain.push(id);
+  return chain;
+}
+
 export function createDevApi(world: CombatWorld, overlays: WorldOverlays) {
   const log: EventRecord[] = [];
   const record = (type: keyof GameEvents, extra: Omit<EventRecord, 'type' | 't'>) =>
@@ -85,6 +94,10 @@ export function createDevApi(world: CombatWorld, overlays: WorldOverlays) {
   ev.on('questCompleted', (e) => record('questCompleted', { quest: e.questId }));
   ev.on('questClaimed', (e) => record('questClaimed', { quest: e.questId }));
   ev.on('featureUnlocked', (e) => record('featureUnlocked', { item: e.featureId }));
+  ev.on('jobChanged', (e) => record('jobChanged', { entity: e.entityId, item: e.jobId }));
+  ev.on('jobQuestAvailable', (e) => record('jobQuestAvailable', { quest: e.questId }));
+  ev.on('jobTrialCompleted', (e) => record('jobTrialCompleted', { quest: e.questId }));
+  ev.on('jobSelectionAvailable', () => record('jobSelectionAvailable', {}));
   ev.on('navigationChanged', (e) => record('navigationChanged', { target: e.targetId ?? undefined, status: e.status, reason: e.reason ?? undefined }));
   ev.on('mapChanged', (e) => record('mapChanged', { target: e.toMapId, item: e.portalId }));
   ev.on('locationReached', (e) => record('locationReached', { target: e.locationId }));
@@ -218,7 +231,67 @@ export function createDevApi(world: CombatWorld, overlays: WorldOverlays) {
       return { ...world.daily.record };
     },
     allocateStat: (stat: PrimaryStat, amount: number) => world.allocatePlayerStat(stat, amount),
-    changeJob: (jobId: string) => world.changePlayerJob(jobId),
+    /** FORCE (dev): take a Class 1 job without the Job Trial. Same effects as the real path otherwise. */
+    forceChangeJob: (jobId: string) => world.changePlayerJob(jobId, { skipTrial: true }),
+
+    // --- Class 1 Job Change (dev only) -------------------------------------
+    /** Current job, Job Change stage, trial state, Job Bonus and Class 1 Skill Points. */
+    jobState: () => {
+      const p = world.player;
+      const level = p.combat.level;
+      return {
+        classId: p.progress.classId,
+        stage: world.jobChange.stage(),
+        trialComplete: world.jobChange.trialComplete(),
+        level,
+        jobBonuses: structuredClone(p.progress.jobBonuses),
+        earnedSkillPoints: p.progress.earnedSkillPoints(level),
+        remainingSkillPoints: p.progress.remainingSkillPoints(level),
+        class1SkillsUnlocked: world.features.isFeatureUnlocked(CLASS_1_JOB_CHANGE.unlocksFeature),
+        trialQuests: jobTrialChain().map((id) => ({ questId: id, status: world.quests.status(id) })),
+      };
+    },
+    jobChoices: () => world.jobChange.choices().map((j) => ({ jobId: j.jobId, displayName: j.displayName, jobBonus: j.jobBonus, skillTreeId: j.skillTreeId })),
+    /** The REAL selection path (validated: Lv11+, Novice, trial complete, once). */
+    chooseJob: (jobId: string) => world.changePlayerJob(jobId),
+    /**
+     * FORCE (dev): run the whole Job Trial chain through real quest events
+     * (start, talk, visit, kills reported as kills, claim). Requires Lv11 Novice.
+     */
+    forceCompleteJobTrial: () => {
+      const steps: string[] = [];
+      for (const questId of jobTrialChain()) {
+        if (world.quests.status(questId) === 'claimed') continue;
+        if (world.quests.status(questId) === 'available') world.quests.start(questId);
+        for (const o of world.quests.defs[questId].objectives) {
+          for (let i = 0; i < (o.count ?? 1); i++) {
+            if (o.kind === 'talk') world.interactWithNpc(o.npcId);
+            if (o.kind === 'visit') world.reachLocation(o.locationId);
+            if (o.kind === 'kill') world.events.emit('monsterKilled', { entityId: 'dev', monsterId: o.monsterId, zone: 'field' });
+          }
+        }
+        const claim = world.quests.claim(questId);
+        steps.push(`${questId}:${claim.ok ? 'claimed' : claim.reason}`);
+        if (!claim.ok) break;
+      }
+      return steps;
+    },
+    /** RESET (tests only): back to Novice with no job quests, Job Bonus or Class 1 feature. */
+    resetJobChange: () => {
+      const p = world.player;
+      p.progress.assign({ ...p.progress.toData(), classId: 'novice', jobBonuses: {}, skillPointsSpent: 0 });
+      p.equipment.revalidate();
+      p.combat.refreshStats();
+      const log = world.quests.toState();
+      const chain = new Set(jobTrialChain());
+      world.quests.load({
+        records: Object.fromEntries(Object.entries(log.records).filter(([id]) => !chain.has(id))),
+        tracked: log.tracked.filter((id) => !chain.has(id)),
+        announced: log.announced.filter((id) => !chain.has(id)),
+      });
+      world.features.unlocked.delete(CLASS_1_JOB_CHANGE.unlocksFeature);
+      world.quests.refresh();
+    },
     grantItem: (itemId: ItemId, amount = 1) => world.inventory.add(itemId, amount),
     grantGold: (amount: number) => world.wallet.add('gold', amount),
 

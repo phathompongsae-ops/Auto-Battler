@@ -38,6 +38,11 @@ export interface NavTarget {
   /** type 'dungeon_entrance': the dungeon it leads into. */
   dungeonId?: string;
 
+  /**
+   * Quest-related metadata: a target dedicated to these quests (e.g. a trial
+   * area). The resolver prefers it for them and avoids it for other quests.
+   */
+  questIds?: readonly string[];
   /** Free-form metadata for UI (e.g. a label); never used for routing. */
   meta?: { label?: string };
 }

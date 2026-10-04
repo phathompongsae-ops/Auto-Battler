@@ -1,7 +1,7 @@
 import type { HitCancelReason, SkillFailReason } from '../combat/SkillSystem';
 import type { EntityId } from '../combat/types';
 import type { ItemId } from '../data/itemData';
-import type { JobId } from '../data/jobData';
+import type { JobId, JobTier } from '../data/jobData';
 import type { DifficultyId } from '../data/dungeonDifficulty';
 import type { FeatureId } from '../data/featureData';
 import type { QuestType } from '../data/questData';
@@ -63,7 +63,14 @@ export type GameEvents = {
   lootExpired: { dropId: number; itemId: ItemId };
   targetChanged: { targetId: EntityId | null };
   itemUsed: { entityId: EntityId; itemId: ItemId };
-  jobChanged: { entityId: EntityId; jobId: JobId };
+  /** A job was taken (Class 1 Job Change). Quests re-check class prerequisites on it. */
+  jobChanged: { entityId: EntityId; jobId: JobId; fromJobId: JobId; tier: JobTier };
+  /** The Class 1 Job Quest became available (fires once). */
+  jobQuestAvailable: { questId: string };
+  /** The Job Trial's final quest was claimed (fires once). */
+  jobTrialCompleted: { questId: string };
+  /** The player may now choose a Class 1 job (fires once, right after the trial). */
+  jobSelectionAvailable: { choices: JobId[] };
 
   // --- World interactions the Quest Engine (and later Auto Move / maps) listen to.
   /** The player interacted with an NPC. */

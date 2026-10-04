@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { DEMO_PLAYER_PRESENTATION } from '../data/demoConfig';
+import { PRESENTATION_ARTS } from '../data/demoConfig';
 import {
   applyCharacterArtFilter,
   characterArtDisabled,
@@ -15,12 +15,12 @@ export class BootScene extends Phaser.Scene {
 
   preload(): void {
     // A failed sheet is not fatal: the player falls back to placeholder art.
-    if (!characterArtDisabled()) preloadCharacterArt(this, DEMO_PLAYER_PRESENTATION.art);
+    if (!characterArtDisabled()) for (const art of PRESENTATION_ARTS) preloadCharacterArt(this, art);
   }
 
   create(): void {
     createPlaceholderTextures(this);
-    applyCharacterArtFilter(this, DEMO_PLAYER_PRESENTATION.art);
+    for (const art of PRESENTATION_ARTS) applyCharacterArtFilter(this, art);
     this.scene.start('World');
   }
 }

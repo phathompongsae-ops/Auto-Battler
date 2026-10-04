@@ -3,7 +3,7 @@
  * unlocked state exist for now; menus / gating UI come in the Feature Unlock
  * phase. `demo_feature` is a test fixture.
  */
-export const FEATURE_IDS = ['warp', 'enhancement', 'enchant', 'crafting', 'pet', 'dungeon', 'daily_quest', 'demo_feature'] as const;
+export const FEATURE_IDS = ['warp', 'enhancement', 'enchant', 'crafting', 'pet', 'dungeon', 'daily_quest', 'class_1_skills', 'demo_feature'] as const;
 
 export type FeatureId = (typeof FEATURE_IDS)[number];
 

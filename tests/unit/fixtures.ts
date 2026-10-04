@@ -25,6 +25,7 @@ import { FeatureUnlocks } from '../../src/features/FeatureUnlocks';
 import type { GameEvents } from '../../src/game/GameEvents';
 import { ProgressionSystem } from '../../src/progression/ProgressionSystem';
 import { QuestSystem } from '../../src/quests/QuestSystem';
+import { JobChange } from '../../src/progression/JobChange';
 
 /** A complete player-like save target wired the way the game wires it. */
 export function makeSaveTarget(
@@ -65,6 +66,7 @@ export function makeSaveTarget(
     serverDay: FixedServerDay;
     fieldEnergy: FieldEnergy;
     entitlements: DungeonEntitlements;
+    jobChange: JobChange;
     events: EventBus<GameEvents>;
     progression: ProgressionSystem;
     player: typeof player;
@@ -85,6 +87,7 @@ export function makeSaveTarget(
     entitlements: new DungeonEntitlements(daily),
     quests,
     features,
+    jobChange: new JobChange({ progress, combat }, quests, features, events, 'p'),
     events,
     progression,
     player,

@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { CAMERA_LERP, TILE_SIZE } from '../config';
-import { DEMO_PLAYER_PRESENTATION } from '../data/demoConfig';
+import { presentationFor } from '../data/demoConfig';
+import { STARTING_JOB } from '../data/jobData';
 import { MONSTERS } from '../data/monsterData';
 import { DebugPanel } from '../debug/DebugPanel';
 import { createDevApi } from '../debug/devApi';
@@ -62,8 +63,9 @@ export class WorldScene extends Phaser.Scene {
     const worldHeight = TEST_MAP_HEIGHT * TILE_SIZE;
     this.physics.world.setBounds(0, 0, worldWidth, worldHeight);
 
-    // DEMO: Warrior sprites for the Novice until Novice art exists (not the character's class).
-    const demoArt = DEMO_PLAYER_PRESENTATION.art;
+    // A new character is a Novice; its presentation is the temporary Warrior fallback (see demoConfig).
+    // Every class currently shares one sprite set, so a job change needs no sprite swap yet.
+    const demoArt = presentationFor(STARTING_JOB).art;
     const playerArt = isCharacterArtReady(this, demoArt) ? demoArt : null;
     this.player = new Player(this, PLAYER_SPAWN.x, PLAYER_SPAWN.y, playerArt);
     this.physics.add.collider(this.player, ground);
