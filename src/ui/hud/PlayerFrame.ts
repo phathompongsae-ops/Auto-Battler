@@ -1,6 +1,6 @@
 import type { CharacterArt } from '../../data/characterArt';
 import { JOBS } from '../../data/jobData';
-import { expToNext } from '../../data/progressionData';
+import { expToNext } from '../../progression/expCurve';
 import type { Player } from '../../entities/Player';
 import { Bar } from '../components/Bar';
 import { createPanel } from '../components/Panel';

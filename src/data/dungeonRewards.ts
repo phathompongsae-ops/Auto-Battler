@@ -56,6 +56,11 @@ export interface DungeonDef {
   baseLevel: number;
   /** DEMO: boss gold before the difficulty multiplier. */
   bossGold: number;
+  /**
+   * DEMO: boss-clear EXP before the difficulty EXP multiplier. Granted only by
+   * a Full Reward claim; dungeon mobs give no EXP.
+   */
+  bossExp: number;
   /** DEMO: equipment the boss can drop, by rarity. */
   equipmentPool: Record<Rarity, readonly string[]>;
   /** Blueprint item this dungeon can drop once the hook is tuned. */
@@ -69,6 +74,7 @@ export const DUNGEONS: Record<string, DungeonDef> = {
     name: 'Demo Dungeon',
     baseLevel: 40,
     bossGold: 900,
+    bossExp: 15_000,
     equipmentPool: {
       common: ['traveler_cap', 'traveler_vest', 'traveler_gloves', 'traveler_boots'],
       uncommon: ['quartz_ring', 'steel_greatsword'],

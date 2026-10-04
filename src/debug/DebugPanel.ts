@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { expToNext } from '../data/progressionData';
+import { expToNext } from '../progression/expCurve';
 import { PLAYER_BASIC_ATTACK, PLAYER_LOADOUT } from '../data/playerData';
 import { ITEMS } from '../data/itemData';
 import { SKILLS, type SkillId } from '../data/skillData';
@@ -68,12 +68,15 @@ export class DebugPanel {
         .map(([id, n]) => `${ITEMS[id].name} x${n}`)
         .join(', ') || 'empty';
 
+    const dungeon = w.dungeonEntitlements.status();
     const respawn = w.playerRespawnAt !== null ? `  RESPAWN ${((w.playerRespawnAt - now) / 1000).toFixed(1)}s` : '';
 
     this.text.setText(
       [
         `FPS ${this.scene.game.loop.actualFps.toFixed(0)}  ${p.state} ${p.facing} (${Math.round(p.x)}, ${Math.round(p.y)})${respawn}`,
         `Lv ${c.level}  EXP ${c.exp}/${expToNext(c.level)}  HP ${Math.ceil(c.hp)}/${s.maxHp}  MP ${Math.floor(c.mp)}/${s.maxMp}`,
+        `Day ${w.serverDay.day()}  Cap Lv${w.progression.levelCap(p)}  Overflow ${w.progression.overflowExp(p)}  Energy ${w.fieldEnergy.current()}`,
+        `Dungeon Full ${dungeon.fullRewardsLeft} left (+${dungeon.extraAdded} tickets)  Assist ${dungeon.assistRewardsClaimed}/${dungeon.assistRewardsClaimed + dungeon.assistRewardsLeft}`,
         `ATK ${s.attack}  DEF ${s.defense}  SPD ${s.moveSpeed}  CRIT ${Math.round(s.critChance * 100)}%` +
           (guardLeft > 0 ? `  GUARD ${(guardLeft / 1000).toFixed(1)}s` : ''),
         `Target: ${targetLine}`,

@@ -62,6 +62,28 @@ export async function progressionSuite(b, t) {
   const unchanged = await b.eval('debug.progress()');
   t.check('S10. an invalid save is rejected and live state is untouched', !rejected.ok && JSON.stringify(unchanged) === JSON.stringify(restored.progress), JSON.stringify(rejected));
 
+  // Server level cap: day 1 caps at Lv40; EXP past it waits as Overflow until the cap rises.
+  await b.eval('debug.reset(); debug.setServerDay(1); debug.setLevel(39)');
+  const capped = await b.eval('(debug.grantExp(10000000), debug.levelInfo())');
+  t.check('S11. day 1: levels stop at the Lv40 cap with one level of Overflow', capped.level === 40 && capped.levelCap === 40 && capped.overflowExp === capped.expToNext, JSON.stringify(capped));
+  await b.eval('debug.setServerDay(2)');
+  const raised = await b.waitFor('debug.levelInfo().level === 41 && debug.levelInfo()', { label: 'Overflow applied after cap rise' });
+  t.check('S12. when the cap rises the stored Overflow is applied (one level)', raised.level === 41 && raised.levelCap === 45 && raised.exp === 0, JSON.stringify(raised));
+
+  // Safe level jumps (dev): clamped to the effective cap, stats refreshed.
+  await b.eval('debug.reset(); debug.setServerDay(21)');
+  const to20 = await b.eval('debug.jumpToLevel(20)');
+  const at20 = await b.eval('debug.progress()');
+  await b.eval('debug.setServerDay(1)');
+  const to45 = await b.eval('debug.jumpToLevel(45)');
+  const to40 = await b.eval('debug.jumpToLevel(40)');
+  t.check(
+    'S13. jumpToLevel reaches Lv20 and Lv40 and never passes the server cap',
+    to20.ok && to20.level === 20 && at20.remainingStatPoints === 19 && to45.ok && to45.level === 40 && to40.level === 40,
+    JSON.stringify({ to20, to45, to40 }),
+  );
+  await b.eval('debug.clearServerDayOverride()');
+
   await b.eval('debug.reset()');
   p = await b.eval('debug.progress()');
   combat = await b.eval('debug.player().stats');

@@ -5,7 +5,8 @@ import { DIFFICULTIES, DIFFICULTY_ORDER } from '../../src/data/dungeonDifficulty
 import { BOSS_REWARDS, DUNGEONS } from '../../src/data/dungeonRewards';
 import { EQUIPMENT_DEFS } from '../../src/data/equipmentItems';
 import { MONSTER_BALANCE } from '../../src/data/monsterBalance';
-import { clearId, rollBossReward, RewardLedger, startDungeonRun, type EnergyGate } from '../../src/dungeon/rewards';
+import { DUNGEON_RUN_CLAIM_WINDOW } from '../../src/data/dungeonEntitlementData';
+import { clearId, rollBossReward, RewardLedger } from '../../src/dungeon/rewards';
 import { monsterBalance, MonsterBalanceRangeError, monsterStatsFromBalance } from '../../src/monsters/monsterBalance';
 
 describe('monster balance v1', () => {
@@ -100,25 +101,19 @@ describe('dungeon boss rewards', () => {
     assert.equal(never.equipment[0].rarity, 'legendary');
   });
 
-  test('a clear can be claimed once; energy is spent on claim, never on entry', () => {
-    const spent: string[] = [];
-    const energy: EnergyGate = { consumeForClaim: (id) => (spent.push(id), true) };
-    const run = startDungeonRun('demo_dungeon', 'hard', 1, 'run-1');
+  test('runs are numbered; entry costs nothing; each run is claimable once inside a bounded window', () => {
+    const ledger = new RewardLedger();
+    const run = ledger.startRun('demo_dungeon', 'hard', 1);
     assert.equal(run.entry.allowed, true);
     assert.equal(run.clearId, clearId('demo_dungeon', 'hard', 'run-1'));
-    assert.deepEqual(spent, []);
+    assert.equal(ledger.state(run), 'claimable');
+    ledger.markClaimed(run);
+    assert.equal(ledger.state(run), 'already_claimed');
+    assert.equal(ledger.state({ seq: 2 }), 'unknown_run', 'never issued');
 
-    const ledger = new RewardLedger();
-    const reward = rollBossReward('demo_dungeon', 'hard', seededRng(2));
-    let granted = 0;
-    assert.equal(ledger.claim(run.clearId, reward, () => granted++, energy).ok, true);
-    assert.deepEqual(ledger.claim(run.clearId, reward, () => granted++, energy), { ok: false, reason: 'already_claimed' });
-    assert.equal(granted, 1);
-    assert.deepEqual(spent, [run.clearId]);
-
-    const broke: EnergyGate = { consumeForClaim: () => false };
-    assert.deepEqual(ledger.claim('demo_dungeon:hard:run-2', reward, () => granted++, broke), { ok: false, reason: 'no_energy' });
-    assert.equal(granted, 1);
-    assert.equal(ledger.claimed.has('demo_dungeon:hard:run-2'), false);
+    for (let i = 0; i < DUNGEON_RUN_CLAIM_WINDOW; i++) ledger.startRun('demo_dungeon', 'normal', 1);
+    assert.equal(ledger.state(run), 'expired');
+    assert.equal(ledger.claimed.size, 0, 'old claims are forgotten');
+    assert.equal(ledger.state({ seq: ledger.nextSeq - DUNGEON_RUN_CLAIM_WINDOW }), 'claimable', 'oldest run still in the window');
   });
 });

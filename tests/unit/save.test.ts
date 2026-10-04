@@ -14,6 +14,7 @@ import {
 } from '../../src/save/playerSave';
 import { applyPlayerSave, capturePlayerSave } from '../../src/save/playerSnapshot';
 import { zeroPrimary } from '../../src/stats/primaryStats';
+import { expToNext } from '../../src/progression/expCurve';
 import { makeSaveTarget } from './fixtures';
 
 /** A mid-game character with every system populated. */
@@ -50,9 +51,14 @@ function midGame() {
   assert.equal(t.crafting.start('demo_warborn_plate', t.inventory, t.wallet, sequentialIds('job')).ok, true);
   t.warp.dungeons.add('demo_dungeon');
   t.warp.homeTown = 'demo_town';
-  t.ledger.claimed.add('demo_dungeon:hard:run-1');
+  const run = t.ledger.startRun('demo_dungeon', 'hard', 15);
+  t.ledger.startRun('demo_dungeon', 'normal', 15); // issued, not claimed
+  t.ledger.markClaimed(run);
+  t.entitlements.consumeFullReward();
+  t.entitlements.addExtraFullReward();
+  t.entitlements.consumeAssistReward();
 
-  t.hooks.energy = { current: 40, updatedAt: 1_700_000_000_000 };
+  t.fieldEnergy.payForKill('field', 'mini_boss');
   t.hooks.quests = { 'slime-trouble': { state: 'active', progress: { slime: 3 } } };
   t.hooks.dungeons = { demo_dungeon: { cleared: ['normal'] } };
   return t;
@@ -60,11 +66,11 @@ function midGame() {
 
 const roundTrip = (save: PlayerSave) => deserializePlayerSave(serializePlayerSave(save));
 
-describe('player save v3', () => {
+describe('player save v4', () => {
   test('version and stable ids', () => {
-    assert.equal(PLAYER_SAVE_VERSION, 3);
+    assert.equal(PLAYER_SAVE_VERSION, 4);
     const save = capturePlayerSave(midGame());
-    assert.equal(save.schemaVersion, 3);
+    assert.equal(save.schemaVersion, 4);
     assert.equal(save.classId, 'warrior');
     assert.equal('className' in save, false);
   });
@@ -87,7 +93,10 @@ describe('player save v3', () => {
     assert.equal(loaded.shop.ticketsLeft(), 0);
     assert.equal(loaded.crafting.jobs.length, 1);
     assert.equal(loaded.warp.dungeons.has('demo_dungeon'), true);
-    assert.equal(loaded.ledger.claimed.has('demo_dungeon:hard:run-1'), true);
+    assert.equal(loaded.ledger.state({ seq: 1 }), 'already_claimed');
+    assert.equal(loaded.ledger.state({ seq: 2 }), 'claimable');
+    assert.deepEqual(loaded.entitlements.status(), original.entitlements.status());
+    assert.equal(loaded.fieldEnergy.current(), 190);
   });
 
   test('job bonus and allocated stats stay distinct after load', () => {
@@ -119,11 +128,41 @@ describe('player save v3', () => {
 });
 
 describe('save migration', () => {
+  const v3From = (save: PlayerSave): Record<string, unknown> => {
+    const { daily: _d, dungeonRuns: _r, ...rest } = save;
+    void [_d, _r];
+    return { ...rest, schemaVersion: 3, energy: null, claimedClears: [] };
+  };
   const v2From = (save: PlayerSave): Record<string, unknown> => {
-    const { equipment: _e, pets: _p, specialShop: _s, crafting: _c, warp: _w, claimedClears: _l, ...rest } = save;
+    const { equipment: _e, pets: _p, specialShop: _s, crafting: _c, warp: _w, claimedClears: _l, ...rest } = v3From(save);
     void [_e, _p, _s, _c, _w, _l];
     return { ...rest, schemaVersion: 2, equipment: {}, activePetId: null };
   };
+
+  test('v3 -> v4: everything carries over; daily state and run claims start fresh', () => {
+    const t = midGame();
+    const current = capturePlayerSave(t);
+    const v3 = { ...v3From(current), energy: { current: 40, updatedAt: 1_700_000_000_000 }, claimedClears: ['demo_dungeon:hard:run-1'] };
+    const migrated = deserializePlayerSave(JSON.stringify(v3));
+    assert.deepEqual(migrated.daily, { day: null, fieldEnergy: 200, dungeonFullClaims: 0, dungeonExtraAdded: 0, assistRewardsClaimed: 0 });
+    assert.deepEqual(migrated.dungeonRuns, { nextSeq: 1, claimed: [] });
+    // Progression, equipment, pets, crafting, warp... are untouched.
+    const { daily: _a, dungeonRuns: _b, ...restMigrated } = migrated;
+    const { daily: _c, dungeonRuns: _d, ...restCurrent } = current;
+    void [_a, _b, _c, _d];
+    assert.deepEqual(restMigrated, restCurrent);
+  });
+
+  test('a v3 save at an old level cap keeps its level and EXP', () => {
+    const t = makeSaveTarget(15);
+    changeJob(t, 'warrior');
+    t.combat.level = 40;
+    t.combat.refreshStats();
+    const current = capturePlayerSave(t);
+    const migrated = deserializePlayerSave(JSON.stringify(v3From(current)));
+    assert.equal(migrated.level, 40);
+    assert.equal(migrated.exp, 0);
+  });
 
   test('v2 -> v3: inputs intact, new systems start empty', () => {
     const t = makeSaveTarget(15);
@@ -184,6 +223,22 @@ describe('impossible state is rejected', () => {
     assert.throws(bad((s) => ((s as { classId: string }).classId = 'archer')), /class_restricted|weapon_not_allowed/);
   });
 
+  test('level, EXP and Field Energy', () => {
+    assert.throws(bad((s) => (s.level = 61)), /level invalid/);
+    assert.throws(bad((s) => (s.exp = expToNext(s.level) + 1)), /exp invalid/);
+    assert.throws(bad((s) => (s.daily.fieldEnergy = 201)), /daily.fieldEnergy/);
+    assert.throws(bad((s) => (s.daily.day = 0)), /daily.day/);
+  });
+
+  test('daily dungeon entitlements and run claims', () => {
+    assert.throws(bad((s) => (s.daily.dungeonExtraAdded = 3)), /dungeonExtraAdded/);
+    assert.throws(bad((s) => ((s.daily.dungeonExtraAdded = 0), (s.daily.dungeonFullClaims = 6))), /dungeonFullClaims/);
+    assert.throws(bad((s) => (s.daily.assistRewardsClaimed = 4)), /assistRewardsClaimed/);
+    assert.throws(bad((s) => (s.dungeonRuns.claimed = [1, 1])), /duplicates/);
+    assert.throws(bad((s) => (s.dungeonRuns.claimed = [99])), /never issued/);
+    assert.throws(bad((s) => ((s.dungeonRuns.nextSeq = 500), (s.dungeonRuns.claimed = [1]))), /claim window/);
+  });
+
   test('pets, shop, crafting, warp, claims', () => {
     assert.throws(bad((s) => (s.pets.owned[0].level = 51)), /level/);
     assert.throws(bad((s) => (s.pets.activePetId = 'pet-9')), /activePetId/);
@@ -193,6 +248,5 @@ describe('impossible state is rejected', () => {
     assert.throws(bad((s) => (s.crafting.jobs[0].recipeId = 'nope')), /unknown recipe/);
     assert.throws(bad((s) => (s.warp.homeTown = 'nowhere')), /homeTown/);
     assert.throws(bad((s) => (s.warp.dungeons = ['nope'])), /unknown ids/);
-    assert.throws(bad((s) => (s.claimedClears = ['a', 'a'])), /duplicates/);
   });
 });

@@ -1,5 +1,5 @@
 /** What using an item does. Items without one are materials (not usable). */
-export type ItemUse = { kind: 'resetAllocatedStats' };
+export type ItemUse = { kind: 'resetAllocatedStats' } | { kind: 'addDungeonFullReward' };
 
 export interface ItemDef {
   id: string;
@@ -45,18 +45,39 @@ const ITEM_DEFS = {
   // Travel
   town_warp_scroll: { id: 'town_warp_scroll', name: 'Town Warp Scroll', color: 0x7ee787 },
   dungeon_warp_scroll: { id: 'dungeon_warp_scroll', name: 'Dungeon Warp Scroll', color: 0xff9e64 },
+  // Dungeon: +1 Full Reward claim today (max +2 a day). DEMO: price is a placeholder; not sold yet.
+  additional_dungeon_ticket: {
+    id: 'additional_dungeon_ticket',
+    name: 'Additional Dungeon Ticket',
+    color: 0xff7eb6,
+    use: { kind: 'addDungeonFullReward' },
+  },
+  // Quest items: always drop for quests, even at 0 Field Energy. DEMO quest item.
+  slime_sample: { id: 'slime_sample', name: 'Slime Sample', color: 0x5fd3a7 },
 } satisfies Record<string, ItemDef>;
 
 export type ItemId = keyof typeof ITEM_DEFS;
 export const ITEMS: Record<ItemId, ItemDef> = ITEM_DEFS;
 
+/**
+ * farming: normal field farming drop; rare: rare field farming drop. Both
+ * need Field Energy. quest: a quest-specific drop that ignores Field Energy.
+ */
+export type LootCategory = 'farming' | 'rare' | 'quest';
+
 export interface LootEntry {
   itemId: ItemId;
   chance: number; // 0..1
+  /** Default 'farming'. */
+  category?: LootCategory;
 }
 
 const LOOT_TABLE_DEFS = {
-  slime: [{ itemId: 'slime_gel', chance: 0.5 }],
+  slime: [
+    { itemId: 'slime_gel', chance: 0.5 },
+    // DEMO: until a Quest Engine exists, quest drops roll whether or not the quest is active.
+    { itemId: 'slime_sample', chance: 0.4, category: 'quest' },
+  ],
 } satisfies Record<string, LootEntry[]>;
 
 export type LootTableId = keyof typeof LOOT_TABLE_DEFS;

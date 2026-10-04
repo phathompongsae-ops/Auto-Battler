@@ -7,6 +7,11 @@ import { isJobId, type JobId } from '../data/jobData';
 import { PET_MAX_LEVEL, PET_PASSIVES, PET_RARITIES, PET_SPECIES, SPECIAL_SHOP, type PetPassiveId, type PetRarity, type PetSpeciesId } from '../data/petData';
 import { NOVICE_BASE_STATS } from '../data/statData';
 import { DUNGEON_WARPS, TOWNS } from '../data/warpData';
+import { FIELD_ENERGY } from '../data/energyData';
+import { DUNGEON_DAILY, DUNGEON_RUN_CLAIM_WINDOW } from '../data/dungeonEntitlementData';
+import { freshDaily, type DailyRecord } from '../daily/DailyState';
+import { MAX_LEVEL } from '../data/progressionData';
+import { expToNext } from '../progression/expCurve';
 import type { CraftJob } from '../crafting/crafting';
 import { enchantPool } from '../equipment/enchant';
 import { EquipmentManager, type EnchantLine, type EquipmentInstance } from '../equipment/equipment';
@@ -22,19 +27,20 @@ import { isPrimaryStat, PRIMARY_STATS, zeroPrimary, type PrimaryStats } from '..
  * server.
  */
 
-export const PLAYER_SAVE_VERSION = 3;
+export const PLAYER_SAVE_VERSION = 4;
 
 /**
- * v3 (current). Changes from v2: real equipment (item instances + equipped
- * slots) replaces the equipment hook; pets (owned + active) replace
- * activePetId; adds Special Shop state, crafting jobs, warp unlocks and
- * claimed dungeon clears; currencies are the live wallet.
+ * v4 (current). Changes from v3: the EXP curve is Lv1–60 and `exp` may hold
+ * Overflow EXP at the level cap (up to one level's worth); the unused energy
+ * hook became `daily` (Field Energy and dungeon entitlements for one server
+ * day); `claimedClears` became the bounded `dungeonRuns` claim window.
  */
-export interface PlayerSaveV3 {
-  schemaVersion: 3;
+export interface PlayerSaveV4 {
+  schemaVersion: 4;
   characterId: string;
   classId: JobId;
   level: number;
+  /** EXP toward the next level; at the level cap, the stored Overflow EXP. */
   exp: number;
 
   stats: {
@@ -58,18 +64,28 @@ export interface PlayerSaveV3 {
   specialShop: { cycleId: number | null; ticketsBought: number };
   crafting: { jobs: CraftJob[] };
   warp: { towns: string[]; dungeons: string[]; homeTown: string | null };
-  /** Dungeon clear ids already claimed (claims are idempotent). */
-  claimedClears: string[];
+  /**
+   * Dungeon run claims: the next run number and the claimed runs among the
+   * last DUNGEON_RUN_CLAIM_WINDOW (bounded; older runs can't be claimed).
+   */
+  dungeonRuns: { nextSeq: number; claimed: number[] };
 
-  /** Hook: energy; the economy is not designed yet. */
-  energy: { current: number; updatedAt: number } | null;
+  /** Daily allowances for server day `day` (null = never used: fresh). Reset together on a new day. */
+  daily: DailyRecord;
   /** Hook: quest id → state and objective counters. */
   quests: Record<string, { state: 'active' | 'completed'; progress: Record<string, number> }>;
   /** Hook: dungeon id → cleared difficulty ids. */
   dungeons: Record<string, { cleared: string[] }>;
 }
 
-export type PlayerSave = PlayerSaveV3;
+export type PlayerSave = PlayerSaveV4;
+
+/** v3: energy was an unused hook; clears were free-form ids. */
+export type PlayerSaveV3 = Omit<PlayerSaveV4, 'schemaVersion' | 'daily' | 'dungeonRuns'> & {
+  schemaVersion: 3;
+  energy: { current: number; updatedAt: number } | null;
+  claimedClears: string[];
+};
 
 /** v2: equipment and active pet were hooks only; no shop / crafting / warp / claims. */
 export type PlayerSaveV2 = Omit<PlayerSaveV3, 'schemaVersion' | 'equipment' | 'pets' | 'specialShop' | 'crafting' | 'warp' | 'claimedClears'> & {
@@ -91,7 +107,7 @@ const defaultTowns = () => Object.values(TOWNS).filter((t) => t.isDefault).map((
 /** A brand-new character's save (Lv1 Novice). */
 export function newPlayerSave(characterId: string): PlayerSave {
   return {
-    schemaVersion: 3,
+    schemaVersion: 4,
     characterId,
     classId: 'novice',
     level: 1,
@@ -106,8 +122,8 @@ export function newPlayerSave(characterId: string): PlayerSave {
     specialShop: { cycleId: null, ticketsBought: 0 },
     crafting: { jobs: [] },
     warp: { towns: defaultTowns(), dungeons: [], homeTown: null },
-    claimedClears: [],
-    energy: null,
+    dungeonRuns: { nextSeq: 1, claimed: [] },
+    daily: { day: null, ...freshDaily() },
     quests: {},
     dungeons: {},
   };
@@ -135,6 +151,7 @@ function migrate(raw: unknown): unknown {
   let save = raw as Record<string, unknown> | null;
   if (save?.schemaVersion === 1) save = migrateV1toV2(save);
   if (save?.schemaVersion === 2) save = migrateV2toV3(save);
+  if (save?.schemaVersion === 3) save = migrateV3toV4(save);
   if (save?.schemaVersion === PLAYER_SAVE_VERSION) return save;
   throw new SaveError(`unsupported save version: ${String(save?.schemaVersion)}`);
 }
@@ -167,6 +184,20 @@ function migrateV2toV3(v2: Record<string, unknown>): Record<string, unknown> {
     warp: { towns: defaultTowns(), dungeons: [], homeTown: null },
     claimedClears: [],
   };
+}
+
+/**
+ * v3 → v4: the energy hook was never live, so daily allowances start fresh
+ * (full Energy, all dungeon entitlements). v3 clear ids predate numbered runs
+ * and can never be claimed again under v4, so they are dropped and runs start
+ * at 1. Level/EXP carry over and are validated against the new curve (old
+ * per-level costs were all lower, so old progress fits). Everything else
+ * (equipment, pets, crafting, warp...) is untouched.
+ */
+function migrateV3toV4(v3: Record<string, unknown>): Record<string, unknown> {
+  const { energy: _unusedHook, claimedClears: _oldClearIds, ...rest } = v3;
+  void [_unusedHook, _oldClearIds];
+  return { ...rest, schemaVersion: 4, dungeonRuns: { nextSeq: 1, claimed: [] }, daily: { day: null, ...freshDaily() } };
 }
 
 // ------------------------------------------------------------ validation
@@ -306,13 +337,37 @@ function validateCrafting(raw: unknown): PlayerSave['crafting'] {
   return { jobs };
 }
 
+function validateDaily(raw: unknown): DailyRecord {
+  if (!isObject(raw)) throw new SaveError('daily invalid');
+  const { day, fieldEnergy, dungeonFullClaims, dungeonExtraAdded, assistRewardsClaimed } = raw;
+  if (day !== null && (!Number.isInteger(day) || (day as number) < 1)) throw new SaveError('daily.day invalid');
+  if (!isCount(fieldEnergy) || fieldEnergy > FIELD_ENERGY.daily) throw new SaveError('daily.fieldEnergy invalid');
+  if (!isCount(dungeonExtraAdded) || dungeonExtraAdded > DUNGEON_DAILY.maxExtraFullRewards) throw new SaveError('daily.dungeonExtraAdded invalid');
+  if (!isCount(dungeonFullClaims) || dungeonFullClaims > DUNGEON_DAILY.freeFullRewards + dungeonExtraAdded) {
+    throw new SaveError("daily.dungeonFullClaims exceeds today's entitlement");
+  }
+  if (!isCount(assistRewardsClaimed) || assistRewardsClaimed > DUNGEON_DAILY.rewardedAssists) throw new SaveError('daily.assistRewardsClaimed invalid');
+  return { day: day as number | null, fieldEnergy, dungeonFullClaims, dungeonExtraAdded, assistRewardsClaimed };
+}
+
+function validateDungeonRuns(raw: unknown): PlayerSave['dungeonRuns'] {
+  if (!isObject(raw) || !Number.isInteger(raw.nextSeq) || (raw.nextSeq as number) < 1 || !Array.isArray(raw.claimed)) throw new SaveError('dungeonRuns invalid');
+  const nextSeq = raw.nextSeq as number;
+  const claimed = raw.claimed;
+  if (!claimed.every((n) => Number.isInteger(n) && n >= 1 && n < nextSeq)) throw new SaveError('dungeonRuns.claimed references a run never issued');
+  if (new Set(claimed).size !== claimed.length) throw new SaveError('dungeonRuns.claimed has duplicates');
+  if (claimed.some((n) => n < nextSeq - DUNGEON_RUN_CLAIM_WINDOW)) throw new SaveError('dungeonRuns.claimed is outside the claim window');
+  return { nextSeq, claimed: [...claimed] as number[] };
+}
+
 function validate(raw: unknown): PlayerSave {
   if (!isObject(raw)) throw new SaveError('save is not an object');
   const s = raw;
   if (typeof s.characterId !== 'string' || !s.characterId) throw new SaveError('characterId invalid');
   if (!isJobId(s.classId)) throw new SaveError('classId invalid');
-  if (!isCount(s.level) || s.level < 1) throw new SaveError('level invalid');
-  if (!isCount(s.exp)) throw new SaveError('exp invalid');
+  if (!isCount(s.level) || s.level < 1 || s.level > MAX_LEVEL) throw new SaveError('level invalid');
+  // Never more than one level's worth: a full Overflow at the cap at most.
+  if (!isCount(s.exp) || s.exp > expToNext(s.level)) throw new SaveError('exp invalid');
   if (!isObject(s.stats)) throw new SaveError('stats missing');
 
   const base = primary(s.stats.base, 'stats.base');
@@ -358,13 +413,8 @@ function validate(raw: unknown): PlayerSave {
   const dungeons = uniqueStrings(warp.dungeons, 'warp.dungeons', (d) => d in DUNGEON_WARPS);
   if (warp.homeTown !== null && (typeof warp.homeTown !== 'string' || !towns.includes(warp.homeTown))) throw new SaveError('warp.homeTown is not an unlocked town');
 
-  const energy = s.energy;
-  if (energy !== null && !(isObject(energy) && isFiniteNumber(energy.current) && isFiniteNumber(energy.updatedAt))) {
-    throw new SaveError('energy invalid');
-  }
-
   return {
-    schemaVersion: 3,
+    schemaVersion: 4,
     characterId: s.characterId,
     classId: s.classId,
     level: s.level,
@@ -379,8 +429,8 @@ function validate(raw: unknown): PlayerSave {
     specialShop: { cycleId: shop.cycleId as number | null, ticketsBought: shop.ticketsBought },
     crafting: validateCrafting(s.crafting),
     warp: { towns, dungeons, homeTown: warp.homeTown as string | null },
-    claimedClears: uniqueStrings(s.claimedClears, 'claimedClears'),
-    energy: energy === null ? null : { current: energy.current as number, updatedAt: energy.updatedAt as number },
+    dungeonRuns: validateDungeonRuns(s.dungeonRuns),
+    daily: validateDaily(s.daily),
     quests: record(s.quests, 'quests', (x): x is PlayerSave['quests'][string] => isObject(x) && (x.state === 'active' || x.state === 'completed') && isObject(x.progress)),
     dungeons: record(s.dungeons, 'dungeons', (x): x is PlayerSave['dungeons'][string] => isObject(x) && Array.isArray(x.cleared) && x.cleared.every((c) => typeof c === 'string')),
   };

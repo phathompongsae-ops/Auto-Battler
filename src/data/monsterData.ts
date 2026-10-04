@@ -1,5 +1,6 @@
 import type { CombatStats } from '../combat/types';
 import type { LootTableId } from './itemData';
+import type { MonsterTier } from './monsterBalance';
 import type { SkillId } from './skillData';
 
 /**
@@ -18,6 +19,8 @@ export interface MonsterDef {
   name: string;
   texture: string;
   level: number;
+  /** Balance tier; also sets the Field Energy cost of its rewards. */
+  tier: MonsterTier;
   stats: MonsterStats;
   hitRadius: number;
   aggroRange: number; // px: notices the player inside this
@@ -34,6 +37,7 @@ const MONSTER_DEFS = {
     name: 'Slime',
     texture: 'slime',
     level: 1,
+    tier: 'normal',
     stats: {
       maxHp: 60,
       maxMp: 0,

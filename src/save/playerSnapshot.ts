@@ -2,6 +2,7 @@ import type { CombatantState } from '../combat/CombatantState';
 import type { CraftingQueue } from '../crafting/crafting';
 import type { RewardLedger } from '../dungeon/rewards';
 import type { Wallet } from '../economy/Wallet';
+import type { DailyState } from '../daily/DailyState';
 import type { EquipmentManager } from '../equipment/equipment';
 import type { Inventory } from '../loot/Inventory';
 import type { PetCollection } from '../pets/pets';
@@ -11,11 +12,11 @@ import type { WarpUnlocks } from '../warp/warp';
 import { newPlayerSave, type PlayerSave } from './playerSave';
 
 /** Save fields with no live system yet; carried through load → save untouched. */
-export type PersistedHooks = Pick<PlayerSave, 'energy' | 'quests' | 'dungeons'>;
+export type PersistedHooks = Pick<PlayerSave, 'quests' | 'dungeons'>;
 
 export function emptyHooks(): PersistedHooks {
-  const { energy, quests, dungeons } = newPlayerSave('_');
-  return { energy, quests, dungeons };
+  const { quests, dungeons } = newPlayerSave('_');
+  return { quests, dungeons };
 }
 
 /** Everything a player save is captured from / applied to. No engine types. */
@@ -31,6 +32,8 @@ export interface SaveTarget {
   crafting: CraftingQueue;
   warp: WarpUnlocks;
   ledger: RewardLedger;
+  /** Field Energy and dungeon entitlements for the current server day. */
+  daily: DailyState;
   hooks: PersistedHooks;
 }
 
@@ -39,7 +42,7 @@ export function capturePlayerSave(t: SaveTarget): PlayerSave {
   const data = t.progress.toData();
   const level = t.combat.level;
   return {
-    schemaVersion: 3,
+    schemaVersion: 4,
     characterId: t.characterId,
     classId: data.classId,
     level,
@@ -54,7 +57,8 @@ export function capturePlayerSave(t: SaveTarget): PlayerSave {
     specialShop: { ...t.shop.state },
     crafting: { jobs: structuredClone(t.crafting.jobs) },
     warp: { towns: [...t.warp.towns], dungeons: [...t.warp.dungeons], homeTown: t.warp.homeTown },
-    claimedClears: [...t.ledger.claimed],
+    dungeonRuns: { nextSeq: t.ledger.nextSeq, claimed: [...t.ledger.claimed].sort((a, b) => a - b) },
+    daily: { ...t.daily.record },
     ...structuredClone(t.hooks),
   };
 }
@@ -90,9 +94,12 @@ export function applyPlayerSave(t: SaveTarget, save: PlayerSave): void {
   t.warp.towns = new Set(s.warp.towns);
   t.warp.dungeons = new Set(s.warp.dungeons);
   t.warp.homeTown = s.warp.homeTown;
+  t.ledger.nextSeq = s.dungeonRuns.nextSeq;
   t.ledger.claimed.clear();
-  for (const id of s.claimedClears) t.ledger.claimed.add(id);
-  t.hooks = { energy: s.energy, quests: s.quests, dungeons: s.dungeons };
+  for (const seq of s.dungeonRuns.claimed) t.ledger.claimed.add(seq);
+  // Stored as-is; a save from an earlier server day resets on first use (DailyState).
+  t.daily.record = { ...s.daily };
+  t.hooks = { quests: s.quests, dungeons: s.dungeons };
 
   t.combat.refreshStats();
   t.combat.restore();

@@ -2,7 +2,7 @@ import type { CombatEntity } from '../combat/types';
 import type { EventBus } from '../core/EventBus';
 import { distance } from '../core/math';
 import { defaultRng, type Rng } from '../core/rng';
-import { LOOT_DROP, LOOT_TABLES, type ItemId, type LootTableId } from '../data/itemData';
+import { LOOT_DROP, LOOT_TABLES, type ItemId, type LootEntry, type LootTableId } from '../data/itemData';
 import type { GameEvents } from '../game/GameEvents';
 import type { Inventory } from './Inventory';
 
@@ -26,9 +26,18 @@ export class LootSystem {
     readonly inventory: Inventory,
   ) {}
 
-  roll(tableId: LootTableId, x: number, y: number, now: number): LootDrop[] {
+  /**
+   * Roll a loot table. With `farmingDrops` false (no Field Energy) only quest
+   * entries roll; farming and rare entries are skipped entirely.
+   */
+  roll(tableId: LootTableId, x: number, y: number, now: number, options: { farmingDrops?: boolean } = {}): LootDrop[] {
+    return this.rollEntries(LOOT_TABLES[tableId], x, y, now, options);
+  }
+
+  rollEntries(entries: readonly LootEntry[], x: number, y: number, now: number, { farmingDrops = true }: { farmingDrops?: boolean } = {}): LootDrop[] {
     const dropped: LootDrop[] = [];
-    for (const entry of LOOT_TABLES[tableId]) {
+    for (const entry of entries) {
+      if (!farmingDrops && (entry.category ?? 'farming') !== 'quest') continue;
       if (this.rng() < entry.chance) {
         const offset = dropped.length * 10;
         dropped.push(this.spawn(entry.itemId, x + offset, y, now));

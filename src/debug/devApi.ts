@@ -13,8 +13,13 @@ import { openEgg, useRandomEggTicket } from '../pets/eggActions';
 import type { PetInstance } from '../pets/pets';
 import { shopCycleId } from '../pets/specialShop';
 import type { DifficultyId } from '../data/dungeonDifficulty';
-import { clearId, rollBossReward } from '../dungeon/rewards';
+import { rollBossReward, type DungeonRun } from '../dungeon/rewards';
+import { freshDaily } from '../daily/DailyState';
+import { earnedStatPoints } from '../progression/CharacterProgress';
 import type { Location } from '../data/warpData';
+import type { RewardZone } from '../energy/fieldEnergy';
+import { FIELD_ENERGY } from '../data/energyData';
+import { expToNext } from '../progression/expCurve';
 import { defaultUnlocks, useDungeonWarp, useTownWarp } from '../warp/warp';
 
 let devPetCounter = 0;
@@ -36,6 +41,10 @@ export interface EventRecord {
   reason?: string;
   level?: number;
   item?: string;
+  discarded?: number;
+  rewarded?: boolean;
+  energySpent?: number;
+  energyLeft?: number;
 }
 
 /**
@@ -60,7 +69,8 @@ export function createDevApi(world: CombatWorld, overlays: WorldOverlays) {
   ev.on('projectileRemoved', (e) => record('projectileRemoved', { skill: e.skillId, reason: e.reason }));
   ev.on('statusApplied', (e) => record('statusApplied', { target: e.targetId, skill: e.statusId }));
   ev.on('statusExpired', (e) => record('statusExpired', { target: e.targetId, skill: e.statusId }));
-  ev.on('expGained', (e) => record('expGained', { entity: e.entityId, amount: e.amount }));
+  ev.on('expGained', (e) => record('expGained', { entity: e.entityId, amount: e.amount, discarded: e.discarded }));
+  ev.on('fieldReward', (e) => record('fieldReward', { entity: e.monsterId, rewarded: e.rewarded, energySpent: e.energySpent, energyLeft: e.energyLeft }));
   ev.on('levelUp', (e) => record('levelUp', { entity: e.entityId, level: e.level }));
   ev.on('lootDropped', (e) => record('lootDropped', { item: e.itemId }));
   ev.on('lootPicked', (e) => record('lootPicked', { item: e.itemId }));
@@ -155,6 +165,46 @@ export function createDevApi(world: CombatWorld, overlays: WorldOverlays) {
       world.player.combat.exp = 0;
       world.player.combat.refreshStats();
     },
+    /** Grant EXP through the real rules (level cap, Overflow, level-up events). */
+    grantExp: (amount: number) => world.progression.grantExp(world.player, amount),
+    expToNext: (level: number) => expToNext(level),
+    levelInfo: () => ({
+      serverDay: world.serverDay.day(),
+      serverDayOverride: world.serverDay.override,
+      levelCap: world.progression.levelCap(world.player),
+      level: world.player.combat.level,
+      exp: world.player.combat.exp,
+      expToNext: expToNext(world.player.combat.level),
+      overflowExp: world.progression.overflowExp(world.player),
+    }),
+    /**
+     * Jump to a level the character could legally be (no EXP, no level-up
+     * events): clamped to the effective cap (class limit / server day), and
+     * refused if allocated stat or spent skill points exceed what it earns.
+     */
+    jumpToLevel: (level: number) => {
+      const p = world.player;
+      const target = Math.max(1, Math.min(Math.floor(level), world.progression.levelCap(p)));
+      if (p.progress.spent() > earnedStatPoints(target)) return { ok: false as const, reason: 'allocated_stat_points_exceed_level' };
+      if (p.progress.skillPointsSpent > p.progress.earnedSkillPoints(target)) return { ok: false as const, reason: 'spent_skill_points_exceed_level' };
+      p.combat.level = target;
+      p.combat.exp = 0;
+      p.combat.refreshStats();
+      p.combat.restore();
+      return { ok: true as const, level: target };
+    },
+    /** DEV: pretend it is server day `day` (null = back to the clock). Caps rise / daily allowances reset accordingly. */
+    setServerDay: (day: number | null) => (world.serverDay.override = day),
+    clearServerDayOverride: () => (world.serverDay.override = null),
+    fieldEnergy: () => world.fieldEnergy.current(),
+    setFieldEnergy: (amount: number) => world.fieldEnergy.set(amount),
+    refillFieldEnergy: () => world.fieldEnergy.set(FIELD_ENERGY.daily),
+    setZone: (zone: RewardZone) => (world.zone = zone),
+    /** Raw daily record (server day + every daily allowance). */
+    daily: () => {
+      world.daily.today(); // applies a pending day reset
+      return { ...world.daily.record };
+    },
     allocateStat: (stat: PrimaryStat, amount: number) => world.allocatePlayerStat(stat, amount),
     changeJob: (jobId: string) => world.changePlayerJob(jobId),
     grantItem: (itemId: ItemId, amount = 1) => world.inventory.add(itemId, amount),
@@ -187,16 +237,23 @@ export function createDevApi(world: CombatWorld, overlays: WorldOverlays) {
     // --- Dungeon rewards (dev only) ---------------------------------------
     /** Preview a boss reward from a fixed seed (nothing granted). */
     rollDungeonReward: (dungeonId: string, difficulty: DifficultyId, seed = 1) => rollBossReward(dungeonId, difficulty, seededRng(seed)),
-    /** Claim a clear once: grants items, gold and equipment (enchants rolled from the same seed). */
-    claimDungeonReward: (dungeonId: string, difficulty: DifficultyId, runId: string, seed = 1) => {
-      const rng = seededRng(seed);
-      const reward = rollBossReward(dungeonId, difficulty, rng);
-      return world.rewardLedger.claim(clearId(dungeonId, difficulty, runId), reward, (r) => {
-        for (const [id, n] of Object.entries(r.items) as [ItemId, number][]) world.inventory.add(id, n);
-        world.wallet.add('gold', r.gold);
-        for (const e of r.equipment) world.player.equipment.add(createEquipment(e.defId, rng));
-      });
+    /** Enter a dungeon (issues a run; costs nothing). */
+    enterDungeon: (dungeonId: string, difficulty: DifficultyId) => world.enterDungeon(dungeonId, difficulty),
+    /** Leave / fail the current run without claiming (nothing is used). */
+    leaveDungeon: () => world.leaveDungeon(),
+    /** Boss down: claim a run (default: the current one) with rewards rolled from `seed`. Retry-safe. */
+    claimDungeon: (seed = 1, run: DungeonRun | null = world.dungeonRun) => world.claimDungeonClear(run, seededRng(seed)),
+    /** Enter, clear and claim in one go; returns the run (for retry tests) and the result. */
+    clearDungeon: (dungeonId: string, difficulty: DifficultyId, seed = 1) => {
+      const run = world.enterDungeon(dungeonId, difficulty);
+      const result = world.claimDungeonClear(run, seededRng(seed));
+      world.leaveDungeon();
+      return { run, result };
     },
+    /** Today's Full Reward / ticket / Assist state, plus the run counter. */
+    dungeonStatus: () => ({ ...world.dungeonEntitlements.status(), serverDay: world.serverDay.day(), nextRun: world.rewardLedger.nextSeq, inRun: world.dungeonRun?.runId ?? null }),
+    resetDungeonDaily: () => world.dungeonEntitlements.resetToday(),
+    grantDungeonTicket: (amount = 1) => world.inventory.add('additional_dungeon_ticket', amount),
 
     // --- Crafting and warp (dev only) -------------------------------------
     startCraft: (recipeId: string) => world.crafting.start(recipeId, world.inventory, world.wallet, () => `dev-job-${++devJobCounter}`),
@@ -291,7 +348,12 @@ export function createDevApi(world: CombatWorld, overlays: WorldOverlays) {
       world.specialShop.state = { cycleId: null, ticketsBought: 0 };
       world.clock.offsetMs = 0;
       world.rewardLedger.claimed.clear();
+      world.rewardLedger.nextSeq = 1;
+      world.dungeonRun = null;
       world.crafting.jobs = [];
+      world.serverDay.override = null;
+      world.daily.record = { day: null, ...freshDaily() };
+      world.zone = 'field';
       Object.assign(world.warpUnlocks, defaultUnlocks());
       world.wallet.assign({});
       world.player.statModifiers.clear();

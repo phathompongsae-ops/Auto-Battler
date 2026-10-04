@@ -9,7 +9,7 @@ import type { CombatEntity, EntityId } from '../combat/types';
 import { EventBus } from '../core/EventBus';
 import type { Point } from '../core/math';
 import { distance } from '../core/math';
-import type { Rng } from '../core/rng';
+import { defaultRng, type Rng } from '../core/rng';
 import type { ItemId } from '../data/itemData';
 import { MONSTER_SEPARATION_STRENGTH } from '../data/monsterData';
 import { PLAYER_RESPAWN_DELAY, TARGETING } from '../data/playerData';
@@ -19,8 +19,14 @@ import type { InputController } from '../input/InputController';
 import { Inventory } from '../loot/Inventory';
 import { Wallet } from '../economy/Wallet';
 import { OffsetClock } from '../core/clock';
+import { ClockServerDay } from '../core/serverDay';
+import { FieldEnergy, type RewardZone } from '../energy/fieldEnergy';
+import { DailyState } from '../daily/DailyState';
+import { DungeonEntitlements } from '../dungeon/entitlements';
+import { claimDungeonClear, type DungeonClaimResult } from '../dungeon/claim';
+import type { DifficultyId } from '../data/dungeonDifficulty';
 import { SpecialShop } from '../pets/specialShop';
-import { RewardLedger } from '../dungeon/rewards';
+import { RewardLedger, type DungeonRun } from '../dungeon/rewards';
 import { CraftingQueue } from '../crafting/crafting';
 import { defaultUnlocks } from '../warp/warp';
 import { LootSystem } from '../loot/LootSystem';
@@ -32,6 +38,7 @@ import { applyPlayerSave, capturePlayerSave, emptyHooks, type PersistedHooks, ty
 import type { JobId } from '../data/jobData';
 import type { PrimaryStat } from '../stats/primaryStats';
 import type { GameEvents } from './GameEvents';
+import { grantKillRewards } from './killRewards';
 import { PlayerCombatController } from './PlayerCombatController';
 
 /**
@@ -46,7 +53,6 @@ export class CombatWorld implements MonsterWorld {
   readonly projectiles = new ProjectileSystem(this.events, this.combat);
   readonly skills = new SkillSystem(this.events, this.combat, this.statuses, this.projectiles);
   readonly targeting = new TargetingSystem(this.events, TARGETING.acquireRange, TARGETING.loseRange);
-  readonly progression = new ProgressionSystem(this.events);
   readonly inventory = new Inventory();
   /** Currencies (gold). */
   readonly wallet = new Wallet();
@@ -55,8 +61,21 @@ export class CombatWorld implements MonsterWorld {
    * the offset lets dev tools simulate time. A server will own this later.
    */
   readonly clock = new OffsetClock();
+  /** Server day (level cap, daily Energy). DEMO: from the clock; dev tools may override it. */
+  readonly serverDay = new ClockServerDay(this.clock);
+  readonly progression = new ProgressionSystem(this.events, this.serverDay);
+  /** Every per-day allowance, reset together when the server day changes. */
+  readonly daily = new DailyState(this.serverDay);
+  /** Daily budget for field farming rewards. */
+  readonly fieldEnergy = new FieldEnergy(this.daily);
+  /** Daily dungeon Full Reward / Assist entitlements. */
+  readonly dungeonEntitlements = new DungeonEntitlements(this.daily);
+  /** DEMO: the only map is a field. Dungeon kills don't use Field Energy. */
+  zone: RewardZone = 'field';
+  /** The dungeon run in progress, if any (DEMO: no dungeon map; entered through the API). */
+  dungeonRun: DungeonRun | null = null;
   readonly specialShop = new SpecialShop(this.clock);
-  /** Dungeon clears already claimed (idempotent rewards). */
+  /** Issues dungeon runs; each run's reward is claimed at most once (bounded history). */
   readonly rewardLedger = new RewardLedger();
   /** Timed equipment crafting on the same clock as the shop. */
   readonly crafting = new CraftingQueue(this.clock);
@@ -81,6 +100,9 @@ export class CombatWorld implements MonsterWorld {
   private readonly byId = new Map<EntityId, CombatEntity>();
   private readonly separationScratch: number[] = [];
   private freezeMs = 0;
+  private rewardRng: Rng = defaultRng;
+  /** Last level cap seen; when it rises, stored Overflow EXP is applied. */
+  private lastLevelCap = 0;
 
   constructor(
     readonly player: Player,
@@ -117,6 +139,7 @@ export class CombatWorld implements MonsterWorld {
   setRng(rng: Rng): void {
     this.combat.rng = rng;
     this.loot.rng = rng;
+    this.rewardRng = rng;
   }
 
   /** True while a hit stop is freezing the simulation. */
@@ -160,6 +183,48 @@ export class CombatWorld implements MonsterWorld {
     this.targeting.validate(this.player);
 
     if (this.playerRespawnAt !== null && now >= this.playerRespawnAt) this.respawnPlayer();
+    this.settleLevelCap();
+  }
+
+  /** Apply stored Overflow EXP once the cap rises (new server day, job change). */
+  private settleLevelCap(): void {
+    if (this.player.combat.dead) return; // level-ups refill HP; wait for the respawn
+    const cap = this.progression.levelCap(this.player);
+    if (cap === this.lastLevelCap) return;
+    this.lastLevelCap = cap;
+    this.progression.settle(this.player);
+  }
+
+  // --- Dungeon runs --------------------------------------------------------
+
+  /** Enter a dungeon: issues a run. Costs no Field Energy and no entitlement. */
+  enterDungeon(dungeonId: string, difficulty: DifficultyId): DungeonRun {
+    this.dungeonRun = this.rewardLedger.startRun(dungeonId, difficulty, this.player.combat.level);
+    this.zone = 'dungeon';
+    return this.dungeonRun;
+  }
+
+  /** Leave (or fail / die out of) the current run without claiming: nothing is used. */
+  leaveDungeon(): void {
+    this.dungeonRun = null;
+    this.zone = 'field';
+  }
+
+  /**
+   * The boss is down: claim the run's reward (Full, Assist or none), once.
+   * Retries for the same run return 'already_claimed' and grant nothing.
+   */
+  claimDungeonClear(run: DungeonRun | null = this.dungeonRun, rng: Rng = this.rewardRng): DungeonClaimResult {
+    if (!run) return { ok: false, reason: 'unknown_run' };
+    return claimDungeonClear(run, {
+      ledger: this.rewardLedger,
+      entitlements: this.dungeonEntitlements,
+      inventory: this.inventory,
+      wallet: this.wallet,
+      equipment: this.player.equipment,
+      grantExp: (amount) => this.progression.grantExp(this.player, amount),
+      rng,
+    });
   }
 
   // --- Player progression -------------------------------------------------
@@ -182,7 +247,7 @@ export class CombatWorld implements MonsterWorld {
 
   /** Use one of the player's items (e.g. the Stat Reset test item). */
   usePlayerItem(itemId: string): UseItemResult {
-    const result = applyItem(this.inventory, this.player, itemId);
+    const result = applyItem(this.inventory, this.player, itemId, { dungeon: this.dungeonEntitlements });
     if (result.ok) this.events.emit('itemUsed', { entityId: this.player.id, itemId: itemId as ItemId });
     return result;
   }
@@ -206,6 +271,11 @@ export class CombatWorld implements MonsterWorld {
     applyPlayerSave(target, save);
     this.characterId = target.characterId;
     this.saveHooks = target.hooks;
+    // A run in progress belongs to the state being replaced.
+    this.leaveDungeon();
+    // The server cap may have risen since the save was made.
+    this.lastLevelCap = 0;
+    this.settleLevelCap();
   }
 
   private saveTarget(): SaveTarget {
@@ -221,6 +291,7 @@ export class CombatWorld implements MonsterWorld {
       crafting: this.crafting,
       warp: this.warpUnlocks,
       ledger: this.rewardLedger,
+      daily: this.daily,
       hooks: this.saveHooks,
     };
   }
@@ -262,8 +333,18 @@ export class CombatWorld implements MonsterWorld {
     monster.onDeath();
     monster.brain.setState('dead', this.now);
     if (killerId === this.player.id) {
-      this.progression.grantExp(this.player, monster.def.expReward);
-      this.loot.roll(monster.def.lootTable, monster.x, monster.y, this.now);
+      // The kill always counts (quests listen to 'death'); EXP and drops need Field Energy.
+      const reward = grantKillRewards(monster, {
+        zone: this.zone,
+        fieldEnergy: this.fieldEnergy,
+        progression: this.progression,
+        loot: this.loot,
+        player: this.player,
+        now: this.now,
+      });
+      if (this.zone === 'field') {
+        this.events.emit('fieldReward', { monsterId: monster.id, rewarded: reward.exp, energySpent: reward.energySpent, energyLeft: this.fieldEnergy.current() });
+      }
     }
   }
 

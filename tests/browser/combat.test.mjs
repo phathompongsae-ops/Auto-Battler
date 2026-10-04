@@ -176,7 +176,8 @@ export async function combatSuite(b, t, shot) {
   m = await waitMonsterState('slime-1', ['idle'], 6000);
   t.check('11. monster respawns at spawn with full HP', !m.dead && m.hp === m.maxHp && m.visible && Math.hypot(m.x - m.spawnX, m.y - m.spawnY) < 1, `hp=${m.hp} pos=(${m.x.toFixed(0)},${m.y.toFixed(0)})`);
 
-  // Level up on the second kill (30 + 30 >= 50).
+  // Level up on the second kill: top EXP up to 20 short of Lv2 first.
+  await api('grantExp(debug.expToNext(1) - 50)');
   await api('setPlayerHp(50)');
   await api('resetCooldowns()');
   await api(`selectTarget('slime-1')`);
@@ -190,6 +191,32 @@ export async function combatSuite(b, t, shot) {
   const prog = await b.eval('debug.progress()');
   t.check('22b. Novice level-up grants a free stat point; base stays fixed (no legacy growth)', prog.remainingStatPoints === 1 && JSON.stringify(p.stats) === JSON.stringify(statsBefore), `points=${prog.remainingStatPoints} hp ${statsBefore.maxHp}->${p.stats.maxHp}`);
   await shot('combat-04-levelup');
+  const paid = await events(`e => e.type === 'fieldReward'`);
+  t.check('22c. a rewarded field kill pays 1 Field Energy (normal)', paid.length === 1 && paid[0].rewarded && paid[0].energySpent === 1 && paid[0].energyLeft === 198, JSON.stringify(paid));
+
+  // Out of Field Energy: the kill still happens and counts, but no EXP / drops.
+  await arena();
+  await api('setFieldEnergy(0)');
+  await api('setRng(0)'); // every drop roll succeeds: only the quest drop may appear
+  const expBefore = (await player()).exp;
+  await api(`selectTarget('slime-1')`);
+  await api(`setMonsterHp('slime-1', 5)`);
+  await b.press('Space');
+  await sleep(150);
+  const dry = {
+    deaths: (await events(`e => e.type === 'death' && e.entity === 'slime-1'`)).length,
+    exp: (await events(`e => e.type === 'expGained'`)).length,
+    drops: await events(`e => e.type === 'lootDropped'`),
+    reward: await events(`e => e.type === 'fieldReward'`),
+    expNow: (await player()).exp,
+  };
+  t.check(
+    '22d. at 0 Energy a field kill counts, grants no EXP or farming drops, and the quest item still drops',
+    dry.deaths === 1 && dry.exp === 0 && dry.drops.length === 1 && dry.drops[0].item === 'slime_sample' && dry.reward.length === 1 && !dry.reward[0].rewarded && dry.expNow === expBefore,
+    JSON.stringify(dry),
+  );
+  await api('setFieldEnergy(200)');
+  await api('setRng(0.5)');
 
   // ------------------------------------------------------------------ loot
   t.section('Loot');
@@ -200,7 +227,7 @@ export async function combatSuite(b, t, shot) {
   await b.press('Space');
   await sleep(150);
   const drops = await api('drops()');
-  t.check('23. loot drops into the world', drops.length === 1 && drops[0].item === 'slime_gel', JSON.stringify(drops));
+  t.check('23. loot drops into the world (farming drop + quest drop)', drops.length === 2 && drops[0].item === 'slime_gel' && drops[1].item === 'slime_sample', JSON.stringify(drops));
   p = await player();
   t.check('23b. item stays on the ground until picked up', (p.inventory.slime_gel ?? 0) === 0);
   await shot('combat-05-loot');
@@ -209,8 +236,8 @@ export async function combatSuite(b, t, shot) {
   await b.keyUp('ArrowUp');
   const picked = await events(`e => e.type === 'lootPicked'`);
   p = await player();
-  t.check('24. player picks up loot by walking over it', picked.length === 1);
-  t.check('25. inventory count increases', p.inventory.slime_gel === 1, JSON.stringify(p.inventory));
+  t.check('24. player picks up loot by walking over it', picked.length === 2);
+  t.check('25. inventory count increases', p.inventory.slime_gel === 1 && p.inventory.slime_sample === 1, JSON.stringify(p.inventory));
 
   // ------------------------------------------------------------------ monster AI
   t.section('Monster AI');

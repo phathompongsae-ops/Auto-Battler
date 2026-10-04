@@ -49,7 +49,10 @@ export type GameEvents = {
   };
   statusApplied: { targetId: EntityId; statusId: StatusId; expiresAt: number };
   statusExpired: { targetId: EntityId; statusId: StatusId };
-  expGained: { entityId: EntityId; amount: number };
+  /** `amount` was kept; `discarded` was lost to a full Overflow at the level cap. */
+  expGained: { entityId: EntityId; amount: number; discarded: number };
+  /** A field kill's farming rewards were granted (paying Energy) or withheld (Energy empty). */
+  fieldReward: { monsterId: EntityId; rewarded: boolean; energySpent: number; energyLeft: number };
   levelUp: { entityId: EntityId; level: number };
   lootDropped: { dropId: number; itemId: ItemId; x: number; y: number; expiresAt: number };
   lootPicked: { dropId: number; itemId: ItemId; byId: EntityId };

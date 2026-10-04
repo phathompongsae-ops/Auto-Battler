@@ -20,7 +20,7 @@ export interface TrackedQuestDef {
 
 export const DEMO_QUESTS: readonly TrackedQuestDef[] = [
   { id: 'slime-trouble', title: 'Slime Trouble', goal: { kind: 'kill', monster: 'slime', count: 5 } },
-  { id: 'sticky-supplies', title: 'Sticky Supplies', goal: { kind: 'collect', item: 'slime_gel', count: 3 } },
+  { id: 'sticky-supplies', title: 'Sticky Supplies', goal: { kind: 'collect', item: 'slime_sample', count: 3 } },
 ];
 
 /** The tracker never shows more than this many lines; the rest live in the Quest window. */

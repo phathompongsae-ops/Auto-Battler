@@ -76,18 +76,64 @@ export async function petSuite(b, t) {
 }
 
 export async function dungeonRewardSuite(b, t) {
-  t.section('Dungeon reward claim in the running game');
-  await b.eval('debug.reset(); debug.setPeaceful(true)');
+  t.section('Dungeon rewards, daily quota, tickets and Assist in the running game');
+  await b.eval('debug.reset(); debug.setPeaceful(true); debug.setServerDay(3)');
   const preview = await b.eval(`debug.rollDungeonReward('demo_dungeon', 'hard', 9)`);
-  const first = await b.eval(`debug.claimDungeonReward('demo_dungeon', 'hard', 'run-1', 9)`);
-  const second = await b.eval(`debug.claimDungeonReward('demo_dungeon', 'hard', 'run-1', 9)`);
+  const first = await b.eval(`debug.clearDungeon('demo_dungeon', 'hard', 9)`);
+  const firstRun = JSON.stringify(first.run);
+  const retry = await b.eval(`debug.claimDungeon(9, ${firstRun})`);
   const inv = await b.eval('debug.player().inventory');
   const eq = await b.eval('debug.equipment()');
+  let status = await b.eval('debug.dungeonStatus()');
+  const level = await b.eval('debug.levelInfo()');
   t.check(
-    'D-1. a claim grants the rolled reward once',
-    first.ok && !second.ok && second.reason === 'already_claimed' && JSON.stringify(first.reward) === JSON.stringify(preview) &&
-      inv.boss_fragment === 2 && eq.gold === preview.gold && eq.items.length === preview.equipment.length,
-    JSON.stringify({ preview, inv, gold: eq.gold }),
+    'D-1. a boss clear grants its Full Reward once (EXP included); a retry grants nothing',
+    first.result.ok && first.result.kind === 'full' && JSON.stringify(first.result.reward) === JSON.stringify(preview) &&
+      !retry.ok && retry.reason === 'already_claimed' &&
+      inv.boss_fragment === 2 && eq.gold === preview.gold && eq.items.length === preview.equipment.length &&
+      status.fullClaimsUsed === 1 && level.level > 1,
+    JSON.stringify({ result: first.result.kind, retry, inv, status, level: level.level }),
   );
+
+  await b.eval(`debug.enterDungeon('demo_dungeon', 'hell'); debug.leaveDungeon()`);
+  status = await b.eval('debug.dungeonStatus()');
+  t.check('D-2. entering and leaving without a clear uses nothing', status.fullClaimsUsed === 1 && status.fullRewardsLeft === 4, JSON.stringify(status));
+
+  const kinds = await b.eval(`[2, 3, 4, 5, 6].map((seed, i) => debug.clearDungeon('demo_dungeon', ['normal', 'hard', 'hell'][i % 3], seed).result.kind)`);
+  t.check('D-3. Normal/Hard/Hell share 5 Full Rewards; the 6th clear is an Assist', JSON.stringify(kinds) === JSON.stringify(['full', 'full', 'full', 'full', 'assist']), JSON.stringify(kinds));
+
+  await b.eval('debug.grantDungeonTicket(3)');
+  const t1 = await b.eval(`debug.useItem('additional_dungeon_ticket')`);
+  const c6 = await b.eval(`debug.clearDungeon('demo_dungeon', 'normal', 7).result.kind`);
+  const t2 = await b.eval(`debug.useItem('additional_dungeon_ticket')`);
+  const c7 = await b.eval(`debug.clearDungeon('demo_dungeon', 'hell', 8).result.kind`);
+  const t3 = await b.eval(`debug.useItem('additional_dungeon_ticket')`);
+  const tickets = (await b.eval('debug.player().inventory')).additional_dungeon_ticket;
+  status = await b.eval('debug.dungeonStatus()');
+  t.check(
+    'D-4. tickets (real item path) allow Full Rewards #6 and #7; a third fails and is kept',
+    t1.ok && t2.ok && c6 === 'full' && c7 === 'full' && !t3.ok && t3.reason === 'daily_extra_limit' && tickets === 1 && status.fullClaimsUsed === 7,
+    JSON.stringify({ t1, t2, t3, c6, c7, tickets, status }),
+  );
+
+  const assists = await b.eval(`[11, 12, 13].map((seed) => debug.clearDungeon('demo_dungeon', 'normal', seed).result.kind)`);
+  status = await b.eval('debug.dungeonStatus()');
+  t.check('D-5. 3 rewarded Assists, then helping is allowed but unrewarded', JSON.stringify(assists) === JSON.stringify(['assist', 'assist', 'none']) && status.assistRewardsClaimed === 3, JSON.stringify({ assists, status }));
+  t.check('D-6. a whole day of dungeon activity leaves Field Energy untouched', (await b.eval('debug.fieldEnergy()')) === 200);
+
+  const saved = await b.eval('debug.save()');
+  await b.eval('debug.reset(); debug.setServerDay(3)');
+  const loaded = await b.eval(`debug.load(${JSON.stringify(saved)})`);
+  const afterLoad = await b.eval('debug.dungeonStatus()');
+  const replay = await b.eval(`debug.claimDungeon(9, ${firstRun})`);
+  t.check(
+    'D-7. counters survive save/load and a claimed run stays claimed',
+    loaded.ok && afterLoad.fullClaimsUsed === 7 && afterLoad.extraAdded === 2 && afterLoad.assistRewardsClaimed === 3 && !replay.ok && replay.reason === 'already_claimed',
+    JSON.stringify({ loaded, afterLoad, replay }),
+  );
+
+  await b.eval('debug.setServerDay(4)');
+  status = await b.eval('debug.dungeonStatus()');
+  t.check('D-8. a new server day resets the dungeon quota, tickets used and Assists', status.fullRewardsLeft === 5 && status.extraAdded === 0 && status.assistRewardsClaimed === 0, JSON.stringify(status));
   await b.eval('debug.reset()');
 }
