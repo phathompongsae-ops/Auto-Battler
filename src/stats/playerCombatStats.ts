@@ -41,7 +41,9 @@ export function playerDerivedStats(
 }
 
 /** Effect modifiers (sets, enchants...) as combat fields. */
-export function combatEffects(modifiers: readonly StatModifier[]): Pick<CombatStats, 'damageReduction' | 'skillDamageBonus' | 'skillCooldownReduction'> {
+export function combatEffects(
+  modifiers: readonly StatModifier[],
+): Pick<CombatStats, 'damageReduction' | 'physicalDamageBonus' | 'skillDamageBonus' | 'skillCooldownReduction'> {
   const effects = sumEffects(modifiers);
   const skillDamageBonus: Record<string, number> = {};
   const skillCooldownReduction: Record<string, number> = {};
@@ -50,7 +52,12 @@ export function combatEffects(modifiers: readonly StatModifier[]): Pick<CombatSt
     if (kind === 'skillDamage' && skillId) skillDamageBonus[skillId] = value;
     if (kind === 'skillCooldown' && skillId) skillCooldownReduction[skillId] = value;
   }
-  return { damageReduction: effects[effectKey.damageReduction] ?? 0, skillDamageBonus, skillCooldownReduction };
+  return {
+    damageReduction: effects[effectKey.damageReduction] ?? 0,
+    physicalDamageBonus: effects[effectKey.physicalDamage] ?? 0,
+    skillDamageBonus,
+    skillCooldownReduction,
+  };
 }
 
 /**

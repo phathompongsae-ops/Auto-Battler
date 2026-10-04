@@ -1,13 +1,11 @@
 import type { SkillSystem } from '../combat/SkillSystem';
 import type { TargetingSystem } from '../combat/TargetingSystem';
 import type { CombatEntity } from '../combat/types';
-import { PLAYER_BASIC_ATTACK, PLAYER_LOADOUT, type SkillSlot } from '../data/playerData';
+import { PLAYER_BASIC_ATTACK, SKILL_SLOTS, type SkillSlot } from '../data/playerData';
 import { SKILLS, type SkillId } from '../data/skillData';
 import type { Player } from '../entities/Player';
 import { DIRECTION_VECTORS } from '../input/Direction';
 import type { InputController } from '../input/InputController';
-
-const SKILL_SLOTS: readonly SkillSlot[] = ['skill1', 'skill2', 'skill3'];
 
 /** Turns player actions (from any input source) into skill uses. */
 export class PlayerCombatController {
@@ -17,6 +15,8 @@ export class PlayerCombatController {
     private readonly skills: SkillSystem,
     private readonly targeting: TargetingSystem,
     private readonly enemies: () => readonly CombatEntity[],
+    /** The skill on each action slot right now (from the skill tree, or the demo kit). */
+    private readonly loadout: () => Record<SkillSlot, SkillId | null>,
   ) {}
 
   update(now: number): void {
@@ -33,8 +33,10 @@ export class PlayerCombatController {
     // Holding attack keeps swinging as the cooldown allows, without failure spam.
     if (attackPressed || attackHeld) this.cast(PLAYER_BASIC_ATTACK, now, !attackPressed);
 
+    const loadout = this.loadout();
     SKILL_SLOTS.forEach((slot, i) => {
-      if (slotsPressed[i]) this.cast(PLAYER_LOADOUT[slot], now, false);
+      const skillId = loadout[slot];
+      if (slotsPressed[i] && skillId) this.cast(skillId, now, false);
     });
   }
 

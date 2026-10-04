@@ -42,7 +42,11 @@ const spawnOf = (m: MonsterAgent) => ({ x: m.spawnX, y: m.spawnY });
 const attackRange = (m: MonsterAgent) => SKILLS[m.def.attackSkill].range;
 const targetAlive = (t: CombatEntity | null): t is CombatEntity => !!t && !t.combat.dead;
 
+/** Taunted monsters never give up on their target (no leash) until the taunt ends. */
+const taunted = (m: MonsterAgent) => m.combat.statuses.some((s) => s.def.taunt);
+
 function leashed(m: MonsterAgent, target: CombatEntity): boolean {
+  if (taunted(m)) return false;
   const home = spawnOf(m);
   return distance(m, home) > m.def.leashRange || distance(target, home) > m.def.leashRange;
 }
@@ -140,6 +144,11 @@ export class MonsterBrain {
   }
 
   update(now: number, dtMs: number): void {
+    // Stunned: no movement, no attacks, no decisions until the stun ends.
+    if (this.fsm.current !== 'dead' && this.ctx.monster.combat.statuses.some((s) => s.def.stun)) {
+      this.ctx.monster.halt();
+      return;
+    }
     const before = this.fsm.current;
     this.fsm.update(now, dtMs);
     if (this.fsm.current !== before) this.ctx.stateSince = now;
@@ -151,6 +160,13 @@ export class MonsterBrain {
     if (s === 'dead' || s === 'return' || attacker.combat.dead) return;
     this.ctx.target = attacker;
     if (s === 'idle') this.setState('chase', now);
+  }
+
+  /** Taunt: turn on `taunter` now, even if returning home. */
+  taunt(taunter: CombatEntity, now: number): void {
+    if (this.fsm.current === 'dead' || taunter.combat.dead) return;
+    this.ctx.target = taunter;
+    if (this.fsm.current !== 'chase' && this.fsm.current !== 'attack') this.setState('chase', now);
   }
 
   /** Force a state (deaths reported by the combat system, debug resets). */

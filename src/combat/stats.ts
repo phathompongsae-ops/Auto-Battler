@@ -7,7 +7,7 @@ export function statusModifiers(statuses: readonly { def: StatusDef }[]): StatMo
   return statuses.map(({ def }) => ({ source: def.kind, id: `status:${def.id}`, ...def.modifier }));
 }
 
-type NumericCombatKey = { [K in keyof CombatStats]: CombatStats[K] extends number ? K : never }[keyof CombatStats];
+type NumericCombatKey = { [K in keyof CombatStats]-?: CombatStats[K] extends number ? K : never }[keyof CombatStats];
 
 /** Where each derived stat lives on CombatStats, for entities without a primary-stat pipeline. */
 const COMBAT_KEY: Record<DerivedStatKey, NumericCombatKey | null> = {

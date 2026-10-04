@@ -8,9 +8,24 @@ export type SkillTargetType =
 /** Physical uses ATK vs DEF; magic uses MATK vs MDEF. */
 export type DamageType = 'physical' | 'magic';
 
-/** power = skill multiplier. Damage effects always declare their type. */
+/** A status put on the target only when the hit lands (a miss applies nothing). */
+export interface OnHitStatus {
+  statusId: StatusId;
+  duration: number;
+}
+
+/**
+ * power = skill multiplier. Damage effects always declare their type.
+ * Ranked (skill-tree) skills get their numbers from the tree at cast time.
+ */
 export type SkillEffect =
-  | { kind: 'damage'; power: number; damageType: DamageType }
+  | { kind: 'damage'; power: number; damageType: DamageType; onHit?: OnHitStatus; critBonus?: number }
+  /** One hit on every enemy whose edge is within `radius` px of the caster. */
+  | { kind: 'aoe_damage'; power: number; damageType: DamageType; radius: number }
+  /** Taunt every enemy within `radius` px: they turn on the caster. */
+  | { kind: 'taunt'; statusId: StatusId; duration: number; radius: number }
+  /** Dash up to `distance` px toward the target (never through walls), then strike. */
+  | { kind: 'dash_strike'; power: number; damageType: DamageType; distance: number; onHit?: OnHitStatus }
   | { kind: 'projectile'; power: number; damageType: DamageType; speed: number; radius: number; color: number }
   | { kind: 'status'; statusId: StatusId; duration: number }
   | { kind: 'heal'; amount: number };
@@ -64,7 +79,7 @@ const SKILL_DEFS = {
   },
   power_strike: {
     id: 'power_strike',
-    name: 'Power Strike',
+    name: 'Power Slash',
     mpCost: 10,
     cooldown: 4000,
     range: 44,
@@ -95,6 +110,82 @@ const SKILL_DEFS = {
     target: 'self',
     effect: { kind: 'status', statusId: 'guard', duration: 5000 },
     color: 0x7fd4ff,
+  },
+  // --- Warrior Class 1 tree skills. Numbers below are placeholders: every cast uses the
+  // learned rank's values from src/data/skillTrees/warriorTree.ts (rank 0 = can't cast).
+  charge: {
+    id: 'charge',
+    name: 'Charge',
+    mpCost: 0,
+    cooldown: 0,
+    range: 0,
+    target: 'enemy',
+    effect: { kind: 'dash_strike', power: 0, damageType: 'physical', distance: 0 },
+    color: 0xff9e64,
+  },
+  shield_bash: {
+    id: 'shield_bash',
+    name: 'Shield Bash',
+    mpCost: 0,
+    cooldown: 0,
+    range: 0,
+    target: 'enemy',
+    effect: { kind: 'damage', power: 0, damageType: 'physical' },
+    color: 0x9fb7d9,
+  },
+  provoke: {
+    id: 'provoke',
+    name: 'Provoke',
+    mpCost: 0,
+    cooldown: 0,
+    range: 0,
+    target: 'self',
+    effect: { kind: 'taunt', statusId: 'taunted', duration: 0, radius: 0 },
+    color: 0xff6b6b,
+  },
+  iron_guard: {
+    id: 'iron_guard',
+    name: 'Iron Guard',
+    mpCost: 0,
+    cooldown: 0,
+    range: 0,
+    target: 'self',
+    effect: { kind: 'status', statusId: 'iron_guard', duration: 0 },
+    color: 0x9fb7d9,
+  },
+  whirlwind: {
+    id: 'whirlwind',
+    name: 'Whirlwind',
+    mpCost: 0,
+    cooldown: 0,
+    range: 0,
+    target: 'self',
+    effect: { kind: 'aoe_damage', power: 0, damageType: 'physical', radius: 0 },
+    heavy: true,
+    color: 0xc9d1e3,
+  },
+  heavy_strike: {
+    id: 'heavy_strike',
+    name: 'Heavy Strike',
+    mpCost: 0,
+    cooldown: 0,
+    range: 0,
+    target: 'enemy',
+    effect: { kind: 'damage', power: 0, damageType: 'physical' },
+    heavy: true,
+    // TEMPORARY: reuses the Power Slash animation, so it lands on the same hit frame.
+    windup: { ms: 312, cancelOnMove: true, recheckRange: true },
+    color: 0xe0524a,
+  },
+  berserk: {
+    id: 'berserk',
+    name: 'Berserk',
+    mpCost: 0,
+    cooldown: 0,
+    range: 0,
+    target: 'self',
+    effect: { kind: 'status', statusId: 'berserk', duration: 0 },
+    color: 0xe0524a,
   },
   slime_bump: {
     id: 'slime_bump',

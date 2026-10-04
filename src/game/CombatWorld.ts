@@ -34,6 +34,9 @@ import { useItem as applyItem, type UseItemResult } from '../items/useItem';
 import { ProgressionSystem } from '../progression/ProgressionSystem';
 import { allocateStat } from '../progression/statActions';
 import { JobChange } from '../progression/JobChange';
+import { SkillTree } from '../skills/SkillTree';
+import { SkillProcs } from '../skills/SkillProcs';
+import { SKILLS } from '../data/skillData';
 import { deserializePlayerSave, serializePlayerSave } from '../save/playerSave';
 import { applyPlayerSave, capturePlayerSave, emptyHooks, type PersistedHooks, type SaveTarget } from '../save/playerSnapshot';
 import type { PrimaryStat } from '../stats/primaryStats';
@@ -61,7 +64,11 @@ export class CombatWorld implements MonsterWorld {
   readonly combat = new CombatSystem(this.events);
   readonly statuses = new StatusSystem(this.events);
   readonly projectiles = new ProjectileSystem(this.events, this.combat);
-  readonly skills = new SkillSystem(this.events, this.combat, this.statuses, this.projectiles);
+  readonly skills = new SkillSystem(this.events, this.combat, this.statuses, this.projectiles, {
+    resolve: (caster, skillId) => (caster === this.player ? this.skillTree.resolve(skillId) : SKILLS[skillId]),
+    entities: () => this.combatants,
+    dash: (caster, target, maxDistance) => this.dash(caster, target, maxDistance),
+  });
   readonly targeting = new TargetingSystem(this.events, TARGETING.acquireRange, TARGETING.loseRange);
   readonly inventory = new Inventory();
   /** Currencies (gold). */
@@ -128,6 +135,11 @@ export class CombatWorld implements MonsterWorld {
 
   /** The Lv11 Class 1 Job Change (trial quests → selection). */
   readonly jobChange: JobChange;
+  /** The player's skill tree (learn / reset / castable skills / loadout). */
+  readonly skillTree: SkillTree;
+  /** Proc passives (Guardian Instinct, Battle Instinct). */
+  readonly skillProcs: SkillProcs;
+  private navGrid: (mapId: string) => CollisionGrid | undefined;
 
   /** Unlocked feature ids (Feature Unlock hook). */
   readonly features = new FeatureUnlocks();
@@ -143,7 +155,8 @@ export class CombatWorld implements MonsterWorld {
     navGrid: (mapId: string) => CollisionGrid | undefined = () => undefined,
   ) {
     this.register(player);
-    this.controller = new PlayerCombatController(player, input, this.skills, this.targeting, () => this.monsters);
+    this.navGrid = navGrid;
+    this.controller = new PlayerCombatController(player, input, this.skills, this.targeting, () => this.monsters, () => this.skillTree.loadout());
 
     this.events.on('damage', ({ sourceId, targetId }) => {
       const monster = this.monsterById(targetId);
@@ -167,6 +180,15 @@ export class CombatWorld implements MonsterWorld {
     this.quests.refresh();
 
     this.jobChange = new JobChange(player, this.quests, this.features, this.events, player.id);
+    this.skillProcs = new SkillProcs(player, this.events, this.statuses, () => this.now);
+    // A skill reset also forgets proc streaks / internal cooldowns.
+    this.skillTree = new SkillTree(player, this.features, this.events, () => this.skillProcs.reset());
+    // A new job brings a different tree (or none): the action bar changes with it.
+    this.events.on('jobChanged', () => this.events.emit('skillAvailabilityChanged', { loadout: this.skillTree.loadout() }));
+    this.events.on('taunted', ({ casterId, targetId }) => {
+      const caster = this.getEntity(casterId);
+      if (caster) this.monsterById(targetId)?.brain.taunt(caster, this.now);
+    });
 
     this.navigation = new NavIndex(NAVIGATION);
     this.autoMove = new AutoMove(
@@ -329,6 +351,31 @@ export class CombatWorld implements MonsterWorld {
     this.player.body.reset(t.arrival.x, t.arrival.y);
     this.events.emit('mapChanged', { fromMapId: from.mapId, toMapId: t.location.mapId, portalId });
     return true;
+  }
+
+  /**
+   * Charge's dash: move the caster toward the target until in contact, at
+   * most `maxDistance`, stopping before any solid tile (collision-checked
+   * every few px along the line). Instant reposition; no dash animation yet.
+   */
+  private dash(caster: CombatEntity, target: CombatEntity, maxDistance: number): void {
+    if (caster !== this.player) return;
+    const dx = target.x - caster.x;
+    const dy = target.y - caster.y;
+    const length = Math.hypot(dx, dy);
+    const travel = Math.min(maxDistance, length - target.hitRadius - caster.hitRadius - 2);
+    if (travel <= 0) return;
+    const grid = this.navGrid(this.location.mapId);
+    const margin = caster.hitRadius;
+    const blocked = (x: number, y: number) =>
+      !!grid && (grid.isBlocked(x - margin, y - margin) || grid.isBlocked(x + margin, y - margin) || grid.isBlocked(x - margin, y + margin) || grid.isBlocked(x + margin, y + margin));
+    let best = { x: caster.x, y: caster.y };
+    for (let d = 4; d <= travel; d += 4) {
+      const p = { x: caster.x + (dx / length) * d, y: caster.y + (dy / length) * d };
+      if (blocked(p.x, p.y)) break;
+      best = p;
+    }
+    this.player.body.reset(best.x, best.y);
   }
 
   /** Add items obtained through gameplay and report the acquisition. */

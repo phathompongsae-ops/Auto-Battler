@@ -34,13 +34,15 @@ export function resolveAttack(
   multiplier: number,
   type: DamageType,
   rng: Rng,
+  /** Extra crit chance for this attack only (e.g. Heavy Strike); never changes the attacker's stats. */
+  critBonus = 0,
 ): AttackResult {
   if (rng() >= hitChance(attacker.accuracy, defender.evasion)) return { hit: false };
   const base =
     type === 'magic'
       ? mitigatedDamage(attacker.magicAttack, multiplier, defender.magicDefense)
       : mitigatedDamage(attacker.attack, multiplier, defender.defense);
-  const crit = rng() < attacker.critChance;
+  const crit = rng() < attacker.critChance + critBonus;
   const reduction = Math.min(MAX_DAMAGE_REDUCTION, Math.max(0, defender.damageReduction));
   const amount = Math.max(1, Math.round(base * (crit ? attacker.critMultiplier : 1) * (1 - reduction)));
   return { hit: true, amount, crit };

@@ -13,6 +13,7 @@ import { dungeonRewardSuite, equipmentSuite, petSuite } from './systems.test.mjs
 import { questSuite } from './quests.test.mjs';
 import { navigationSuite } from './navigation.test.mjs';
 import { jobChangeSuite } from './jobChange.test.mjs';
+import { warriorSkillSuite } from './warriorSkills.test.mjs';
 
 const PORT = 5199;
 const URL = `http://127.0.0.1:${PORT}/`;
@@ -59,6 +60,7 @@ try {
   await questSuite(b, t);
   await navigationSuite(b, t);
   await jobChangeSuite(b, t);
+  await warriorSkillSuite(b, t);
   await hudSuite(b, t, shot);
   await combatSuite(b, t, shot);
   await combatPerformance(b, t);

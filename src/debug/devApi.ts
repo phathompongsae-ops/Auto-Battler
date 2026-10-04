@@ -25,6 +25,8 @@ import { defaultUnlocks, locationKind, useDungeonWarp, useTownWarp } from '../wa
 import { PROTOTYPE_MAP_ID } from '../data/navigation/demoNavigation';
 import { CLASS_1_JOB_CHANGE } from '../data/jobChangeData';
 import { QUESTS } from '../data/questData';
+import { passiveModifiers } from '../skills/skillTreeRules';
+import type { SkillId } from '../data/skillData';
 
 let devPetCounter = 0;
 let devJobCounter = 0;
@@ -234,6 +236,38 @@ export function createDevApi(world: CombatWorld, overlays: WorldOverlays) {
     /** FORCE (dev): take a Class 1 job without the Job Trial. Same effects as the real path otherwise. */
     forceChangeJob: (jobId: string) => world.changePlayerJob(jobId, { skipTrial: true }),
 
+    // --- Skill tree (dev only) ---------------------------------------------
+    /** The current job's tree: points, every node's rank / lock reason, and the action-bar loadout. */
+    skillTree: () => {
+      const st = world.skillTree;
+      const tree = st.tree();
+      return {
+        classId: world.player.progress.classId,
+        treeId: tree?.id ?? null,
+        usable: st.usable(),
+        points: st.points(),
+        nodes: (tree?.nodes ?? []).map((n) => {
+          const v = st.nodeView(n.id);
+          return { id: n.id, branch: n.branch, type: n.type, rank: v.rank, maxRank: n.maxRank, blockedBy: v.blockedBy, branchSpent: v.branchSpent };
+        }),
+        loadout: st.loadout(),
+      };
+    },
+    /** The REAL learn path (all rules apply). */
+    learnSkill: (nodeId: string) => world.skillTree.learn(nodeId),
+    /** The REAL (free) reset path. */
+    resetSkills: () => world.skillTree.reset(),
+    /** FORCE (isolated tests only): set a rank directly, bypassing every learn rule. */
+    forceSetSkillRank: (nodeId: string, rank: number) => {
+      if (rank > 0) world.player.progress.skillRanks[nodeId] = rank;
+      else delete world.player.progress.skillRanks[nodeId];
+      world.player.combat.refreshStats();
+    },
+    /** Learned passives as stat modifiers. */
+    passiveEffects: () => passiveModifiers(world.skillTree.tree(), world.player.progress.skillRanks),
+    /** The player's version of a skill (learned rank numbers), or null if it can't be cast. */
+    skillDef: (skillId: SkillId) => world.skills.definition(world.player, skillId),
+
     // --- Class 1 Job Change (dev only) -------------------------------------
     /** Current job, Job Change stage, trial state, Job Bonus and Class 1 Skill Points. */
     jobState: () => {
@@ -279,7 +313,7 @@ export function createDevApi(world: CombatWorld, overlays: WorldOverlays) {
     /** RESET (tests only): back to Novice with no job quests, Job Bonus or Class 1 feature. */
     resetJobChange: () => {
       const p = world.player;
-      p.progress.assign({ ...p.progress.toData(), classId: 'novice', jobBonuses: {}, skillPointsSpent: 0 });
+      p.progress.assign({ ...p.progress.toData(), classId: 'novice', jobBonuses: {}, skillRanks: {} });
       p.equipment.revalidate();
       p.combat.refreshStats();
       const log = world.quests.toState();
@@ -361,6 +395,7 @@ export function createDevApi(world: CombatWorld, overlays: WorldOverlays) {
       world.quests.reset();
       world.features.unlocked.clear();
       world.quests.refresh();
+      world.skillProcs.reset();
     },
 
     // --- Navigation / Auto Move (dev only) --------------------------------

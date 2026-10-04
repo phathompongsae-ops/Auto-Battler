@@ -33,6 +33,8 @@ export interface CombatStats {
   mpRegen: number; // MP per second
   /** Fraction of incoming damage removed after mitigation and crit (capped in combatRules). */
   damageReduction: number;
+  /** Extra outgoing Physical damage fraction (e.g. Battle Instinct +0.1). Missing = 0. */
+  physicalDamageBonus?: number;
   /** Skill id → extra damage fraction for that skill (e.g. a set bonus). */
   skillDamageBonus: Readonly<Record<string, number>>;
   /** Skill id → cooldown reduction fraction for that skill. Never applies to ASPD-based attacks. */

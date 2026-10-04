@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { expToNext } from '../progression/expCurve';
-import { PLAYER_BASIC_ATTACK, PLAYER_LOADOUT } from '../data/playerData';
+import { PLAYER_BASIC_ATTACK, SKILL_SLOTS } from '../data/playerData';
 import { ITEMS } from '../data/itemData';
 import { SKILLS, type SkillId } from '../data/skillData';
 import type { CombatWorld } from '../game/CombatWorld';
@@ -69,6 +69,7 @@ export class DebugPanel {
         .join(', ') || 'empty';
 
     const dungeon = w.dungeonEntitlements.status();
+    const loadout = w.skillTree.loadout();
     const respawn = w.playerRespawnAt !== null ? `  RESPAWN ${((w.playerRespawnAt - now) / 1000).toFixed(1)}s` : '';
 
     this.text.setText(
@@ -82,9 +83,10 @@ export class DebugPanel {
         `Target: ${targetLine}`,
         [
           cd(PLAYER_BASIC_ATTACK, 'Atk'),
-          cd(PLAYER_LOADOUT.skill1, `Q ${SKILLS[PLAYER_LOADOUT.skill1].name}`),
-          cd(PLAYER_LOADOUT.skill2, `E ${SKILLS[PLAYER_LOADOUT.skill2].name}`),
-          cd(PLAYER_LOADOUT.skill3, `R ${SKILLS[PLAYER_LOADOUT.skill3].name}`),
+          ...SKILL_SLOTS.map((slot, i) => {
+            const id = loadout[slot];
+            return id ? cd(id, `${'QERFG'[i]} ${SKILLS[id].name}`) : null;
+          }).filter((x) => x !== null),
         ].join(' | '),
         `Inventory: ${inventory}  (on ground: ${w.loot.drops.length})`,
         'Monsters: ' +

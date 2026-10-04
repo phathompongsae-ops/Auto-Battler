@@ -277,7 +277,7 @@ describe('Class 1 Skill Points (derived from job + level)', () => {
     const r = rig(18);
     r.completeTrial();
     r.jc.select('warrior');
-    r.t.progress.skillPointsSpent = 3;
+    Object.assign(r.t.progress.skillRanks, { power_slash: 3 });
     const loaded = rig(1);
     applyPlayerSave(loaded.t, deserializePlayerSave(serializePlayerSave(capturePlayerSave(r.t))));
     assert.equal(loaded.t.progress.remainingSkillPoints(18), 5);

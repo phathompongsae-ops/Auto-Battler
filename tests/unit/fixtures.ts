@@ -44,7 +44,7 @@ export function makeSaveTarget(
   const inventory = new Inventory();
   const wallet = new Wallet();
   const features = new FeatureUnlocks();
-  const player = { id: 'p', x: 0, y: 0, hitRadius: 10, combat };
+  const player = { id: 'p', x: 0, y: 0, hitRadius: 10, combat, progress };
   const quests = new QuestSystem(
     questDefs,
     { level: () => combat!.level, classId: () => progress.classId, serverDay: () => serverDay.day() },

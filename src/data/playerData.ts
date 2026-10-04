@@ -15,18 +15,22 @@ export const PLAYER_HIT_RADIUS = 10;
 
 export const PLAYER_BASIC_ATTACK: SkillId = 'basic_attack';
 
-export type SkillSlot = 'skill1' | 'skill2' | 'skill3';
+export type SkillSlot = 'skill1' | 'skill2' | 'skill3' | 'skill4' | 'skill5';
+
+export const SKILL_SLOTS: readonly SkillSlot[] = ['skill1', 'skill2', 'skill3', 'skill4', 'skill5'];
 
 /**
- * Which skill each skill action triggers. DEMO: this is the current Warrior
- * demo kit, used by the Lv1 Novice until real job change and skill trees
- * exist. It is presentation/combat behaviour only and never saved as the
- * character's class (see src/data/demoConfig.ts).
+ * TEMPORARY DEMO KIT for classes without a skill tree yet (the Novice before
+ * the Lv11 Job Change, and Archer / Mage / Cleric / Ninja): fixed skills at
+ * fixed demo values, presentation/combat behaviour only, never saved. A
+ * Warrior's skills come from its skill tree instead (see src/skills/SkillTree.ts).
  */
-export const PLAYER_LOADOUT: Record<SkillSlot, SkillId> = {
+export const DEMO_KIT_LOADOUT: Record<SkillSlot, SkillId | null> = {
   skill1: 'power_strike',
   skill2: 'fire_bolt',
   skill3: 'guard',
+  skill4: null,
+  skill5: null,
 };
 
 export const TARGETING = {

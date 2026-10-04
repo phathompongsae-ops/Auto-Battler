@@ -6,7 +6,8 @@ import { addPrimary, PRIMARY_STATS, zeroPrimary, type PrimaryStats } from './pri
  * new systems add modifiers instead of editing the player.
  */
 
-export const MODIFIER_SOURCES = ['base', 'allocated', 'job', 'equipment', 'pet', 'buff', 'debuff'] as const;
+/** 'skill' = learned passive skills (derived from skill ranks, never stored as stats). */
+export const MODIFIER_SOURCES = ['base', 'allocated', 'job', 'skill', 'equipment', 'pet', 'buff', 'debuff'] as const;
 
 export type ModifierSource = (typeof MODIFIER_SOURCES)[number];
 
@@ -47,6 +48,8 @@ export interface StatModifier {
 
 export const effectKey = {
   damageReduction: 'damageReduction',
+  /** Outgoing Physical damage fraction. */
+  physicalDamage: 'physicalDamage',
   skillDamage: (skillId: string) => `skillDamage:${skillId}`,
   skillCooldown: (skillId: string) => `skillCooldown:${skillId}`,
 } as const;

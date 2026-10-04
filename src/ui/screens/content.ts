@@ -1,9 +1,8 @@
 import { ITEMS } from '../../data/itemData';
-import { PLAYER_BASIC_ATTACK, PLAYER_LOADOUT } from '../../data/playerData';
-import { SKILLS, type SkillId } from '../../data/skillData';
 import type { CombatWorld } from '../../game/CombatWorld';
-import { ItemSlot, SkillSlot } from '../components/Slot';
+import { ItemSlot } from '../components/Slot';
 import { h } from '../dom';
+import { renderSkillTree } from './skillTreeView';
 import type { ScreenId } from '../data/screens';
 import type { QuestProgressSource } from '../hud/QuestTracker';
 
@@ -71,25 +70,8 @@ const character: ScreenRenderer = (tab, { world }) => {
   ]);
 };
 
-const skills: ScreenRenderer = () => {
-  const ids: SkillId[] = [PLAYER_BASIC_ATTACK, ...Object.values(PLAYER_LOADOUT)];
-  return h(
-    'div',
-    { className: 'ui-list' },
-    ids.map((id) => {
-      const skill = SKILLS[id];
-      const color = skill.color !== undefined && skill.color !== 0xffffff ? hex(skill.color) : '#a8823a';
-      const slot = new SkillSlot({ content: { abbr: skill.name.slice(0, 2), color, title: skill.name } });
-      return h('div', { className: 'ui-list__row' }, [
-        slot.el,
-        h('div', {}, [
-          h('div', { className: 'ui-label', text: skill.name }),
-          h('div', { className: 'ui-caption', text: `${skill.mpCost} MP · ${(skill.cooldown / 1000).toFixed(1)}s cooldown · range ${skill.range}` }),
-        ]),
-      ]);
-    }),
-  );
-};
+/** The job's skill tree (temporary UI; see skillTreeView.ts). */
+const skills: ScreenRenderer = (_tab, { world }) => renderSkillTree(world);
 
 const quest: ScreenRenderer = (tab, { quests }) => {
   const list = quests.progress().filter((q) => (tab === 'completed' ? q.done : !q.done));

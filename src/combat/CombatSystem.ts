@@ -8,7 +8,7 @@ import type { CombatEntity } from './types';
 /** A skill's damage type from data; non-damage skills are never resolved here. */
 function damageTypeOf(skillId: SkillId): DamageType {
   const effect = SKILLS[skillId].effect;
-  if (effect.kind === 'damage' || effect.kind === 'projectile') return effect.damageType;
+  if (effect.kind === 'damage' || effect.kind === 'projectile' || effect.kind === 'aoe_damage' || effect.kind === 'dash_strike') return effect.damageType;
   throw new Error(`${skillId} is not a damaging skill`);
 }
 
@@ -23,12 +23,15 @@ export class CombatSystem {
    * the target was already dead, otherwise whether it hit. Callers attaching
    * extra effects (crowd control, on-hit procs) must only apply them on a hit.
    */
-  dealDamage(source: CombatEntity, target: CombatEntity, skillId: SkillId, power: number): AttackResult | null {
+  dealDamage(source: CombatEntity, target: CombatEntity, skillId: SkillId, power: number, options: { critBonus?: number } = {}): AttackResult | null {
     if (target.combat.dead) return null;
 
-    // Skill-specific damage bonuses (e.g. a set bonus on one skill) scale the skill multiplier.
-    const multiplier = power * (1 + (source.combat.stats.skillDamageBonus[skillId] ?? 0));
-    const result = resolveAttack(source.combat.stats, target.combat.stats, multiplier, damageTypeOf(skillId), this.rng);
+    const stats = source.combat.stats;
+    const type = damageTypeOf(skillId);
+    // Skill-specific damage bonuses (e.g. a set bonus on one skill) and outgoing Physical bonuses scale the multiplier.
+    const physical = type === 'physical' ? (stats.physicalDamageBonus ?? 0) : 0;
+    const multiplier = power * (1 + (stats.skillDamageBonus[skillId] ?? 0)) * (1 + physical);
+    const result = resolveAttack(stats, target.combat.stats, multiplier, type, this.rng, options.critBonus ?? 0);
     if (!result.hit) {
       this.events.emit('miss', { sourceId: source.id, targetId: target.id, skillId });
       return result;

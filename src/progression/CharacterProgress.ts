@@ -2,6 +2,7 @@ import { FREE_STAT_POINTS_PER_LEVEL, NOVICE_BASE_STATS } from '../data/statData'
 import { isJobId, JOB_CHANGE_LEVEL, JOBS, SKILL_POINT_PROGRESSION, STARTING_JOB, type JobId } from '../data/jobData';
 import { classGrowthMaxLevel } from '../stats/classBaseStats';
 import { primaryModifier, type StatModifier } from '../stats/modifiers';
+import { passiveModifiers, totalSpent, treeForJob } from '../skills/skillTreeRules';
 import { clonePrimary, isPrimaryStat, PRIMARY_STATS, sumPrimary, zeroPrimary, type PrimaryStat, type PrimaryStats } from '../stats/primaryStats';
 
 /** Free stat points earned by reaching `level`: none at Level 1, +1 per level after. */
@@ -32,8 +33,11 @@ export interface CharacterProgressData {
   allocated: PrimaryStats;
   /** Bonus granted by each job taken, kept separate per job. */
   jobBonuses: Partial<Record<JobId, Partial<PrimaryStats>>>;
-  /** Skill points spent (skill trees aren't designed yet). Earned points are derived from job and level. */
-  skillPointsSpent: number;
+  /**
+   * Learned skill-tree ranks (node id → rank). Spent skill points are their
+   * sum; earned points are derived from job and level, so neither is stored.
+   */
+  skillRanks: Record<string, number>;
 }
 
 /**
@@ -46,7 +50,8 @@ export class CharacterProgress {
   readonly base: PrimaryStats;
   readonly allocated: PrimaryStats;
   readonly jobBonuses: Partial<Record<JobId, Partial<PrimaryStats>>>;
-  skillPointsSpent: number;
+  /** Learned skill-tree ranks; change them only through the SkillTree service. */
+  readonly skillRanks: Record<string, number>;
 
   constructor(data?: Partial<CharacterProgressData>) {
     this.classId = data?.classId ?? STARTING_JOB;
@@ -55,7 +60,12 @@ export class CharacterProgress {
     this.jobBonuses = Object.fromEntries(
       Object.entries(data?.jobBonuses ?? {}).map(([job, bonus]) => [job, { ...bonus }]),
     ) as Partial<Record<JobId, Partial<PrimaryStats>>>;
-    this.skillPointsSpent = data?.skillPointsSpent ?? 0;
+    this.skillRanks = Object.fromEntries(Object.entries(data?.skillRanks ?? {}).filter(([, r]) => r > 0));
+  }
+
+  /** Skill points spent: the sum of learned ranks. */
+  get skillPointsSpent(): number {
+    return totalSpent(this.skillRanks);
   }
 
   earned(level: number): number {
@@ -130,6 +140,8 @@ export class CharacterProgress {
   modifiers(): StatModifier[] {
     const mods = [primaryModifier('base', 'base', this.base), primaryModifier('allocated', 'allocated', this.allocated)];
     for (const [job, bonus] of Object.entries(this.jobBonuses)) if (bonus) mods.push(primaryModifier('job', `job:${job}`, bonus));
+    // Learned passives, derived from ranks each time (so they can never be applied twice).
+    mods.push(...passiveModifiers(treeForJob(this.classId), this.skillRanks));
     return mods;
   }
 
@@ -141,7 +153,8 @@ export class CharacterProgress {
     Object.assign(this.allocated, fresh.allocated);
     for (const key of Object.keys(this.jobBonuses)) delete this.jobBonuses[key as JobId];
     Object.assign(this.jobBonuses, fresh.jobBonuses);
-    this.skillPointsSpent = fresh.skillPointsSpent;
+    for (const key of Object.keys(this.skillRanks)) delete this.skillRanks[key];
+    Object.assign(this.skillRanks, fresh.skillRanks);
   }
 
   toData(): CharacterProgressData {
@@ -150,7 +163,7 @@ export class CharacterProgress {
       base: clonePrimary(this.base),
       allocated: clonePrimary(this.allocated),
       jobBonuses: Object.fromEntries(Object.entries(this.jobBonuses).map(([j, b]) => [j, { ...b }])),
-      skillPointsSpent: this.skillPointsSpent,
+      skillRanks: { ...this.skillRanks },
     };
   }
 }

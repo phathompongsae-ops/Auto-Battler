@@ -8,6 +8,8 @@ export const KEYBOARD_ACTION_BINDINGS: Record<Action, number[]> = {
   skill1: [K.Q],
   skill2: [K.E],
   skill3: [K.R],
+  skill4: [K.F],
+  skill5: [K.G],
   target_next: [K.TAB],
 };
 

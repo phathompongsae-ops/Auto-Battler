@@ -14,6 +14,7 @@ import { isFeatureId, type FeatureId } from '../data/featureData';
 import { QUESTS } from '../data/questData';
 import { required as requiredAmount } from '../quests/objectives';
 import { MAX_TRACKED_QUESTS, type QuestLogState } from '../quests/QuestSystem';
+import { rankProblem, totalSpent, treeForJob } from '../skills/skillTreeRules';
 import { MAX_LEVEL } from '../data/progressionData';
 import { expToNext } from '../progression/expCurve';
 import type { CraftJob } from '../crafting/crafting';
@@ -59,8 +60,14 @@ export interface PlayerSaveV4 {
   };
   /** Redundant with level and allocated; stored for server checks and validated on load. */
   unspentStatPoints: number;
-  /** Earned skill points are derived from job and level; only spending is stored. */
+  /** Redundant with skillRanks (their sum); stored for server checks and validated on load. */
   skillPointsSpent: number;
+  /**
+   * Learned skill-tree ranks (node id → rank) of the current job's tree.
+   * Earned/available skill points are derived, never stored. Added within v4:
+   * a save without it has learned nothing.
+   */
+  skillRanks: Record<string, number>;
 
   /** Stackable items (materials, eggs, scrolls...) by stable item id. */
   inventory: { itemId: ItemId; count: number }[];
@@ -126,6 +133,7 @@ export function newPlayerSave(characterId: string): PlayerSave {
     stats: { base: { ...NOVICE_BASE_STATS }, allocated: zeroPrimary(), jobBonuses: {} },
     unspentStatPoints: 0,
     skillPointsSpent: 0,
+    skillRanks: {},
     inventory: [],
     currencies: {},
     equipment: { items: [], equipped: emptyEquipped() },
@@ -349,6 +357,29 @@ function validateCrafting(raw: unknown): PlayerSave['crafting'] {
   return { jobs };
 }
 
+/**
+ * Skill ranks: must be reachable by legal learning in the job's tree (rank
+ * caps, branch gates, earned points) and match skillPointsSpent. A save
+ * written before skill trees existed (no skillRanks) has learned nothing:
+ * its ranks start empty and any stored skillPointsSpent is dropped, because
+ * nothing could be spent then.
+ */
+function validateSkillRanks(s: Record<string, unknown>, classId: JobId, level: number): Record<string, number> {
+  if (!isCount(s.skillPointsSpent)) throw new SaveError('skillPointsSpent invalid');
+  if (s.skillRanks === undefined) return {};
+  if (!isObject(s.skillRanks)) throw new SaveError('skillRanks invalid');
+  const ranks: Record<string, number> = {};
+  for (const [id, r] of Object.entries(s.skillRanks)) {
+    if (!isCount(r)) throw new SaveError(`skillRanks.${id} invalid`);
+    if (r > 0) ranks[id] = r;
+  }
+  if (s.skillPointsSpent !== totalSpent(ranks)) throw new SaveError('skillPointsSpent does not match the learned skill ranks');
+  if (totalSpent(ranks) > earnedSkillPoints(classId, level)) throw new SaveError('more skill points spent than earned');
+  const problem = rankProblem(treeForJob(classId), ranks, earnedSkillPoints(classId, level));
+  if (problem) throw new SaveError(`skillRanks: ${problem}`);
+  return ranks;
+}
+
 /** Quest log; missing (an earlier v4 save) = empty. Checked against the quest data. */
 function validateQuestLog(raw: unknown): QuestLogState {
   if (raw === undefined) return { records: {}, tracked: [], announced: [] };
@@ -424,8 +455,7 @@ function validate(raw: unknown): PlayerSave {
   if (s.unspentStatPoints !== earned - spent) throw new SaveError('unspentStatPoints does not match level and allocation');
   const levelCap = classGrowthMaxLevel(s.classId);
   if (levelCap !== null && s.level > levelCap) throw new SaveError(`level ${s.level} is above ${s.classId}'s maximum ${levelCap}`);
-  if (!isCount(s.skillPointsSpent)) throw new SaveError('skillPointsSpent invalid');
-  if (s.skillPointsSpent > earnedSkillPoints(s.classId, s.level)) throw new SaveError('more skill points spent than earned');
+  const skillRanks = validateSkillRanks(s, s.classId, s.level);
 
   if (!Array.isArray(s.inventory)) throw new SaveError('inventory invalid');
   const inventory = s.inventory.map((entry, i) => {
@@ -459,7 +489,8 @@ function validate(raw: unknown): PlayerSave {
     exp: s.exp,
     stats: { base, allocated, jobBonuses },
     unspentStatPoints: s.unspentStatPoints,
-    skillPointsSpent: s.skillPointsSpent,
+    skillPointsSpent: totalSpent(skillRanks),
+    skillRanks,
     inventory,
     currencies: record(s.currencies, 'currencies', (x): x is number => isFiniteNumber(x) && x >= 0),
     equipment: validateEquipment(s.equipment, s.classId),

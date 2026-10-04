@@ -7,6 +7,7 @@ import type { FeatureId } from '../data/featureData';
 import type { QuestType } from '../data/questData';
 import type { NavigationState } from '../navigation/AutoMove';
 import type { SkillId } from '../data/skillData';
+import type { SkillSlot } from '../data/playerData';
 import type { StatusId } from '../data/statusData';
 
 export type ProjectileEndReason = 'hit' | 'wall' | 'expired';
@@ -90,6 +91,18 @@ export type GameEvents = {
   navigationChanged: NavigationState;
   /** The player changed map through a portal. */
   mapChanged: { fromMapId: string; toMapId: string; portalId: string };
+
+  // --- Skill trees
+  /** One rank learned. */
+  skillRankChanged: { nodeId: string; rank: number; available: number };
+  /** All ranks returned. */
+  skillTreeReset: { refunded: number };
+  /** Which skills sit on the action bar changed (learned a new active, reset, job change). */
+  skillAvailabilityChanged: { loadout: Record<SkillSlot, SkillId | null> };
+  /** A proc passive fired (e.g. Guardian Instinct, Battle Instinct). */
+  skillProc: { entityId: EntityId; nodeId: string; statusId: StatusId };
+  /** A monster was taunted (Provoke): it turns on the caster. */
+  taunted: { casterId: EntityId; targetId: EntityId };
 
   // --- Quest Engine
   questAvailable: { questId: string; title: string; questType: QuestType };

@@ -184,8 +184,8 @@ describe('derived stats (literal formulas, origin 0)', () => {
 });
 
 describe('modifier pipeline', () => {
-  test('all seven sources are supported and summed into final stats', () => {
-    assert.deepEqual([...MODIFIER_SOURCES], ['base', 'allocated', 'job', 'equipment', 'pet', 'buff', 'debuff']);
+  test('every source (incl. learned passive skills) is supported and summed into final stats', () => {
+    assert.deepEqual([...MODIFIER_SOURCES], ['base', 'allocated', 'job', 'skill', 'equipment', 'pet', 'buff', 'debuff']);
     const mods = [
       primaryModifier('base', 'base', { str: 5 }),
       primaryModifier('allocated', 'allocated', { str: 1 }),
@@ -257,8 +257,8 @@ describe('player combat stats (literal stats on class base growth)', () => {
 describe('stat reset item', () => {
   test('returns exactly the allocated points and nothing else changes', () => {
     const owner = makeOwner(20);
-    owner.progress.skillPointsSpent = 7;
     changeJob(owner, 'warrior');
+    Object.assign(owner.progress.skillRanks, { power_slash: 5, charge: 1, shield_bash: 1 }); // 7 SP spent
     allocateStat(owner, 'str', 10);
     allocateStat(owner, 'luk', 5);
     const inventory = new Inventory();

@@ -24,7 +24,7 @@ function midGame() {
   changeJob(t, 'warrior');
   allocateStat(t, 'str', 6);
   allocateStat(t, 'vit', 3);
-  t.progress.skillPointsSpent = 4;
+  Object.assign(t.progress.skillRanks, { power_slash: 2, heavy_armor_mastery: 2 }); // 4 of 5 SP spent at Lv15
   t.inventory.add('slime_gel', 7);
   t.inventory.add('stat_reset_test', 1);
   t.inventory.add('egg_fine', 2);
@@ -226,7 +226,8 @@ describe('impossible state is rejected', () => {
     assert.throws(bad((s) => ((s as { classId: string }).classId = 'Warrior')), /classId/);
     assert.throws(bad((s) => (s.stats.allocated.str = 50)), /more stat points/);
     assert.throws(bad((s) => (s.unspentStatPoints = 99)), /unspentStatPoints/);
-    assert.throws(bad((s) => (s.skillPointsSpent = 6)), /more skill points spent/);
+    assert.throws(bad((s) => (s.skillPointsSpent = 6)), /skillPointsSpent does not match/);
+    assert.throws(bad((s) => ((s.skillRanks = { power_slash: 5, heavy_armor_mastery: 1 }), (s.skillPointsSpent = 6))), /more skill points spent/);
     assert.throws(bad((s) => (s.inventory = [{ itemId: 'nope' as never, count: 1 }])), /inventory/);
   });
 
@@ -239,7 +240,8 @@ describe('impossible state is rejected', () => {
     assert.throws(bad((s) => (s.equipment.equipped.weapon = 'eq-6')), /equipped/); // 2H with an off-hand
     assert.throws(bad((s) => (s.equipment.equipped.armor = 'eq-3')), /wrong_slot|already_equipped/);
     assert.throws(bad((s) => (s.equipment.equipped.ring_2 = 'eq-5')), /already_equipped/);
-    assert.throws(bad((s) => ((s as { classId: string }).classId = 'archer')), /class_restricted|weapon_not_allowed/);
+    assert.throws(bad((s) => (((s as { classId: string }).classId = 'archer'), (s.skillRanks = {}), (s.skillPointsSpent = 0))), /class_restricted|weapon_not_allowed/);
+    assert.throws(bad((s) => ((s as { classId: string }).classId = 'archer')), /no skill tree/, 'Warrior ranks on a job without that tree');
   });
 
   test('level, EXP and Field Energy', () => {

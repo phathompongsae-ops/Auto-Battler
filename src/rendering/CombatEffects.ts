@@ -26,6 +26,7 @@ const FAIL_MESSAGES: Record<SkillFailReason, string> = {
   no_target: 'No target',
   out_of_range: 'Out of range',
   no_mp: 'Not enough MP',
+  not_learned: 'Not learned',
 };
 
 /** Bottom of monster floating text, relative to the monster position. */
@@ -108,6 +109,14 @@ export class CombatEffects {
       const by = world.getEntity(byId);
       const item = ITEMS[itemId];
       if (by) this.text.show(by.x, textY(by, 'loot'), `+1 ${item.name}`, { color: hex(item.color), size: 13 });
+    });
+
+    // TEMPORARY VFX for area skills without art (Whirlwind, Provoke): a ring showing their real radius.
+    ev.on('skillUsed', ({ casterId, skillId }) => {
+      const caster = world.getEntity(casterId);
+      const skill = caster && world.skills.definition(caster, skillId);
+      const e = skill?.effect;
+      if (caster && skill && e && (e.kind === 'aoe_damage' || e.kind === 'taunt')) this.ring(caster.x, centerY(caster), skill.color ?? 0xffffff, e.radius, 300);
     });
 
     ev.on('statusApplied', ({ targetId, statusId }) => {
