@@ -79,9 +79,19 @@ describe('job definitions (one class system)', () => {
     assert.equal(jobDefinition('novice').levelLimit, null);
   });
 
-  test('presentation: Warrior is real; the others are an explicit temporary fallback', () => {
+  test('presentation: every Class 1 job has its own art; only Novice borrows the Warrior art', () => {
     assert.equal(jobDefinition('warrior').presentation.temporaryFallback, false);
-    for (const id of ['novice', 'archer', 'mage', 'cleric', 'ninja'] as const) assert.equal(jobDefinition(id).presentation.temporaryFallback, true, id);
+    assert.equal(jobDefinition('novice').presentation.temporaryFallback, true);
+    const names = new Set<string>();
+    for (const id of ['warrior', 'archer', 'mage', 'cleric', 'ninja'] as const) {
+      const p = jobDefinition(id).presentation;
+      assert.equal(p.temporaryFallback, false, id);
+      assert.equal(p.art.displayName, jobDefinition(id).displayName, `${id} is drawn as itself`);
+      names.add(p.art.displayName);
+    }
+    assert.equal(names.size, 5, 'five distinct sprite sets');
+    // Skills are out of scope: only Warrior has its real kit.
+    for (const id of ['archer', 'mage', 'cleric', 'ninja'] as const) assert.equal(jobDefinition(id).presentation.temporaryKit, true, id);
   });
 });
 

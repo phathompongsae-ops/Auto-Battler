@@ -1,5 +1,5 @@
 import type { Action, ActionSource } from './Action';
-import type { Direction, DirectionSource } from './Direction';
+import type { Direction, DirectionSource, MoveIntent } from './Direction';
 
 /**
  * Merges several input sources into one movement intent and one set of
@@ -15,6 +15,21 @@ export class InputController {
   /** Sources are checked in order; the first one asking for movement wins. */
   getDirection(): Direction | null {
     for (const source of this.directionSources) {
+      const dir = source.getDirection();
+      if (dir) return dir;
+    }
+    return null;
+  }
+
+  /**
+   * This frame's movement intent: like getDirection, but an analog source
+   * (the touch joystick) contributes its free vector, so diagonal movement
+   * is possible. Sources are still checked in order.
+   */
+  getMove(): MoveIntent | null {
+    for (const source of this.directionSources) {
+      const vector = source.getVector?.();
+      if (vector) return vector;
       const dir = source.getDirection();
       if (dir) return dir;
     }

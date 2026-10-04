@@ -283,7 +283,11 @@ describe('Novice vs demo Warrior', () => {
     assert.equal(presentationFor('novice').art.displayName, 'Warrior');
     assert.equal(presentationFor('novice').temporaryFallback, true, 'explicitly a temporary fallback');
     assert.equal(presentationFor('warrior').temporaryFallback, false, 'real for a Warrior');
-    for (const job of ['archer', 'mage', 'cleric', 'ninja'] as const) assert.equal(CLASS_PRESENTATION[job].temporaryFallback, true, job);
+    // Class 1 jobs have their own art now; only their skill kit is still the temporary demo kit.
+    for (const job of ['archer', 'mage', 'cleric', 'ninja'] as const) {
+      assert.equal(CLASS_PRESENTATION[job].temporaryFallback, false, job);
+      assert.equal(CLASS_PRESENTATION[job].temporaryKit, true, job);
+    }
     const save = capturePlayerSave(makeSaveTarget(1));
     assert.equal(save.classId, 'novice');
     assert.deepEqual(save.stats.jobBonuses, {});

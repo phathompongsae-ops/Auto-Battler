@@ -16,6 +16,7 @@ import { jobChangeSuite } from './jobChange.test.mjs';
 import { warriorSkillSuite } from './warriorSkills.test.mjs';
 import { recurringSuite } from './recurring.test.mjs';
 import { featureUnlockSuite } from './featureUnlock.test.mjs';
+import { classArtSuite, floatingJoystickSuite } from './classArt.test.mjs';
 
 const PORT = 5199;
 const URL = `http://127.0.0.1:${PORT}/`;
@@ -65,6 +66,8 @@ try {
   await warriorSkillSuite(b, t);
   await recurringSuite(b, t);
   await featureUnlockSuite(b, t);
+  const artSummary = await classArtSuite(b, t, shot);
+  console.log(`  class art anchors (worst world px): ${JSON.stringify(artSummary)}`);
   await hudSuite(b, t, shot);
   await combatSuite(b, t, shot);
   await combatPerformance(b, t);
@@ -80,6 +83,7 @@ try {
     b.touch({ start: 'touchStart', move: 'touchMove', end: 'touchEnd' }[phase], x, y),
   );
   await hudTouchSuite(b, t, shot);
+  await floatingJoystickSuite(b, t, shot);
 
   t.section('Console');
   t.check('26. no console errors or exceptions', b.consoleErrors.length === 0, b.consoleErrors.join(' | '));

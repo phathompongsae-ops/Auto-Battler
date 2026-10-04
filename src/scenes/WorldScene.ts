@@ -64,7 +64,7 @@ export class WorldScene extends Phaser.Scene {
     this.physics.world.setBounds(0, 0, worldWidth, worldHeight);
 
     // A new character is a Novice; its presentation is the temporary Warrior fallback (see demoConfig).
-    // Every class currently shares one sprite set, so a job change needs no sprite swap yet.
+    // Each Class 1 job has its own sprite set; syncClassArt() swaps it in when the job changes or a save loads.
     const demoArt = presentationFor(STARTING_JOB).art;
     const playerArt = isCharacterArtReady(this, demoArt) ? demoArt : null;
     this.player = new Player(this, PLAYER_SPAWN.x, PLAYER_SPAWN.y, playerArt);
@@ -132,7 +132,8 @@ export class WorldScene extends Phaser.Scene {
   }
 
   update(_time: number, delta: number): void {
-    this.world.update(delta, this.controls.getDirection());
+    this.syncClassArt();
+    this.world.update(delta, this.controls.getMove());
 
     // Hit stop freezes the simulation; keep physics in step with it.
     const physics = this.physics.world;
@@ -141,5 +142,15 @@ export class WorldScene extends Phaser.Scene {
 
     this.overlays.update(this.world.now);
     this.hud.update(this.world.now);
+  }
+
+  /**
+   * Draw the player with its class's sprite set. Checked every frame so a
+   * Job Change, a loaded save or a debug reset all switch the art the same
+   * way. Placeholder mode (no art loaded) is left alone.
+   */
+  private syncClassArt(): void {
+    const art = presentationFor(this.player.progress.classId).art;
+    if (this.player.currentArt && art !== this.player.currentArt && isCharacterArtReady(this, art)) this.player.setArt(art);
   }
 }

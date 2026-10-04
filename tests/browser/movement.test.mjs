@@ -93,21 +93,23 @@ export async function movementSuite(b, t, shot) {
 export async function dragSuite(b, t, label, input) {
   const state = () => b.eval(PLAYER_STATE);
   const start = await state();
-  await input('start', 480, 300);
+  // Left part of the screen: on touch, that is the floating joystick's zone.
+  await input('start', 300, 300);
   await sleep(50);
-  await input('move', 490, 302);
+  await input('move', 310, 302);
   await sleep(150);
   let s = await state();
   t.check(`${label}: drag inside dead zone does not move`, s.state === 'idle', s.state);
-  await input('move', 420, 305);
+  await input('move', 240, 305);
   await sleep(500);
   s = await state();
   t.check(`${label}: drag left walks left`, s.state === 'walk' && s.facing === 'left' && s.x < start.x - 40, `${s.state}/${s.facing} dx=${(s.x - start.x).toFixed(1)}`);
-  await input('move', 425, 380);
+  await input('move', 245, 380);
   await sleep(300);
   s = await state();
-  t.check(`${label}: dominant drag axis wins (down)`, s.facing === 'down' && s.vx === 0 && s.vy > 0, `${s.facing} vx=${s.vx} vy=${s.vy}`);
-  await input('end', 425, 380);
+  // The stick is analog: a mostly-down drag moves diagonally while the sprite faces the dominant axis.
+  t.check(`${label}: diagonal drag moves diagonally, faces the dominant axis (down)`, s.facing === 'down' && s.vx < 0 && s.vy > 0 && s.vy > -s.vx, `${s.facing} vx=${s.vx} vy=${s.vy}`);
+  await input('end', 245, 380);
   await sleep(100);
   s = await state();
   t.check(`${label}: release stops`, s.state === 'idle' && s.vx === 0 && s.vy === 0, s.state);

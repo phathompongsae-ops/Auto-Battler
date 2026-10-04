@@ -15,6 +15,8 @@ export class PlayerFrame {
   private readonly level: HTMLSpanElement;
   private readonly expText: HTMLSpanElement;
   private readonly nameEl: HTMLSpanElement;
+  private readonly portrait: HTMLDivElement;
+  private portraitArt: CharacterArt | null = null;
 
   constructor(
     private readonly player: Player,
@@ -22,13 +24,9 @@ export class PlayerFrame {
   ) {
     this.level = h('span', { className: 'hud-portrait__level' });
     const portrait = h('div', { className: 'hud-portrait', attrs: { 'data-hud': 'portrait' } }, [this.level]);
-    if (art) {
-      portrait.style.backgroundImage = `url("${art.portrait.url}")`;
-      portrait.style.backgroundSize = art.portrait.size;
-      portrait.style.backgroundPosition = art.portrait.position;
-    } else {
-      portrait.prepend('P');
-    }
+    this.portrait = portrait;
+    if (art) this.showPortrait(art);
+    else portrait.prepend('P');
 
     this.expText = h('span', { className: 'ui-caption' });
     // The character's real job, not the (demo) art's name.
@@ -42,7 +40,18 @@ export class PlayerFrame {
     this.el.dataset.hud = 'player';
   }
 
+  /** Follows the player's sprite set (it changes with the job). */
+  private showPortrait(art: CharacterArt): void {
+    this.portraitArt = art;
+    this.portrait.style.backgroundImage = `url("${art.portrait.url}")`;
+    this.portrait.style.backgroundSize = art.portrait.size;
+    this.portrait.style.backgroundPosition = art.portrait.position;
+    this.portrait.dataset.art = art.displayName.toLowerCase();
+  }
+
   update(): void {
+    const art = this.player.currentArt;
+    if (art && art !== this.portraitArt) this.showPortrait(art);
     const c = this.player.combat;
     this.hp.set(c.hp, c.stats.maxHp);
     this.mp.set(c.mp, c.stats.maxMp);

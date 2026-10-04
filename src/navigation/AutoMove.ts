@@ -1,5 +1,5 @@
 import { NAV_DEFAULT_RADIUS, type NavPoint, type NavTarget } from '../data/navigationData';
-import type { Direction } from '../input/Direction';
+import type { Direction, MoveIntent } from '../input/Direction';
 import type { QuestSystem } from '../quests/QuestSystem';
 import type { NavIndex, RouteStep } from './NavIndex';
 import { steerToward, type PathPlanner } from './pathing';
@@ -121,7 +121,7 @@ export class AutoMove {
    * Auto Move immediately (it never restarts by itself) and is used as-is;
    * without one, Auto Move steers.
    */
-  drive(manual: Direction | null, dtMs: number, speed: number): Direction | null {
+  drive(manual: MoveIntent | null, dtMs: number, speed: number): MoveIntent | null {
     if (manual) {
       this.cancel('manual_input');
       return manual;

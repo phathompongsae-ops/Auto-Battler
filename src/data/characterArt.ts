@@ -114,18 +114,31 @@ export interface CharacterArt {
 }
 
 const WARRIOR_DIR = 'assets/characters/warrior/anims';
+const WARRIOR_FEET_Y = 157;
 
+/** Shared loop speeds of the Class 1 animation set (attack speeds are per class). */
+const IDLE_FPS = 5;
+const WALK_FPS = 10;
+
+/**
+ * @param feetRow Row the feet actually stand on in this strip when it differs
+ *   from WARRIOR_FEET_Y: the older Warrior strips were generated at slightly
+ *   different heights (153-157), so each is planted through offsetY instead
+ *   of editing its pixels. Measured as the lowest row with >= 12 opaque px.
+ */
 const strip = (
   name: string,
   frames: number,
   frameRate: number,
   visibleHeight: number,
+  feetRow = WARRIOR_FEET_Y,
 ): CharacterAnimArt => ({
   key: `warrior-${name}`,
   url: `${WARRIOR_DIR}/warrior_${name}.png`,
   frames,
   frameRate,
   visibleHeight,
+  ...(feetRow !== WARRIOR_FEET_Y ? { offsetY: feetRow - WARRIOR_FEET_Y } : {}),
 });
 
 const POWER_SLASH_VFX: ActionVfx = {
@@ -142,7 +155,7 @@ export const WARRIOR_ART: CharacterArt = {
     position: '50% 22%',
   },
   frameSize: 192,
-  feetY: 157,
+  feetY: WARRIOR_FEET_Y,
   referenceHeight: 125,
   worldHeight: 40,
   feetOffset: 13,
@@ -151,14 +164,14 @@ export const WARRIOR_ART: CharacterArt = {
   smooth: true,
   anims: {
     idle: {
-      down: strip('idle_south', 4, 4, 120),
-      // Single static frame: the back sprite (no generated back idle yet).
-      up: strip('idle_north', 1, 1, 125),
-      right: strip('idle_east', 4, 4, 128),
+      down: strip('idle_south', 4, IDLE_FPS, 120, 153),
+      // 4-frame back idle (Class 1 animation set); feet on the same row as walk_north.
+      up: strip('idle_v2_north', 4, IDLE_FPS, 124, 156),
+      right: strip('idle_east', 4, IDLE_FPS, 128),
     },
     walk: {
-      down: strip('walk_south', 8, 10, 121),
-      up: strip('walk_north', 8, 10, 126),
+      down: strip('walk_south', 8, 10, 121, 154),
+      up: strip('walk_north', 8, 10, 126, 155),
       right: strip('walk_east', 8, 10, 121),
     },
   },
@@ -170,7 +183,7 @@ export const WARRIOR_ART: CharacterArt = {
       // 7 frames = 389 ms. Frame 4 is the downward cut to the right hip.
       up: { ...strip('attack_north', 7, 18, 125), hitFrame: 4 },
       // 8 frames = 444 ms. Frame 4 is the forward cut. West mirrors this strip.
-      right: { ...strip('attack_east', 8, 18, 124), hitFrame: 4 },
+      right: { ...strip('attack_east', 8, 18, 124, 155), hitFrame: 4 },
     },
     powerSlash: {
       // 10 frames at 16 fps = 625 ms: wind-up 1-4, cut on 5, follow-through, return.
@@ -183,6 +196,76 @@ export const WARRIOR_ART: CharacterArt = {
     power_strike: 'powerSlash',
   },
 };
+
+/*
+ * Archer / Mage / Cleric / Ninja: production strips from the Class 1
+ * animation set (art-source/characters/class1_animation_manifest.json).
+ * Every strip is already normalised to one standard — 192 px cells, feet on
+ * row 153, body axis at x=95, one body scale — so they share a single render
+ * scale and need no per-animation height correction. West mirrors East.
+ */
+const CLASS1_FEET_Y = 153;
+/** Source height drawn at `worldHeight`; same body scale as the Warrior master (125 px -> 40 px). */
+const CLASS1_REFERENCE_HEIGHT = 125;
+/** Body axis is x=95 in the 192 px cell; nudging the pivot there keeps the body still when mirrored. */
+const CLASS1_AXIS_NUDGE_X = 1;
+
+type ClassArtId = 'archer' | 'mage' | 'cleric' | 'ninja';
+
+interface Class1ArtSpec {
+  id: ClassArtId;
+  displayName: string;
+  /** Basic attack playback rate (8 frames). */
+  attackFps: number;
+  /**
+   * Visually preferred hit / release frame per direction (0-based; East also
+   * serves West). Presentation only: combat damage timing is the skill's own.
+   */
+  attackHitFrame: Record<ArtDirection, number>;
+}
+
+const ART_DIRS: Record<ArtDirection, string> = { down: 'south', up: 'north', right: 'east' };
+
+function class1Art(spec: Class1ArtSpec): CharacterArt {
+  const dir = `assets/characters/${spec.id}`;
+  const anim = (name: string, art: ArtDirection, frames: number, frameRate: number): CharacterAnimArt => ({
+    key: `${spec.id}-${name}_${ART_DIRS[art]}`,
+    url: `${dir}/anims/${spec.id}_${name}_${ART_DIRS[art]}.png`,
+    frames,
+    frameRate,
+    visibleHeight: CLASS1_REFERENCE_HEIGHT,
+    offsetX: CLASS1_AXIS_NUDGE_X,
+  });
+  const loop = (name: 'idle' | 'walk', frames: number, fps: number) =>
+    ({ down: anim(name, 'down', frames, fps), up: anim(name, 'up', frames, fps), right: anim(name, 'right', frames, fps) });
+  const attack = (art: ArtDirection): CharacterActionArt => ({ ...anim('attack', art, 8, spec.attackFps), hitFrame: spec.attackHitFrame[art] });
+  return {
+    displayName: spec.displayName,
+    portrait: { url: `${dir}/${spec.id}_south_master.png`, size: '230%', position: '50% 22%' },
+    frameSize: 192,
+    feetY: CLASS1_FEET_Y,
+    referenceHeight: CLASS1_REFERENCE_HEIGHT,
+    worldHeight: 40,
+    feetOffset: 13,
+    bodyWidth: 70,
+    effectPadding: { x: 7, y: 5 },
+    smooth: true,
+    anims: { idle: loop('idle', 4, IDLE_FPS), walk: loop('walk', 8, WALK_FPS) },
+    actions: { attack: { down: attack('down'), up: attack('up'), right: attack('right') }, powerSlash: {} },
+    skillActions: {
+      basic_attack: 'attack',
+      // TEMPORARY: these classes still play the Warrior demo kit (demoConfig);
+      // its strikes reuse the class's own basic attack until real skills exist.
+      power_strike: 'attack',
+      fire_bolt: 'attack',
+    },
+  };
+}
+
+export const ARCHER_ART = class1Art({ id: 'archer', displayName: 'Archer', attackFps: 16, attackHitFrame: { down: 5, up: 5, right: 4 } });
+export const MAGE_ART = class1Art({ id: 'mage', displayName: 'Mage', attackFps: 16, attackHitFrame: { down: 4, up: 3, right: 4 } });
+export const CLERIC_ART = class1Art({ id: 'cleric', displayName: 'Cleric', attackFps: 18, attackHitFrame: { down: 4, up: 4, right: 4 } });
+export const NINJA_ART = class1Art({ id: 'ninja', displayName: 'Ninja', attackFps: 20, attackHitFrame: { down: 3, up: 3, right: 2 } });
 
 /** Render scale that brings an animation to the shared on-screen height. */
 export function artScale(art: CharacterArt, anim: CharacterAnimArt): number {

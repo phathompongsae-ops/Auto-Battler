@@ -21,7 +21,7 @@
     "alignment": "Per-direction integer offset measured on the static rotation (feet to y=153, boot/body centre to x=95) and applied to every frame of that direction.",
     "walkGrounding": "Walk strips: per-frame integer vertical re-registration so the lowest planted-foot row sits on y=153 (removes whole-body float; the body bob relative to the feet is kept).",
     "production": "Horizontal strips of 192x192 cells in public/assets/characters/<class>/anims/<class>_<anim>_<dir>.png (same convention as the Warrior). West is not stored: the renderer mirrors East.",
-    "gameplayCode": "Not changed. characterArt.ts does not reference the new strips yet."
+    "gameplayCode": "Integrated (see integration). Combat timing unchanged."
   },
   "recommendedPlayback": {
     "idle": "5 fps loop (Warrior currently 4 fps in code)",
@@ -73,11 +73,11 @@
       },
       "animations": {
         "existing": {
-          "note": "Unchanged and still the in-game assets (anims/warrior_*). Feet sit at y~156-157 in these strips; the renderer normalises per animation (characterArt.ts visibleHeight / feetY=157).",
+          "note": "Still the in-game Warrior strips (not edited). Each is planted through a per-strip offsetY in characterArt.ts (feet rows: idle_south 153, idle_v2_north 156, walk_south 154, walk_north 155, attack_east 155, others 157).",
           "idle": {
-            "south": "4f @4fps",
-            "east": "4f @4fps",
-            "north": "1 static frame (warrior_idle_north.png)"
+            "south": "4f @5fps (was 4)",
+            "east": "4f @5fps (was 4)",
+            "north": "4f @5fps warrior_idle_v2_north.png (was 1 static frame)"
           },
           "walk": {
             "south": "8f @10fps",
@@ -103,7 +103,7 @@
           "loop": true,
           "pixellabGroup": "4926ff4f-ef39-4bde-9476-efcf79f296b6",
           "alignment": "matches the existing warrior_walk_north.png (feet y=156, axis x=95), not the new y=153 standard, so it can drop into the current Warrior pipeline",
-          "status": "CANDIDATE — not wired (in-game north idle is still 1 static frame; switching needs characterArt.ts frames 1 -> 4)",
+          "status": "WIRED — WARRIOR_ART.anims.idle.up (4 frames)",
           "note": "The older PixelLab idle_skel north was unusable (rendered facing south)."
         }
       }
@@ -593,5 +593,27 @@
   "openIssues": [
     "directional_attack_visual_pending: Archer South, Archer North, Mage South attacks aim/cast sideways. Replace before external/public demo when directional projectile/cast presentation is finalized.",
     "Mage North walk: staff hidden behind the cloak for 4 frames; Ninja North walk turns slightly mid-cycle (minor)."
-  ]
+  ],
+  "integration": {
+    "date": "2026-10-04",
+    "config": "src/data/characterArt.ts — WARRIOR_ART plus class1Art() builder for ARCHER_ART / MAGE_ART / CLERIC_ART / NINJA_ART; src/data/demoConfig.ts maps every Class 1 job to its own art (Novice keeps the Warrior fallback).",
+    "runtimeSwap": "Player.setArt() rebuilds the player-<anim>-<dir> animations; WorldScene.syncClassArt() swaps whenever the class presentation changes (job change, load, reset). HUD portrait follows.",
+    "west": "Runtime mirror of East (flipX). New classes use offsetX=1 so the pivot sits on the body axis x=95 in both facings.",
+    "scale": "New classes: one render scale 40/125 for every strip (already normalised). Warrior keeps its per-strip visibleHeight normalisation.",
+    "feet": "New classes feetY=153. Warrior feetY=157 with per-strip offsetY. Browser test C-2/C-3 measures feet and boot centre per rendered frame: worst world px — warrior feet 1.28 / centre 1.85, archer 0.32/0.56, mage 0/1.21, cleric 0.32/1.31, ninja 0.64/1.46.",
+    "fps": {
+      "idle": 5,
+      "walk": 10,
+      "attack": {
+        "warrior": "18 (unchanged; Power Slash 16)",
+        "archer": 16,
+        "mage": 16,
+        "cleric": 18,
+        "ninja": 20
+      }
+    },
+    "hitFrames": "Per class/direction in CharacterActionArt.hitFrame: drives the PLAYER_ACTION_HIT presentation event (VFX) only.",
+    "combatTimingDiscrepancy": "Authoritative combat is unchanged: basic_attack has no wind-up, so its damage lands when the skill fires, before the visual release frame (Warrior frame 4 @18 fps = 222 ms, Archer 5 @16 = 313 ms, Mage 4 @16 = 250 ms, Cleric 4 @18 = 222 ms, Ninja 2-3 @20 = 100-150 ms). Power Slash wind-up (312 ms) still matches the Warrior frame 5. To be synchronised when real class combat is implemented.",
+    "demoKit": "Archer / Mage / Cleric / Ninja still play the Warrior demo kit (temporaryKit). Its Power Strike / Fire Bolt reuse each class's own basic-attack strip as a TEMPORARY visual."
+  }
 }

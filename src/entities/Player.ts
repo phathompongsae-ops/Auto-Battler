@@ -18,7 +18,7 @@ import {
 import { PLAYER_HIT_RADIUS } from '../data/playerData';
 import type { SkillId } from '../data/skillData';
 import { PLAYER_KEY, PLAYER_PLACEHOLDER_LAYOUT, playerFrame } from '../graphics/placeholderTextures';
-import { DIRECTIONS, DIRECTION_VECTORS, type Direction } from '../input/Direction';
+import { cardinalFacing, DIRECTIONS, DIRECTION_VECTORS, type Direction, type MoveIntent } from '../input/Direction';
 import { CharacterProgress } from '../progression/CharacterProgress';
 import { ModifierStack } from '../stats/ModifierStack';
 import { EquipmentManager } from '../equipment/equipment';
@@ -55,7 +55,10 @@ export class Player extends Phaser.Physics.Arcade.Sprite implements CombatEntity
   readonly id = 'player';
   readonly hitRadius = PLAYER_HIT_RADIUS;
   readonly combat: CombatantState;
-  /** Where the current art is drawn; overhead UI and auras are placed from it. */
+  /**
+   * Where the current art is drawn; overhead UI and auras are placed from it.
+   * Updated in place when the art changes, so holders of this object stay current.
+   */
   readonly layout: CharacterVisualLayout;
   /** Job, base / allocated stats, job bonuses, skill points (persistent stat inputs). */
   readonly progress = new CharacterProgress();
@@ -95,7 +98,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite implements CombatEntity
     scene: Phaser.Scene,
     x: number,
     y: number,
-    private readonly art: CharacterArt | null = null,
+    private art: CharacterArt | null = null,
   ) {
     super(scene, x, y, PLAYER_KEY, playerFrame('down', 0));
     scene.add.existing(this);
@@ -110,28 +113,69 @@ export class Player extends Phaser.Physics.Arcade.Sprite implements CombatEntity
       // A class can't level past its last base-growth anchor (Class 1: Lv40).
       () => classGrowthMaxLevel(this.progress.classId) ?? MAX_LEVEL,
     );
-    this.layout = art ? artLayout(art) : PLAYER_PLACEHOLDER_LAYOUT;
+    this.layout = art ? artLayout(art) : { ...PLAYER_PLACEHOLDER_LAYOUT };
 
     this.setCollideWorldBounds(true);
 
-    Player.createAnimations(scene, art);
+    Player.createAnimations(scene, art, false);
     this.on(Phaser.Animations.Events.ANIMATION_UPDATE, this.onAnimationUpdate, this);
     this.on(Phaser.Animations.Events.ANIMATION_COMPLETE, this.onAnimationComplete, this);
     this.playAnim('idle', 'down');
   }
 
-  /** Apply one frame of movement intent. Pass null to stand still. */
-  move(direction: Direction | null): void {
+  /** The sprite set in use (null = canvas placeholder). */
+  get currentArt(): CharacterArt | null {
+    return this.art;
+  }
+
+  /**
+   * Switch to another sprite set (job change, load). Rebuilds the player
+   * animations under the same keys, keeps state and facing, drops any
+   * one-shot action (presentation only; combat is unaffected).
+   */
+  setArt(art: CharacterArt): void {
+    if (!this.art || art === this.art) return;
+    this.art = art;
+    Object.assign(this.layout, artLayout(art));
+    this.anims.stop();
+    this.action = null;
+    this.queuedAction = null;
+    Player.createAnimations(this.scene, art, true);
+    this.viewKey = '';
+    if (this.state === 'dead') {
+      const angle = this.angle;
+      this.die();
+      this.setAngle(angle);
+    } else {
+      this.playAnim(this.state, this.facing);
+    }
+  }
+
+  /**
+   * Apply one frame of movement intent. Pass null to stand still. A free
+   * vector (analog stick) moves in that exact direction at full speed while
+   * the sprite faces the nearest cardinal direction (with hysteresis).
+   */
+  move(intent: MoveIntent | null): void {
     this.queuedAction = null;
     if (this.combat.dead) {
       this.body.setVelocity(0, 0);
       return;
     }
-    if (direction) {
-      const v = DIRECTION_VECTORS[direction];
+    if (intent) {
       const speed = this.combat.stats.moveSpeed;
+      let v: { x: number; y: number };
+      let facing: Direction;
+      if (typeof intent === 'string') {
+        v = DIRECTION_VECTORS[intent];
+        facing = intent;
+      } else {
+        const len = Math.hypot(intent.x, intent.y) || 1;
+        v = { x: intent.x / len, y: intent.y / len };
+        facing = cardinalFacing(v, this.state === 'walk' ? this.facing : null);
+      }
       this.body.setVelocity(v.x * speed, v.y * speed);
-      this.facing = direction;
+      this.facing = facing;
       // Moving always wins over an action so input never feels stuck.
       this.action = null;
       this.setPlayerState('walk');
@@ -306,8 +350,19 @@ export class Player extends Phaser.Physics.Arcade.Sprite implements CombatEntity
     this.body.setOffset(this.displayOriginX + BODY.left / sx, this.displayOriginY + BODY.top / sy);
   }
 
-  private static createAnimations(scene: Phaser.Scene, art: CharacterArt | null): void {
-    if (scene.anims.exists(animKey('idle', 'down'))) return;
+  /**
+   * Player animations live under fixed keys (player-<anim>-<dir>). With
+   * `replace`, the previous set is removed first (art swap); otherwise an
+   * existing set is reused.
+   */
+  private static createAnimations(scene: Phaser.Scene, art: CharacterArt | null, replace: boolean): void {
+    if (replace) {
+      for (const dir of DIRECTIONS) {
+        for (const name of ['idle', 'walk', 'attack', 'powerSlash'] as const) scene.anims.remove(animKey(name, dir));
+      }
+    } else if (scene.anims.exists(animKey('idle', 'down'))) {
+      return;
+    }
 
     for (const dir of DIRECTIONS) {
       if (art) {

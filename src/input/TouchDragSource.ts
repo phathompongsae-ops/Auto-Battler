@@ -1,13 +1,29 @@
 import Phaser from 'phaser';
-import type { Direction, DirectionSource } from './Direction';
+import type { Direction, DirectionSource, MoveVector } from './Direction';
 
-const DEAD_ZONE = 16; // screen pixels before a drag counts as movement
+/** Screen pixels a drag must travel before it counts as movement. */
+export const JOYSTICK_DEAD_ZONE = 16;
+/** Touches in this left share of the screen spawn the joystick; the rest is free for aiming / buttons. */
+export const JOYSTICK_ZONE_FRACTION = 0.48;
+/** Base radius in screen pixels at UI scale 1 (matches the 110 px base drawn by the HUD). */
+export const JOYSTICK_BASE_RADIUS = 55;
 
 /**
- * Minimal touch / mouse "virtual joystick": press anywhere and drag; the
- * dominant drag axis becomes the direction. It has no visuals yet — the
- * final mobile UI (on-screen stick, buttons) will sit on top of this and can
- * read `origin` / `current` to draw itself.
+ * Mobile dynamic floating joystick (the movement input).
+ *
+ * - A touch that starts in the left JOYSTICK_ZONE_FRACTION of the screen
+ *   becomes the joystick: its own position is the base (pulled in from the
+ *   screen edges just enough for the base to fit).
+ * - Only that finger drives the stick; other touches are ignored until it
+ *   lifts. Lifting it (or losing focus) hides the stick, and the next touch
+ *   can place it somewhere else.
+ * - Past the dead zone the stick is analog: `getVector` gives the free drag
+ *   direction (diagonal movement allowed); `getDirection` its dominant axis.
+ *
+ * Mouse (desktop): pressing anywhere drags the stick the same way, so the
+ * keyboard-less desktop build keeps drag-to-move.
+ *
+ * Pure input: the HUD's Joystick draws it from `origin` / `current`.
  */
 export class TouchDragSource implements DirectionSource {
   origin: Phaser.Math.Vector2 | null = null;
@@ -23,13 +39,26 @@ export class TouchDragSource implements DirectionSource {
     scene.game.events.on(Phaser.Core.Events.BLUR, this.reset, this);
   }
 
-  getDirection(): Direction | null {
+  /** Free drag direction past the dead zone (unit length), or null. */
+  getVector(): MoveVector | null {
     if (!this.origin) return null;
     const dx = this.current.x - this.origin.x;
     const dy = this.current.y - this.origin.y;
-    if (Math.max(Math.abs(dx), Math.abs(dy)) < DEAD_ZONE) return null;
-    if (Math.abs(dx) > Math.abs(dy)) return dx < 0 ? 'left' : 'right';
-    return dy < 0 ? 'up' : 'down';
+    const len = Math.hypot(dx, dy);
+    if (len < JOYSTICK_DEAD_ZONE) return null;
+    return { x: dx / len, y: dy / len };
+  }
+
+  getDirection(): Direction | null {
+    const v = this.getVector();
+    if (!v) return null;
+    if (Math.abs(v.x) > Math.abs(v.y)) return v.x < 0 ? 'left' : 'right';
+    return v.y < 0 ? 'up' : 'down';
+  }
+
+  /** Whether a touch at this screen x may spawn the joystick. */
+  static inZone(x: number, screenWidth: number): boolean {
+    return x < screenWidth * JOYSTICK_ZONE_FRACTION;
   }
 
   destroy(): void {
@@ -42,9 +71,15 @@ export class TouchDragSource implements DirectionSource {
   }
 
   private onDown(pointer: Phaser.Input.Pointer): void {
-    if (this.pointerId !== null) return; // first finger owns the stick
+    if (this.pointerId !== null) return; // the owning finger keeps the stick
+    const { width, height } = this.scene.scale;
+    if (pointer.wasTouch && !TouchDragSource.inZone(pointer.x, width)) return;
     this.pointerId = pointer.id;
-    this.origin = new Phaser.Math.Vector2(pointer.x, pointer.y);
+    // The base appears under the finger, nudged inward only if it would leave the screen.
+    const r = Math.min(JOYSTICK_BASE_RADIUS, width / 4, height / 4);
+    const x = Phaser.Math.Clamp(pointer.x, r, width - r);
+    const y = Phaser.Math.Clamp(pointer.y, r, height - r);
+    this.origin = new Phaser.Math.Vector2(x, y);
     this.current.set(pointer.x, pointer.y);
   }
 
