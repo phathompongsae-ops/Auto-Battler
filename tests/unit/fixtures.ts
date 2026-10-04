@@ -27,6 +27,8 @@ import { ProgressionSystem } from '../../src/progression/ProgressionSystem';
 import { QuestSystem, type QuestRewardSink } from '../../src/quests/QuestSystem';
 import { RecurringQuests } from '../../src/quests/RecurringQuests';
 import { JobChange } from '../../src/progression/JobChange';
+import { FeatureProgression } from '../../src/features/FeatureProgression';
+import { JOBS } from '../../src/data/jobData';
 
 /** A complete player-like save target wired the way the game wires it. */
 export function makeSaveTarget(
@@ -44,7 +46,7 @@ export function makeSaveTarget(
   const progression = new ProgressionSystem(events, serverDay);
   const inventory = new Inventory();
   const wallet = new Wallet();
-  const features = new FeatureUnlocks();
+  const features = new FeatureUnlocks(events);
   const player = { id: 'p', x: 0, y: 0, hitRadius: 10, combat, progress };
   const rewards: QuestRewardSink = {
     grantExp: (amount) => progression.grantExp(player, amount),
@@ -54,7 +56,20 @@ export function makeSaveTarget(
       events.emit('itemAcquired', { itemId, amount: count, source: 'quest' });
     },
   };
-  const quests = new QuestSystem(
+  let quests: QuestSystem;
+  const featureProgression = new FeatureProgression(
+    features,
+    {
+      level: () => combat!.level,
+      classTier: () => JOBS[progress.classId].tier,
+      questClaimed: (id) => quests.status(id) === 'claimed',
+      serverDay: () => serverDay.day(),
+    },
+    events,
+    'p',
+  );
+  featureProgression.evaluate({ restored: true });
+  quests = new QuestSystem(
     questDefs,
     { level: () => combat!.level, classId: () => progress.classId, serverDay: () => serverDay.day() },
     features,
@@ -71,6 +86,7 @@ export function makeSaveTarget(
     fieldEnergy: FieldEnergy;
     entitlements: DungeonEntitlements;
     jobChange: JobChange;
+    featureProgression: FeatureProgression;
     events: EventBus<GameEvents>;
     progression: ProgressionSystem;
     player: typeof player;
@@ -93,6 +109,7 @@ export function makeSaveTarget(
     recurring,
     features,
     jobChange: new JobChange({ progress, combat }, quests, features, events, 'p'),
+    featureProgression,
     events,
     progression,
     player,

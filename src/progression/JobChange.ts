@@ -135,7 +135,7 @@ export class JobChange {
     const id = jobId as JobId;
     this.owner.combat.refreshStats();
     this.owner.combat.restore();
-    if (this.features.unlock(this.config.unlocksFeature)) this.events.emit('featureUnlocked', { featureId: this.config.unlocksFeature });
+    this.features.unlock(this.config.unlocksFeature);
     this.events.emit('jobChanged', { entityId: this.playerId, jobId: id, fromJobId: from, tier: JOBS[id].tier });
     return { ok: true, jobId: id };
   }

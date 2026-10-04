@@ -16,9 +16,11 @@ export class MenuBar {
   private newItems = 0;
   private readonly unsubscribe: () => void;
 
+  private readonly pinned: { id: ScreenId; button: HTMLButtonElement; title: string }[] = [];
+
   constructor(
     world: CombatWorld,
-    windows: WindowManager,
+    private readonly windows: WindowManager,
     private readonly quests: QuestProgressSource,
   ) {
     const buttons = SCREENS.filter((s) => s.pinned).map((s) => {
@@ -29,6 +31,7 @@ export class MenuBar {
         onClick: () => windows.toggle(s.id),
       });
       button.dataset.menu = s.id;
+      this.pinned.push({ id: s.id, button, title: button.title });
       this.badges.set(s.id, new Badge(button));
       return button;
     });
@@ -44,6 +47,14 @@ export class MenuBar {
   }
 
   update(): void {
+    // Locked systems: disabled, with the requirement as the tooltip.
+    for (const p of this.pinned) {
+      const reason = this.windows.lockReason(p.id);
+      p.button.disabled = !!reason;
+      p.button.title = reason ? `${p.title} — ${reason}` : p.title;
+      if (reason) p.button.dataset.locked = 'true';
+      else delete p.button.dataset.locked;
+    }
     this.badges.get('inventory')?.set(this.newItems);
     // Quests live under Menu; a dot there means one is ready to hand in.
     this.badges.get('menu')?.set(this.quests.progress().some((q) => q.done));

@@ -29,7 +29,18 @@ export class WindowManager {
     else this.open(id);
   }
 
-  open(id: ScreenId | 'menu'): void {
+  /** Why a screen can't be opened right now (its feature is locked), or null. */
+  lockReason(id: ScreenId | 'menu'): string | null {
+    if (id === 'menu') return null;
+    const feature = SCREEN_BY_ID[id].feature;
+    if (!feature) return null;
+    const check = this.ctx.world.featureProgression.check(feature);
+    return check.ok ? null : check.message;
+  }
+
+  /** Open a screen; a locked one doesn't open (whatever asked: hotkey, menu, button). */
+  open(id: ScreenId | 'menu'): boolean {
+    if (this.lockReason(id)) return false;
     this.close();
     const window =
       id === 'menu'
@@ -44,6 +55,7 @@ export class WindowManager {
     this.current = { id, window };
     this.host.append(window.el);
     this.emit();
+    return true;
   }
 
   close(): void {
@@ -69,7 +81,16 @@ export class WindowManager {
     return h(
       'div',
       { className: 'ui-menu-grid' },
-      SCREENS.map((s) => createButton({ label: s.title, icon: s.icon, onClick: () => this.open(s.id) })),
+      SCREENS.map((s) => {
+        const reason = this.lockReason(s.id);
+        const button = createButton({ label: s.title, icon: s.icon, title: reason ? `${s.title} — ${reason}` : s.title, onClick: () => this.open(s.id) });
+        button.dataset.screen = s.id;
+        if (!reason) return button;
+        // Locked systems stay visible so players can see what is coming.
+        button.disabled = true;
+        button.dataset.locked = 'true';
+        return h('div', { attrs: { 'data-locked-screen': s.id } }, [button, h('div', { className: 'ui-caption', text: reason })]);
+      }),
     );
   }
 

@@ -5,7 +5,7 @@ const stats = (b) => b.eval('debug.player().stats');
 
 export async function equipmentSuite(b, t) {
   t.section('Equipment in the running game');
-  await b.eval('debug.reset(); debug.setPeaceful(true)');
+  await b.eval('debug.reset(); debug.setPeaceful(true); debug.forceUnlockAllFeatures()');
   await sleep(100);
 
   const bare = await stats(b);
@@ -42,7 +42,7 @@ export async function equipmentSuite(b, t) {
 
 export async function petSuite(b, t) {
   t.section('Pets, eggs and the Special Shop in the running game');
-  await b.eval('debug.reset(); debug.setPeaceful(true)');
+  await b.eval('debug.reset(); debug.setPeaceful(true); debug.forceUnlockAllFeatures()');
   await sleep(100);
 
   const bare = await stats(b);
@@ -77,7 +77,7 @@ export async function petSuite(b, t) {
 
 export async function dungeonRewardSuite(b, t) {
   t.section('Dungeon rewards, daily quota, tickets and Assist in the running game');
-  await b.eval('debug.reset(); debug.setPeaceful(true); debug.setServerDay(3)');
+  await b.eval('debug.reset(); debug.setPeaceful(true); debug.setServerDay(3); debug.forceUnlockAllFeatures()');
   const preview = await b.eval(`debug.rollDungeonReward('demo_dungeon', 'hard', 9)`);
   const first = await b.eval(`debug.clearDungeon('demo_dungeon', 'hard', 9)`);
   const firstRun = JSON.stringify(first.run);

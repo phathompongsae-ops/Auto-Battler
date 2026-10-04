@@ -145,7 +145,7 @@ export class RecurringQuests {
   }
 
   private assign(questId: string): void {
-    if (this.quests.status(questId) === 'available') this.quests.start(questId);
+    if (questId in this.quests.defs && this.quests.status(questId) === 'available') this.quests.start(questId);
   }
 
   dailyQuestIds(): string[] {
@@ -158,7 +158,7 @@ export class RecurringQuests {
 
   /** Weekly quests claimed this week (milestone progress, out of 7). */
   weeklyClaimed(): number {
-    return this.weeklyQuestIds().filter((id) => this.quests.status(id) === 'claimed').length;
+    return this.weeklyQuestIds().filter((id) => id in this.quests.defs && this.quests.status(id) === 'claimed').length;
   }
 
   milestones(): MilestoneView[] {

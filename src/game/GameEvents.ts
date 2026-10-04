@@ -120,5 +120,6 @@ export type GameEvents = {
   /** Every objective done: ready to claim. */
   questCompleted: { questId: string };
   questClaimed: { questId: string };
-  featureUnlocked: { featureId: FeatureId };
+  /** A feature unlocked (once). `restored`: re-established on load / migration — no player notification. */
+  featureUnlocked: { featureId: FeatureId; displayName: string; description: string; restored: boolean };
 };

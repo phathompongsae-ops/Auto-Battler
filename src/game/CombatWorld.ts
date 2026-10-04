@@ -45,6 +45,12 @@ import { grantKillRewards } from './killRewards';
 import { QUESTS } from '../data/questData';
 import { FeatureUnlocks } from '../features/FeatureUnlocks';
 import { QuestSystem, type QuestRewardSink } from '../quests/QuestSystem';
+import { FeatureProgression } from '../features/FeatureProgression';
+import { PlayerActions } from './PlayerActions';
+import { JOBS } from '../data/jobData';
+import type { EquipmentSlot } from '../data/equipmentData';
+import type { EggTier } from '../data/petData';
+import type { IdSource } from '../equipment/factory';
 import { RecurringQuests } from '../quests/RecurringQuests';
 import { NAVIGATION } from '../data/navigationData';
 import { PROTOTYPE_MAP_ID } from '../data/navigation/demoNavigation';
@@ -52,7 +58,7 @@ import type { Location } from '../data/warpData';
 import { AutoMove } from '../navigation/AutoMove';
 import { NavIndex, portalTransition } from '../navigation/NavIndex';
 import { LPathPlanner, type CollisionGrid } from '../navigation/pathing';
-import { enhanceAndReport, type EnhanceOptions, type EnhanceResult } from '../equipment/enhancement';
+import type { EnhanceOptions } from '../equipment/enhancement';
 import { PlayerCombatController } from './PlayerCombatController';
 
 /**
@@ -145,7 +151,11 @@ export class CombatWorld implements MonsterWorld {
   private navGrid: (mapId: string) => CollisionGrid | undefined;
 
   /** Unlocked feature ids (Feature Unlock hook). */
-  readonly features = new FeatureUnlocks();
+  readonly features = new FeatureUnlocks(this.events);
+  /** The Demo progression gate (data-driven feature unlocks + "may the player use X?"). */
+  readonly featureProgression: FeatureProgression;
+  /** Player-facing system actions, each gated by its feature. */
+  readonly actions: PlayerActions;
   /** Data-driven quests, progressed by world events. */
   readonly quests: QuestSystem;
 
@@ -183,6 +193,51 @@ export class CombatWorld implements MonsterWorld {
       player.id,
     );
     this.recurring = new RecurringQuests(this.quests, this.features, this.serverDay, () => player.combat.level, questRewards, this.events);
+    this.featureProgression = new FeatureProgression(
+      this.features,
+      {
+        level: () => player.combat.level,
+        classTier: () => JOBS[player.progress.classId].tier,
+        questClaimed: (id) => this.quests.status(id) === 'claimed',
+        serverDay: () => this.serverDay.day(),
+      },
+      this.events,
+      player.id,
+    );
+    this.actions = new PlayerActions({
+      features: this.featureProgression,
+      inventory: this.inventory,
+      wallet: this.wallet,
+      equipment: player.equipment,
+      pets: player.pets,
+      crafting: this.crafting,
+      shop: this.specialShop,
+      warpUnlocks: this.warpUnlocks,
+      events: this.events,
+      rng: () => this.rewardRng,
+      world: {
+        location: () => this.location,
+        inCombat: () => this.playerEngaged(),
+        arrive: (destination, kind, leftDungeon) => {
+          // DEMO: same prototype scene — town at the spawn point, a dungeon at its entrance marker.
+          const from = this.location.mapId;
+          if (leftDungeon) this.leaveDungeon();
+          this.autoMove.cancel();
+          this.location = destination;
+          const entrance = this.navigation.find((t) => t.type === 'dungeon_entrance' && t.mapId === destination.mapId);
+          const at = kind === 'dungeon' && entrance ? entrance : this.playerSpawn;
+          this.player.body.reset(at.x, at.y);
+          this.events.emit('mapChanged', { fromMapId: from, toMapId: destination.mapId, portalId: `${kind}_warp_scroll` });
+        },
+        startDungeonRun: (dungeonId, difficulty) => {
+          this.dungeonRun = this.rewardLedger.startRun(dungeonId, difficulty, this.player.combat.level);
+          this.zone = 'dungeon';
+          return this.dungeonRun;
+        },
+      },
+    });
+    // A new character starts with what Lv1 allows (Equipment), quietly.
+    this.featureProgression.evaluate({ restored: true });
     this.recurring.sync();
     this.quests.refresh();
 
@@ -204,8 +259,7 @@ export class CombatWorld implements MonsterWorld {
       {
         mapId: () => this.location.mapId,
         position: () => ({ x: this.player.x, y: this.player.y }),
-        inCombat: () =>
-          this.monsters.some((m) => !m.combat.dead && m.brain.target === this.player && (m.brain.state === 'chase' || m.brain.state === 'attack')),
+        inCombat: () => this.playerEngaged(),
         isDead: () => this.player.combat.dead,
         takePortal: (portalId) => this.takePortal(portalId),
         reachLocation: (locationId) => this.reachLocation(locationId),
@@ -288,9 +342,15 @@ export class CombatWorld implements MonsterWorld {
     const day = this.serverDay.day();
     if (day === this.lastServerDay) return;
     this.lastServerDay = day;
+    this.featureProgression.evaluate();
     // New day: Daily set (and on a new week, Weekly state) resets once, through the shared server day.
     this.recurring.sync();
     this.quests.refresh();
+  }
+
+  /** A living monster is chasing or attacking the player. */
+  private playerEngaged(): boolean {
+    return this.monsters.some((m) => !m.combat.dead && m.brain.target === this.player && (m.brain.state === 'chase' || m.brain.state === 'attack'));
   }
 
   /** Apply stored Overflow EXP once the cap rises (new server day, job change). */
@@ -304,11 +364,9 @@ export class CombatWorld implements MonsterWorld {
 
   // --- Dungeon runs --------------------------------------------------------
 
-  /** Enter a dungeon: issues a run. Costs no Field Energy and no entitlement. */
-  enterDungeon(dungeonId: string, difficulty: DifficultyId): DungeonRun {
-    this.dungeonRun = this.rewardLedger.startRun(dungeonId, difficulty, this.player.combat.level);
-    this.zone = 'dungeon';
-    return this.dungeonRun;
+  /** Enter a dungeon (needs the Dungeon feature): issues a run. Costs no Field Energy and no entitlement. */
+  enterDungeon(dungeonId: string, difficulty: DifficultyId) {
+    return this.actions.enterDungeon(dungeonId, difficulty);
   }
 
   /** Leave (or fail / die out of) the current run without claiming: nothing is used. */
@@ -394,13 +452,41 @@ export class CombatWorld implements MonsterWorld {
     this.events.emit('itemAcquired', { itemId, amount, source });
   }
 
-  /** One enhancement attempt on an owned item (balance unchanged); reports every attempt made. */
-  enhanceEquipment(instanceId: string, options: EnhanceOptions = {}, rng: Rng = this.rewardRng): EnhanceResult | { ok: false; reason: 'unknown_item' } {
-    const item = this.player.equipment.items.get(instanceId);
-    if (!item) return { ok: false, reason: 'unknown_item' };
-    const result = enhanceAndReport(item, { inventory: this.inventory, wallet: this.wallet, rng, events: this.events }, options);
-    this.player.equipment.changed();
-    return result;
+  // --- Player-facing system actions (feature-gated; see PlayerActions) -----
+
+  /** One enhancement attempt on an owned item (needs Enhancement; balance unchanged). */
+  enhanceEquipment(instanceId: string, options: EnhanceOptions = {}, rng: Rng = this.rewardRng) {
+    return this.actions.enhance(instanceId, options, rng);
+  }
+  equipPlayerItem(instanceId: string, slot?: EquipmentSlot) {
+    return this.actions.equip(instanceId, slot);
+  }
+  unequipPlayerSlot(slot: EquipmentSlot) {
+    return this.actions.unequip(slot);
+  }
+  rerollPlayerEnchants(instanceId: string, locked: number[] = [], rng: Rng = this.rewardRng) {
+    return this.actions.rerollEnchants(instanceId, locked, rng);
+  }
+  startCraft(recipeId: string, newId?: IdSource) {
+    return this.actions.startCraft(recipeId, newId);
+  }
+  claimCraft(jobId: string, rng: Rng = this.rewardRng, newItemId?: IdSource) {
+    return this.actions.claimCraft(jobId, rng, newItemId);
+  }
+  useWarpScroll(kind: 'town' | 'dungeon', dungeonId = '') {
+    return this.actions.useWarpScroll(kind, dungeonId);
+  }
+  setActivePet(petInstanceId: string | null) {
+    return this.actions.setActivePet(petInstanceId);
+  }
+  openPlayerEgg(tier: EggTier, rng: Rng = this.rewardRng, newId?: IdSource) {
+    return this.actions.openEgg(tier, rng, newId);
+  }
+  usePlayerEggTicket(rng: Rng = this.rewardRng) {
+    return this.actions.useEggTicket(rng);
+  }
+  buyEggTicket() {
+    return this.actions.buyEggTicket();
   }
 
   // --- Player progression -------------------------------------------------
@@ -453,6 +539,8 @@ export class CombatWorld implements MonsterWorld {
     // The server cap may have risen since the save was made.
     this.lastLevelCap = 0;
     this.settleLevelCap();
+    // Features the character qualifies for (older saves, level above unlock levels) are restored quietly.
+    this.featureProgression.evaluate({ restored: true });
     // A save from an earlier server day / week resets its recurring quests here, once.
     this.recurring.sync();
     this.quests.refresh();

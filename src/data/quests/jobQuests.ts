@@ -19,7 +19,8 @@ export const JOB_QUESTS: Readonly<Record<string, QuestDef>> = {
     type: 'job',
     objectives: [{ kind: 'talk', npcId: JOB_INSTRUCTOR_NPC_ID }],
     rewards: {},
-    prerequisites: { ...NOVICE_LV11 },
+    // The Job Change feature (also Lv11) gates the Instructor flow; the class rule stays here.
+    prerequisites: { ...NOVICE_LV11, requiredFeatureIds: ['job_change'] },
     nextQuestIds: ['job_c1_02_trial'],
   },
   job_c1_02_trial: {

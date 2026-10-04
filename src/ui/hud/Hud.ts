@@ -46,7 +46,7 @@ export class Hud {
     const { world } = options;
     this.root = new UiRoot(scene.game);
     this.quests = new QuestProgressSource(world, DEMO_QUESTS);
-    this.windows = new WindowManager(this.root.el, { world, quests: this.quests });
+    this.windows = new WindowManager(this.root.el, { world, quests: this.quests, openJobSelect: () => this.jobSelect.open() });
     this.jobSelect = new JobSelectWindow(this.root.el, world, this.windows);
 
     this.player = new PlayerFrame(world.player, options.art);

@@ -7,8 +7,9 @@ import type { QuestDef, QuestRewards } from '../questData';
  * Points. These are ordinary quest definitions marked `repeat`; the
  * RecurringQuests service assigns and resets them per server day / week.
  *
- * DEMO NOTE: the prototype map has only normal Slimes, so Elite / Mini Boss
- * objectives can be selected but not yet completed in play.
+ * DEMO NOTE: the prototype map has only normal Slimes, so the Elite / Mini
+ * Boss Dailies have weight 0 (never selected) and the Weekly Elite / Boss
+ * Hunter quests can't be finished yet; no Demo goal requires them.
  */
 
 export const DAILY_FEATURE = 'daily_commission' as const;
@@ -104,13 +105,14 @@ export const DAILY_QUESTS: Readonly<Record<string, QuestDef>> = Object.fromEntri
 /** Daily selection pool: weight (relative) and minimum level to be eligible. */
 export const DAILY_POOL: readonly { questId: string; weight: number; minLevel: number }[] = [
   { questId: 'daily_field_hunter', weight: 3, minLevel: 1 },
-  { questId: 'daily_elite_hunter', weight: 2, minLevel: 1 },
+  // Weight 0 until real field Elites / Mini Bosses exist (definitions kept for later).
+  { questId: 'daily_elite_hunter', weight: 0, minLevel: 1 },
   { questId: 'daily_material_collector', weight: 3, minLevel: 1 },
   { questId: 'daily_dungeon_adventurer', weight: 2, minLevel: 1 },
   { questId: 'daily_enhancement_practice', weight: 2, minLevel: 1 },
   { questId: 'daily_explorer', weight: 2, minLevel: 1 },
   { questId: 'daily_helping_hand', weight: 1, minLevel: 1 },
-  { questId: 'daily_mini_boss_hunter', weight: 1, minLevel: 1 },
+  { questId: 'daily_mini_boss_hunter', weight: 0, minLevel: 1 },
 ];
 
 export const WEEKLY_QUESTS: Readonly<Record<string, QuestDef>> = Object.fromEntries(

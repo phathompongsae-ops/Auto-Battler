@@ -98,6 +98,12 @@ export class CombatEffects {
       if (e) this.text.show(e.x, textY(e, 'exp'), `+${amount} EXP`, { color: '#c39bff', size: 13, duration: 1000 });
     });
 
+    // TEMPORARY unlock toast; quiet for unlocks restored on load / migration.
+    ev.on('featureUnlocked', ({ displayName, restored }) => {
+      const p = world.player;
+      if (!restored) this.text.show(p.x, textY(p, 'levelUp') - 22, `${displayName} Unlocked!`, { color: '#7fd4ff', size: 15, rise: 30, duration: 2200 });
+    });
+
     ev.on('levelUp', ({ entityId, level }) => {
       const e = world.getEntity(entityId);
       if (!e) return;

@@ -4,6 +4,7 @@ import { ItemSlot } from '../components/Slot';
 import { h } from '../dom';
 import { renderSkillTree } from './skillTreeView';
 import { renderRecurring } from './recurringView';
+import { renderCraft, renderEnchant, renderEnhancement, renderJobChange, renderWarp } from './systemScreens';
 import type { ScreenId } from '../data/screens';
 import type { QuestProgressSource } from '../hud/QuestTracker';
 
@@ -16,6 +17,8 @@ import type { QuestProgressSource } from '../hud/QuestTracker';
 export interface ScreenContext {
   world: CombatWorld;
   quests: QuestProgressSource;
+  /** Opens the temporary job selection when it is legitimately available. */
+  openJobSelect?: () => boolean;
 }
 
 export type ScreenRenderer = (tab: string | null, ctx: ScreenContext) => Node;
@@ -100,6 +103,11 @@ export const SCREEN_CONTENT: Record<ScreenId, ScreenRenderer> = {
   skills,
   quest,
   commissions: (tab, { world }) => renderRecurring(world, tab === 'weekly' ? 'weekly' : 'daily'),
+  job: (_tab, ctx) => renderJobChange(ctx.world, ctx.openJobSelect),
+  warp: (_tab, { world }) => renderWarp(world),
+  enhancement: (_tab, { world }) => renderEnhancement(world),
+  enchant: (_tab, { world }) => renderEnchant(world),
+  craft: (_tab, { world }) => renderCraft(world),
   pet: () => emptyState('Your companion, its skills and care.'),
   map: () => emptyState('The world map with discovered areas.'),
   party: () => emptyState('Group up with other players.'),

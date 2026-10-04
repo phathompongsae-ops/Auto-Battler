@@ -4,13 +4,11 @@ import type { CombatWorld } from '../game/CombatWorld';
 import type { ItemId } from '../data/itemData';
 import { defaultRng, seededRng } from '../core/rng';
 import { MAX_ENHANCEMENT, type EquipmentSlot } from '../data/equipmentData';
-import { rerollEnchants } from '../equipment/enchant';
 import { enhancementVfxTier, type EnhanceOptions } from '../equipment/enhancement';
-import type { FeatureId } from '../data/featureData';
+import { FEATURE_IDS, FEATURES, lockedMessage, type FeatureId } from '../data/featureData';
 import { createEquipment } from '../equipment/factory';
 import { evaluateSets } from '../equipment/sets';
 import { EGG_ITEM, type EggTier, type PetPassiveId, type PetRarity, type PetSpeciesId } from '../data/petData';
-import { openEgg, useRandomEggTicket } from '../pets/eggActions';
 import type { PetInstance } from '../pets/pets';
 import { shopCycleId } from '../pets/specialShop';
 import type { DifficultyId } from '../data/dungeonDifficulty';
@@ -96,7 +94,7 @@ export function createDevApi(world: CombatWorld, overlays: WorldOverlays) {
   ev.on('questProgress', (e) => record('questProgress', { quest: e.questId, amount: e.current }));
   ev.on('questCompleted', (e) => record('questCompleted', { quest: e.questId }));
   ev.on('questClaimed', (e) => record('questClaimed', { quest: e.questId }));
-  ev.on('featureUnlocked', (e) => record('featureUnlocked', { item: e.featureId }));
+  ev.on('featureUnlocked', (e) => record('featureUnlocked', { item: e.featureId, status: e.restored ? 'restored' : 'new' }));
   ev.on('jobChanged', (e) => record('jobChanged', { entity: e.entityId, item: e.jobId }));
   ev.on('jobQuestAvailable', (e) => record('jobQuestAvailable', { quest: e.questId }));
   ev.on('jobTrialCompleted', (e) => record('jobTrialCompleted', { quest: e.questId }));
@@ -192,6 +190,7 @@ export function createDevApi(world: CombatWorld, overlays: WorldOverlays) {
       world.player.combat.level = level;
       world.player.combat.exp = 0;
       world.player.combat.refreshStats();
+      world.featureProgression.evaluate();
     },
     /** Grant EXP through the real rules (level cap, Overflow, level-up events). */
     grantExp: (amount: number) => world.progression.grantExp(world.player, amount),
@@ -219,6 +218,7 @@ export function createDevApi(world: CombatWorld, overlays: WorldOverlays) {
       p.combat.exp = 0;
       p.combat.refreshStats();
       p.combat.restore();
+      world.featureProgression.evaluate();
       return { ok: true as const, level: target };
     },
     /** DEV: pretend it is server day `day` (null = back to the clock). Caps rise / daily allowances reset accordingly. */
@@ -236,6 +236,34 @@ export function createDevApi(world: CombatWorld, overlays: WorldOverlays) {
     allocateStat: (stat: PrimaryStat, amount: number) => world.allocatePlayerStat(stat, amount),
     /** FORCE (dev): take a Class 1 job without the Job Trial. Same effects as the real path otherwise. */
     forceChangeJob: (jobId: string) => world.changePlayerJob(jobId, { skipTrial: true }),
+
+    // --- Feature unlocks (dev only) -----------------------------------------
+    /** Every feature: unlocked?, conditions met now?, and the player-facing lock message. */
+    features: () =>
+      FEATURE_IDS.map((id) => ({
+        id,
+        name: FEATURES[id].displayName,
+        unlocked: world.features.isFeatureUnlocked(id),
+        conditionsMet: world.featureProgression.conditionsMet(id),
+        lockedMessage: lockedMessage(id),
+      })),
+    feature: (id: FeatureId) => ({ id, unlocked: world.features.isFeatureUnlocked(id), check: world.featureProgression.check(id) }),
+    /** Run the real unlock evaluation now; returns what unlocked. */
+    evaluateFeatures: () => world.featureProgression.evaluate(),
+    /** FORCE (dev): unlock a feature regardless of its conditions. */
+    forceUnlockFeature: (id: FeatureId) => world.features.unlock(id),
+    /** FORCE (dev): unlock every feature (backend tests that need all systems). */
+    forceUnlockAllFeatures: () => {
+      for (const id of FEATURE_IDS) world.features.unlock(id);
+      world.quests.refresh();
+    },
+    /** FORCE (tests only): lock a feature again (normal play never locks one). */
+    forceLockFeature: (id: FeatureId) => world.features.unlocked.delete(id),
+    /** RESET (dev): back to exactly what the character's progression earns, quietly. */
+    resetFeatures: () => {
+      world.features.unlocked.clear();
+      return world.featureProgression.evaluate({ restored: true });
+    },
 
     // --- Daily Commissions / Weekly quests (dev only) ----------------------
     /** Today's Daily set, the Weekly quests, counters and milestones. */
@@ -261,9 +289,7 @@ export function createDevApi(world: CombatWorld, overlays: WorldOverlays) {
     resetWeeklyCycle: () => world.recurring.resetCycle('weekly'),
     /** FORCE (dev): unlock Daily Commissions and Weekly quests now. */
     forceUnlockRecurring: () => {
-      for (const id of ['daily_commission', 'weekly_quests'] as const) {
-        if (world.features.unlock(id)) world.events.emit('featureUnlocked', { featureId: id });
-      }
+      for (const id of ['daily_commission', 'weekly_quests'] as const) world.features.unlock(id);
       world.quests.refresh();
     },
     /**
@@ -396,13 +422,13 @@ export function createDevApi(world: CombatWorld, overlays: WorldOverlays) {
       return pet.petInstanceId;
     },
     setPetLevel: (petInstanceId: string, level: number) => world.player.pets.setLevel(petInstanceId, level),
-    activatePet: (petInstanceId: string | null) => world.player.pets.setActive(petInstanceId),
+    activatePet: (petInstanceId: string | null) => world.setActivePet(petInstanceId),
     pets: () => ({ active: world.player.pets.activeId, owned: [...world.player.pets.owned.values()] }),
     grantEgg: (tier: EggTier, amount = 1) => world.inventory.add(EGG_ITEM[tier], amount),
-    openEgg: (tier: EggTier, seed = 1) => openEgg(world.inventory, world.player.pets, tier, seededRng(seed), () => `dev-pet-${++devPetCounter}`),
+    openEgg: (tier: EggTier, seed = 1) => world.openPlayerEgg(tier, seededRng(seed), () => `dev-pet-${++devPetCounter}`),
     grantEggTicket: (amount = 1) => world.inventory.add('random_egg_ticket', amount),
-    buyEggTicket: () => world.specialShop.buyRandomEggTicket(world.inventory, world.wallet),
-    useEggTicket: (seed = 1) => useRandomEggTicket(world.inventory, seededRng(seed)),
+    buyEggTicket: () => world.buyEggTicket(),
+    useEggTicket: (seed = 1) => world.usePlayerEggTicket(seededRng(seed)),
     shop: () => ({ ...world.specialShop.state, ticketsLeft: world.specialShop.ticketsLeft(), cycleId: shopCycleId(world.clock.now()) }),
     /** Move the game clock (shop refresh / crafting) forward by `ms`. */
     advanceClock: (ms: number) => world.clock.advance(ms),
@@ -418,7 +444,9 @@ export function createDevApi(world: CombatWorld, overlays: WorldOverlays) {
     claimDungeon: (seed = 1, run: DungeonRun | null = world.dungeonRun) => world.claimDungeonClear(run, seededRng(seed)),
     /** Enter, clear and claim in one go; returns the run (for retry tests) and the result. */
     clearDungeon: (dungeonId: string, difficulty: DifficultyId, seed = 1) => {
-      const run = world.enterDungeon(dungeonId, difficulty);
+      const entered = world.enterDungeon(dungeonId, difficulty);
+      if (!entered.ok) return { run: null, result: entered };
+      const run = entered.run;
       const result = world.claimDungeonClear(run, seededRng(seed));
       world.leaveDungeon();
       return { run, result };
@@ -442,16 +470,16 @@ export function createDevApi(world: CombatWorld, overlays: WorldOverlays) {
     reachLocation: (locationId: string) => world.reachLocation(locationId),
     /** Give an item as a gameplay acquisition (counts for collect objectives; grantItem does not). */
     acquireItem: (itemId: ItemId, amount = 1) => world.acquireItem(itemId, amount, 'dev'),
-    features: () => [...world.features.unlocked],
+    unlockedFeatures: () => [...world.features.unlocked],
     isFeatureUnlocked: (featureId: FeatureId) => world.quests.isFeatureUnlocked(featureId),
     /** Forget all quest progress and unlocked features, then re-announce what's available. */
     resetQuests: () => {
       world.quests.reset();
       world.features.unlocked.clear();
+      world.featureProgression.evaluate({ restored: true });
       world.recurring.load(emptyRecurringState());
       world.recurring.sync();
       world.quests.refresh();
-      world.skillProcs.reset();
     },
 
     // --- Navigation / Auto Move (dev only) --------------------------------
@@ -469,16 +497,16 @@ export function createDevApi(world: CombatWorld, overlays: WorldOverlays) {
     },
 
     // --- Crafting and warp (dev only) -------------------------------------
-    startCraft: (recipeId: string) => world.crafting.start(recipeId, world.inventory, world.wallet, () => `dev-job-${++devJobCounter}`),
-    claimCraft: (jobId: string, seed = 1) => {
-      const result = world.crafting.claim(jobId, seededRng(seed), () => `dev-craft-${devJobCounter}-${jobId}`);
-      if (result.ok) world.player.equipment.add(result.item);
-      return result;
-    },
+    startCraft: (recipeId: string) => world.startCraft(recipeId, () => `dev-job-${++devJobCounter}`),
+    claimCraft: (jobId: string, seed = 1) => world.claimCraft(jobId, seededRng(seed), () => `dev-craft-${devJobCounter}-${jobId}`),
     craftJobs: () => structuredClone(world.crafting.jobs),
     discoverDungeon: (dungeonId: string) => world.warpUnlocks.dungeons.add(dungeonId),
-    /** Try a warp scroll from a test location (maps don't exist yet). */
+    /** Use a Warp Scroll through the real player path (from the current map). */
+    useWarpScroll: (kind: 'town' | 'dungeon', dungeonId = '') => world.useWarpScroll(kind, dungeonId),
+    /** Try a warp scroll from a test location (maps don't exist yet). Feature-gated like the real path. */
     warp: (kind: 'town' | 'dungeon', location: Location, options: { inCombat?: boolean; dungeonId?: string } = {}) => {
+      const gate = world.featureProgression.check('warp');
+      if (!gate.ok) return gate;
       const ctx = { location, inCombat: !!options.inCombat, inventory: world.inventory, unlocks: world.warpUnlocks };
       return kind === 'town' ? useTownWarp(ctx) : useDungeonWarp(ctx, options.dungeonId ?? '');
     },
@@ -490,8 +518,8 @@ export function createDevApi(world: CombatWorld, overlays: WorldOverlays) {
       world.player.equipment.add(item);
       return item.instanceId;
     },
-    equip: (instanceId: string, slot?: EquipmentSlot) => world.player.equipment.equip(instanceId, slot),
-    unequip: (slot: EquipmentSlot) => world.player.equipment.unequip(slot),
+    equip: (instanceId: string, slot?: EquipmentSlot) => world.equipPlayerItem(instanceId, slot),
+    unequip: (slot: EquipmentSlot) => world.unequipPlayerSlot(slot),
     /** Test-only: set an item's enhancement directly (0..15). */
     setEnhancement: (instanceId: string, level: number) => {
       const item = world.player.equipment.items.get(instanceId);
@@ -503,13 +531,7 @@ export function createDevApi(world: CombatWorld, overlays: WorldOverlays) {
     /** One enhancement attempt; `roll` fixes the success roll (0..1) for deterministic tests. */
     enhance: (instanceId: string, options: EnhanceOptions & { roll?: number } = {}) =>
       world.enhanceEquipment(instanceId, options, options.roll === undefined ? defaultRng : () => options.roll as number),
-    rerollEnchants: (instanceId: string, locked: number[] = [], seed = 1) => {
-      const item = world.player.equipment.items.get(instanceId);
-      if (!item) return { ok: false, reason: 'unknown_item' };
-      const result = rerollEnchants(item, locked, { inventory: world.inventory, wallet: world.wallet, rng: seededRng(seed) });
-      world.player.equipment.changed();
-      return result;
-    },
+    rerollEnchants: (instanceId: string, locked: number[] = [], seed = 1) => world.rerollPlayerEnchants(instanceId, locked, seededRng(seed)),
     equipment: () => {
       const eq = world.player.equipment;
       const sets = evaluateSets(eq.equipped, eq.items);
@@ -565,7 +587,12 @@ export function createDevApi(world: CombatWorld, overlays: WorldOverlays) {
       world.location = { kind: 'field', mapId: PROTOTYPE_MAP_ID };
       world.quests.reset();
       world.features.unlocked.clear();
+      // Features go back to what a Lv1 character earns (Equipment), quietly.
+      world.featureProgression.evaluate({ restored: true });
+      world.recurring.load(emptyRecurringState());
+      world.recurring.sync();
       world.quests.refresh();
+      world.skillProcs.reset();
       Object.assign(world.warpUnlocks, defaultUnlocks());
       world.wallet.assign({});
       world.player.statModifiers.clear();

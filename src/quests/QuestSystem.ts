@@ -97,6 +97,7 @@ export class QuestSystem {
     // Prerequisite inputs that change through events.
     on('levelUp', (e) => e.entityId === this.playerId && this.refresh());
     on('jobChanged', (e) => e.entityId === this.playerId && this.refresh());
+    on('featureUnlocked', () => this.refresh());
   }
 
   destroy(): void {
@@ -182,7 +183,7 @@ export class QuestSystem {
     const r = def.rewards;
     grantQuestRewards(this.rewards, r);
     for (const feature of [def.featureUnlockId, ...(r.unlockFeatures ?? [])]) {
-      if (feature && this.features.unlock(feature)) this.events.emit('featureUnlocked', { featureId: feature });
+      if (feature) this.features.unlock(feature);
     }
     this.events.emit('questClaimed', { questId });
     this.refresh(); // chained quests and feature-gated quests may open up

@@ -164,21 +164,23 @@ describe('Daily objectives through real events', () => {
     assert.equal(s.status('daily_field_hunter'), 'completed');
   });
 
-  test('Elite Hunter: field Elites only (a dungeon Elite does not count)', () => {
-    const s = rig(dayWith('daily_elite_hunter'));
-    s.kill('elite', 'dungeon');
-    s.kill('normal', 'field');
-    assert.deepEqual(s.progress('daily_elite_hunter'), [0]);
-    for (let i = 0; i < 3; i++) s.kill('elite', 'field');
-    assert.equal(s.status('daily_elite_hunter'), 'completed');
+  test('Elite / Mini Boss Dailies: weight 0 until real field content exists — never selected, definitions kept', () => {
+    for (const id of ['daily_elite_hunter', 'daily_mini_boss_hunter']) {
+      assert.ok(id in DAILY_QUESTS, `${id} still defined`);
+      assert.equal(DAILY_POOL.find((p) => p.questId === id)!.weight, 0);
+      for (let d = 1; d <= 1000; d++) assert.equal(selectDailyQuests(d, 15).includes(id), false, `${id} on day ${d}`);
+    }
   });
 
-  test('Mini Boss Hunter: a field Mini Boss', () => {
-    const s = rig(dayWith('daily_mini_boss_hunter'));
+  test('field Elite / Mini Boss kill filters (as used by Weekly Elite / Boss Hunter)', () => {
+    const s = rig(1);
+    s.kill('elite', 'dungeon');
     s.kill('mini_boss', 'dungeon');
-    assert.equal(s.status('daily_mini_boss_hunter'), 'active');
+    s.kill('normal', 'field');
+    assert.deepEqual([s.progress('weekly_elite_hunter'), s.progress('weekly_boss_hunter')], [[0], [0]]);
+    s.kill('elite', 'field');
     s.kill('mini_boss', 'field');
-    assert.equal(s.status('daily_mini_boss_hunter'), 'completed');
+    assert.deepEqual([s.progress('weekly_elite_hunter'), s.progress('weekly_boss_hunter')], [[1], [1]]);
   });
 
   test('Material Collector: picked-up Slime Gel', () => {

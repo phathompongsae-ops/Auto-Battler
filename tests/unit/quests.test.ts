@@ -423,7 +423,7 @@ describe('claiming rewards', () => {
     assert.equal(s.t.wallet.get('diamond'), 3);
     assert.equal(s.t.inventory.count('town_warp_scroll'), 2);
     assert.deepEqual(acquired, [{ itemId: 'town_warp_scroll', amount: 2, source: 'quest' }]);
-    assert.deepEqual([...s.t.features.unlocked].sort(), ['crafting', 'demo_feature']);
+    assert.ok(s.t.features.isFeatureUnlocked('crafting') && s.t.features.isFeatureUnlocked('demo_feature'), 'quest feature rewards');
     assert.equal(s.t.fieldEnergy.current(), energy, 'no Field Energy used');
     assert.equal(s.t.progress.remainingSkillPoints(s.t.combat.level), skillPointsBefore, 'no skill points from quests');
 

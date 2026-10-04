@@ -3,7 +3,7 @@ import { sleep } from './cdp.mjs';
 
 export async function recurringSuite(b, t) {
   t.section('Daily / Weekly quests in the running game');
-  await b.eval('debug.reset(); debug.setPeaceful(true)');
+  await b.eval('debug.reset(); debug.setPeaceful(true); debug.forceUnlockAllFeatures()');
   await sleep(100);
   const state = () => b.eval('debug.recurringState()');
   const win = (sel) => `document.querySelector('[data-window="commissions"] ${sel}')`;

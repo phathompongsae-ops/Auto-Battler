@@ -190,7 +190,8 @@ describe('save migration', () => {
     t.wallet.add('gold', 99);
     const current = capturePlayerSave(t);
     const migrated = deserializePlayerSave(JSON.stringify(v2From(current)));
-    assert.deepEqual(migrated, current);
+    // Features are re-derived from progression when the save is applied, so compare everything else.
+    assert.deepEqual({ ...migrated, features: [] }, { ...current, features: [] });
   });
 
   test('v1 -> v3 chains through v2', () => {
@@ -200,7 +201,7 @@ describe('save migration', () => {
     const { skillPointsSpent: _s, ...v2 } = v2From(current);
     void _s;
     const migrated = deserializePlayerSave(JSON.stringify({ ...v2, schemaVersion: 1, skillPoints: 0 }));
-    assert.deepEqual(migrated, current);
+    assert.deepEqual({ ...migrated, features: [] }, { ...current, features: [] });
   });
 
   test('a v2 save referencing items or pets it could not own is rejected', () => {
