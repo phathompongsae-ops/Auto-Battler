@@ -4,6 +4,7 @@ import { ASSIST_REWARD, DUNGEON_RUN_CLAIM_WINDOW } from '../data/dungeonEntitlem
 import { BOSS_REWARDS, CHANCE_DROP_QUANTITY, DUNGEONS } from '../data/dungeonRewards';
 import type { Rarity } from '../data/equipmentData';
 import type { ItemId } from '../data/itemData';
+import type { DemoTestMode } from '../data/demoTestMode';
 import { entryCheck } from './difficulty';
 
 /** A rolled boss reward: what will be granted when the clear is claimed. */
@@ -32,7 +33,7 @@ function rollEquipment(dungeonId: string, difficulty: DifficultyId, rng: Rng): {
  * Enhancement Stones, Gold and the dungeon's EXP. Chance drops whose odds are
  * still null (hooks) are never rolled.
  */
-export function rollBossReward(dungeonId: string, difficulty: DifficultyId, rng: Rng): BossReward {
+export function rollBossReward(dungeonId: string, difficulty: DifficultyId, rng: Rng, tuning?: DemoTestMode): BossReward {
   const dungeon = DUNGEONS[dungeonId];
   if (!dungeon) throw new Error(`unknown dungeon ${dungeonId}`);
   const table = BOSS_REWARDS[difficulty];
@@ -46,21 +47,22 @@ export function rollBossReward(dungeonId: string, difficulty: DifficultyId, rng:
   const exp = Math.round(dungeon.bossExp * DIFFICULTIES[difficulty].rewards.exp);
 
   const c = table.chances;
-  if (rng() < c.enchantStone) give('enchant_stone', CHANCE_DROP_QUANTITY.enchantStone);
-  if (rng() < c.rareCraftMaterial) give('rare_craft_material', CHANCE_DROP_QUANTITY.rareCraftMaterial);
-  if (rng() < c.extraEquipment) equipment.push(rollEquipment(dungeonId, difficulty, rng));
-  if (c.blueprint !== null && rng() < c.blueprint) give(dungeon.blueprintItem as ItemId, CHANCE_DROP_QUANTITY.blueprint);
-  if (c.protectionStone !== null && rng() < c.protectionStone) give('protection_stone', CHANCE_DROP_QUANTITY.protectionStone);
-  if (c.successBooster !== null && rng() < c.successBooster) give('success_booster', CHANCE_DROP_QUANTITY.successBooster);
+  const chance = (base: number) => tuning?.dropChance(base) ?? base;
+  if (rng() < chance(c.enchantStone)) give('enchant_stone', CHANCE_DROP_QUANTITY.enchantStone);
+  if (rng() < chance(c.rareCraftMaterial)) give('rare_craft_material', CHANCE_DROP_QUANTITY.rareCraftMaterial);
+  if (rng() < chance(c.extraEquipment)) equipment.push(rollEquipment(dungeonId, difficulty, rng));
+  if (c.blueprint !== null && rng() < chance(c.blueprint)) give(dungeon.blueprintItem as ItemId, CHANCE_DROP_QUANTITY.blueprint);
+  if (c.protectionStone !== null && rng() < chance(c.protectionStone)) give('protection_stone', CHANCE_DROP_QUANTITY.protectionStone);
+  if (c.successBooster !== null && rng() < chance(c.successBooster)) give('success_booster', CHANCE_DROP_QUANTITY.successBooster);
 
   return { equipment, items, gold, exp };
 }
 
 /** Roll a rewarded Assist from ASSIST_REWARD (data). */
-export function rollAssistReward(rng: Rng): AssistReward {
+export function rollAssistReward(rng: Rng, tuning?: DemoTestMode): AssistReward {
   const items: Partial<Record<ItemId, number>> = {};
   for (const entry of ASSIST_REWARD.items) {
-    if (rng() < entry.chance) items[entry.itemId] = (items[entry.itemId] ?? 0) + rollInt(entry.count[0], entry.count[1], rng);
+    if (rng() < (tuning?.dropChance(entry.chance) ?? entry.chance)) items[entry.itemId] = (items[entry.itemId] ?? 0) + rollInt(entry.count[0], entry.count[1], rng);
   }
   return { items, gold: ASSIST_REWARD.gold };
 }

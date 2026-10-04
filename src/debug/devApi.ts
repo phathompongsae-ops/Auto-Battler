@@ -194,6 +194,15 @@ export function createDevApi(world: CombatWorld, overlays: WorldOverlays) {
     },
     /** Grant EXP through the real rules (level cap, Overflow, level-up events). */
     grantExp: (amount: number) => world.progression.grantExp(world.player, amount),
+    /** Internal demo reward tuning (debug only; never persisted). */
+    demoTestMode: () => ({
+      enabled: world.demoTestMode.enabled,
+      expMultiplier: world.demoTestMode.expMultiplier,
+      dropRateMultiplier: world.demoTestMode.dropRateMultiplier,
+    }),
+    setDemoExpMultiplier: (value: number) => world.demoTestMode.setExpMultiplier(value),
+    setDemoDropRateMultiplier: (value: number) => world.demoTestMode.setDropRateMultiplier(value),
+    resetDemoTestMode: () => world.demoTestMode.reset(),
     expToNext: (level: number) => expToNext(level),
     levelInfo: () => ({
       serverDay: world.serverDay.day(),
@@ -435,7 +444,7 @@ export function createDevApi(world: CombatWorld, overlays: WorldOverlays) {
 
     // --- Dungeon rewards (dev only) ---------------------------------------
     /** Preview a boss reward from a fixed seed (nothing granted). */
-    rollDungeonReward: (dungeonId: string, difficulty: DifficultyId, seed = 1) => rollBossReward(dungeonId, difficulty, seededRng(seed)),
+    rollDungeonReward: (dungeonId: string, difficulty: DifficultyId, seed = 1) => rollBossReward(dungeonId, difficulty, seededRng(seed), world.demoTestMode),
     /** Enter a dungeon (issues a run; costs nothing). */
     enterDungeon: (dungeonId: string, difficulty: DifficultyId) => world.enterDungeon(dungeonId, difficulty),
     /** Leave / fail the current run without claiming (nothing is used). */

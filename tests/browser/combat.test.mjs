@@ -162,7 +162,7 @@ export async function combatSuite(b, t, shot) {
   t.check('9. monster dies at 0 HP', m.dead && m.hp === 0 && m.state === 'dead' && deaths.length === 1, `dead=${m.dead} hp=${m.hp} state=${m.state}`);
   const exp = await events(`e => e.type === 'expGained'`);
   p = await player();
-  t.check('21. monster death grants EXP', exp.length === 1 && exp[0].amount === 30 && p.exp === 30, `exp=${p.exp}`);
+  t.check('21. monster death grants Demo ×10 EXP', exp.length === 1 && exp[0].amount === 300 && p.exp === 300, `exp=${p.exp}`);
   p = await player();
   t.check('1c. dead target is auto-cleared', p.target === null, `target=${p.target}`);
 
@@ -176,9 +176,10 @@ export async function combatSuite(b, t, shot) {
   m = await waitMonsterState('slime-1', ['idle'], 6000);
   t.check('11. monster respawns at spawn with full HP', !m.dead && m.hp === m.maxHp && m.visible && Math.hypot(m.x - m.spawnX, m.y - m.spawnY) < 1, `hp=${m.hp} pos=(${m.x.toFixed(0)},${m.y.toFixed(0)})`);
 
-  // Level up on the second kill: top EXP up to 20 short of Lv2 first.
-  await api('grantExp(debug.expToNext(1) - 50)');
+  // Level up on the second kill: set progress 50 short of Lv2 first.
+  await api('grantExp(debug.expToNext(1) - debug.levelInfo().exp - 50)');
   await api('setPlayerHp(50)');
+  const expBeforeKill = await b.eval('debug.levelInfo()');
   await api('resetCooldowns()');
   await api(`selectTarget('slime-1')`);
   await api(`setMonsterHp('slime-1', 5)`);
@@ -187,7 +188,7 @@ export async function combatSuite(b, t, shot) {
   await sleep(150);
   p = await player();
   const levelUps = await events(`e => e.type === 'levelUp'`);
-  t.check('22. level-up occurs and refills HP/MP', p.level === 2 && levelUps.length === 1 && p.exp === 10 && p.hp === p.stats.maxHp && p.mp === p.stats.maxMp, `lv=${p.level} exp=${p.exp} hp=${p.hp}/${p.stats.maxHp}`);
+  t.check('22. level-up occurs and refills HP/MP', p.level === 2 && levelUps.length === 1 && p.exp === expBeforeKill.exp + 300 - expBeforeKill.expToNext && p.hp === p.stats.maxHp && p.mp === p.stats.maxMp, `lv=${p.level} exp=${p.exp} hp=${p.hp}/${p.stats.maxHp}`);
   const prog = await b.eval('debug.progress()');
   t.check('22b. Novice level-up grants a free stat point; base stays fixed (no legacy growth)', prog.remainingStatPoints === 1 && JSON.stringify(p.stats) === JSON.stringify(statsBefore), `points=${prog.remainingStatPoints} hp ${statsBefore.maxHp}->${p.stats.maxHp}`);
   await shot('combat-04-levelup');

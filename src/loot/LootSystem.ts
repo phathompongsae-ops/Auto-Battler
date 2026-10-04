@@ -3,6 +3,7 @@ import type { EventBus } from '../core/EventBus';
 import { distance } from '../core/math';
 import { defaultRng, type Rng } from '../core/rng';
 import { LOOT_DROP, LOOT_TABLES, type ItemId, type LootEntry, type LootTableId } from '../data/itemData';
+import type { DemoTestMode } from '../data/demoTestMode';
 import type { GameEvents } from '../game/GameEvents';
 import type { Inventory } from './Inventory';
 
@@ -30,6 +31,7 @@ export class LootSystem {
   constructor(
     private readonly events: EventBus<GameEvents>,
     readonly inventory: Inventory,
+    private readonly tuning?: DemoTestMode,
   ) {}
 
   /**
@@ -46,7 +48,8 @@ export class LootSystem {
     for (const entry of entries) {
       const isQuest = entry.category === 'quest';
       if (isQuest ? !questDrops : !farmingDrops) continue;
-      if (this.rng() < entry.chance) {
+      const chance = this.tuning?.dropChance(entry.chance) ?? entry.chance;
+      if (chance > 0 && this.rng() < chance) {
         const offset = dropped.length * 10;
         dropped.push(this.spawn(entry.itemId, x + offset, y, now));
       }

@@ -5,6 +5,7 @@ import type { LootTableId } from '../data/itemData';
 import type { MonsterTier } from '../data/monsterBalance';
 import type { FieldEnergy, KillRewardDecision, RewardZone } from '../energy/fieldEnergy';
 import type { LootSystem } from '../loot/LootSystem';
+import type { DemoTestMode } from '../data/demoTestMode';
 import type { ProgressionSystem } from '../progression/ProgressionSystem';
 
 export interface KilledMonster {
@@ -22,6 +23,7 @@ export interface KillRewardContext {
   player: CombatEntity;
   now: number;
   events: EventBus<GameEvents>;
+  tuning?: DemoTestMode;
 }
 
 /**
@@ -34,7 +36,7 @@ export function grantKillRewards(monster: KilledMonster, ctx: KillRewardContext)
   // Quest kill progress: every kill counts, whatever its rewards (0 Energy, dungeon...).
   ctx.events.emit('monsterKilled', { entityId: monster.id, monsterId: monster.def.id, tier: monster.def.tier, zone: ctx.zone });
   const decision = ctx.fieldEnergy.payForKill(ctx.zone, monster.def.tier);
-  if (decision.exp) ctx.progression.grantExp(ctx.player, monster.def.expReward);
+  if (decision.exp) ctx.progression.grantExp(ctx.player, ctx.tuning?.exp(monster.def.expReward) ?? monster.def.expReward);
   ctx.loot.roll(monster.def.lootTable, monster.x, monster.y, ctx.now, { farmingDrops: decision.farmingDrops, questDrops: decision.questDrops });
   return decision;
 }

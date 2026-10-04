@@ -12,6 +12,7 @@ import { distance } from '../core/math';
 import { defaultRng, type Rng } from '../core/rng';
 import type { ItemId } from '../data/itemData';
 import { MONSTER_SEPARATION_STRENGTH } from '../data/monsterData';
+import { DemoTestMode } from '../data/demoTestMode';
 import { PLAYER_RESPAWN_DELAY, TARGETING } from '../data/playerData';
 import type { Monster } from '../entities/Monster';
 import type { Player } from '../entities/Player';
@@ -78,6 +79,7 @@ export class CombatWorld implements MonsterWorld {
   });
   readonly targeting = new TargetingSystem(this.events, TARGETING.acquireRange, TARGETING.loseRange);
   readonly inventory = new Inventory();
+  readonly demoTestMode = new DemoTestMode();
   /** Currencies (gold). */
   readonly wallet = new Wallet();
   /**
@@ -105,7 +107,7 @@ export class CombatWorld implements MonsterWorld {
   readonly crafting = new CraftingQueue(this.clock);
   /** Unlocked towns and discovered dungeons (warp destinations). */
   readonly warpUnlocks = defaultUnlocks();
-  readonly loot = new LootSystem(this.events, this.inventory);
+  readonly loot = new LootSystem(this.events, this.inventory, this.demoTestMode);
 
   readonly monsters: Monster[] = [];
   /** Player + monsters, for systems that scan everyone. */
@@ -180,7 +182,7 @@ export class CombatWorld implements MonsterWorld {
 
     // Quest / milestone rewards: real progression, wallet and inventory (no Field Energy, no skill points).
     const questRewards: QuestRewardSink = {
-      grantExp: (amount) => this.progression.grantExp(this.player, amount),
+      grantExp: (amount) => this.progression.grantExp(this.player, this.demoTestMode.exp(amount)),
       addCurrency: (currency, amount) => this.wallet.add(currency, amount),
       addItem: (itemId, count) => this.acquireItem(itemId, count, 'quest'),
     };
@@ -387,8 +389,9 @@ export class CombatWorld implements MonsterWorld {
       inventory: this.inventory,
       wallet: this.wallet,
       equipment: this.player.equipment,
-      grantExp: (amount) => this.progression.grantExp(this.player, amount),
+      grantExp: (amount) => this.progression.grantExp(this.player, this.demoTestMode.exp(amount)),
       rng,
+      tuning: this.demoTestMode,
       events: this.events,
     });
   }
@@ -613,6 +616,7 @@ export class CombatWorld implements MonsterWorld {
         player: this.player,
         now: this.now,
         events: this.events,
+        tuning: this.demoTestMode,
       });
       if (this.zone === 'field') {
         this.events.emit('fieldReward', { monsterId: monster.id, rewarded: reward.exp, energySpent: reward.energySpent, energyLeft: this.fieldEnergy.current() });

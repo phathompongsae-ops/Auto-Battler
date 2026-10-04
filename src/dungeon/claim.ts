@@ -2,6 +2,7 @@ import type { EventBus } from '../core/EventBus';
 import type { Rng } from '../core/rng';
 import type { GameEvents } from '../game/GameEvents';
 import type { ItemId } from '../data/itemData';
+import type { DemoTestMode } from '../data/demoTestMode';
 import type { Wallet } from '../economy/Wallet';
 import type { EquipmentManager } from '../equipment/equipment';
 import { createEquipment, randomIdSource, type IdSource } from '../equipment/factory';
@@ -18,6 +19,7 @@ export interface ClaimContext {
   /** Grants EXP through the progression rules (level cap, Overflow, events). */
   grantExp: (amount: number) => void;
   rng: Rng;
+  tuning?: DemoTestMode;
   newItemId?: IdSource;
   /** Receives itemAcquired (reward items) and dungeonCleared (once per run). */
   events: EventBus<GameEvents>;
@@ -61,7 +63,7 @@ export function claimDungeonClear(run: DungeonRun, ctx: ClaimContext): DungeonCl
 /** Pick and grant the reward for a claimable run (Full, then Assist, then none). */
 function resolveClaim(run: DungeonRun, ctx: ClaimContext): DungeonClaimResult {
   if (ctx.entitlements.consumeFullReward()) {
-    const reward = rollBossReward(run.dungeonId, run.difficulty, ctx.rng);
+    const reward = rollBossReward(run.dungeonId, run.difficulty, ctx.rng, ctx.tuning);
     ctx.ledger.markClaimed(run);
     grantItems(ctx.inventory, reward.items);
     ctx.wallet.add('gold', reward.gold);
@@ -71,7 +73,7 @@ function resolveClaim(run: DungeonRun, ctx: ClaimContext): DungeonClaimResult {
   }
 
   if (ctx.entitlements.consumeAssistReward()) {
-    const reward = rollAssistReward(ctx.rng);
+    const reward = rollAssistReward(ctx.rng, ctx.tuning);
     ctx.ledger.markClaimed(run);
     grantItems(ctx.inventory, reward.items);
     ctx.wallet.add('gold', reward.gold);
