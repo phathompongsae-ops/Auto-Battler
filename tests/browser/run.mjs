@@ -50,7 +50,8 @@ try {
   const demoLevel = await b.eval(`(debug.grantExp(25000), debug.levelInfo().level)`);
   t.check('Internal Demo starts without fixture Main Quests; Lv11 Job Change is available from EXP',
     !demoQuests.some((q) => q.type === 'main' || q.type === 'feature') && demoLevel === 11 &&
-      (await b.eval(`debug.questProgress('job_c1_01_instructor').status`)) === 'available');
+      (await b.eval(`debug.questProgress('job_c1_01_instructor').status`)) === 'available' &&
+      !(await b.eval(`!!document.querySelector('[data-hud="quests"]')`)));
   await b.goto(`${URL}?questFixtures=1`);
   await boot();
 

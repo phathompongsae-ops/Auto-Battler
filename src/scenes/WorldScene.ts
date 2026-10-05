@@ -118,6 +118,7 @@ export class WorldScene extends Phaser.Scene {
       drag,
       tiles: buildTestMap(),
       areaName: 'Green Meadow',
+      fixtureQuests,
     });
     prewarmShaders(this);
 

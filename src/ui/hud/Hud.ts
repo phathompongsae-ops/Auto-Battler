@@ -22,6 +22,8 @@ export interface HudOptions {
   drag: TouchDragSource;
   tiles: number[][];
   areaName: string;
+  /** Legacy HUD quest examples, shown only by the explicit fixture test mode. */
+  fixtureQuests?: boolean;
 }
 
 /**
@@ -45,7 +47,7 @@ export class Hud {
   constructor(scene: Phaser.Scene, options: HudOptions) {
     const { world } = options;
     this.root = new UiRoot(scene.game);
-    this.quests = new QuestProgressSource(world, DEMO_QUESTS);
+    this.quests = new QuestProgressSource(world, options.fixtureQuests ? DEMO_QUESTS : []);
     this.windows = new WindowManager(this.root.el, { world, quests: this.quests, openJobSelect: () => this.jobSelect.open() });
     this.jobSelect = new JobSelectWindow(this.root.el, world, this.windows);
 
@@ -63,7 +65,7 @@ export class Hud {
       this.joystick.el,
       region('top-left', [this.player.el]),
       region('top-right', [this.minimap.el, this.menu.el]),
-      region('left-middle', [this.tracker.el]),
+      region('left-middle', options.fixtureQuests ? [this.tracker.el] : []),
       region('bottom-right', [this.actions.el]),
     ]);
     // Only buttons and slots take pointer events (see components.css); gaps between
