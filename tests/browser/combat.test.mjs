@@ -267,6 +267,35 @@ export async function combatSuite(b, t, shot) {
   t.check('24. player picks up loot by walking over it', picked.length === 2);
   t.check('25. inventory count increases', p.inventory.slime_gel === 1 && p.inventory.slime_sample === 1, JSON.stringify(p.inventory));
 
+  // Internal Demo tuning: a roll of 0.6 misses the base 50% / 40% chances but hits x10 (clamped to 100%).
+  const demo = await api('demoTestMode()');
+  const killAtRoll = async () => {
+    await arena();
+    await api('setRng(0.6)');
+    await api(`selectTarget('slime-1')`);
+    await api(`setMonsterHp('slime-1', 1)`);
+    await b.press('Space');
+    await sleep(150);
+    return {
+      dead: (await events(`e => e.type === 'death' && e.entity === 'slime-1'`)).length,
+      drops: (await events(`e => e.type === 'lootDropped'`)).map((e) => e.item),
+      reward: await events(`e => e.type === 'fieldReward'`),
+    };
+  };
+  const tuned = await killAtRoll();
+  await api('setDemoDropMultiplier(1)');
+  const base = await killAtRoll();
+  await api('resetDemoMultipliers()');
+  const restored = await api('demoTestMode()');
+  t.check(
+    '25b. Demo Test Mode x10 drop chance drives the real loot roll (one of each item, 1 Energy); x1 restores base odds',
+    demo.enabled && demo.expMultiplier === 10 && demo.dropRateMultiplier === 10 &&
+      tuned.dead === 1 && JSON.stringify(tuned.drops) === '["slime_gel","slime_sample"]' && tuned.reward[0]?.energySpent === 1 &&
+      base.dead === 1 && base.drops.length === 0 && restored.dropRateMultiplier === 10,
+    JSON.stringify({ demo, tuned, base: base.drops }),
+  );
+  await api('setRng(0.5)');
+
   // ------------------------------------------------------------------ monster AI
   t.section('Monster AI');
   await api('reset()');

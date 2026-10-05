@@ -202,7 +202,9 @@ export function createDevApi(world: CombatWorld, overlays: WorldOverlays) {
     }),
     setDemoExpMultiplier: (value: number) => world.demoTestMode.setExpMultiplier(value),
     setDemoDropRateMultiplier: (value: number) => world.demoTestMode.setDropRateMultiplier(value),
+    setDemoDropMultiplier: (value: number) => world.demoTestMode.setDropRateMultiplier(value),
     resetDemoTestMode: () => world.demoTestMode.reset(),
+    resetDemoMultipliers: () => world.demoTestMode.reset(),
     expToNext: (level: number) => expToNext(level),
     levelInfo: () => ({
       serverDay: world.serverDay.day(),
