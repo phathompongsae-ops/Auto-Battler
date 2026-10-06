@@ -99,13 +99,14 @@ export async function combatSliceSuite(b, t, shot) {
   await b.eval(`debug.setPeaceful(true); debug.setRng(0); debug.clearLog()`);
   await hit('elite_boar-1', 1);
   await b.waitFor(`debug.monster('elite_boar-1').dead`, { timeout: 2000, label: 'elite dies' });
-  // Only what the Elite dropped (an earlier wolf kill may have left its fang on the ground).
-  const eliteDrops = (await api('drops()')).map((d) => d.item).filter((i) => i !== 'wolf_fang').sort();
+  // Ground drops from the Elite (an earlier wolf kill may have left its boots on the ground); its tusk auto-loots.
+  const eliteDrops = (await api('drops()')).map((d) => d.item).filter((i) => i !== 'traveler_boots').sort();
+  const tusks = (await player()).inventory.boar_tusk;
   const eliteGold = await events(`e => e.type === 'goldGained'`);
   t.check(
-    'CS-6. the Elite drops its guaranteed tusk plus an Enhancement Stone, and pays Elite Gold / Field Energy',
-    JSON.stringify(eliteDrops) === '["boar_tusk","enhancement_stone"]' && eliteGold[0]?.amount === 40,
-    JSON.stringify({ eliteDrops, eliteGold }),
+    'CS-6. the Elite tusk (guaranteed) auto-loots; its Enhancement Stone and equipment wait on the ground; it pays Elite Gold',
+    tusks === 1 && JSON.stringify(eliteDrops) === '["enhancement_stone","iron_sword","traveler_vest"]' && eliteGold[0]?.amount === 40,
+    JSON.stringify({ tusks, eliteDrops, eliteGold }),
   );
   await b.eval('debug.setRng(0.5)');
 

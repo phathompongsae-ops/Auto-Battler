@@ -246,7 +246,7 @@ describe('kill rewards: EXP, Gold, drops', () => {
     const before = levelExp();
     const def = MONSTERS[monsterId];
     grantKillRewards({ id: `${monsterId}-1`, x: 0, y: 0, def }, { zone, fieldEnergy: t.fieldEnergy, progression: t.progression, loot, player: t.player, now: 0, events, wallet: t.wallet });
-    return { exp: levelExp() - before, gold: t.wallet.get('gold'), goldEvents: gold, drops: loot.drops.map((d) => d.itemId) };
+    return { exp: levelExp() - before, gold: t.wallet.get('gold'), goldEvents: gold, drops: loot.drops.map((d) => (d.kind === 'item' ? d.itemId : d.defId)) };
   }
 
   test('a rewarded Field kill credits its Gold once, with EXP and drops', () => {
@@ -254,12 +254,12 @@ describe('kill rewards: EXP, Gold, drops', () => {
     assert.ok(r.exp > 0);
     assert.equal(r.gold, MONSTERS.wolf.goldReward);
     assert.deepEqual(r.goldEvents, [MONSTERS.wolf.goldReward]);
-    assert.deepEqual(r.drops, ['wolf_fang']);
+    assert.deepEqual(r.drops, ['wolf_fang', 'traveler_boots']);
   });
 
-  test('Elite and Mini Boss drops: guaranteed material plus progression materials', () => {
-    assert.deepEqual(kill('elite_boar', 'field').drops.sort(), ['boar_tusk', 'enhancement_stone']);
-    assert.deepEqual(kill('grove_guardian', 'field').drops.sort(), ['enchant_stone', 'enhancement_stone', 'guardian_bark']);
+  test('Elite and Mini Boss drops: guaranteed material plus progression materials and equipment', () => {
+    assert.deepEqual(kill('elite_boar', 'field').drops.sort(), ['boar_tusk', 'enhancement_stone', 'iron_sword', 'traveler_vest']);
+    assert.deepEqual(kill('grove_guardian', 'field').drops.sort(), ['enchant_stone', 'enhancement_stone', 'guardian_bark', 'oak_shield', 'quartz_ring']);
   });
 
   test('no Field Energy → no EXP, Gold or farming drops; dungeon kills → nothing', () => {

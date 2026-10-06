@@ -15,6 +15,7 @@ import { Minimap } from './Minimap';
 import { PlayerFrame } from './PlayerFrame';
 import { QuestProgressSource, QuestTracker } from './QuestTracker';
 import { RespawnNotice, TargetFrame } from './TargetFrame';
+import { LootFeed } from './LootFeed';
 
 export interface HudOptions {
   world: CombatWorld;
@@ -44,6 +45,7 @@ export class Hud {
   private readonly actions: ActionCluster;
   private readonly target: TargetFrame;
   private readonly respawn: RespawnNotice;
+  private readonly lootFeed: LootFeed;
 
   constructor(scene: Phaser.Scene, options: HudOptions) {
     const { world } = options;
@@ -52,7 +54,7 @@ export class Hud {
     this.windows = new WindowManager(this.root.el, { world, quests: this.quests, openJobSelect: () => this.jobSelect.open() });
     this.jobSelect = new JobSelectWindow(this.root.el, world, this.windows);
 
-    this.player = new PlayerFrame(world.player, options.art);
+    this.player = new PlayerFrame(world.player, options.art, world.wallet);
     this.minimap = new Minimap(world, scene.cameras.main);
     this.menu = new MenuBar(world, this.windows, this.quests);
     this.tracker = new QuestTracker(this.quests);
@@ -60,6 +62,7 @@ export class Hud {
     this.actions = new ActionCluster(world, options.actions);
     this.target = new TargetFrame(world);
     this.respawn = new RespawnNotice(world);
+    this.lootFeed = new LootFeed(world);
 
     const region = (name: string, children: Node[]) =>
       h('div', { className: `hud__region hud__${name}`, attrs: { 'data-region': name } }, children);
@@ -69,6 +72,7 @@ export class Hud {
       region('top-left', [this.player.el]),
       region('top-center', [this.target.el]),
       region('center', [this.respawn.el]),
+      region('loot', [this.lootFeed.el]),
       region('top-right', [this.minimap.el, this.menu.el]),
       region('left-middle', options.fixtureQuests ? [this.tracker.el] : []),
       region('bottom-right', [this.actions.el]),
@@ -90,6 +94,7 @@ export class Hud {
   }
 
   destroy(): void {
+    this.lootFeed.destroy();
     this.actions.destroy();
     this.menu.destroy();
     this.quests.destroy();

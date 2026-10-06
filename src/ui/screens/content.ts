@@ -1,7 +1,7 @@
 import { ITEMS } from '../../data/itemData';
 import type { CombatWorld } from '../../game/CombatWorld';
-import { ItemSlot } from '../components/Slot';
 import { h } from '../dom';
+import { renderEquipment, renderInventory } from './inventoryView';
 import { renderSkillTree } from './skillTreeView';
 import { renderRecurring } from './recurringView';
 import { renderCraft, renderEnchant, renderEnhancement, renderJobChange, renderWarp } from './systemScreens';
@@ -23,8 +23,6 @@ export interface ScreenContext {
 
 export type ScreenRenderer = (tab: string | null, ctx: ScreenContext) => Node;
 
-const hex = (color: number) => `#${color.toString(16).padStart(6, '0')}`;
-const INVENTORY_SLOTS = 24;
 
 function emptyState(message: string): HTMLElement {
   return h('div', { className: 'ui-empty' }, [
@@ -41,26 +39,11 @@ function statRows(rows: [string, string][]): HTMLElement {
   );
 }
 
-const inventory: ScreenRenderer = (tab, { world }) => {
-  if (tab === 'equipment') return emptyState('Equipment items will be listed here.');
-  const entries = world.inventory.entries();
-  const grid = h('div', { className: 'ui-grid', style: { '--cols': '6' } });
-  for (let i = 0; i < INVENTORY_SLOTS; i++) {
-    const entry = entries[i];
-    const slot = entry
-      ? new ItemSlot({
-          content: { abbr: ITEMS[entry[0]].name.slice(0, 2), color: hex(ITEMS[entry[0]].color), title: ITEMS[entry[0]].name },
-          count: entry[1],
-          rarity: 'uncommon',
-        })
-      : new ItemSlot();
-    grid.append(slot.el);
-  }
-  return grid;
-};
+/** Bag with sorting, details, comparison and Equip (see inventoryView.ts). */
+const inventory: ScreenRenderer = (tab, { world }) => renderInventory(world, tab);
 
 const character: ScreenRenderer = (tab, { world }) => {
-  if (tab === 'equipment') return emptyState('Weapon, armour and accessory slots.');
+  if (tab === 'equipment') return renderEquipment(world);
   const c = world.player.combat;
   const s = c.stats;
   return statRows([

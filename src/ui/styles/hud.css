@@ -295,3 +295,43 @@
   color: #ff6b6b;
   font-size: var(--ui-text-lg, 18px);
 }
+
+/* ------------------------------------------------------- gold / loot feed */
+.hud-player__gold {
+  font-size: var(--ui-text-xs);
+  font-weight: 700;
+  color: #ffd166;
+  text-shadow: var(--ui-text-shadow);
+}
+.hud__loot {
+  left: var(--ui-space-4);
+  bottom: calc(150px * var(--ui-scale));
+  flex-direction: column;
+  align-items: flex-start;
+  pointer-events: none;
+}
+.hud-loot {
+  display: flex;
+  flex-direction: column;
+  gap: calc(2px * var(--ui-scale));
+}
+.hud-loot__line {
+  font-size: var(--ui-text-xs);
+  font-weight: 700;
+  padding: calc(2px * var(--ui-scale)) var(--ui-space-2);
+  border-radius: var(--ui-radius-sm, 4px);
+  background: rgba(8, 12, 20, 0.62);
+  text-shadow: var(--ui-text-shadow);
+  white-space: nowrap;
+  animation: hud-loot-in 160ms ease-out;
+}
+.hud-loot__line--rare,
+.hud-loot__line--equipment {
+  box-shadow: inset 2px 0 0 currentColor;
+}
+@keyframes hud-loot-in {
+  from {
+    opacity: 0;
+    transform: translateX(-8px);
+  }
+}

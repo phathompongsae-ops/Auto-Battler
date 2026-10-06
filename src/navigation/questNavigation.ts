@@ -15,7 +15,7 @@ export type NavResolution =
 /** Monster ids whose loot table can drop `itemId` (real data; nothing invented). */
 function monstersDropping(itemId: ItemId): string[] {
   return Object.values(MONSTERS)
-    .filter((m) => LOOT_TABLES[m.lootTable]?.some((e) => e.itemId === itemId))
+    .filter((m) => LOOT_TABLES[m.lootTable]?.some((e) => 'itemId' in e && e.itemId === itemId))
     .map((m) => m.id);
 }
 

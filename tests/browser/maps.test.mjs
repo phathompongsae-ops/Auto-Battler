@@ -125,7 +125,7 @@ export async function mapSuite(b, t, shot, reload) {
   await shot('maps-03-dungeon');
 
   const r0 = await b.eval(`({ exp: debug.player().exp, level: debug.player().level, energy: debug.fieldEnergy(), gold: debug.equipment().gold, inv: JSON.stringify(debug.player().inventory) })`);
-  await b.eval(`debug.clearLog(); const p = debug.player(); debug.placeMonster('crypt_skeleton-1', p.x, p.y - 40); debug.resetCooldowns(); debug.selectTarget('crypt_skeleton-1'); debug.setMonsterHp('crypt_skeleton-1', 1)`);
+  await b.eval(`debug.setRng(0.5); debug.clearLog(); const p = debug.player(); debug.placeMonster('crypt_skeleton-1', p.x, p.y - 40); debug.resetCooldowns(); debug.selectTarget('crypt_skeleton-1'); debug.setMonsterHp('crypt_skeleton-1', 1)`);
   await b.press('Space');
   await b.waitFor(`debug.monster('crypt_skeleton-1').dead`, { timeout: 2000, label: 'skeleton dies' });
   await sleep(200);
@@ -135,6 +135,8 @@ export async function mapSuite(b, t, shot, reload) {
     r1.exp === r0.exp && r1.level === r0.level && r1.energy === r0.energy && r1.gold === r0.gold && r1.inv === r0.inv && r1.drops === 0 && r1.gained === 0,
     JSON.stringify({ r0, r1 }),
   );
+
+  await b.eval('debug.setRng(null)');
 
   // Leave through the entrance-hall exit.
   await b.eval(`debug.teleport(${crypt.spawnPoint.x}, ${crypt.spawnPoint.y})`);

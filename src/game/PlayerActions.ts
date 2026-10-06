@@ -13,6 +13,7 @@ import type { EquipmentManager } from '../equipment/equipment';
 import { enhanceAndReport, type EnhanceOptions } from '../equipment/enhancement';
 import { randomIdSource, type IdSource } from '../equipment/factory';
 import type { FeatureCheck, FeatureProgression } from '../features/FeatureProgression';
+import type { Bag } from '../inventory/Bag';
 import type { Inventory } from '../loot/Inventory';
 import { openEgg, useRandomEggTicket } from '../pets/eggActions';
 import type { PetCollection } from '../pets/pets';
@@ -46,7 +47,13 @@ export interface PlayerActionDeps {
   events: EventBus<GameEvents>;
   rng: () => Rng;
   world: PlayerActionWorld;
+  /** Bag capacity rules for equip / unequip (none: unlimited, as in older tests). */
+  bag?: Bag;
 }
+
+/** Equip / unequip refused because the bag has no slot for what comes back into it. */
+export type BagFull = { ok: false; reason: 'inventory_full' };
+const BAG_FULL: BagFull = { ok: false, reason: 'inventory_full' };
 
 /**
  * Every player-facing system action, each validating its feature first so no
@@ -62,12 +69,21 @@ export class PlayerActions {
     return check.ok ? null : check;
   }
 
+  /** Equip from the bag; stats refresh immediately. Refused when the pieces coming back would not fit. */
   equip(instanceId: string, slot?: EquipmentSlot) {
-    return this.gate('equipment') ?? this.d.equipment.equip(instanceId, slot);
+    const locked = this.gate('equipment');
+    if (locked) return locked;
+    if (this.d.bag && this.d.bag.slotsNeededToEquip(instanceId, slot) > this.d.bag.freeSlots()) return BAG_FULL;
+    return this.d.equipment.equip(instanceId, slot);
   }
 
-  unequip(slot: EquipmentSlot) {
-    return this.gate('equipment') ?? this.d.equipment.unequip(slot);
+  /** Take a slot's item off into the bag (needs a free bag slot). */
+  unequip(slot: EquipmentSlot): { ok: true; instanceId: string } | { ok: false; reason: 'empty_slot' } | BagFull | FeatureLocked {
+    const locked = this.gate('equipment');
+    if (locked) return locked;
+    if (!this.d.equipment.equipped[slot]) return { ok: false, reason: 'empty_slot' };
+    if (this.d.bag && !this.d.bag.hasRoomForEquipment()) return BAG_FULL;
+    return { ok: true, instanceId: this.d.equipment.unequip(slot)! };
   }
 
   /** One enhancement attempt (reported for quests); balance unchanged. */

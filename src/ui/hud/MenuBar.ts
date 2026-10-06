@@ -40,7 +40,12 @@ export class MenuBar {
     this.badges.set('menu', new Badge(menu));
     this.el = h('div', { className: 'hud-menu', attrs: { 'data-hud': 'menu' } }, [...buttons, menu]);
 
-    this.unsubscribe = world.events.on('lootPicked', () => this.newItems++);
+    const offPicked = world.events.on('lootPicked', () => this.newItems++);
+    const offEquipment = world.events.on('equipmentPicked', () => this.newItems++);
+    this.unsubscribe = () => {
+      offPicked();
+      offEquipment();
+    };
     windows.onChange((id) => {
       if (id === 'inventory') this.newItems = 0;
     });

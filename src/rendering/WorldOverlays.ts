@@ -1,6 +1,9 @@
 import Phaser from 'phaser';
 import type { CombatEntity } from '../combat/types';
+import { RARITY_INFO } from '../data/equipmentData';
+import { EQUIPMENT_DEFS } from '../data/equipmentItems';
 import { ITEMS, LOOT_DROP } from '../data/itemData';
+import type { LootDrop } from '../loot/LootSystem';
 import type { CombatWorld } from '../game/CombatWorld';
 import type { Monster } from '../entities/Monster';
 import type { GameEvents } from '../game/GameEvents';
@@ -53,8 +56,9 @@ export class WorldOverlays {
     const ev = world.events;
     ev.on('projectileSpawned', (e) => this.addProjectile(e));
     ev.on('projectileRemoved', ({ projectileId }) => this.removeProjectile(projectileId));
-    ev.on('lootDropped', (e) => this.addLoot(e));
+    // Ground views come from world.loot.drops (see update): auto-looted items never touch the ground.
     ev.on('lootPicked', ({ dropId }) => this.removeLoot(dropId));
+    ev.on('equipmentPicked', ({ dropId }) => this.removeLoot(dropId));
     ev.on('lootExpired', ({ dropId }) => this.removeLoot(dropId));
   }
 
@@ -76,8 +80,7 @@ export class WorldOverlays {
     }
 
     for (const drop of this.world.loot.drops) {
-      const view = this.lootViews.get(drop.id);
-      if (!view) continue;
+      const view = this.lootViews.get(drop.id) ?? this.addLoot(drop);
       const remaining = drop.expiresAt - now;
       view.setAlpha(remaining < LOOT_DROP.blinkBefore && Math.floor(now / 120) % 2 === 0 ? 0.3 : 1);
     }
@@ -135,13 +138,18 @@ export class WorldOverlays {
     this.projectilePool.push(view.setVisible(false));
   }
 
-  private addLoot(drop: GameEvents['lootDropped']): void {
+  /** A ground drop: a gem tinted by the item, or a larger gem in the equipment's rarity colour. */
+  private addLoot(drop: LootDrop): Phaser.GameObjects.Image {
+    const equipment = drop.kind === 'equipment';
+    const color = equipment ? Number.parseInt(RARITY_INFO[EQUIPMENT_DEFS[drop.defId].rarity].color.slice(1), 16) : ITEMS[drop.itemId].color;
     const view = this.scene.add
       .image(drop.x, drop.y, LOOT_KEY)
-      .setTint(ITEMS[drop.itemId].color)
+      .setTint(color)
+      .setScale(equipment ? 1.5 : 1)
       .setDepth(drop.y - 2);
     this.scene.tweens.add({ targets: view, y: drop.y - 4, yoyo: true, repeat: -1, duration: 450, ease: 'Sine.easeInOut' });
-    this.lootViews.set(drop.dropId, view);
+    this.lootViews.set(drop.id, view);
+    return view;
   }
 
   private removeLoot(id: number): void {

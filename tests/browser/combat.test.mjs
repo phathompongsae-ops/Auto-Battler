@@ -255,16 +255,17 @@ export async function combatSuite(b, t, shot) {
   await b.press('Space');
   await sleep(150);
   const drops = await api('drops()');
-  t.check('23. loot drops into the world (farming drop + quest drop)', drops.length === 2 && drops[0].item === 'slime_gel' && drops[1].item === 'slime_sample', JSON.stringify(drops));
+  const rolled = await events(`e => e.type === 'lootDropped'`);
+  t.check(
+    '23. the kill rolls its loot (farming drop + quest drop)',
+    rolled.map((e) => e.item).join() === 'slime_gel,slime_sample',
+    JSON.stringify(rolled),
+  );
   p = await player();
-  t.check('23b. item stays on the ground until picked up', (p.inventory.slime_gel ?? 0) === 0);
+  t.check('23b. normal rewards are auto-looted: nothing waits on the ground', drops.length === 0, JSON.stringify(drops));
   await shot('combat-05-loot');
-  await b.keyDown('ArrowUp');
-  await b.waitFor(`debug.drops().length === 0`, { timeout: 1500, label: 'pickup' });
-  await b.keyUp('ArrowUp');
   const picked = await events(`e => e.type === 'lootPicked'`);
-  p = await player();
-  t.check('24. player picks up loot by walking over it', picked.length === 2);
+  t.check('24. both are collected for the player at once (auto-loot)', picked.length === 2);
   t.check('25. inventory count increases', p.inventory.slime_gel === 1 && p.inventory.slime_sample === 1, JSON.stringify(p.inventory));
 
   // Internal Demo tuning: a roll of 0.6 misses the base 50% / 40% chances but hits x10 (clamped to 100%).

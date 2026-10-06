@@ -2,11 +2,12 @@ import type { CharacterArt } from '../../data/characterArt';
 import { JOBS } from '../../data/jobData';
 import { expToNext } from '../../progression/expCurve';
 import type { Player } from '../../entities/Player';
+import type { Wallet } from '../../economy/Wallet';
 import { Bar } from '../components/Bar';
 import { createPanel } from '../components/Panel';
 import { h, setText } from '../dom';
 
-/** Top-left: portrait with level, name, HP / MP / EXP bars. */
+/** Top-left: portrait with level, name, HP / MP / EXP bars and Gold. */
 export class PlayerFrame {
   readonly el: HTMLDivElement;
   private readonly hp = new Bar('hp', { showText: true });
@@ -15,12 +16,14 @@ export class PlayerFrame {
   private readonly level: HTMLSpanElement;
   private readonly expText: HTMLSpanElement;
   private readonly nameEl: HTMLSpanElement;
+  private readonly goldEl: HTMLSpanElement;
   private readonly portrait: HTMLDivElement;
   private portraitArt: CharacterArt | null = null;
 
   constructor(
     private readonly player: Player,
     art: CharacterArt | null,
+    private readonly wallet: Wallet,
   ) {
     this.level = h('span', { className: 'hud-portrait__level' });
     const portrait = h('div', { className: 'hud-portrait', attrs: { 'data-hud': 'portrait' } }, [this.level]);
@@ -35,7 +38,8 @@ export class PlayerFrame {
       this.nameEl,
       this.expText,
     ]);
-    const info = h('div', { className: 'hud-player__info' }, [name, this.hp.el, this.mp.el, this.exp.el]);
+    this.goldEl = h('span', { className: 'hud-player__gold', attrs: { 'data-hud': 'gold' } });
+    const info = h('div', { className: 'hud-player__info' }, [name, this.hp.el, this.mp.el, this.exp.el, this.goldEl]);
     this.el = createPanel({ className: 'hud-player' }, [portrait, info]);
     this.el.dataset.hud = 'player';
   }
@@ -60,5 +64,6 @@ export class PlayerFrame {
     setText(this.nameEl, JOBS[this.player.progress.classId].name);
     setText(this.level, `Lv ${c.level}`);
     setText(this.expText, `EXP ${Math.floor((c.exp / Math.max(1, need)) * 100)}%`);
+    setText(this.goldEl, `${this.wallet.get('gold').toLocaleString('en-US')} G`);
   }
 }

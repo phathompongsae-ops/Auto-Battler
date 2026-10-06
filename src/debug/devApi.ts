@@ -6,7 +6,7 @@ import { defaultRng, seededRng } from '../core/rng';
 import { MAX_ENHANCEMENT, type EquipmentSlot } from '../data/equipmentData';
 import { enhancementVfxTier, type EnhanceOptions } from '../equipment/enhancement';
 import { FEATURE_IDS, FEATURES, lockedMessage, type FeatureId } from '../data/featureData';
-import { createEquipment } from '../equipment/factory';
+import { createEquipment, sequentialIds } from '../equipment/factory';
 import { evaluateSets } from '../equipment/sets';
 import { EGG_ITEM, type EggTier, type PetPassiveId, type PetRarity, type PetSpeciesId } from '../data/petData';
 import type { PetInstance } from '../pets/pets';
@@ -89,7 +89,7 @@ export function createDevApi(world: CombatWorld, overlays: WorldOverlays) {
   ev.on('levelUp', (e) => record('levelUp', { entity: e.entityId, level: e.level }));
   ev.on('lootDropped', (e) => record('lootDropped', { item: e.itemId }));
   ev.on('lootPicked', (e) => record('lootPicked', { item: e.itemId }));
-  ev.on('lootExpired', (e) => record('lootExpired', { item: e.itemId }));
+  ev.on('lootExpired', (e) => record('lootExpired', { item: e.itemId ?? undefined }));
   ev.on('targetChanged', (e) => record('targetChanged', { target: e.targetId ?? undefined }));
   ev.on('questAvailable', (e) => record('questAvailable', { quest: e.questId }));
   ev.on('questProgress', (e) => record('questProgress', { quest: e.questId, amount: e.current }));
@@ -600,7 +600,31 @@ export function createDevApi(world: CombatWorld, overlays: WorldOverlays) {
       }
     },
     useItem: (itemId: string) => world.usePlayerItem(itemId),
-    drops: () => world.loot.drops.map((d) => ({ id: d.id, item: d.itemId, x: d.x, y: d.y })),
+    // --- Bag (dev only) -----------------------------------------------------
+    /** Bag usage and its sorted entries (as the Inventory window lists them). */
+    bag: (filter: 'all' | 'equipment' | 'materials' = 'all') => ({
+      used: world.bag.usedSlots(),
+      capacity: world.bag.capacity,
+      free: world.bag.freeSlots(),
+      entries: world.bag.entries(filter).map((e) =>
+        e.kind === 'item'
+          ? { key: e.key, kind: e.kind, id: e.itemId, count: e.count, type: e.type, rarity: e.rarity, name: e.name, sellValue: e.sellValue }
+          : { key: e.key, kind: e.kind, id: e.item.defId, instanceId: e.item.instanceId, count: 1, type: 'equipment', rarity: e.rarity, name: e.name, sellValue: e.sellValue },
+      ),
+    }),
+    /** Test setup: fill every free bag slot with full Slime Gel stacks. */
+    fillBag: () => {
+      const free = world.bag.freeSlots();
+      const have = world.inventory.count('slime_gel');
+      const stack = 999;
+      const room = have % stack ? stack - (have % stack) : 0;
+      world.inventory.add('slime_gel', room + free * stack);
+      return world.bag.freeSlots();
+    },
+    /** Deterministic instance ids for equipment created from loot (tests). */
+    setEquipmentIds: (prefix: string) => (world.equipmentIds = sequentialIds(prefix)),
+    /** Ground drops (items by item id, equipment by definition id). */
+    drops: () => world.loot.drops.map((d) => ({ id: d.id, kind: d.kind, item: d.kind === 'item' ? d.itemId : d.defId, x: d.x, y: d.y })),
     projectiles: () => world.projectiles.active.length,
     projectilePositions: () => world.projectiles.active.map((p) => ({ id: p.id, x: p.x, y: p.y })),
     /** Simulation clock, freeze state and whether physics is paused. */

@@ -30,7 +30,9 @@ import { SpecialShop } from '../pets/specialShop';
 import { RewardLedger, type DungeonRun } from '../dungeon/rewards';
 import { CraftingQueue } from '../crafting/crafting';
 import { defaultUnlocks } from '../warp/warp';
-import { LootSystem } from '../loot/LootSystem';
+import { LootSystem, type LootDrop } from '../loot/LootSystem';
+import { Bag } from '../inventory/Bag';
+import { createEquipment, randomIdSource, type IdSource } from '../equipment/factory';
 import { useItem as applyItem, type UseItemResult } from '../items/useItem';
 import { ProgressionSystem } from '../progression/ProgressionSystem';
 import { allocateStat } from '../progression/statActions';
@@ -51,7 +53,6 @@ import { PlayerActions } from './PlayerActions';
 import { JOBS } from '../data/jobData';
 import type { EquipmentSlot } from '../data/equipmentData';
 import type { EggTier } from '../data/petData';
-import type { IdSource } from '../equipment/factory';
 import { RecurringQuests } from '../quests/RecurringQuests';
 import { NAVIGATION } from '../data/navigationData';
 import type { MapDef } from '../data/maps';
@@ -128,6 +129,10 @@ export class CombatWorld implements MonsterWorld {
   /** Unlocked towns and discovered dungeons (warp destinations). */
   readonly warpUnlocks = defaultUnlocks();
   readonly loot = new LootSystem(this.events, this.inventory, this.demoTestMode);
+  /** The player's bag: stackable items + unequipped equipment within its capacity. */
+  readonly bag: Bag;
+  /** Instance ids for equipment created from loot (dev tools may make them deterministic). */
+  equipmentIds: IdSource = randomIdSource;
 
   readonly monsters: Monster[] = [];
   /** Player + monsters, for systems that scan everyone. */
@@ -200,6 +205,9 @@ export class CombatWorld implements MonsterWorld {
     questDefs: Readonly<Record<string, QuestDef>> = INTERNAL_DEMO_QUESTS,
   ) {
     this.register(player);
+    this.bag = new Bag(this.inventory, player.equipment);
+    // Loot: normal rewards auto-loot into the bag; special drops wait on the ground for a collector (the player now, a pet later).
+    this.loot.receiver = { id: player.id, store: (drop) => this.storeLoot(drop) };
     this.maps = new MapSession<Monster>({
       build: (map) => view.build(map),
       spawn: (spawn) => {
@@ -256,6 +264,7 @@ export class CombatWorld implements MonsterWorld {
       warpUnlocks: this.warpUnlocks,
       events: this.events,
       rng: () => this.rewardRng,
+      bag: this.bag,
       world: {
         location: () => this.location,
         inCombat: () => this.playerEngaged(),
@@ -535,6 +544,19 @@ export class CombatWorld implements MonsterWorld {
       best = p;
     }
     this.player.body.reset(best.x, best.y);
+  }
+
+  /** Loot into the bag when it fits: items stack; an equipment drop becomes a new owned instance. */
+  private storeLoot(drop: LootDrop): { ok: true; instanceId?: string } | { ok: false; reason: 'inventory_full' } {
+    if (drop.kind === 'item') {
+      if (!this.bag.hasRoomForItem(drop.itemId)) return { ok: false, reason: 'inventory_full' };
+      this.inventory.add(drop.itemId);
+      return { ok: true };
+    }
+    if (!this.bag.hasRoomForEquipment()) return { ok: false, reason: 'inventory_full' };
+    const item = createEquipment(drop.defId, this.rewardRng, this.equipmentIds);
+    this.player.equipment.add(item);
+    return { ok: true, instanceId: item.instanceId };
   }
 
   /** Add items obtained through gameplay and report the acquisition. */

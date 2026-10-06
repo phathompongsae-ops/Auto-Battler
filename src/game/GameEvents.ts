@@ -1,3 +1,4 @@
+import type { Rarity } from '../data/equipmentData';
 import type { HitCancelReason, SkillFailReason } from '../combat/SkillSystem';
 import type { EntityId } from '../combat/types';
 import type { ItemId } from '../data/itemData';
@@ -65,9 +66,18 @@ export type GameEvents = {
   /** A field kill's farming rewards were granted (paying Energy) or withheld (Energy empty). */
   fieldReward: { monsterId: EntityId; rewarded: boolean; energySpent: number; energyLeft: number };
   levelUp: { entityId: EntityId; level: number };
-  lootDropped: { dropId: number; itemId: ItemId; x: number; y: number; expiresAt: number };
-  lootPicked: { dropId: number; itemId: ItemId; byId: EntityId };
-  lootExpired: { dropId: number; itemId: ItemId };
+  /** An item rolled from a loot table. `delivery`: auto-looted into the bag, or left on the ground (special drops, or no room). */
+  lootDropped: { dropId: number; itemId: ItemId; x: number; y: number; expiresAt: number; delivery: 'auto' | 'ground' };
+  /** An item drop went into the bag (`auto`: straight from the roll, without touching the ground). */
+  lootPicked: { dropId: number; itemId: ItemId; byId: EntityId; auto: boolean };
+  /** A ground drop (item or equipment; itemId null for equipment) expired or was cleared. */
+  lootExpired: { dropId: number; itemId: ItemId | null };
+  /** An equipment piece dropped on the ground (special drop: picked up by walking over it). */
+  equipmentDropped: { dropId: number; defId: string; rarity: Rarity; x: number; y: number; expiresAt: number };
+  /** An equipment drop was picked up: a new owned instance in the bag. */
+  equipmentPicked: { dropId: number; defId: string; instanceId: string; byId: EntityId };
+  /** Loot could not enter the bag (full): it stays on the ground. Reported once per drop. */
+  lootBlocked: { dropId: number; name: string; reason: 'inventory_full' };
   targetChanged: { targetId: EntityId | null };
   itemUsed: { entityId: EntityId; itemId: ItemId };
   /** A job was taken (Class 1 Job Change). Quests re-check class prerequisites on it. */
