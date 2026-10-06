@@ -29,6 +29,8 @@ export interface MonsterDef {
   expReward: number;
   lootTable: LootTableId;
   respawnDelay: number; // ms
+  /** Display scale of the art (presentation only; default 1). Bigger tiers read bigger. */
+  scale?: number;
 }
 
 const MONSTER_DEFS = {
@@ -63,11 +65,11 @@ const MONSTER_DEFS = {
   // rules can be exercised. Not balanced; the monster content pass replaces them.
   wolf: placeholder('wolf', 'Wolf', 'normal', 2, { maxHp: 90, attack: 10, defense: 3, moveSpeed: 105 }, 40),
   mushroom: placeholder('mushroom', 'Mushroom', 'normal', 3, { maxHp: 80, attack: 9, defense: 4, moveSpeed: 70 }, 35),
-  elite_boar: placeholder('elite_boar', 'Elite Boar', 'elite', 8, { maxHp: 450, attack: 16, defense: 8, moveSpeed: 95 }, 160, 18),
-  grove_guardian: placeholder('grove_guardian', 'Grove Guardian', 'mini_boss', 12, { maxHp: 1600, attack: 22, defense: 12, moveSpeed: 80 }, 550, 22),
+  elite_boar: placeholder('elite_boar', 'Elite Boar', 'elite', 8, { maxHp: 450, attack: 16, defense: 8, moveSpeed: 95 }, 160, 18, 1.6),
+  grove_guardian: placeholder('grove_guardian', 'Grove Guardian', 'mini_boss', 12, { maxHp: 1600, attack: 22, defense: 12, moveSpeed: 80 }, 550, 22, 2.1),
   crypt_skeleton: placeholder('crypt_skeleton', 'Crypt Skeleton', 'normal', 20, { maxHp: 140, attack: 14, defense: 6, moveSpeed: 90 }, 0),
-  crypt_knight: placeholder('crypt_knight', 'Crypt Knight', 'elite', 20, { maxHp: 700, attack: 20, defense: 12, moveSpeed: 85 }, 0, 18),
-  crypt_lord: placeholder('crypt_lord', 'Crypt Lord', 'dungeon_boss', 20, { maxHp: 3000, attack: 26, defense: 16, moveSpeed: 75 }, 0, 24),
+  crypt_knight: placeholder('crypt_knight', 'Crypt Knight', 'elite', 20, { maxHp: 700, attack: 20, defense: 12, moveSpeed: 85 }, 0, 18, 1.6),
+  crypt_lord: placeholder('crypt_lord', 'Crypt Lord', 'dungeon_boss', 20, { maxHp: 3000, attack: 26, defense: 16, moveSpeed: 75 }, 0, 24, 2.5),
 } satisfies Record<string, MonsterDef>;
 
 /** A PLACEHOLDER monster: slime-like defaults with a few overrides. Dungeon monsters' expReward is unused (dungeon kills grant nothing). */
@@ -79,6 +81,7 @@ function placeholder(
   stats: Pick<MonsterStats, 'maxHp' | 'attack' | 'defense' | 'moveSpeed'>,
   expReward: number,
   hitRadius = 12,
+  scale = 1.15,
 ): MonsterDef {
   return {
     id,
@@ -94,6 +97,7 @@ function placeholder(
     expReward,
     lootTable: 'placeholder',
     respawnDelay: tier === 'normal' ? 5000 : 15000,
+    scale,
   };
 }
 

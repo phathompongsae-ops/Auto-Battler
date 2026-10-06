@@ -1,8 +1,8 @@
 import Phaser from 'phaser';
-import { CAMERA_LERP, TILE_SIZE } from '../config';
+import { CAMERA_LERP, CAMERA_ZOOM, TILE_SIZE } from '../config';
 import { presentationFor } from '../data/demoConfig';
 import { STARTING_JOB } from '../data/jobData';
-import { DEFAULT_MAP_ID, MAPS, mapSize, portalCenter, type MapDef } from '../data/maps';
+import { DEFAULT_MAP_ID, MAPS, mapSize, portalCenter, PROP_KINDS, type MapDef } from '../data/maps';
 import { INTERNAL_DEMO_QUESTS, QUESTS } from '../data/questData';
 import { MONSTERS } from '../data/monsterData';
 import { DebugPanel } from '../debug/DebugPanel';
@@ -12,6 +12,7 @@ import { Player } from '../entities/Player';
 import { CombatWorld, type WorldMapView } from '../game/CombatWorld';
 import { isCharacterArtReady } from '../graphics/characterArt';
 import { TILESET_KEY } from '../graphics/placeholderTextures';
+import { propTextureKey } from '../graphics/propTextures';
 import { InputController } from '../input/InputController';
 import { KeyboardActionSource } from '../input/KeyboardActionSource';
 import { KeyboardSource } from '../input/KeyboardSource';
@@ -27,11 +28,13 @@ import { SOLID_TILES } from '../world/tiles';
 
 /** Depth of the placeholder map labels: above the ground, below characters' bars. */
 const LABEL_DEPTH = 900_000;
+/** Flat ground decoration: above the tiles and shadows, below every prop and character. */
+const PROP_GROUND_DEPTH = -0.5;
 
 /**
  * Builds the current map, entities and views, then drives CombatWorld each
  * frame. One scene hosts every map: CombatWorld.enterMap() asks it (as the
- * WorldMapView) to swap tiles, collision, labels and monsters.
+ * WorldMapView) to swap tiles, collision, props, labels and monsters.
  */
 export class WorldScene extends Phaser.Scene implements WorldMapView {
   player!: Player;
@@ -44,8 +47,11 @@ export class WorldScene extends Phaser.Scene implements WorldMapView {
 
   private tilemap: Phaser.Tilemaps.Tilemap | null = null;
   private colliders: Phaser.Physics.Arcade.Collider[] = [];
-  private labels: Phaser.GameObjects.GameObject[] = [];
+  /** Everything drawn for the current map besides tiles: props, markers, signs. */
+  private mapVisuals: Phaser.GameObjects.GameObject[] = [];
   private monsterGroup!: Phaser.GameObjects.Group;
+  /** Static bodies on the footprints of solid props (rebuilt with the map). */
+  private propBodies!: Phaser.Physics.Arcade.StaticGroup;
 
   constructor() {
     super('World');
@@ -53,6 +59,8 @@ export class WorldScene extends Phaser.Scene implements WorldMapView {
 
   create(): void {
     this.monsterGroup = this.add.group();
+    this.propBodies = this.physics.add.staticGroup();
+    this.cameras.main.setZoom(CAMERA_ZOOM);
     const start = MAPS[DEFAULT_MAP_ID].spawnPoint;
 
     // A new character is a Novice; its presentation is the temporary Warrior fallback (see demoConfig).
@@ -106,10 +114,11 @@ export class WorldScene extends Phaser.Scene implements WorldMapView {
 
   build(map: MapDef): void {
     for (const c of this.colliders) c.destroy();
-    for (const l of this.labels) l.destroy();
+    for (const l of this.mapVisuals) l.destroy();
     this.colliders = [];
-    this.labels = [];
+    this.mapVisuals = [];
     this.tilemap?.destroy();
+    this.propBodies.clear(true, true);
 
     const tilemap = this.make.tilemap({ data: map.tiles.map((r) => [...r]), tileWidth: TILE_SIZE, tileHeight: TILE_SIZE });
     const tileset = tilemap.addTilesetImage(TILESET_KEY, TILESET_KEY, TILE_SIZE, TILE_SIZE, 0, 0);
@@ -122,8 +131,33 @@ export class WorldScene extends Phaser.Scene implements WorldMapView {
     const { width, height } = mapSize(map);
     this.physics.world.setBounds(0, 0, width * TILE_SIZE, height * TILE_SIZE);
     this.cameras.main.setBounds(0, 0, width * TILE_SIZE, height * TILE_SIZE);
-    this.colliders.push(this.physics.add.collider(this.player, ground), this.physics.add.collider(this.monsterGroup, ground));
+    this.colliders.push(
+      this.physics.add.collider(this.player, ground),
+      this.physics.add.collider(this.monsterGroup, ground),
+      this.physics.add.collider(this.player, this.propBodies),
+      this.physics.add.collider(this.monsterGroup, this.propBodies),
+    );
+    this.drawProps(map);
     this.drawLabels(map);
+  }
+
+  /**
+   * Props: art bottom-centred on the footprint, depth-sorted with characters
+   * (ground decoration stays under everyone). Solid props get a static body
+   * on their footprint, matching the collision grid in world/mapRules.
+   */
+  private drawProps(map: MapDef): void {
+    for (const p of map.props) {
+      const kind = PROP_KINDS[p.kind];
+      const cx = (p.x + kind.w / 2) * TILE_SIZE;
+      const bottom = (p.y + kind.h) * TILE_SIZE;
+      // Slightly above the footprint edge: a character whose feet touch it from the south draws in front.
+      const depth = kind.ground ? PROP_GROUND_DEPTH : bottom - 6;
+      this.mapVisuals.push(this.add.image(cx, bottom, propTextureKey(p.kind)).setOrigin(0.5, 1).setDepth(depth));
+      if (!kind.solid) continue;
+      const zone = this.add.zone(cx, (p.y + kind.h / 2) * TILE_SIZE, kind.w * TILE_SIZE, kind.h * TILE_SIZE);
+      this.propBodies.add(zone);
+    }
   }
 
   createMonster(spawn: MonsterSpawn): Monster {
@@ -138,23 +172,33 @@ export class WorldScene extends Phaser.Scene implements WorldMapView {
     this.cameras.main.centerOn(this.player.x, this.player.y);
   }
 
-  /** PLACEHOLDER signage: a marker and name for every navigation target and portal of the map. */
+  /** PLACEHOLDER signage: a marker and name for every navigation target and portal, plus landmark names. */
   private drawLabels(map: MapDef): void {
-    const label = (x: number, y: number, text: string, color: number) => {
-      const dot = this.add.circle(x, y, 5, color, 0.85).setStrokeStyle(1, 0x1d1b26).setDepth(LABEL_DEPTH - 1);
-      const name = this.add
-        .text(x, y - 10, text, { fontFamily: 'monospace', fontSize: '11px', color: '#f4ecdb', backgroundColor: 'rgba(29,27,38,0.65)', padding: { x: 3, y: 1 } })
+    const text = (x: number, y: number, value: string, color: string, size: number) =>
+      this.add
+        .text(x, y, value, {
+          fontFamily: 'monospace',
+          fontSize: `${size}px`,
+          fontStyle: 'bold',
+          color,
+          stroke: '#1d1b26',
+          strokeThickness: 3,
+          resolution: 2,
+        })
         .setOrigin(0.5, 1)
         .setDepth(LABEL_DEPTH);
-      this.labels.push(dot, name);
+    const marker = (x: number, y: number, value: string, color: number) => {
+      const dot = this.add.circle(x, y, 4, color, 0.9).setStrokeStyle(1, 0x1d1b26).setDepth(LABEL_DEPTH - 1);
+      this.mapVisuals.push(dot, text(x, y - 8, value, '#f4ecdb', 9));
     };
     for (const t of map.navigationTargets) {
-      if (t.meta?.label) label(t.x, t.y, t.meta.label, t.type === 'monster_zone' ? 0xff8a65 : t.type === 'station' ? 0x7fd4ff : 0xf3d898);
+      if (t.meta?.label) marker(t.x, t.y, t.meta.label, t.type === 'monster_zone' ? 0xff8a65 : t.type === 'station' ? 0x7fd4ff : 0xf3d898);
     }
     for (const p of map.portals) {
       const c = portalCenter(p);
-      label(c.x, c.y, p.label, 0xb388ff);
+      marker(c.x, c.y, p.label, 0xb388ff);
     }
+    for (const l of map.landmarks ?? []) this.mapVisuals.push(text(l.x, l.y, l.label.toUpperCase(), '#f3d898', 10));
   }
 
   update(_time: number, delta: number): void {

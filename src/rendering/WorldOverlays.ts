@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import type { CombatEntity } from '../combat/types';
 import { ITEMS, LOOT_DROP } from '../data/itemData';
 import type { CombatWorld } from '../game/CombatWorld';
+import type { Monster } from '../entities/Monster';
 import type { GameEvents } from '../game/GameEvents';
 import { LOOT_KEY } from '../graphics/placeholderTextures';
 import { auraEllipse, barOffsetY } from './characterLayout';
@@ -10,6 +11,10 @@ const BAR_WIDTH = 26;
 /** Monsters still use the placeholder-era fixed offset. */
 const MONSTER_BAR_OFFSET_Y = -22;
 const BAR_DEPTH = 950_000;
+/** Contact shadows: above the ground tiles, under ground decoration, props and characters. */
+const SHADOW_DEPTH = -0.6;
+/** Feet of the blob monster art below its position, at scale 1. */
+const MONSTER_FEET_Y = 13;
 
 /**
  * Per-frame world-space visuals that mirror simulation state: health/MP
@@ -17,6 +22,8 @@ const BAR_DEPTH = 950_000;
  */
 export class WorldOverlays {
   private readonly bars: Phaser.GameObjects.Graphics;
+  /** Soft contact shadows: characters read clearly against the ground. */
+  private readonly shadows: Phaser.GameObjects.Graphics;
   private readonly targetMarker: Phaser.GameObjects.Ellipse;
   private readonly guardAura: Phaser.GameObjects.Ellipse;
   private readonly aura: ReturnType<typeof auraEllipse>;
@@ -29,6 +36,7 @@ export class WorldOverlays {
     private readonly world: CombatWorld,
   ) {
     this.bars = scene.add.graphics().setDepth(BAR_DEPTH);
+    this.shadows = scene.add.graphics().setDepth(SHADOW_DEPTH);
 
     this.targetMarker = scene.add.ellipse(0, 0, 34, 14).setStrokeStyle(2, 0xff5a5a).setVisible(false);
     this.targetMarker.isFilled = false;
@@ -51,6 +59,7 @@ export class WorldOverlays {
   }
 
   update(now: number): void {
+    this.drawShadows();
     this.drawBars();
 
     const target = this.world.targeting.current;
@@ -74,6 +83,18 @@ export class WorldOverlays {
     }
   }
 
+  private drawShadows(): void {
+    const g = this.shadows.clear();
+    g.fillStyle(0x000000, 0.3);
+    const player = this.world.player;
+    if (!player.combat.dead) g.fillEllipse(player.x, player.y + player.layout.feetOffset, 22, 8);
+    for (const m of this.world.monsters) {
+      if (m.combat.dead || !m.visible) continue;
+      const k = m.def.scale ?? 1;
+      g.fillEllipse(m.x, m.y + MONSTER_FEET_Y * k, 22 * k, 7 * k);
+    }
+  }
+
   private drawBars(): void {
     const g = this.bars.clear();
     for (const entity of this.world.combatants) {
@@ -84,7 +105,7 @@ export class WorldOverlays {
       if (!isPlayer && !damaged && entity !== this.world.targeting.current) continue;
 
       const x = Math.round(entity.x - BAR_WIDTH / 2);
-      const y = Math.round(entity.y + (isPlayer ? barOffsetY(this.world.player.layout) : MONSTER_BAR_OFFSET_Y));
+      const y = Math.round(entity.y + (isPlayer ? barOffsetY(this.world.player.layout) : MONSTER_BAR_OFFSET_Y * ((entity as Monster).def.scale ?? 1)));
       this.bar(g, x, y, c.hp / c.stats.maxHp, isPlayer ? 0x5ad35a : 0xe0524a);
       if (isPlayer) this.bar(g, x, y + 4, c.mp / c.stats.maxMp, 0x4f8cff);
     }

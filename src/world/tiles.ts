@@ -24,11 +24,15 @@ export const Tile = {
   DungeonFloor: 12,
   DungeonWall: 13,
   Carpet: 14,
+  /** Town plaza paving (lighter, decorative). */
+  Plaza: 15,
+  /** Darker stone ring edging a plaza. */
+  PlazaTrim: 16,
 } as const;
 
 export type Tile = (typeof Tile)[keyof typeof Tile];
 
-export const TILE_COUNT = 15;
+export const TILE_COUNT = 17;
 
 /** Tiles nothing can walk through. */
 export const SOLID_TILES: Tile[] = [Tile.Wall, Tile.Water, Tile.Roof, Tile.Tree, Tile.DungeonWall];

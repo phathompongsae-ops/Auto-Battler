@@ -25,6 +25,8 @@ const TILE_COLORS: Record<number, string> = {
   [Tile.DungeonFloor]: '#45414d',
   [Tile.DungeonWall]: '#1c1a21',
   [Tile.Carpet]: '#5c2433',
+  [Tile.Plaza]: '#b3ab9b',
+  [Tile.PlazaTrim]: '#8c8476',
 };
 
 /** Top-right minimap: the current map, camera view, monsters, loot and the player. Redrawn when the map changes. */

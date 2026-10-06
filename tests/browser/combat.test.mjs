@@ -412,7 +412,7 @@ export async function combatSuite(b, t, shot) {
   t.section('Pointer targeting');
   await arena();
   await sleep(500); // camera settle
-  const screen = await b.eval(`(() => { const w = game.scene.getScene('World'); const m = w.world.monsters.find(m => m.id === 'slime-1'); const c = w.cameras.main; return { x: m.x - c.worldView.x, y: m.y - c.worldView.y }; })()`);
+  const screen = await b.eval(`(() => { const w = game.scene.getScene('World'); const m = w.world.monsters.find(m => m.id === 'slime-1'); const c = w.cameras.main; return { x: (m.x - c.worldView.x) * c.zoom, y: (m.y - c.worldView.y) * c.zoom }; })()`);
   await b.mouse('mousePressed', screen.x, screen.y);
   await b.mouse('mouseReleased', screen.x, screen.y);
   await sleep(100);

@@ -524,7 +524,10 @@ export function createDevApi(world: CombatWorld, overlays: WorldOverlays) {
         zone: world.zone,
         monsters: world.monsters.map((m) => ({ id: m.id, monsterId: m.def.id, tier: m.def.tier, x: m.x, y: m.y, dead: m.combat.dead })),
         plannedMonsters: spawnPlan(map).map((s) => s.id),
-        portals: map.portals.map((p) => ({ id: p.id, to: p.to })),
+        portals: map.portals.map((p) => ({ id: p.id, to: p.to, area: { ...p.area }, arrival: { ...p.arrival } })),
+        props: map.props.length,
+        /** Gameplay camera zoom and the player's on-screen height (px). */
+        camera: { zoom: world.player.scene.cameras.main.zoom, playerScreenHeight: world.player.layout.height * world.player.scene.cameras.main.zoom },
         lastFallback: world.lastMapFallback,
       };
     },

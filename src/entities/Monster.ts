@@ -39,6 +39,11 @@ export class Monster extends Phaser.Physics.Arcade.Sprite implements MonsterAgen
     this.homeX = spawnX;
     this.homeY = spawnY;
 
+    // Bigger tiers draw bigger; the body scales with the sprite.
+    if (def.scale && def.scale !== 1) {
+      this.setScale(def.scale);
+      this.body.updateBounds();
+    }
     this.body.setSize(20, 12).setOffset(6, 18);
     this.setCollideWorldBounds(true);
     this.setInteractive({ useHandCursor: true });
@@ -115,7 +120,7 @@ export class Monster extends Phaser.Physics.Arcade.Sprite implements MonsterAgen
     this.combat.reset();
     this.body.enable = true;
     this.snapToSpawn();
-    this.setVisible(true).setAlpha(1).setScale(1);
+    this.setVisible(true).setAlpha(1).setScale(this.def.scale ?? 1);
     this.resetTint();
     this.setInteractive({ useHandCursor: true });
     this.anims.resume();

@@ -28,6 +28,11 @@ export async function mapSuite(b, t, shot, reload) {
       Math.hypot(p.x - town.spawnPoint.x, p.y - town.spawnPoint.y) < 2 && mm.mapId === 'demo_town' && mm.label.includes('Haven Town'),
     JSON.stringify({ map: town.mapId, monsters: town.monsters.length, p: [p.x, p.y], mm }),
   );
+  t.check(
+    'M-1b. gameplay camera: zoomed 1.25-1.35x so the player reads at 50-60 px; Town is dense with landmarks and props',
+    town.camera.zoom >= 1.25 && town.camera.zoom <= 1.35 && town.camera.playerScreenHeight >= 50 && town.camera.playerScreenHeight <= 60 && town.props >= 40,
+    JSON.stringify({ camera: town.camera, props: town.props }),
+  );
   await b.eval('debug.setPeaceful(true)');
   await sleep(500);
   await shot('maps-01-town');
@@ -48,7 +53,9 @@ export async function mapSuite(b, t, shot, reload) {
 
   // 3. Walking into the east gate loads the Field.
   await b.eval('debug.clearLog()');
-  await b.eval(`debug.teleport(${center(33, 12).x}, ${center(33, 12).y})`);
+  const gate = town.portals.find((x) => x.id === 'demo_town_to_field').area;
+  const nearGate = center(gate.x - 2, gate.y + 1); // just inside the east gate
+  await b.eval(`debug.teleport(${nearGate.x}, ${nearGate.y})`);
   await b.keyDown('ArrowRight');
   const field = await waitMap('demo_field');
   await b.keyUp('ArrowRight');
@@ -87,7 +94,7 @@ export async function mapSuite(b, t, shot, reload) {
   p = await player();
   t.check(
     'M-6. walking into the Field west gate returns to Town; the Field monsters are gone',
-    town.monsters.length === 0 && (await b.eval('debug.world.monsters.length')) === 0 && Math.abs(p.y - center(33, 12).y) < 4,
+    town.monsters.length === 0 && (await b.eval('debug.world.monsters.length')) === 0 && Math.abs(p.y - field.portals[0].arrival.y) < 4 && Math.abs(p.x - field.portals[0].arrival.x) < 32,
     JSON.stringify({ monsters: town.monsters.length, p: [p.x, p.y] }),
   );
 

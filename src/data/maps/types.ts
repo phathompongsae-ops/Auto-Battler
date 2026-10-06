@@ -2,6 +2,7 @@ import type { MonsterId } from '../monsterData';
 import type { NavPoint, NavTarget } from '../navigationData';
 import type { LocationKind } from '../warpData';
 import type { Tile } from '../../world/tiles';
+import type { PropPlacement } from './props';
 
 /*
  * Data-driven map table. Every playable map (Town / Field / Dungeon) is one
@@ -55,6 +56,10 @@ export interface MapDef {
   monsterSpawnZones: readonly MonsterSpawnZone[];
   /** NPCs, stations, zones and markers on this map (portal targets are derived from `portals`). */
   navigationTargets: readonly NavTarget[];
+  /** Landmarks and decoration on top of the tiles; solid ones add collision. */
+  props: readonly PropPlacement[];
+  /** Signage for landmarks that are not navigation targets (world px). */
+  landmarks?: readonly { label: string; x: number; y: number }[];
 }
 
 /** Tile centre in world px. */

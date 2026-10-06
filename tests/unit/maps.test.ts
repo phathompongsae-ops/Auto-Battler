@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
 import { EventBus } from '../../src/core/EventBus';
 import { FIELD_ENERGY } from '../../src/data/energyData';
-import { CRYPT_MAP_ID, DEFAULT_MAP_ID, FIELD_MAP_ID, MAPS, mapSize, portalCenter, portalNavId, TOWN_MAP_ID, type MapDef } from '../../src/data/maps';
+import { CRYPT_MAP_ID, DEFAULT_MAP_ID, FIELD_MAP_ID, MAPS, mapSize, portalCenter, portalNavId, PROP_KINDS, TOWN_MAP_ID, type MapDef } from '../../src/data/maps';
 import { MONSTERS } from '../../src/data/monsterData';
 import { NAVIGATION } from '../../src/data/navigationData';
 import { DUNGEON_WARPS, PORTALS, TOWNS } from '../../src/data/warpData';
@@ -15,7 +15,7 @@ import { applyPlayerSave, capturePlayerSave } from '../../src/save/playerSnapsho
 import { deserializePlayerSave, newPlayerSave, serializePlayerSave } from '../../src/save/playerSave';
 import { locationKind } from '../../src/warp/warp';
 import { MapSession } from '../../src/world/MapSession';
-import { isSafePosition, mapCollision, portalAt, resolveMapEntry, spawnPlan, tileAt, type MonsterSpawn } from '../../src/world/mapRules';
+import { blocksProjectile, isSafePosition, mapCollision, portalAt, resolveMapEntry, spawnPlan, tileAt, type MonsterSpawn } from '../../src/world/mapRules';
 import { SOLID_TILES } from '../../src/world/tiles';
 import { makeSaveTarget } from './fixtures';
 
@@ -128,6 +128,40 @@ describe('map data', () => {
         for (const from of starts) assert.ok(planner.plan(m.id, from, t, t.waypoints), `${t.id} from ${JSON.stringify(from)} on ${m.id}`);
       }
     }
+  });
+
+  test('props: inside the map, solid ones are collision (and stop projectiles when tall), decoration never blocks', () => {
+    for (const m of ALL) {
+      const { width, height } = mapSize(m);
+      const grid = mapCollision(m.id)!;
+      for (const p of m.props) {
+        const k = PROP_KINDS[p.kind];
+        assert.ok(p.x >= 0 && p.y >= 0 && p.x + k.w <= width && p.y + k.h <= height, `${p.kind} at ${p.x},${p.y} on ${m.id}`);
+        const c = { x: (p.x + k.w / 2) * 32, y: (p.y + k.h / 2) * 32 };
+        if (k.solid) assert.ok(grid.isBlocked(c.x, c.y), `${p.kind} at ${p.x},${p.y} blocks`);
+        if (k.solid && k.tall) assert.ok(blocksProjectile(m, c.x, c.y), `${p.kind} stops projectiles`);
+        for (const portal of m.portals) {
+          const a = portal.area;
+          const overlaps = p.x < a.x + a.w && p.x + k.w > a.x && p.y < a.y + a.h && p.y + k.h > a.y;
+          assert.ok(!(overlaps && k.solid), `${p.kind} blocks portal ${portal.id}`);
+        }
+      }
+      // Ground decoration leaves the walkable area untouched.
+      const decor = m.props.filter((p) => !PROP_KINDS[p.kind].solid);
+      assert.ok(decor.length > 0, `${m.id} has decoration`);
+    }
+  });
+
+  test('each map is dense: landmarks and dozens of props, not empty ground', () => {
+    for (const m of ALL) {
+      assert.ok(m.props.length >= 40, `${m.id}: ${m.props.length} props`);
+      assert.ok(m.props.filter((p) => PROP_KINDS[p.kind].solid).length >= 15, `${m.id}: solid landmarks`);
+      assert.ok((m.landmarks?.length ?? 0) >= 1, `${m.id}: landmark signs`);
+    }
+    const kinds = (id: string) => new Set(MAPS[id].props.map((p) => p.kind));
+    for (const k of ['fountain', 'monument', 'market_stall', 'anvil', 'enchant_crystal', 'workbench', 'pet_house'] as const) assert.ok(kinds(TOWN_MAP_ID).has(k), `Town ${k}`);
+    for (const k of ['cave', 'giant_mushroom', 'ruin_pillar', 'standing_stone', 'tent'] as const) assert.ok(kinds(FIELD_MAP_ID).has(k), `Field ${k}`);
+    for (const k of ['pillar', 'torch', 'sarcophagus', 'rune_circle', 'throne'] as const) assert.ok(kinds(CRYPT_MAP_ID).has(k), `Dungeon ${k}`);
   });
 
   test('monster spawns stand on walkable tiles of their own map', () => {

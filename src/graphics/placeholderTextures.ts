@@ -3,6 +3,7 @@ import { TILE_SIZE } from '../config';
 import type { CharacterVisualLayout } from '../data/characterArt';
 import { DIRECTIONS, type Direction } from '../input/Direction';
 import { Tile, TILE_COUNT } from '../world/tiles';
+import { createPropTextures } from './propTextures';
 
 /*
  * Placeholder art drawn to canvas at boot. Every texture here is meant to be
@@ -39,6 +40,7 @@ export function createPlaceholderTextures(scene: Phaser.Scene): void {
   createPlayerSheet(scene);
   for (const [key, palette] of Object.entries(BLOB_PALETTES)) createBlobSheet(scene, key, palette);
   createLootGem(scene);
+  createPropTextures(scene);
 }
 
 interface BlobPalette {
@@ -150,15 +152,15 @@ function createTileset(scene: Phaser.Scene): void {
     for (const [x, y] of points) ctx.fillRect(tile * s + x, y, size, size);
   };
 
-  fill(Tile.Grass, '#5f9e4f');
-  dots(Tile.Grass, '#6fb15d', [[5, 6], [20, 4], [12, 17], [26, 22], [7, 26], [17, 28]]);
+  fill(Tile.Grass, '#5b8f4d');
+  dots(Tile.Grass, '#66995a', [[5, 6], [20, 4], [12, 17], [26, 22], [7, 26], [17, 28]]);
 
-  fill(Tile.Flowers, '#5f9e4f');
-  dots(Tile.Flowers, '#6fb15d', [[20, 4], [26, 22]]);
+  fill(Tile.Flowers, '#5b8f4d');
+  dots(Tile.Flowers, '#66995a', [[20, 4], [26, 22]]);
   dots(Tile.Flowers, '#f2e55c', [[7, 8], [22, 14], [11, 23]], 3);
   dots(Tile.Flowers, '#f08ab0', [[16, 6], [5, 18], [24, 26]], 3);
 
-  fill(Tile.Path, '#c8a96b');
+  fill(Tile.Path, '#bfa577');
   dots(Tile.Path, '#b39256', [[4, 5], [18, 9], [9, 20], [25, 25], [27, 3]]);
 
   fill(Tile.Wall, '#6d6f78');
@@ -178,8 +180,32 @@ function createTileset(scene: Phaser.Scene): void {
   ctx.fillRect(ox + 17, 20, 10, 2);
 
   // Map-foundation tiles (PLACEHOLDER colours: Town, Field zones, Dungeon).
-  fill(Tile.Cobble, '#a9a39a');
-  dots(Tile.Cobble, '#8f8980', [[0, 15], [8, 15], [16, 15], [24, 15], [15, 0], [15, 8], [31, 20], [7, 24]], 2);
+  // Cobble: offset stone blocks.
+  fill(Tile.Cobble, '#a39c91');
+  ctx.fillStyle = '#8c857a';
+  const cx0 = Tile.Cobble * s;
+  for (const y of [0, 15]) ctx.fillRect(cx0, y, s, 1);
+  for (const [x, y] of [[0, 0], [16, 0], [8, 15], [24, 15]]) ctx.fillRect(cx0 + x, y, 1, 15);
+  dots(Tile.Cobble, '#b3ada3', [[3, 3], [20, 4], [11, 19], [27, 21]], 2);
+
+  // Plaza: large light flagstones.
+  fill(Tile.Plaza, '#cfc6b3');
+  ctx.fillStyle = '#b5ab96';
+  const px0 = Tile.Plaza * s;
+  ctx.fillRect(px0, 0, s, 1);
+  ctx.fillRect(px0, 16, s, 1);
+  ctx.fillRect(px0, 0, 1, 16);
+  ctx.fillRect(px0 + 16, 16, 1, 16);
+  dots(Tile.Plaza, '#ddd5c4', [[5, 5], [22, 8], [8, 23]], 3);
+
+  // Plaza trim: darker stone ring.
+  fill(Tile.PlazaTrim, '#8f877a');
+  ctx.fillStyle = '#7a7366';
+  const tx0 = Tile.PlazaTrim * s;
+  ctx.fillRect(tx0, 0, s, 2);
+  ctx.fillRect(tx0, 15, s, 1);
+  ctx.fillRect(tx0 + 15, 0, 1, s);
+  dots(Tile.PlazaTrim, '#a39b8d', [[4, 6], [22, 22]], 2);
 
   fill(Tile.Roof, '#8c3f32');
   ctx.fillStyle = '#6e2f25';

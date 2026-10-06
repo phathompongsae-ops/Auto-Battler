@@ -7,6 +7,7 @@ import type { MapDef, MapPortalDef } from './types';
 export { CRYPT_MAP_ID, FIELD_MAP_ID, TOWN_MAP_ID };
 export type { MapDef, MapPortalDef, MapType, MonsterSpawnZone, TileRect } from './types';
 export { tileCenter } from './types';
+export { PROP_KINDS, type PropKind, type PropPlacement } from './props';
 
 /** Every playable map, by id. */
 export const MAPS: Readonly<Record<string, MapDef>> = {

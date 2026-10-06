@@ -1,8 +1,8 @@
 import { TILE_SIZE } from '../config';
-import { DEFAULT_MAP_ID, mapDef, mapSize, MAPS, type MapDef, type MapPortalDef } from '../data/maps';
+import { DEFAULT_MAP_ID, mapDef, mapSize, MAPS, PROP_KINDS, type MapDef, type MapPortalDef } from '../data/maps';
 import type { MonsterId } from '../data/monsterData';
 import type { NavPoint } from '../data/navigationData';
-import { tileGrid, type CollisionGrid } from '../navigation/pathing';
+import type { CollisionGrid } from '../navigation/pathing';
 import { PROJECTILE_BLOCKING_TILES, SOLID_TILES, type Tile } from './tiles';
 
 /*
@@ -10,14 +10,48 @@ import { PROJECTILE_BLOCKING_TILES, SOLID_TILES, type Tile } from './tiles';
  * and safe positions. The scene draws maps; CombatWorld and tests use these.
  */
 
+interface Cells {
+  /** Walking blocked: solid tiles + solid prop footprints. */
+  solid: boolean[][];
+  /** Projectiles stopped: blocking tiles + tall prop footprints. */
+  tall: boolean[][];
+}
+
+const cellCache = new Map<string, Cells>();
 const grids = new Map<string, CollisionGrid>();
 
-/** Solid-tile collision for a map id (cached); undefined for an unknown id. */
+/** Per-tile collision of a map (cached): its tiles plus the footprints of its props. */
+export function mapCells(map: MapDef): Cells {
+  let cells = cellCache.get(map.id);
+  if (cells) return cells;
+  cells = {
+    solid: map.tiles.map((row) => row.map((t) => SOLID_TILES.includes(t))),
+    tall: map.tiles.map((row) => row.map((t) => PROJECTILE_BLOCKING_TILES.includes(t))),
+  };
+  for (const p of map.props) {
+    const kind = PROP_KINDS[p.kind];
+    for (let y = p.y; y < p.y + kind.h; y++) {
+      for (let x = p.x; x < p.x + kind.w; x++) {
+        if (!cells.solid[y] || cells.solid[y][x] === undefined) continue;
+        if (kind.solid) cells.solid[y][x] = true;
+        if (kind.solid && kind.tall) cells.tall[y][x] = true;
+      }
+    }
+  }
+  cellCache.set(map.id, cells);
+  return cells;
+}
+
+/** Collision (tiles + solid props) for a map id (cached); undefined for an unknown id. */
 export function mapCollision(mapId: string): CollisionGrid | undefined {
   const map = mapDef(mapId);
   if (!map) return undefined;
   let grid = grids.get(mapId);
-  if (!grid) grids.set(mapId, (grid = tileGrid(map.tiles, TILE_SIZE, SOLID_TILES)));
+  if (!grid) {
+    const { solid } = mapCells(map);
+    grid = { isBlocked: (x, y) => solid[Math.floor(y / TILE_SIZE)]?.[Math.floor(x / TILE_SIZE)] ?? true };
+    grids.set(mapId, grid);
+  }
   return grid;
 }
 
@@ -25,10 +59,9 @@ export function tileAt(map: MapDef, x: number, y: number): Tile | undefined {
   return map.tiles[Math.floor(y / TILE_SIZE)]?.[Math.floor(x / TILE_SIZE)];
 }
 
-/** Outside the map or a projectile-blocking tile. */
+/** Outside the map, a projectile-blocking tile or a tall solid prop. */
 export function blocksProjectile(map: MapDef, x: number, y: number): boolean {
-  const tile = tileAt(map, x, y);
-  return tile === undefined || PROJECTILE_BLOCKING_TILES.includes(tile);
+  return mapCells(map).tall[Math.floor(y / TILE_SIZE)]?.[Math.floor(x / TILE_SIZE)] ?? true;
 }
 
 /** One monster to place when a map loads. Ids are `<monsterId>-<n>`, numbered per monster kind on the map. */

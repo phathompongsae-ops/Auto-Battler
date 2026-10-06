@@ -5,7 +5,8 @@ const PLAYER_STATE = `(() => {
   const g = window.game, w = g.scene.getScene('World'), p = w.player, c = w.cameras.main;
   return { x: p.x, y: p.y, vx: p.body.velocity.x, vy: p.body.velocity.y, state: p.state, facing: p.facing,
     anim: p.anims.currentAnim && p.anims.currentAnim.key, animPlaying: p.anims.isPlaying,
-    camX: c.scrollX, camY: c.scrollY,
+    // Camera view in world px (the gameplay camera is zoomed).
+    camX: c.worldView.x, camY: c.worldView.y, viewW: c.worldView.width, viewH: c.worldView.height, zoom: c.zoom,
     bodyLeft: p.body.left, bodyRight: p.body.right, bodyTop: p.body.top, bodyBottom: p.body.bottom };
 })()`;
 
@@ -66,18 +67,18 @@ export async function movementSuite(b, t, shot) {
   t.check('camera clamped at top edge', s.camY === 0, `camY=${s.camY}`);
   s = await hold('ArrowDown', 7000);
   t.check('stops at bottom wall', s.bodyBottom <= 928.5 && s.bodyBottom > 920, `bodyBottom=${s.bodyBottom.toFixed(1)}`);
-  t.check('camera clamped at bottom edge', Math.abs(s.camY - 420) < 1, `camY=${s.camY.toFixed(1)}`);
+  t.check('camera clamped at bottom edge', Math.abs(s.camY + s.viewH - 960) < 1, `viewBottom=${(s.camY + s.viewH).toFixed(1)}`);
   s = await hold('ArrowRight', 9000);
   t.check('stops at right wall', s.bodyRight <= 1248.5 && s.bodyRight > 1240, `bodyRight=${s.bodyRight.toFixed(1)}`);
-  t.check('camera clamped at right edge', Math.abs(s.camX - 320) < 1, `camX=${s.camX.toFixed(1)}`);
+  t.check('camera clamped at right edge', Math.abs(s.camX + s.viewW - 1280) < 1, `viewRight=${(s.camX + s.viewW).toFixed(1)}`);
   await shot('movement-02-corner');
 
   await hold('ArrowUp', 2200);
   await hold('ArrowLeft', 3000);
   await sleep(800);
   s = await state();
-  const sx = s.x - s.camX;
-  const sy = s.y - s.camY;
+  const sx = (s.x - s.camX) * s.zoom;
+  const sy = (s.y - s.camY) * s.zoom;
   t.check('camera follows player (player near screen centre)', Math.abs(sx - 480) < 40 && Math.abs(sy - 270) < 40, `screen=(${sx.toFixed(0)}, ${sy.toFixed(0)})`);
 
   await b.eval('debug.teleportPlayer(30 * 32 + 16, 12 * 32 + 16)');
