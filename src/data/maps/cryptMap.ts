@@ -2,6 +2,7 @@ import { TileGrid } from '../../world/layout';
 import { Tile } from '../../world/tiles';
 import { scatterDecor } from './decor';
 import type { PropPlacement } from './props';
+import { MVP_CRYPT_ENTRANCE_ID } from '../quests/mainQuests';
 import { tileCenter, type MapDef } from './types';
 
 /*
@@ -106,6 +107,10 @@ export const CRYPT_MAP: MapDef = {
     { id: 'boss_room', monsterId: 'crypt_lord', points: [{ tileX: 16, tileY: 8 }] },
   ],
   navigationTargets: [
+    // The entrance hall: arriving counts as entering the dungeon.
+    { id: 'nav_crypt_entrance', type: 'location', mapId: CRYPT_MAP_ID, x: 512, y: 57 * 32 + 16, radius: 64, locationId: MVP_CRYPT_ENTRANCE_ID },
+    // The boss itself (kill objectives / Auto Move to the encounter).
+    { id: 'nav_crypt_boss', type: 'monster_zone', mapId: CRYPT_MAP_ID, ...tileCenter(16, 11), radius: 56, monsterIds: ['crypt_lord'], meta: { label: 'Crypt Lord' } },
     { id: 'nav_crypt_boss_room', type: 'location', mapId: CRYPT_MAP_ID, ...tileCenter(15, 13), radius: 32, locationId: 'demo_crypt_boss_room', meta: { label: 'Boss Room' } },
   ],
   props: PROPS,

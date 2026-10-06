@@ -2,13 +2,14 @@ import { RARITY_INFO, type Rarity } from '../../data/equipmentData';
 import { EQUIPMENT_DEFS } from '../../data/equipmentItems';
 import { ITEMS } from '../../data/itemData';
 import type { CombatWorld } from '../../game/CombatWorld';
+import { rewardText } from '../../quests/questText';
 import { h } from '../dom';
 
 /** How long a line stays on screen (real time, ms). */
 const LINE_MS = 4500;
 const MAX_LINES = 6;
 
-export type LootFeedKind = 'gold' | 'item' | 'equipment' | 'rare' | 'full';
+export type LootFeedKind = 'gold' | 'item' | 'equipment' | 'rare' | 'full' | 'quest';
 
 /**
  * Left side: a short feed of what the player just received or what dropped
@@ -42,6 +43,22 @@ export class LootFeed {
         this.push('rare', `${dropLabel(def.rarity)}: ${def.name} on the ground`, RARITY_INFO[def.rarity].color);
       }),
       ev.on('lootBlocked', ({ name }) => this.push('full', `Bag full: ${name} left on the ground`, '#ff6b6b')),
+      // Quest feedback (main / side quests; Daily and Weekly have their own screen).
+      ev.on('questStarted', ({ questId }) => {
+        const def = world.quests.defs[questId];
+        if (def && !def.repeat) this.push('quest', `Quest accepted: ${def.title}`, '#7fd4ff');
+      }),
+      ev.on('questCompleted', ({ questId }) => {
+        const def = world.quests.defs[questId];
+        if (def && !def.repeat) this.push('quest', `Objectives done: ${def.title}`, '#7fd4ff');
+      }),
+      ev.on('questClaimed', ({ questId }) => {
+        const def = world.quests.defs[questId];
+        if (!def || def.repeat) return;
+        this.push('quest', `Quest complete: ${def.title}`, '#ffe066');
+        const reward = rewardText(def);
+        if (reward) this.push('quest', reward, '#ffe066');
+      }),
     );
   }
 

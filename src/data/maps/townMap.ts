@@ -1,4 +1,5 @@
 import { JOB_INSTRUCTOR_NPC_ID } from '../jobChangeData';
+import { CAPTAIN_NPC_ID, CRAFTER_NPC_ID, ENCHANTER_NPC_ID, SMITH_NPC_ID, STABLEKEEPER_NPC_ID } from '../npcData';
 import { TileGrid } from '../../world/layout';
 import { Tile } from '../../world/tiles';
 import { scatterDecor } from './decor';
@@ -113,6 +114,8 @@ export const TOWN_MAP: MapDef = {
   ],
   monsterSpawnZones: [],
   navigationTargets: [
+    // Adventurers' Guild captain on the plaza: the main quest giver.
+    { id: 'nav_town_captain', type: 'npc', mapId: TOWN_MAP_ID, ...tileCenter(17, 14), radius: 40, npcId: CAPTAIN_NPC_ID, meta: { label: 'Captain Rowan' } },
     {
       id: 'nav_demo_job_instructor',
       type: 'npc',
@@ -122,9 +125,9 @@ export const TOWN_MAP: MapDef = {
       npcId: JOB_INSTRUCTOR_NPC_ID,
       meta: { label: 'Job Instructor' },
     },
-    { id: 'nav_town_enhancement', type: 'station', mapId: TOWN_MAP_ID, ...tileCenter(37, 8), radius: 40, stationId: 'enhancement', meta: { label: 'Enhancement' } },
-    { id: 'nav_town_enchant', type: 'station', mapId: TOWN_MAP_ID, ...tileCenter(6, 22), radius: 40, stationId: 'enchant', meta: { label: 'Enchant' } },
-    { id: 'nav_town_craft', type: 'station', mapId: TOWN_MAP_ID, ...tileCenter(37, 22), radius: 40, stationId: 'craft', meta: { label: 'Craft' } },
+    { id: 'nav_town_enhancement', type: 'station', mapId: TOWN_MAP_ID, ...tileCenter(37, 8), radius: 40, stationId: 'enhancement', npcId: SMITH_NPC_ID, meta: { label: 'Enhancement' } },
+    { id: 'nav_town_enchant', type: 'station', mapId: TOWN_MAP_ID, ...tileCenter(6, 22), radius: 40, stationId: 'enchant', npcId: ENCHANTER_NPC_ID, meta: { label: 'Enchant' } },
+    { id: 'nav_town_craft', type: 'station', mapId: TOWN_MAP_ID, ...tileCenter(37, 22), radius: 40, stationId: 'craft', npcId: CRAFTER_NPC_ID, meta: { label: 'Craft' } },
     {
       id: 'nav_town_pet',
       type: 'station',
@@ -132,6 +135,7 @@ export const TOWN_MAP: MapDef = {
       ...tileCenter(22, 24),
       radius: 40,
       stationId: 'pet',
+      npcId: STABLEKEEPER_NPC_ID,
       // Around the fountain from the north and east.
       waypoints: [{ x: 704, y: 656 }],
       meta: { label: 'Pet Stable' },

@@ -20,6 +20,7 @@ import { classArtSuite, floatingJoystickSuite } from './classArt.test.mjs';
 import { mapSuite } from './maps.test.mjs';
 import { combatSliceSuite } from './combatSlice.test.mjs';
 import { inventorySuite } from './inventory.test.mjs';
+import { questFlowSuite } from './questFlow.test.mjs';
 
 const PORT = 5199;
 const URL = `http://127.0.0.1:${PORT}/`;
@@ -51,8 +52,9 @@ try {
   t.check('game boots in the browser', true, await b.eval(`game.renderer.type === 2 ? 'WebGL' : 'Canvas'`));
   const demoQuests = await b.eval(`debug.quests()`);
   const demoLevel = await b.eval(`(debug.grantExp(25000), debug.levelInfo().level)`);
-  t.check('Internal Demo starts without fixture Main Quests; Lv11 Job Change is available from EXP',
-    !demoQuests.some((q) => q.type === 'main' || q.type === 'feature') && demoLevel === 11 &&
+  t.check('Internal Demo starts with only the MVP main chain (no fixture quests); Lv11 Job Change is available from EXP',
+    !demoQuests.some((q) => q.questId.startsWith('q_demo_') || q.type === 'feature') &&
+      demoQuests.find((q) => q.questId === 'mvp_01_welcome')?.status === 'available' && demoLevel === 11 &&
       (await b.eval(`debug.questProgress('job_c1_01_instructor').status`)) === 'available' &&
       !(await b.eval(`!!document.querySelector('[data-hud="quests"]')`)));
   await mapSuite(b, t, shot, async () => {
@@ -84,6 +86,7 @@ try {
   await featureUnlockSuite(b, t);
   await combatSliceSuite(b, t, shot);
   await inventorySuite(b, t, shot);
+  await questFlowSuite(b, t, shot);
   const artSummary = await classArtSuite(b, t, shot);
   console.log(`  class art anchors (worst world px): ${JSON.stringify(artSummary)}`);
   await hudSuite(b, t, shot);

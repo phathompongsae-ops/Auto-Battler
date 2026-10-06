@@ -1,5 +1,6 @@
 import { JOB_TRIAL_MARKER_ID } from '../jobChangeData';
 import { DEMO_MARKER_ID, DEMO_NPC_ID } from '../quests/demoTestQuests';
+import { MVP_FIELD_ENTRY_ID } from '../quests/mainQuests';
 import { tileHash, TileGrid } from '../../world/layout';
 import { Tile } from '../../world/tiles';
 import { scatterDecor } from './decor';
@@ -136,6 +137,8 @@ export const FIELD_MAP: MapDef = {
     { id: 'nav_field_mushroom_zone', type: 'monster_zone', mapId: FIELD_MAP_ID, ...zone(31, 23), radius: 40, monsterIds: ['mushroom'], meta: { label: 'Mushroom Grove' } },
     { id: 'nav_field_elite_zone', type: 'monster_zone', mapId: FIELD_MAP_ID, ...zone(32, 12), radius: 40, monsterIds: ['elite_boar'], meta: { label: 'Elite Ruins' } },
     { id: 'nav_field_mini_boss_zone', type: 'monster_zone', mapId: FIELD_MAP_ID, ...zone(36, 8), radius: 40, monsterIds: ['grove_guardian'], meta: { label: 'Guardian Stones' } },
+    // Just inside the west gate: arriving from Town counts as reaching the Field.
+    { id: 'nav_field_entry', type: 'location', mapId: FIELD_MAP_ID, ...zone(4, 15), radius: 56, locationId: MVP_FIELD_ENTRY_ID },
     { id: 'nav_demo_marker_gate', type: 'location', mapId: FIELD_MAP_ID, ...zone(20, 5), radius: 24, locationId: DEMO_MARKER_ID, meta: { label: 'Old Gate' } },
     { id: 'nav_demo_job_trial_marker', type: 'location', mapId: FIELD_MAP_ID, ...zone(14, 22), radius: 24, locationId: JOB_TRIAL_MARKER_ID, meta: { label: 'Trial Grounds' } },
     {

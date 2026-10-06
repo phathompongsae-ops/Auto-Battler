@@ -4,10 +4,13 @@ import { h } from '../dom';
 import { SCREENS, SCREEN_BY_ID, type ScreenId } from '../data/screens';
 import { SCREEN_CONTENT, type ScreenContext } from './content';
 
+/** Open window kinds: a menu screen, the menu grid, or a dialogue (NPC talk...). */
+export type OpenWindowId = ScreenId | 'menu' | 'dialog';
+
 /** Opens one screen window at a time; hotkeys toggle, Esc closes. */
 export class WindowManager {
-  private current: { id: ScreenId | 'menu'; window: UiWindow } | null = null;
-  private readonly listeners = new Set<(id: ScreenId | 'menu' | null) => void>();
+  private current: { id: OpenWindowId; window: UiWindow } | null = null;
+  private readonly listeners = new Set<(id: OpenWindowId | null) => void>();
 
   constructor(
     private readonly host: HTMLElement,
@@ -16,11 +19,11 @@ export class WindowManager {
     window.addEventListener('keydown', this.onKey);
   }
 
-  get openId(): ScreenId | 'menu' | null {
+  get openId(): OpenWindowId | null {
     return this.current?.id ?? null;
   }
 
-  onChange(listener: (id: ScreenId | 'menu' | null) => void): void {
+  onChange(listener: (id: OpenWindowId | null) => void): void {
     this.listeners.add(listener);
   }
 
@@ -56,6 +59,19 @@ export class WindowManager {
     this.host.append(window.el);
     this.emit();
     return true;
+  }
+
+  /**
+   * A dialogue window (not a menu screen): `windowId` is its data-window
+   * name, `render` builds its body (it may re-render itself). Replaces any
+   * open window.
+   */
+  openDialog(windowId: string, title: string, render: () => Node): void {
+    this.close();
+    const window = new UiWindow({ id: windowId, title, render: () => render(), onClose: () => this.closed() });
+    this.current = { id: 'dialog', window };
+    this.host.append(window.el);
+    this.emit();
   }
 
   close(): void {

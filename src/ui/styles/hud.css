@@ -335,3 +335,64 @@
     transform: translateX(-8px);
   }
 }
+
+/* ---------------------------------------------- quest tracker / talk prompt */
+.hud-quests {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ui-space-2);
+  width: calc(210px * var(--ui-scale));
+  padding: var(--ui-space-2) var(--ui-space-3);
+  border-radius: var(--ui-radius-md);
+}
+.hud-quests[hidden] {
+  display: none !important;
+}
+.hud-quests__quest {
+  display: flex;
+  flex-direction: column;
+  gap: calc(1px * var(--ui-scale));
+}
+.hud-quests__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ui-space-2);
+}
+.hud-quests__head .ui-label {
+  color: #ffe066;
+}
+.hud-quests__head .ui-button {
+  min-height: 0;
+  padding: 0 var(--ui-space-2);
+  font-size: var(--ui-text-xs);
+}
+.hud-quests__objective,
+.hud-quests__hint {
+  font-size: var(--ui-text-xs);
+  color: var(--ui-text);
+}
+.hud-quests__objective.is-next {
+  color: #ffffff;
+  font-weight: 700;
+}
+.hud-quests__objective.is-done {
+  color: #7ee787;
+  text-decoration: line-through;
+}
+.hud-quests__hint {
+  color: #7fd4ff;
+  font-weight: 700;
+}
+.hud__interact {
+  left: 50%;
+  bottom: calc(110px * var(--ui-scale));
+  transform: translateX(-50%);
+}
+.hud-interact[hidden] {
+  display: none !important;
+}
+.hud-interact {
+  font-weight: 700;
+  box-shadow: var(--ui-shadow-sm), 0 0 0 2px var(--ui-gold);
+}

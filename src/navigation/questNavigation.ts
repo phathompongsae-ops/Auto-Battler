@@ -33,7 +33,8 @@ export function resolveObjectiveTarget(objective: QuestObjective, nav: NavIndex,
   const find = (predicate: (t: NavTarget) => boolean) => nav.find(predicate, preferMapId, questId);
   switch (objective.kind) {
     case 'talk':
-      target = find((t) => t.type === 'npc' && t.npcId === objective.npcId);
+      // NPCs, including the ones running a Town service station.
+      target = find((t) => (t.type === 'npc' || t.type === 'station') && t.npcId === objective.npcId);
       break;
     case 'visit':
       target = find((t) => t.type === 'location' && t.locationId === objective.locationId);

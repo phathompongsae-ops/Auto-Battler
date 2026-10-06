@@ -472,7 +472,8 @@ describe('tracking', () => {
 describe('demo quest chain (test fixtures)', () => {
   test('q_demo_01 → 02 → 03 with talk, kill and visit, ending in a feature unlock', () => {
     const s = setup(QUESTS);
-    assert.deepEqual(s.announced, ['q_demo_01']);
+    const fixtures = () => s.announced.filter((id) => id.startsWith('q_demo_'));
+    assert.deepEqual(fixtures(), ['q_demo_01']);
     assert.equal(s.status('q_demo_02'), 'locked');
 
     s.qs.start('q_demo_01');
@@ -490,7 +491,7 @@ describe('demo quest chain (test fixtures)', () => {
     s.visit(DEMO_MARKER_ID);
     s.qs.claim('q_demo_03');
     assert.equal(s.qs.isFeatureUnlocked('demo_feature'), true);
-    assert.deepEqual(s.announced, ['q_demo_01', 'q_demo_02', 'q_demo_03']);
+    assert.deepEqual(fixtures(), ['q_demo_01', 'q_demo_02', 'q_demo_03']);
   });
 });
 

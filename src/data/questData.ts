@@ -4,6 +4,7 @@ import type { ItemId } from './itemData';
 import type { JobId } from './jobData';
 import { DEMO_TEST_QUESTS } from './quests/demoTestQuests';
 import { JOB_QUESTS } from './quests/jobQuests';
+import { MAIN_QUESTS } from './quests/mainQuests';
 import { DAILY_QUESTS, WEEKLY_QUESTS } from './quests/recurringQuests';
 import type { MonsterTier } from './monsterBalance';
 
@@ -20,7 +21,7 @@ export type QuestType = (typeof QUEST_TYPES)[number];
  * pet, class change, equip, boss kill, use item...) are added here plus one
  * matcher in quests/objectives.ts.
  */
-export type QuestObjective =
+export type QuestObjective = (
   | { kind: 'talk'; npcId: string; count?: number }
   /** Kills; each filter is optional (no monsterId = any monster; zone/tier narrow it, e.g. field Elites). */
   | { kind: 'kill'; monsterId?: string; tier?: MonsterTier; zone?: 'field' | 'dungeon'; count?: number }
@@ -36,7 +37,11 @@ export type QuestObjective =
   /** Successful enhancements; with `minLevel`, only successes that reach at least +minLevel. */
   | { kind: 'enhance'; minLevel?: number; count?: number }
   /** Daily Commissions claimed (counted once per claim). */
-  | { kind: 'daily_commission'; count?: number };
+  | { kind: 'daily_commission'; count?: number }
+) & {
+  /** Player-facing name of what is counted, e.g. 'Wolves' ("Wolves 2 / 3"). Default: generated (quests/questText). */
+  label?: string;
+};
 
 export type ObjectiveKind = QuestObjective['kind'];
 
@@ -77,10 +82,15 @@ export interface QuestDef {
   featureUnlockId?: FeatureId;
   /** Repeat metadata for daily/weekly quests. Stored only; resets are not implemented yet. */
   repeat?: { reset: 'daily' | 'weekly' };
+  /** NPC who offers it (Accept in their dialogue; quest marker "!" over them). None = started by other means. */
+  giverNpcId?: string;
+  /** NPC it is turned in to (Complete in their dialogue; marker "?" when ready). None = claimable anywhere. */
+  turnInNpcId?: string;
 }
 
-/** Active Internal Demo content: Job Change is the only required quest chain. */
+/** Active Internal Demo content: the MVP main chain, the Job Change chain and Daily / Weekly quests. */
 export const INTERNAL_DEMO_QUESTS: Readonly<Record<string, QuestDef>> = {
+  ...MAIN_QUESTS,
   ...JOB_QUESTS,
   ...DAILY_QUESTS,
   ...WEEKLY_QUESTS,

@@ -578,3 +578,32 @@
   align-items: center;
   gap: var(--ui-space-3);
 }
+
+/* ------------------------------------------------------------- NPC dialogue */
+.npc-dialog__greeting {
+  font-style: italic;
+  color: var(--ui-text);
+}
+.npc-quest {
+  display: flex;
+  flex-direction: column;
+  gap: calc(3px * var(--ui-scale));
+  padding: var(--ui-space-3);
+  border-radius: var(--ui-radius-md);
+  background: rgba(255, 255, 255, 0.05);
+}
+.npc-quest .ui-button {
+  align-self: flex-start;
+  margin-top: var(--ui-space-1, 4px);
+}
+.npc-quest__objective {
+  font-size: var(--ui-text-sm, 13px);
+}
+.npc-quest__objective.is-done {
+  color: #7ee787;
+}
+.npc-service {
+  display: flex;
+  flex-direction: column;
+  gap: calc(2px * var(--ui-scale));
+}

@@ -16,6 +16,7 @@ import { PlayerFrame } from './PlayerFrame';
 import { QuestProgressSource, QuestTracker } from './QuestTracker';
 import { RespawnNotice, TargetFrame } from './TargetFrame';
 import { LootFeed } from './LootFeed';
+import { InteractPrompt, QuestTrackerHud } from './QuestHud';
 
 export interface HudOptions {
   world: CombatWorld;
@@ -46,6 +47,8 @@ export class Hud {
   private readonly target: TargetFrame;
   private readonly respawn: RespawnNotice;
   private readonly lootFeed: LootFeed;
+  private readonly interact: InteractPrompt;
+  private readonly questTracker: QuestTrackerHud;
 
   constructor(scene: Phaser.Scene, options: HudOptions) {
     const { world } = options;
@@ -63,6 +66,8 @@ export class Hud {
     this.target = new TargetFrame(world);
     this.respawn = new RespawnNotice(world);
     this.lootFeed = new LootFeed(world);
+    this.interact = new InteractPrompt(world, this.windows);
+    this.questTracker = new QuestTrackerHud(world);
 
     const region = (name: string, children: Node[]) =>
       h('div', { className: `hud__region hud__${name}`, attrs: { 'data-region': name } }, children);
@@ -73,7 +78,8 @@ export class Hud {
       region('top-center', [this.target.el]),
       region('center', [this.respawn.el]),
       region('loot', [this.lootFeed.el]),
-      region('top-right', [this.minimap.el, this.menu.el]),
+      region('interact', [this.interact.el]),
+      region('top-right', [this.minimap.el, this.menu.el, this.questTracker.el]),
       region('left-middle', options.fixtureQuests ? [this.tracker.el] : []),
       region('bottom-right', [this.actions.el]),
     ]);
@@ -91,10 +97,13 @@ export class Hud {
     this.actions.update(now);
     this.target.update();
     this.respawn.update(now);
+    this.interact.update();
+    this.questTracker.update();
   }
 
   destroy(): void {
     this.lootFeed.destroy();
+    this.interact.destroy();
     this.actions.destroy();
     this.menu.destroy();
     this.quests.destroy();

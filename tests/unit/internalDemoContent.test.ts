@@ -4,8 +4,10 @@ import { INTERNAL_DEMO_QUESTS, QUESTS } from '../../src/data/questData';
 import { cumulativeExp } from '../../src/progression/expCurve';
 import { makeSaveTarget } from './fixtures';
 
-test('Internal Demo has no required Main Quest and reaches real Job Change from field EXP', () => {
-  assert.equal(Object.values(INTERNAL_DEMO_QUESTS).some((q) => q.type === 'main' || q.type === 'feature'), false);
+test('Internal Demo: the MVP main chain is its only main content (no fixtures); Job Change is reached from field EXP', () => {
+  const mains = Object.values(INTERNAL_DEMO_QUESTS).filter((q) => q.type === 'main' || q.type === 'feature').map((q) => q.id);
+  assert.deepEqual(mains, ['mvp_01_welcome', 'mvp_02_meadow', 'mvp_03_crypt']);
+  assert.equal(Object.keys(INTERNAL_DEMO_QUESTS).some((id) => id.startsWith('q_demo_')), false);
   assert.ok(QUESTS.q_demo_01, 'old fixture remains known for tests and saves');
   const t = makeSaveTarget(1, undefined, undefined, INTERNAL_DEMO_QUESTS);
   assert.equal(t.quests.status('job_c1_01_instructor'), 'locked');

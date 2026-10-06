@@ -1,7 +1,7 @@
-import { ITEMS } from '../../data/itemData';
 import type { CombatWorld } from '../../game/CombatWorld';
 import { h } from '../dom';
 import { renderEquipment, renderInventory } from './inventoryView';
+import { objectiveText, PHASE_LABEL, questPhase, rewardText } from '../../quests/questText';
 import { renderSkillTree } from './skillTreeView';
 import { renderRecurring } from './recurringView';
 import { renderCraft, renderEnchant, renderEnhancement, renderJobChange, renderWarp } from './systemScreens';
@@ -60,23 +60,35 @@ const character: ScreenRenderer = (tab, { world }) => {
 /** The job's skill tree (temporary UI; see skillTreeView.ts). */
 const skills: ScreenRenderer = (_tab, { world }) => renderSkillTree(world);
 
-const quest: ScreenRenderer = (tab, { quests }) => {
-  const list = quests.progress().filter((q) => (tab === 'completed' ? q.done : !q.done));
-  if (!list.length) return emptyState(tab === 'completed' ? 'Finished quests appear here.' : 'No active quests.');
+/**
+ * The quest log: Active (offered, accepted, in progress, ready to turn in)
+ * and Completed (claimed). Daily / Weekly quests live in their own screen.
+ */
+const quest: ScreenRenderer = (tab, { world }) => {
+  const q = world.quests;
+  const ids = Object.values(q.defs)
+    .filter((d) => !d.repeat)
+    .map((d) => d.id)
+    .filter((id) => {
+      const phase = questPhase(q, id);
+      return tab === 'completed' ? phase === 'completed' : phase !== 'completed' && phase !== 'locked';
+    });
+  if (!ids.length) return emptyState(tab === 'completed' ? 'Finished quests appear here.' : 'No active quests.');
   return h(
     'div',
     { className: 'ui-list' },
-    list.map((q) =>
-      h('div', { className: 'ui-list__row' }, [
+    ids.map((id) => {
+      const def = q.defs[id];
+      const progress = q.progress(id);
+      return h('div', { className: 'ui-list__row', attrs: { 'data-quest': id, 'data-phase': questPhase(q, id) } }, [
         h('div', {}, [
-          h('div', { className: 'ui-label', text: q.def.title }),
-          h('div', {
-            className: 'ui-caption',
-            text: `${q.def.goal.kind === 'kill' ? 'Defeat' : 'Collect'} ${q.def.goal.kind === 'kill' ? q.def.goal.monster : ITEMS[q.def.goal.item].name}: ${q.current}/${q.def.goal.count}`,
-          }),
+          h('div', { className: 'ui-label', text: def.title }),
+          h('div', { className: 'ui-caption', text: PHASE_LABEL[questPhase(q, id)] }),
+          ...def.objectives.map((o, i) => h('div', { className: 'ui-caption', text: objectiveText(o, progress[i].current, progress[i].required) })),
+          h('div', { className: 'ui-caption', text: `Rewards: ${rewardText(def)}` }),
         ]),
-      ]),
-    ),
+      ]);
+    }),
   );
 };
 

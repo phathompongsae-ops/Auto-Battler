@@ -56,7 +56,8 @@ import type { EggTier } from '../data/petData';
 import { RecurringQuests } from '../quests/RecurringQuests';
 import { NAVIGATION } from '../data/navigationData';
 import type { MapDef } from '../data/maps';
-import type { NavPoint } from '../data/navigationData';
+import { NAV_DEFAULT_RADIUS, type NavPoint, type NavTarget } from '../data/navigationData';
+import { NPC_INTERACT_RADIUS, NPCS, type NpcDef } from '../data/npcData';
 import { DUNGEON_WARPS, type Location } from '../data/warpData';
 import { AutoMove } from '../navigation/AutoMove';
 import { NavIndex, portalTransition } from '../navigation/NavIndex';
@@ -307,7 +308,7 @@ export class CombatWorld implements MonsterWorld {
         inCombat: () => this.playerEngaged(),
         isDead: () => this.player.combat.dead,
         takePortal: (portalId) => this.takePortal(portalId),
-        reachLocation: (locationId) => this.reachLocation(locationId),
+        reachLocation: (locationId) => this.arriveAtLocation(locationId),
       },
       (state) => this.events.emit('navigationChanged', state),
       this.quests,
@@ -344,6 +345,7 @@ export class CombatWorld implements MonsterWorld {
   enterMap(mapId: string, at?: NavPoint, cause = 'enter'): MapDef {
     const from = this.maps.loaded ? this.maps.map : null;
     this.loot.clear();
+    this.insideLocations.clear();
     this.projectiles.clear();
     this.skills.clear();
     this.targeting.select(null);
@@ -422,6 +424,7 @@ export class CombatWorld implements MonsterWorld {
 
     if (this.playerRespawnAt !== null && now >= this.playerRespawnAt) this.respawnPlayer();
     this.checkPortalTrigger();
+    this.checkLocations();
     this.settleLevelCap();
     this.checkServerDay();
   }
@@ -485,14 +488,91 @@ export class CombatWorld implements MonsterWorld {
 
   // --- World interactions (NPCs, markers, items, enhancement) --------------
 
-  /** The player talked to / interacted with an NPC. No dialogue UI yet. */
+  /** The player talked to / interacted with an NPC (talk objectives listen to this). */
   interactWithNpc(npcId: string): void {
     this.events.emit('npcInteracted', { npcId });
   }
 
-  /** The player reached a location / zone marker (maps and Auto Move will call this). */
+  /** The player reached a location / zone marker. Always reports (dev tools, tests). */
   reachLocation(locationId: string): void {
     this.events.emit('locationReached', { locationId });
+  }
+
+  /** Location markers the player currently stands in (each reports once per entry). */
+  private readonly insideLocations = new Set<string>();
+
+  /** Arrival at a location (walking in or Auto Move): reported once until the player leaves it again. */
+  private arriveAtLocation(locationId: string): void {
+    if (this.insideLocations.has(locationId)) return;
+    this.insideLocations.add(locationId);
+    this.reachLocation(locationId);
+  }
+
+  /** Walking into a location marker's radius reaches it (visit objectives); leaving re-arms it. */
+  private checkLocations(): void {
+    if (this.player.combat.dead) return;
+    for (const t of this.navigation.all()) {
+      if (t.type !== 'location' || !t.locationId || t.mapId !== this.location.mapId) continue;
+      const inside = Math.hypot(t.x - this.player.x, t.y - this.player.y) <= (t.radius ?? NAV_DEFAULT_RADIUS);
+      if (inside) this.arriveAtLocation(t.locationId);
+      else this.insideLocations.delete(t.locationId);
+    }
+  }
+
+  // --- Town NPCs and quests --------------------------------------------------
+
+  /** Where an NPC stands (its navigation target), or null if unknown. */
+  npcPosition(npcId: string): NavTarget | null {
+    const npc = NPCS[npcId];
+    return (npc && this.navigation.target(npc.navTargetId)) ?? null;
+  }
+
+  /** NPCs on the current map, nearest first, within talking range. */
+  nearbyNpc(): NpcDef | null {
+    let best: NpcDef | null = null;
+    let bestD = NPC_INTERACT_RADIUS;
+    for (const npc of Object.values(NPCS)) {
+      const at = this.npcPosition(npc.id);
+      if (!at || at.mapId !== this.location.mapId) continue;
+      const d = Math.hypot(at.x - this.player.x, at.y - this.player.y);
+      if (d <= bestD) {
+        best = npc;
+        bestD = d;
+      }
+    }
+    return best;
+  }
+
+  /**
+   * Talk to an NPC standing next to the player: reports the conversation
+   * (talk objectives progress before the dialogue shows its quests).
+   */
+  talkTo(npcId: string): { ok: true; npc: NpcDef } | { ok: false; reason: 'unknown_npc' | 'too_far' | 'dead' } {
+    const npc = NPCS[npcId];
+    if (!npc) return { ok: false, reason: 'unknown_npc' };
+    if (this.player.combat.dead) return { ok: false, reason: 'dead' };
+    if (this.nearbyNpc()?.id !== npcId) return { ok: false, reason: 'too_far' };
+    this.autoMove.cancel();
+    this.interactWithNpc(npcId);
+    return { ok: true, npc };
+  }
+
+  /** Accept a quest (starts and tracks it). */
+  acceptQuest(questId: string) {
+    const r = this.quests.start(questId);
+    if (r.ok) this.quests.track(questId);
+    return r;
+  }
+
+  /**
+   * Turn a finished quest in to the NPC it names (its rewards are granted
+   * once; a second turn-in is refused by the Quest Engine).
+   */
+  turnInQuest(questId: string, npcId: string) {
+    const def = this.quests.defs[questId];
+    if (!def) return { ok: false as const, reason: 'unknown_quest' as const };
+    if ((def.turnInNpcId ?? def.giverNpcId ?? npcId) !== npcId) return { ok: false as const, reason: 'wrong_npc' as const };
+    return this.quests.claim(questId);
   }
 
   /**

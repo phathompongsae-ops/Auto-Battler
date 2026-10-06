@@ -162,6 +162,14 @@ export class CombatEffects {
       this.ring(m.x, m.y, 0xff4d4d, 60, 500);
     });
 
+    ev.on('questClaimed', ({ questId }) => {
+      const def = world.quests.defs[questId];
+      if (!def || def.repeat) return;
+      const p = world.player;
+      this.text.show(p.x, textY(p, 'levelUp') - 30, `QUEST COMPLETE: ${def.title}`, { color: '#ffe066', size: 16, rise: 36, duration: 2400 });
+      this.ring(p.x, centerY(p), 0xffe066, 56, 600);
+    });
+
     ev.on('bossDefeated', ({ claimed, runId }) => {
       const p = world.player;
       const message = claimed ? 'BOSS DEFEATED! Reward claimed' : runId ? 'BOSS DEFEATED! (no reward left today)' : 'BOSS DEFEATED! (no run: no reward)';

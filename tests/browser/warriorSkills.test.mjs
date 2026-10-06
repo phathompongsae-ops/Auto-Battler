@@ -24,7 +24,8 @@ export async function warriorSkillSuite(b, t) {
     JSON.stringify({ job, points: st.points, loadout: st.loadout }),
   );
 
-  // 2. Learn Power Slash rank 1 in the Skills window.
+  // 2. Learn Power Slash rank 1 in the Skills window (the menu button enables on the next HUD frame after the unlock).
+  await b.waitFor(`!document.querySelector('[data-menu="skills"]').disabled`, { timeout: 1000, label: 'Skills button enabled' });
   await openSkills();
   await sleep(50);
   await b.eval(`${dom('[data-learn="power_slash"]')}.click()`);

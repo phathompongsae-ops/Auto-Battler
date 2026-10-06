@@ -41,6 +41,45 @@ export function createPlaceholderTextures(scene: Phaser.Scene): void {
   for (const [key, palette] of Object.entries(BLOB_PALETTES)) createBlobSheet(scene, key, palette);
   createLootGem(scene);
   createPropTextures(scene);
+  createNpcFigure(scene);
+}
+
+export const NPC_BASE_KEY = 'npc-base';
+export const NPC_ROBE_KEY = 'npc-robe';
+
+/**
+ * PLACEHOLDER town NPC: a chibi figure in two layers so each NPC can tint its
+ * robe (the white `npc-robe` layer) without tinting skin and hair. 32×44, feet
+ * at the bottom.
+ */
+function createNpcFigure(scene: Phaser.Scene): void {
+  const base = scene.textures.createCanvas(NPC_BASE_KEY, 32, 44);
+  const robe = scene.textures.createCanvas(NPC_ROBE_KEY, 32, 44);
+  if (!base || !robe) throw new Error('Could not create NPC textures');
+  const b = base.getContext();
+  const r = robe.getContext();
+  const rect = (c: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, color: string) => {
+    c.fillStyle = color;
+    c.fillRect(x, y, w, h);
+  };
+  b.fillStyle = 'rgba(0, 0, 0, 0.28)';
+  b.beginPath();
+  b.ellipse(16, 41, 10, 3, 0, 0, Math.PI * 2);
+  b.fill();
+  rect(b, 11, 34, 4, 6, '#3a3348');
+  rect(b, 17, 34, 4, 6, '#3a3348');
+  // Head, face, hair.
+  rect(b, 8, 4, 16, 14, '#1d1b26');
+  rect(b, 9, 5, 14, 12, '#f1c89b');
+  rect(b, 9, 5, 14, 4, '#6b4426');
+  rect(b, 12, 11, 2, 2, '#1d1b26');
+  rect(b, 18, 11, 2, 2, '#1d1b26');
+  // Robe (tinted per NPC): outline in the base layer, fill in the robe layer.
+  rect(b, 7, 18, 18, 18, '#1d1b26');
+  rect(r, 8, 19, 16, 16, '#ffffff');
+  rect(r, 8, 27, 16, 2, '#c9c9c9');
+  base.refresh();
+  robe.refresh();
 }
 
 interface BlobPalette {

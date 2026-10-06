@@ -22,6 +22,8 @@ import { expToNext } from '../progression/expCurve';
 import { defaultUnlocks, locationKind, useDungeonWarp, useTownWarp } from '../warp/warp';
 import { FIELD_MAP_ID, MAPS, mapSize } from '../data/maps';
 import { spawnPlan } from '../world/mapRules';
+import { NPCS } from '../data/npcData';
+import { npcMarker, questPhase } from '../quests/questText';
 import { CLASS_1_JOB_CHANGE } from '../data/jobChangeData';
 import { QUESTS } from '../data/questData';
 import { passiveModifiers } from '../skills/skillTreeRules';
@@ -499,6 +501,29 @@ export function createDevApi(world: CombatWorld, overlays: WorldOverlays) {
       world.recurring.sync();
       world.quests.refresh();
     },
+
+    // --- Town NPCs and the quest loop (dev only) -----------------------------
+    /** Every NPC: map, position, and its quest marker ('!' offered, '?' ready to turn in). */
+    npcs: () =>
+      Object.values(NPCS).map((n) => {
+        const at = world.npcPosition(n.id);
+        return { id: n.id, name: n.name, mapId: at?.mapId ?? null, x: at?.x ?? 0, y: at?.y ?? 0, marker: npcMarker(world.quests, n.id), services: [...n.services] };
+      }),
+    nearbyNpc: () => world.nearbyNpc()?.id ?? null,
+    /** Test setup: stand next to an NPC (loading its map if needed). */
+    goToNpc: (npcId: string) => {
+      const at = world.npcPosition(npcId);
+      if (!at) return false;
+      if (at.mapId !== world.location.mapId) world.enterMap(at.mapId, { x: at.x, y: at.y + 28 }, 'dev_teleport');
+      else world.player.body.reset(at.x, at.y + 28);
+      return true;
+    },
+    /** The REAL talk path (needs the NPC in range): reports the talk for quests. */
+    talkTo: (npcId: string) => world.talkTo(npcId),
+    acceptQuest: (questId: string) => world.acceptQuest(questId),
+    /** The REAL turn-in path (the quest's turn-in NPC). */
+    turnInQuest: (questId: string, npcId: string) => world.turnInQuest(questId, npcId),
+    questPhase: (questId: string) => questPhase(world.quests, questId),
 
     // --- Navigation / Auto Move (dev only) --------------------------------
     navState: () => ({ ...world.autoMove.state(), mapId: world.location.mapId, x: world.player.x, y: world.player.y }),

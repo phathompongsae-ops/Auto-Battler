@@ -11,7 +11,9 @@ import { Monster } from '../entities/Monster';
 import { Player } from '../entities/Player';
 import { CombatWorld, type WorldMapView } from '../game/CombatWorld';
 import { isCharacterArtReady } from '../graphics/characterArt';
-import { TILESET_KEY } from '../graphics/placeholderTextures';
+import { NPC_BASE_KEY, NPC_ROBE_KEY, TILESET_KEY } from '../graphics/placeholderTextures';
+import { NPCS } from '../data/npcData';
+import { npcMarker } from '../quests/questText';
 import { propTextureKey } from '../graphics/propTextures';
 import { InputController } from '../input/InputController';
 import { KeyboardActionSource } from '../input/KeyboardActionSource';
@@ -52,6 +54,8 @@ export class WorldScene extends Phaser.Scene implements WorldMapView {
   private monsterGroup!: Phaser.GameObjects.Group;
   /** Static bodies on the footprints of solid props (rebuilt with the map). */
   private propBodies!: Phaser.Physics.Arcade.StaticGroup;
+  /** Quest markers over the current map's NPCs. */
+  private npcMarkers: { npcId: string; mark: Phaser.GameObjects.Text }[] = [];
 
   constructor() {
     super('World');
@@ -192,6 +196,8 @@ export class WorldScene extends Phaser.Scene implements WorldMapView {
       this.mapVisuals.push(dot, text(x, y - 8, value, '#f4ecdb', 9));
     };
     for (const t of map.navigationTargets) {
+      // NPCs are drawn as figures with their own name plate (see drawNpcs).
+      if (t.npcId && Object.values(NPCS).some((n) => n.navTargetId === t.id)) continue;
       if (t.meta?.label) marker(t.x, t.y, t.meta.label, t.type === 'monster_zone' ? 0xff8a65 : t.type === 'station' ? 0x7fd4ff : 0xf3d898);
     }
     for (const p of map.portals) {
@@ -199,6 +205,37 @@ export class WorldScene extends Phaser.Scene implements WorldMapView {
       marker(c.x, c.y, p.label, 0xb388ff);
     }
     for (const l of map.landmarks ?? []) this.mapVisuals.push(text(l.x, l.y, l.label.toUpperCase(), '#f3d898', 10));
+    this.drawNpcs(map, text);
+  }
+
+  /** NPC figures with name plates and a quest marker ('!' offered, '?' ready to turn in) kept in sync each frame. */
+  private drawNpcs(map: MapDef, text: (x: number, y: number, value: string, color: string, size: number) => Phaser.GameObjects.Text): void {
+    this.npcMarkers = [];
+    for (const npc of Object.values(NPCS)) {
+      const at = this.world.npcPosition(npc.id);
+      if (!at || at.mapId !== map.id) continue;
+      const feet = at.y + 6;
+      const base = this.add.image(at.x, feet, NPC_BASE_KEY).setOrigin(0.5, 1).setDepth(feet);
+      const robe = this.add.image(at.x, feet, NPC_ROBE_KEY).setOrigin(0.5, 1).setDepth(feet + 0.1).setTint(npc.color);
+      const name = text(at.x, feet - 46, npc.name, '#ffe9a8', 9);
+      const role = text(at.x, feet - 36, npc.title, '#c9d1e3', 8);
+      const mark = text(at.x, feet - 56, '', '#ffd23f', 18).setVisible(false);
+      this.tweens.add({ targets: mark, y: feet - 60, yoyo: true, repeat: -1, duration: 500, ease: 'Sine.easeInOut' });
+      this.mapVisuals.push(base, robe, name, role, mark);
+      this.npcMarkers.push({ npcId: npc.id, mark });
+    }
+  }
+
+  private updateNpcMarkers(): void {
+    for (const { npcId, mark } of this.npcMarkers) {
+      const m = npcMarker(this.world.quests, npcId);
+      if (!m) {
+        if (mark.visible) mark.setVisible(false);
+        continue;
+      }
+      if (mark.text !== m) mark.setText(m).setColor(m === '?' ? '#7ee787' : '#ffd23f');
+      if (!mark.visible) mark.setVisible(true);
+    }
   }
 
   update(_time: number, delta: number): void {
@@ -211,6 +248,7 @@ export class WorldScene extends Phaser.Scene implements WorldMapView {
     else if (!this.world.frozen && physics.isPaused) physics.resume();
 
     this.overlays.update(this.world.now);
+    this.updateNpcMarkers();
     this.hud.update(this.world.now);
   }
 
