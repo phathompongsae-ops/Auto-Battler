@@ -114,6 +114,7 @@ export function makeSaveTarget(
     progression,
     player,
     hooks: emptyHooks(),
+    location: null as SaveTarget['location'],
     stack,
     clock,
     serverDay,

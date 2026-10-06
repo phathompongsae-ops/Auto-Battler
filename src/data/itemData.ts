@@ -81,6 +81,8 @@ const LOOT_TABLE_DEFS = {
     // DEMO: until a Quest Engine exists, quest drops roll whether or not the quest is active.
     { itemId: 'slime_sample', chance: 0.4, category: 'quest' },
   ],
+  /** PLACEHOLDER monsters (map foundation): no drops until their content pass. */
+  placeholder: [],
 } satisfies Record<string, LootEntry[]>;
 
 export type LootTableId = keyof typeof LOOT_TABLE_DEFS;

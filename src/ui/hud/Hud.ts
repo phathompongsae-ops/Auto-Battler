@@ -20,8 +20,6 @@ export interface HudOptions {
   art: CharacterArt | null;
   actions: VirtualActionSource;
   drag: TouchDragSource;
-  tiles: number[][];
-  areaName: string;
   /** Legacy HUD quest examples, shown only by the explicit fixture test mode. */
   fixtureQuests?: boolean;
 }
@@ -52,7 +50,7 @@ export class Hud {
     this.jobSelect = new JobSelectWindow(this.root.el, world, this.windows);
 
     this.player = new PlayerFrame(world.player, options.art);
-    this.minimap = new Minimap(world, scene.cameras.main, options.tiles, options.areaName);
+    this.minimap = new Minimap(world, scene.cameras.main);
     this.menu = new MenuBar(world, this.windows, this.quests);
     this.tracker = new QuestTracker(this.quests);
     this.joystick = new Joystick(options.drag, this.root);

@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { TILE_SIZE } from '../config';
 import type { CharacterVisualLayout } from '../data/characterArt';
 import { DIRECTIONS, type Direction } from '../input/Direction';
-import { Tile, TILE_COUNT } from '../world/testMap';
+import { Tile, TILE_COUNT } from '../world/tiles';
 
 /*
  * Placeholder art drawn to canvas at boot. Every texture here is meant to be
@@ -37,15 +37,36 @@ export const LOOT_KEY = 'loot-gem';
 export function createPlaceholderTextures(scene: Phaser.Scene): void {
   createTileset(scene);
   createPlayerSheet(scene);
-  createSlimeSheet(scene);
+  for (const [key, palette] of Object.entries(BLOB_PALETTES)) createBlobSheet(scene, key, palette);
   createLootGem(scene);
 }
 
-/** Two-frame squishy slime; frames `slime-0` and `slime-1`. */
-function createSlimeSheet(scene: Phaser.Scene): void {
+interface BlobPalette {
+  outline: string;
+  body: string;
+  shine: string;
+}
+
+/**
+ * The slime, and PLACEHOLDER stand-ins for the map-foundation monsters: the
+ * same squishy blob recoloured per monster texture key until real art exists.
+ */
+const BLOB_PALETTES: Record<string, BlobPalette> = {
+  [SLIME_KEY]: { outline: '#1f4d1a', body: '#6cc04a', shine: '#b6ee8f' },
+  wolf: { outline: '#2e3038', body: '#8d93a3', shine: '#c9cdd8' },
+  mushroom: { outline: '#5a1f22', body: '#d0524c', shine: '#f4d6c8' },
+  elite_boar: { outline: '#3b2412', body: '#9a6233', shine: '#e0b07a' },
+  grove_guardian: { outline: '#1d3b2a', body: '#3f8f5f', shine: '#f2e55c' },
+  crypt_skeleton: { outline: '#3a3a42', body: '#d8d4c4', shine: '#ffffff' },
+  crypt_knight: { outline: '#1b1e33', body: '#4d5c9e', shine: '#aab8f0' },
+  crypt_lord: { outline: '#2b0f36', body: '#7a2f9a', shine: '#e08af7' },
+};
+
+/** Two-frame squishy blob; frames `<key>-0` and `<key>-1`. */
+function createBlobSheet(scene: Phaser.Scene, key: string, palette: BlobPalette): void {
   const s = 32;
-  const texture = scene.textures.createCanvas(SLIME_KEY, s * 2, s);
-  if (!texture) throw new Error('Could not create slime texture');
+  const texture = scene.textures.createCanvas(key, s * 2, s);
+  if (!texture) throw new Error(`Could not create ${key} texture`);
   const ctx = texture.getContext();
 
   for (let frame = 0; frame < 2; frame++) {
@@ -60,7 +81,7 @@ function createSlimeSheet(scene: Phaser.Scene): void {
     ctx.ellipse(ox + 16, 29, 10, 3, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    ctx.fillStyle = '#1f4d1a';
+    ctx.fillStyle = palette.outline;
     ctx.beginPath();
     ctx.ellipse(ox + 16, cy, w + 1, h + 1, 0, Math.PI, 0);
     ctx.lineTo(ox + 16 + w + 1, cy + 5);
@@ -68,7 +89,7 @@ function createSlimeSheet(scene: Phaser.Scene): void {
     ctx.closePath();
     ctx.fill();
 
-    ctx.fillStyle = '#6cc04a';
+    ctx.fillStyle = palette.body;
     ctx.beginPath();
     ctx.ellipse(ox + 16, cy, w, h, 0, Math.PI, 0);
     ctx.lineTo(ox + 16 + w, cy + 4);
@@ -76,14 +97,14 @@ function createSlimeSheet(scene: Phaser.Scene): void {
     ctx.closePath();
     ctx.fill();
 
-    ctx.fillStyle = '#b6ee8f';
+    ctx.fillStyle = palette.shine;
     ctx.fillRect(ox + 10, cy - h + 2, 4, 2);
 
     ctx.fillStyle = '#1d1b26';
     ctx.fillRect(ox + 12, cy - 2, 2, 3);
     ctx.fillRect(ox + 18, cy - 2, 2, 3);
 
-    texture.add(`${SLIME_KEY}-${frame}`, 0, ox, 0, s, s);
+    texture.add(`${key}-${frame}`, 0, ox, 0, s, s);
   }
   texture.refresh();
 }
@@ -155,6 +176,44 @@ function createTileset(scene: Phaser.Scene): void {
   const ox = Tile.Water * s;
   ctx.fillRect(ox + 4, 8, 10, 2);
   ctx.fillRect(ox + 17, 20, 10, 2);
+
+  // Map-foundation tiles (PLACEHOLDER colours: Town, Field zones, Dungeon).
+  fill(Tile.Cobble, '#a9a39a');
+  dots(Tile.Cobble, '#8f8980', [[0, 15], [8, 15], [16, 15], [24, 15], [15, 0], [15, 8], [31, 20], [7, 24]], 2);
+
+  fill(Tile.Roof, '#8c3f32');
+  ctx.fillStyle = '#6e2f25';
+  for (let y = 4; y < s; y += 8) ctx.fillRect(Tile.Roof * s, y, s, 2);
+
+  fill(Tile.Portal, '#5b3fa3');
+  ctx.fillStyle = '#b388ff';
+  ctx.fillRect(Tile.Portal * s + 6, 6, s - 12, s - 12);
+  ctx.fillStyle = '#e6d6ff';
+  ctx.fillRect(Tile.Portal * s + 13, 13, 6, 6);
+
+  fill(Tile.Dirt, '#9c7a4f');
+  dots(Tile.Dirt, '#87683f', [[5, 6], [20, 4], [12, 17], [26, 22], [7, 26]]);
+  fill(Tile.Moss, '#4f8a6a');
+  dots(Tile.Moss, '#c86e6a', [[8, 9], [23, 20]], 3);
+  fill(Tile.DarkGrass, '#3d6b34');
+  dots(Tile.DarkGrass, '#2f5528', [[5, 6], [20, 4], [12, 17], [26, 22]]);
+
+  fill(Tile.Tree, '#5f9e4f');
+  ctx.fillStyle = '#5a3a22';
+  ctx.fillRect(Tile.Tree * s + 13, 20, 6, 10);
+  ctx.fillStyle = '#2f6b2a';
+  ctx.beginPath();
+  ctx.arc(Tile.Tree * s + 16, 13, 11, 0, Math.PI * 2);
+  ctx.fill();
+
+  fill(Tile.DungeonFloor, '#4a4652');
+  dots(Tile.DungeonFloor, '#3c3944', [[0, 15], [16, 15], [15, 0], [31, 24]], 2);
+  fill(Tile.DungeonWall, '#26232c');
+  ctx.fillStyle = '#35313d';
+  ctx.fillRect(Tile.DungeonWall * s, 0, s, 3);
+  fill(Tile.Carpet, '#5c2433');
+  ctx.fillStyle = '#7a3345';
+  ctx.fillRect(Tile.Carpet * s + 4, 4, s - 8, s - 8);
 
   texture.refresh();
 }

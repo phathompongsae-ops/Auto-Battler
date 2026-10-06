@@ -1,18 +1,18 @@
 import assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
 import { NAVIGATION, type NavigationData, type NavPoint, type NavTarget } from '../../src/data/navigationData';
-import { PROTOTYPE_MAP_ID } from '../../src/data/navigation/demoNavigation';
+import { CRYPT_MAP_ID, FIELD_MAP_ID, MAPS, portalNavId, TOWN_MAP_ID } from '../../src/data/maps';
 import { QUESTS, type QuestDef } from '../../src/data/questData';
 import { DEMO_MARKER_ID, DEMO_NPC_ID } from '../../src/data/quests/demoTestQuests';
 import type { Location, PortalDef } from '../../src/data/warpData';
 import { DIRECTION_VECTORS, type Direction } from '../../src/input/Direction';
 import { AutoMove, type NavigationState, type NavWorld } from '../../src/navigation/AutoMove';
 import { NavIndex, portalTransition } from '../../src/navigation/NavIndex';
-import { LPathPlanner, steerToward, tileGrid, type CollisionGrid } from '../../src/navigation/pathing';
+import { LPathPlanner, steerToward, type CollisionGrid } from '../../src/navigation/pathing';
 import { resolveObjectiveTarget, resolveQuestObjective } from '../../src/navigation/questNavigation';
 import { applyPlayerSave, capturePlayerSave } from '../../src/save/playerSnapshot';
 import { deserializePlayerSave, serializePlayerSave } from '../../src/save/playerSave';
-import { buildTestMap, PLAYER_SPAWN, SOLID_TILES } from '../../src/world/testMap';
+import { mapCollision } from '../../src/world/mapRules';
 import { makeSaveTarget } from './fixtures';
 
 const SPEED = 160;
@@ -31,7 +31,8 @@ class SimWorld implements NavWorld {
     readonly nav: NavIndex,
     public pos: NavPoint,
     public loc: Location,
-    private readonly grid?: CollisionGrid,
+    /** Collision of the map the body is on (it changes map with portals). */
+    private readonly gridFor: (mapId: string) => CollisionGrid | undefined = () => undefined,
     private readonly onReach: (id: string) => void = () => {},
   ) {}
 
@@ -57,7 +58,7 @@ class SimWorld implements NavWorld {
     const v = DIRECTION_VECTORS[direction];
     const d = (SPEED * dtMs) / 1000;
     const next = { x: this.pos.x + v.x * d, y: this.pos.y + v.y * d };
-    if (this.grid?.isBlocked(next.x, next.y)) return;
+    if (this.gridFor(this.loc.mapId)?.isBlocked(next.x, next.y)) return;
     this.maxStep = Math.max(this.maxStep, Math.hypot(next.x - this.pos.x, next.y - this.pos.y));
     this.pos = next;
   }
@@ -102,15 +103,15 @@ function testRig(start: NavPoint = { x: 100, y: 300 }, mapId = 'nav_test_a') {
   return { nav, world, auto, states };
 }
 
-/** The real demo data on the real prototype map collision. */
-function demoRig() {
+/** The real navigation data on the real map table's collision, starting at a map's safe spawn (default: the Field). */
+function demoRig(mapId = FIELD_MAP_ID) {
   const t = makeSaveTarget(1);
   const nav = new NavIndex(NAVIGATION);
-  const grid = tileGrid(buildTestMap(), 32, SOLID_TILES);
-  const world = new SimWorld(nav, { ...PLAYER_SPAWN }, { kind: 'field', mapId: PROTOTYPE_MAP_ID }, grid, (locationId) =>
+  const map = MAPS[mapId];
+  const world = new SimWorld(nav, { ...map.spawnPoint }, { kind: map.type, mapId }, mapCollision, (locationId) =>
     t.events.emit('locationReached', { locationId }),
   );
-  const auto = new AutoMove(nav, new LPathPlanner(() => grid), world, () => {}, t.quests);
+  const auto = new AutoMove(nav, new LPathPlanner(mapCollision), world, () => {}, t.quests);
   return { t, nav, world, auto };
 }
 
@@ -140,7 +141,11 @@ describe('quest objective → navigation target', () => {
     assert.equal(resolve({ kind: 'kill', monsterId: 'dragon' }), 'no_target');
     assert.equal(resolve({ kind: 'visit', locationId: 'nowhere' }), 'no_target');
     assert.equal(resolve({ kind: 'dungeon_clear', dungeonId: 'other_dungeon' }), 'no_target');
-    assert.equal(resolve({ kind: 'enhance' }), 'no_target', 'no enhancement station yet');
+  });
+
+  test('enhance → the Town Enhancement station', () => {
+    assert.equal(resolve({ kind: 'enhance', minLevel: 3 }), 'nav_town_enhancement');
+    assert.equal(NAVIGATION.targets.nav_town_enhancement.mapId, TOWN_MAP_ID);
   });
 
   test('enhance uses the configured station when one exists (data hook)', () => {
@@ -216,7 +221,7 @@ describe('Auto Move state', () => {
   test('a blocked straight path fails as no_path instead of walking into walls', () => {
     const blocked: CollisionGrid = { isBlocked: (x) => x > 200 && x < 220 };
     const nav = new NavIndex(TEST_NAV, TEST_PORTALS);
-    const world = new SimWorld(nav, { x: 100, y: 100 }, { kind: 'field', mapId: 'nav_test_a' }, blocked);
+    const world = new SimWorld(nav, { x: 100, y: 100 }, { kind: 'field', mapId: 'nav_test_a' }, () => blocked);
     const auto = new AutoMove(nav, new LPathPlanner(() => blocked), world);
     auto.navigateTo('a_npc');
     run(auto, world);
@@ -226,7 +231,7 @@ describe('Auto Move state', () => {
   test('unexpected obstacles end in a clear failure (stuck), not an endless walk', () => {
     const blocked: CollisionGrid = { isBlocked: (x) => x > 200 && x < 220 };
     const nav = new NavIndex(TEST_NAV, TEST_PORTALS);
-    const world = new SimWorld(nav, { x: 100, y: 100 }, { kind: 'field', mapId: 'nav_test_a' }, blocked);
+    const world = new SimWorld(nav, { x: 100, y: 100 }, { kind: 'field', mapId: 'nav_test_a' }, () => blocked);
     const auto = new AutoMove(nav, new LPathPlanner(), world); // planner unaware of the wall
     auto.navigateTo('a_npc');
     run(auto, world);
@@ -335,19 +340,65 @@ describe('cross-map routing through portals', () => {
     assert.deepEqual([auto.state().status, auto.state().reason], ['failed', 'portal_failed']);
   });
 
-  test('the demo route: field → portal → dungeon entrance map → entrance (no automatic dungeon entry)', () => {
+  test('Field → Town portal → the Dungeon entrance in Town (no automatic dungeon entry)', () => {
     const { auto, world } = demoRig();
     const r = auto.navigateTo('nav_demo_dungeon_entrance');
     assert.ok(r.ok);
-    assert.deepEqual(r.state.route, ['nav_demo_portal_to_dungeon', 'nav_demo_dungeon_entrance']);
+    assert.deepEqual(r.state.route, [portalNavId('demo_field_to_town'), 'nav_demo_dungeon_entrance']);
     run(auto, world);
     assert.equal(auto.state().status, 'arrived');
-    assert.equal(world.mapId(), 'demo_dungeon_entrance');
+    assert.deepEqual(world.portals, ['demo_field_to_town']);
+    assert.equal(world.mapId(), TOWN_MAP_ID);
+    assert.equal(world.loc.kind, 'town');
+    assert.ok(dist(world.pos, NAVIGATION.targets.nav_demo_dungeon_entrance) <= 32);
+  });
+
+  test('Town → Field target: the portal graph routes through the Town gate, then walks the Field', () => {
+    const { auto, world } = demoRig(TOWN_MAP_ID);
+    const r = auto.navigateTo('nav_field_wolf_zone');
+    assert.ok(r.ok);
+    assert.deepEqual(r.state.route, [portalNavId('demo_town_to_field'), 'nav_field_wolf_zone']);
+    run(auto, world);
+    assert.equal(auto.state().status, 'arrived');
+    assert.equal(world.mapId(), FIELD_MAP_ID);
+    assert.ok(dist(world.pos, NAVIGATION.targets.nav_field_wolf_zone) <= 40);
+  });
+
+  test('Field → Dungeon boss room: two portals (Field → Town → Dungeon), fewest maps', () => {
+    const { auto, world } = demoRig();
+    const r = auto.navigateTo('nav_crypt_boss_room');
+    assert.ok(r.ok);
+    assert.deepEqual(r.state.route, [portalNavId('demo_field_to_town'), portalNavId('demo_town_to_dungeon'), 'nav_crypt_boss_room']);
+    run(auto, world, 20000);
+    assert.equal(auto.state().status, 'arrived');
+    assert.deepEqual(world.portals, ['demo_field_to_town', 'demo_town_to_dungeon']);
+    assert.equal(world.mapId(), CRYPT_MAP_ID);
     assert.equal(world.loc.kind, 'dungeon');
+  });
+
+  test('combat pauses a cross-map route and it resumes afterwards; manual input cancels it', () => {
+    const { auto, world } = demoRig(TOWN_MAP_ID);
+    auto.navigateTo('nav_demo_slime_zone');
+    run(auto, world, 20);
+    world.combat = true;
+    const before = { ...world.pos };
+    run(auto, world, 60);
+    assert.equal(auto.state().paused, true);
+    assert.deepEqual(world.pos, before, 'holds still while engaged');
+    world.combat = false;
+    run(auto, world);
+    assert.equal(auto.state().status, 'arrived');
+    assert.equal(world.mapId(), FIELD_MAP_ID);
+
+    auto.navigateTo('nav_town_pet');
+    run(auto, world, 10);
+    assert.equal(auto.state().status, 'moving');
+    auto.drive('up', DT, SPEED);
+    assert.deepEqual([auto.state().status, auto.state().reason], ['cancelled', 'manual_input']);
   });
 });
 
-describe('demo quests through Auto Move (real prototype map collision)', () => {
+describe('demo quests through Auto Move (real Field collision)', () => {
   test('q_demo_01 → walks to the demo NPC and stops there (no automatic dialogue)', () => {
     const { t, auto, world } = demoRig();
     t.quests.start('q_demo_01');

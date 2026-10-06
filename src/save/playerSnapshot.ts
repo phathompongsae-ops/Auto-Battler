@@ -41,6 +41,8 @@ export interface SaveTarget {
   recurring: RecurringQuests;
   features: FeatureUnlocks;
   hooks: PersistedHooks;
+  /** Current map and position (null = none: load at the default spawn). */
+  location: PlayerSave['location'];
 }
 
 /** Snapshot the inputs. Derived values (stats, set bonuses, pet totals) are not saved. */
@@ -70,6 +72,7 @@ export function capturePlayerSave(t: SaveTarget): PlayerSave {
     recurring: t.recurring.toState(),
     features: [...t.features.unlocked],
     ...structuredClone(t.hooks),
+    location: t.location ? { ...t.location } : null,
   };
 }
 
@@ -116,6 +119,8 @@ export function applyPlayerSave(t: SaveTarget, save: PlayerSave): void {
   t.features.unlocked.clear();
   for (const id of s.features) t.features.unlocked.add(id);
   t.hooks = { dungeons: s.dungeons };
+  // Stored as-is; the game resolves it to a safe spot (unknown map / bad position fall back).
+  t.location = s.location;
 
   t.combat.refreshStats();
   t.combat.restore();

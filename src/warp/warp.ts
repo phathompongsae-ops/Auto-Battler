@@ -1,3 +1,4 @@
+import { mapDef } from '../data/maps';
 import { DUNGEON_WARPS, PORTALS, TOWNS, type Location, type LocationKind, type PortalDef } from '../data/warpData';
 import type { Inventory } from '../loot/Inventory';
 
@@ -57,8 +58,10 @@ export function useDungeonWarp(ctx: WarpContext, dungeonId: string): WarpResult 
   return { ok: true, destination: { kind: 'dungeon', mapId: dungeon.entranceMapId }, leftDungeon: ctx.location.kind === 'dungeon' };
 }
 
-/** Kind of map an id names: a town, a dungeon map, otherwise a field. */
+/** Kind of map an id names: the map table's type; ids outside it: a town, a dungeon map, otherwise a field. */
 export function locationKind(mapId: string): LocationKind {
+  const map = mapDef(mapId);
+  if (map) return map.type;
   if (mapId in TOWNS) return 'town';
   if (Object.values(DUNGEON_WARPS).some((d) => d.entranceMapId === mapId || d.bossRoomMapId === mapId)) return 'dungeon';
   return 'field';

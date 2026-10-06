@@ -102,6 +102,13 @@ export class Monster extends Phaser.Physics.Arcade.Sprite implements MonsterAgen
     });
   }
 
+  /** Removed with its map (possibly mid death-fade): stop the fade first. */
+  destroy(fromScene?: boolean): void {
+    this.deathTween?.stop();
+    this.deathTween = null;
+    super.destroy(fromScene);
+  }
+
   respawn(): void {
     this.deathTween?.stop();
     this.deathTween = null;

@@ -1,12 +1,14 @@
-import { DEMO_NAV_TARGETS } from './navigation/demoNavigation';
+import { mapNavigationTargets } from './maps';
 
 /*
  * Navigation targets: where Auto Move can take the player. Plain data keyed
- * by stable id. Quest objectives resolve to these through
+ * by stable id, gathered from the map table (data/maps): each map lists its
+ * NPCs, stations, zones and markers, and every map portal becomes a 'portal'
+ * target. Quest objectives resolve to these through
  * navigation/questNavigation.ts; the movement code never names a quest.
  */
 
-export type NavTargetType = 'npc' | 'location' | 'monster_zone' | 'portal' | 'dungeon_entrance';
+export type NavTargetType = 'npc' | 'station' | 'location' | 'monster_zone' | 'portal' | 'dungeon_entrance';
 
 export interface NavPoint {
   x: number;
@@ -28,11 +30,13 @@ export interface NavTarget {
 
   /** type 'npc': the NPC id quests talk to. */
   npcId?: string;
+  /** type 'station': the Town service it offers (enhancement, enchant, craft, pet). Arriving only stops. */
+  stationId?: string;
   /** type 'location': the location id reported on arrival (reachLocation). */
   locationId?: string;
   /** type 'monster_zone': monsters hunted here (kill objectives; collect via their loot). */
   monsterIds?: readonly string[];
-  /** type 'portal': the warp portal (warpData PORTALS) and where its far side puts the player. */
+  /** type 'portal': the map portal and where its far side puts the player. */
   portalId?: string;
   arrival?: NavPoint;
   /** type 'dungeon_entrance': the dungeon it leads into. */
@@ -51,8 +55,8 @@ export interface NavTarget {
 export const NAV_DEFAULT_RADIUS = 24;
 
 /**
- * Where objectives without a place-bound id go. `enhance` → an enhancement
- * NPC / station once one exists (null = navigation unavailable for now).
+ * Where objectives without a place-bound id go. `enhance` → the enhancement
+ * station (null = navigation unavailable).
  */
 export interface NavStations {
   enhance: string | null;
@@ -64,6 +68,6 @@ export interface NavigationData {
 }
 
 export const NAVIGATION: NavigationData = {
-  targets: { ...DEMO_NAV_TARGETS },
-  stations: { enhance: null },
+  targets: Object.fromEntries(mapNavigationTargets().map((t) => [t.id, t])),
+  stations: { enhance: 'nav_town_enhancement' },
 };

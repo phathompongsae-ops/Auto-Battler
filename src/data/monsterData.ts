@@ -58,7 +58,44 @@ const MONSTER_DEFS = {
     lootTable: 'slime',
     respawnDelay: 5000,
   },
+  // PLACEHOLDER roster for the Town / Field / Dungeon map foundation: simple
+  // stand-in stats and tinted blob art so spawn zones, transitions and reward
+  // rules can be exercised. Not balanced; the monster content pass replaces them.
+  wolf: placeholder('wolf', 'Wolf', 'normal', 2, { maxHp: 90, attack: 10, defense: 3, moveSpeed: 105 }, 40),
+  mushroom: placeholder('mushroom', 'Mushroom', 'normal', 3, { maxHp: 80, attack: 9, defense: 4, moveSpeed: 70 }, 35),
+  elite_boar: placeholder('elite_boar', 'Elite Boar', 'elite', 8, { maxHp: 450, attack: 16, defense: 8, moveSpeed: 95 }, 160, 18),
+  grove_guardian: placeholder('grove_guardian', 'Grove Guardian', 'mini_boss', 12, { maxHp: 1600, attack: 22, defense: 12, moveSpeed: 80 }, 550, 22),
+  crypt_skeleton: placeholder('crypt_skeleton', 'Crypt Skeleton', 'normal', 20, { maxHp: 140, attack: 14, defense: 6, moveSpeed: 90 }, 0),
+  crypt_knight: placeholder('crypt_knight', 'Crypt Knight', 'elite', 20, { maxHp: 700, attack: 20, defense: 12, moveSpeed: 85 }, 0, 18),
+  crypt_lord: placeholder('crypt_lord', 'Crypt Lord', 'dungeon_boss', 20, { maxHp: 3000, attack: 26, defense: 16, moveSpeed: 75 }, 0, 24),
 } satisfies Record<string, MonsterDef>;
+
+/** A PLACEHOLDER monster: slime-like defaults with a few overrides. Dungeon monsters' expReward is unused (dungeon kills grant nothing). */
+function placeholder(
+  id: string,
+  name: string,
+  tier: MonsterTier,
+  level: number,
+  stats: Pick<MonsterStats, 'maxHp' | 'attack' | 'defense' | 'moveSpeed'>,
+  expReward: number,
+  hitRadius = 12,
+): MonsterDef {
+  return {
+    id,
+    name,
+    texture: id,
+    level,
+    tier,
+    stats: { maxMp: 0, magicDefense: stats.defense, critChance: 0.05, critMultiplier: 1.5, mpRegen: 0, ...stats },
+    hitRadius,
+    aggroRange: 150,
+    leashRange: 320,
+    attackSkill: 'slime_bump',
+    expReward,
+    lootTable: 'placeholder',
+    respawnDelay: tier === 'normal' ? 5000 : 15000,
+  };
+}
 
 /** Full combat stats from monster data: missing newer fields are 0. */
 export function monsterCombatStats(stats: MonsterStats): CombatStats {

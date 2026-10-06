@@ -56,15 +56,17 @@ export async function navigationSuite(b, t) {
     JSON.stringify({ toMarker: toMarker.ok, arrived: arrived.status, visits, quest }),
   );
 
-  // Portal continuation on the prototype map: field → portal → dungeon-entrance map → entrance.
+  // Cross-map: Field → west gate portal → Town (real map load) → the Dungeon entrance in Town.
   await b.eval('debug.clearLog()');
   const toEntrance = await b.eval(`debug.navigateTo('nav_demo_dungeon_entrance')`);
-  const done = await b.waitFor(`['arrived', 'failed', 'cancelled'].includes(debug.navState().status) && debug.navState()`, { timeout: 12000, label: 'arrive at entrance' });
+  const done = await b.waitFor(`['arrived', 'failed', 'cancelled'].includes(debug.navState().status) && debug.navState()`, { timeout: 20000, label: 'arrive at entrance' });
   const maps = await b.eval(`debug.log.filter((e) => e.type === 'mapChanged').map((e) => e.target + ':' + e.item)`);
+  const town = await b.eval('debug.mapInfo()');
   t.check(
-    'N-4. a cross-map route walks to the portal, uses it, and continues to the dungeon entrance',
-    toEntrance.ok && done.status === 'arrived' && done.mapId === 'demo_dungeon_entrance' && JSON.stringify(maps) === '["demo_dungeon_entrance:demo_field_to_dungeon"]',
-    JSON.stringify({ route: toEntrance.state?.route, done: { status: done.status, reason: done.reason, mapId: done.mapId }, maps }),
+    'N-4. a cross-map route walks to the portal, uses it (the Town really loads), and continues to the Dungeon entrance',
+    toEntrance.ok && done.status === 'arrived' && done.mapId === 'demo_town' && JSON.stringify(maps) === '["demo_town:demo_field_to_town"]' &&
+      town.type === 'town' && town.monsters.length === 0,
+    JSON.stringify({ route: toEntrance.state?.route, done: { status: done.status, reason: done.reason, mapId: done.mapId }, maps, monsters: town.monsters.length }),
   );
 
   // Loading never resumes Auto Move.

@@ -20,7 +20,8 @@ import type { RewardZone } from '../energy/fieldEnergy';
 import { FIELD_ENERGY } from '../data/energyData';
 import { expToNext } from '../progression/expCurve';
 import { defaultUnlocks, locationKind, useDungeonWarp, useTownWarp } from '../warp/warp';
-import { PROTOTYPE_MAP_ID } from '../data/navigation/demoNavigation';
+import { FIELD_MAP_ID, MAPS, mapSize } from '../data/maps';
+import { spawnPlan } from '../world/mapRules';
 import { CLASS_1_JOB_CHANGE } from '../data/jobChangeData';
 import { QUESTS } from '../data/questData';
 import { passiveModifiers } from '../skills/skillTreeRules';
@@ -238,7 +239,9 @@ export function createDevApi(world: CombatWorld, overlays: WorldOverlays) {
     fieldEnergy: () => world.fieldEnergy.current(),
     setFieldEnergy: (amount: number) => world.fieldEnergy.set(amount),
     refillFieldEnergy: () => world.fieldEnergy.set(FIELD_ENERGY.daily),
-    setZone: (zone: RewardZone) => (world.zone = zone),
+    /** Override the reward zone (tests); null = back to the map / run rule. */
+    setZone: (zone: RewardZone | null) => (world.zoneOverride = zone),
+    zone: () => world.zone,
     /** Raw daily record (server day + every daily allowance). */
     daily: () => {
       world.daily.today(); // applies a pending day reset
@@ -501,11 +504,35 @@ export function createDevApi(world: CombatWorld, overlays: WorldOverlays) {
     /** Every navigation target, and whether a route reaches it from the current map. */
     navTargets: () =>
       world.navigation.all().map((t) => ({ id: t.id, type: t.type, mapId: t.mapId, x: t.x, y: t.y, reachable: !!world.navigation.route(world.location.mapId, t) })),
-    /** Test setup only: put the player somewhere (and optionally on another map id) without walking. */
+    /** Test setup only: put the player somewhere without walking; another map id really loads that map. */
     teleport: (x: number, y: number, mapId?: string) => {
-      if (mapId) world.location = { kind: locationKind(mapId), mapId };
-      world.player.body.reset(x, y);
+      if (mapId && mapId !== world.location.mapId) world.enterMap(mapId, { x, y }, 'dev_teleport');
+      else world.player.body.reset(x, y);
     },
+
+    // --- Maps (dev only) ---------------------------------------------------
+    /** The loaded map: id, type, name, size, its live monsters and portals. */
+    mapInfo: () => {
+      const map = world.maps.map;
+      return {
+        mapId: map.id,
+        type: map.type,
+        kind: locationKind(map.id),
+        displayName: map.displayName,
+        ...mapSize(map),
+        spawnPoint: { ...map.spawnPoint },
+        zone: world.zone,
+        monsters: world.monsters.map((m) => ({ id: m.id, monsterId: m.def.id, tier: m.def.tier, x: m.x, y: m.y, dead: m.combat.dead })),
+        plannedMonsters: spawnPlan(map).map((s) => s.id),
+        portals: map.portals.map((p) => ({ id: p.id, to: p.to })),
+        lastFallback: world.lastMapFallback,
+      };
+    },
+    mapIds: () => Object.keys(MAPS),
+    /** Load a map for real (default: its safe spawn). */
+    enterMap: (mapId: string, x?: number, y?: number) => world.enterMap(mapId, x === undefined || y === undefined ? undefined : { x, y }, 'dev').id,
+    /** Take a portal through the real transition (must start on the current map). */
+    takePortal: (portalId: string) => world.takePortal(portalId),
 
     // --- Crafting and warp (dev only) -------------------------------------
     startCraft: (recipeId: string) => world.startCraft(recipeId, () => `dev-job-${++devJobCounter}`),
@@ -577,8 +604,16 @@ export function createDevApi(world: CombatWorld, overlays: WorldOverlays) {
     }),
     hitStop: (ms: number) => world.requestHitStop(ms),
     monsterIds: () => world.monsters.map((m) => m.id),
-    /** Back to a clean slate: player at spawn, monsters home, nothing on the ground. */
-    reset: () => {
+    /**
+     * Back to a clean slate on a freshly loaded map (default: the Field, the
+     * combat test ground; a new game itself starts in Town): player at the
+     * map's spawn, its monsters fresh, nothing on the ground.
+     */
+    reset: (mapId: string = FIELD_MAP_ID) => {
+      world.dungeonRun = null;
+      world.zoneOverride = null;
+      world.autoMove.clear();
+      world.enterMap(mapId, undefined, 'dev_reset');
       world.respawnPlayer();
       world.player.combat.level = 1;
       world.player.combat.exp = 0;
@@ -593,9 +628,6 @@ export function createDevApi(world: CombatWorld, overlays: WorldOverlays) {
       world.crafting.jobs = [];
       world.serverDay.override = null;
       world.daily.record = { day: null, ...freshDaily() };
-      world.zone = 'field';
-      world.autoMove.clear();
-      world.location = { kind: 'field', mapId: PROTOTYPE_MAP_ID };
       world.quests.reset();
       world.features.unlocked.clear();
       // Features go back to what a Lv1 character earns (Equipment), quietly.

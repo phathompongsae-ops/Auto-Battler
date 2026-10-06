@@ -44,7 +44,8 @@ export const PLAYER_SAVE_VERSION = 4;
  *
  * Added within v4 (optional on load, so earlier v4 saves still load with an
  * empty quest log): `questLog` and `features`. The never-used `quests`
- * placeholder hook is retired and ignored when present.
+ * placeholder hook is retired and ignored when present. Also added within
+ * v4: `location` (current map + position; missing → the default spawn).
  */
 export interface PlayerSaveV4 {
   schemaVersion: 4;
@@ -97,12 +98,21 @@ export interface PlayerSaveV4 {
   recurring: RecurringState;
   /** Hook: dungeon id → cleared difficulty ids. */
   dungeons: Record<string, { cleared: string[] }>;
+  /**
+   * Where the character stands: map id and world position (added within v4).
+   * null = no location (an earlier v4 save, or unreadable data): the game
+   * loads at the default map's safe spawn. The map id and position are only
+   * shape-checked here; CombatWorld resolves unknown maps / unsafe spots to
+   * a safe spawn (world/mapRules resolveMapEntry), so a bad location never
+   * makes a save unloadable.
+   */
+  location: { mapId: string; x: number; y: number } | null;
 }
 
 export type PlayerSave = PlayerSaveV4;
 
 /** v3: energy was an unused hook; clears were free-form ids. */
-export type PlayerSaveV3 = Omit<PlayerSaveV4, 'schemaVersion' | 'daily' | 'dungeonRuns' | 'questLog' | 'features' | 'recurring'> & {
+export type PlayerSaveV3 = Omit<PlayerSaveV4, 'schemaVersion' | 'daily' | 'dungeonRuns' | 'questLog' | 'features' | 'recurring' | 'location'> & {
   quests: Record<string, { state: 'active' | 'completed'; progress: Record<string, number> }>;
   schemaVersion: 3;
   energy: { current: number; updatedAt: number } | null;
@@ -151,6 +161,7 @@ export function newPlayerSave(characterId: string): PlayerSave {
     features: [],
     recurring: emptyRecurringState(),
     dungeons: {},
+    location: null,
   };
 }
 
@@ -456,6 +467,12 @@ function validateDungeonRuns(raw: unknown): PlayerSave['dungeonRuns'] {
   return { nextSeq, claimed: [...claimed] as number[] };
 }
 
+/** Saved location: kept when well-formed, otherwise dropped (null → safe default spawn). Never rejects a save. */
+function validateLocation(raw: unknown): PlayerSave['location'] {
+  if (!isObject(raw) || typeof raw.mapId !== 'string' || !raw.mapId || !isFiniteNumber(raw.x) || !isFiniteNumber(raw.y)) return null;
+  return { mapId: raw.mapId, x: raw.x, y: raw.y };
+}
+
 function validate(raw: unknown): PlayerSave {
   if (!isObject(raw)) throw new SaveError('save is not an object');
   const s = raw;
@@ -531,5 +548,6 @@ function validate(raw: unknown): PlayerSave {
     features: s.features === undefined ? [] : (uniqueStrings(s.features, 'features', isFeatureId) as FeatureId[]),
     recurring: validateRecurring(s.recurring),
     dungeons: record(s.dungeons, 'dungeons', (x): x is PlayerSave['dungeons'][string] => isObject(x) && Array.isArray(x.cleared) && x.cleared.every((c) => typeof c === 'string')),
+    location: validateLocation(s.location),
   };
 }

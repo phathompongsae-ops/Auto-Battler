@@ -262,7 +262,7 @@ describe('action gating (the real player paths)', () => {
   test('normal map portals are not part of the Warp feature', () => {
     const r = rig(1);
     assert.equal(r.has('warp'), false);
-    const t = portalTransition(new NavIndex(NAVIGATION), { kind: 'field', mapId: 'demo_field' }, 'demo_field_to_dungeon');
+    const t = portalTransition(new NavIndex(NAVIGATION), { kind: 'town', mapId: 'demo_town' }, 'demo_town_to_dungeon');
     assert.equal(t.ok, true);
   });
 

@@ -17,6 +17,7 @@ import { warriorSkillSuite } from './warriorSkills.test.mjs';
 import { recurringSuite } from './recurring.test.mjs';
 import { featureUnlockSuite } from './featureUnlock.test.mjs';
 import { classArtSuite, floatingJoystickSuite } from './classArt.test.mjs';
+import { mapSuite } from './maps.test.mjs';
 
 const PORT = 5199;
 const URL = `http://127.0.0.1:${PORT}/`;
@@ -52,6 +53,11 @@ try {
     !demoQuests.some((q) => q.type === 'main' || q.type === 'feature') && demoLevel === 11 &&
       (await b.eval(`debug.questProgress('job_c1_01_instructor').status`)) === 'available' &&
       !(await b.eval(`!!document.querySelector('[data-hud="quests"]')`)));
+  await mapSuite(b, t, shot, async () => {
+    await b.eval('window.__stale = true');
+    await b.reload();
+    await boot();
+  });
   await b.goto(`${URL}?questFixtures=1`);
   await boot();
 
@@ -86,7 +92,9 @@ try {
   await b.eval('window.__stale = true');
   await b.reload();
   await boot();
-  await b.eval('debug.setPeaceful(true)');
+  // A fresh page is a new game in Town; the touch suites use the Field test ground (slimes).
+  await b.eval('debug.reset(); debug.setPeaceful(true)');
+  await sleep(300);
   await dragSuite(b, t, 'touch', (phase, x, y) =>
     b.touch({ start: 'touchStart', move: 'touchMove', end: 'touchEnd' }[phase], x, y),
   );

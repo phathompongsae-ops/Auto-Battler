@@ -45,7 +45,7 @@ export async function featureUnlockSuite(b, t) {
     beforeWarp.reason === 'feature_locked' && warp.ok && map === 'demo_town' && JSON.stringify(await newUnlocks()) === '["warp"]',
     JSON.stringify({ beforeWarp: beforeWarp.reason, warp: warp.ok, map }),
   );
-  // The prototype hosts all map ids on one test map; return to its field setup for the Job Trial.
+  // Back to the Field (a real map load) for the Job Trial.
   await b.eval(`debug.teleport(640, 608, 'demo_field')`);
 
   // 3. Lv11: Job Change, not Class Skills.

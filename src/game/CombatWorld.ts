@@ -1,7 +1,7 @@
 import { MonsterBrain, type MonsterAgent, type MonsterWorld } from '../ai/MonsterBrain';
 import { separate } from '../ai/separation';
 import { CombatSystem } from '../combat/CombatSystem';
-import { ProjectileSystem, type ProjectileWorld } from '../combat/ProjectileSystem';
+import { ProjectileSystem } from '../combat/ProjectileSystem';
 import { SkillSystem } from '../combat/SkillSystem';
 import { StatusSystem } from '../combat/StatusSystem';
 import { TargetingSystem } from '../combat/TargetingSystem';
@@ -54,13 +54,26 @@ import type { EggTier } from '../data/petData';
 import type { IdSource } from '../equipment/factory';
 import { RecurringQuests } from '../quests/RecurringQuests';
 import { NAVIGATION } from '../data/navigationData';
-import { PROTOTYPE_MAP_ID } from '../data/navigation/demoNavigation';
+import type { MapDef } from '../data/maps';
+import type { NavPoint } from '../data/navigationData';
 import type { Location } from '../data/warpData';
 import { AutoMove } from '../navigation/AutoMove';
 import { NavIndex, portalTransition } from '../navigation/NavIndex';
-import { LPathPlanner, type CollisionGrid } from '../navigation/pathing';
+import { LPathPlanner } from '../navigation/pathing';
+import { MapSession } from '../world/MapSession';
+import { blocksProjectile, mapCollision, portalAt, resolveMapEntry, type MapEntryFallback, type MonsterSpawn } from '../world/mapRules';
 import type { EnhanceOptions } from '../equipment/enhancement';
 import { PlayerCombatController } from './PlayerCombatController';
+
+/** What CombatWorld needs from the scene to load a map: its tiles / collision / visuals, and monster entities. */
+export interface WorldMapView {
+  /** Tear down the previous map's tiles, collision and visuals; build `map`'s. */
+  build(map: MapDef): void;
+  /** A monster entity for one spawn (not yet registered with the world). */
+  createMonster(spawn: MonsterSpawn): Monster;
+  /** The player was placed on the new map (camera snap, HUD...). */
+  entered(map: MapDef): void;
+}
 
 /**
  * Owns every gameplay system and runs one simulation step per frame.
@@ -96,9 +109,13 @@ export class CombatWorld implements MonsterWorld {
   readonly fieldEnergy = new FieldEnergy(this.daily);
   /** Daily dungeon Full Reward / Assist entitlements. */
   readonly dungeonEntitlements = new DungeonEntitlements(this.daily);
-  /** DEMO: the only map is a field. Dungeon kills don't use Field Energy. */
-  zone: RewardZone = 'field';
-  /** The dungeon run in progress, if any (DEMO: no dungeon map; entered through the API). */
+  /** Dev/test override of the reward zone (null = decided by the map and the run). */
+  zoneOverride: RewardZone | null = null;
+  /** Reward rules for kills: 'dungeon' on a dungeon map or during a run (nothing granted, no Field Energy); otherwise 'field'. */
+  get zone(): RewardZone {
+    return this.zoneOverride ?? (this.dungeonRun || this.location.kind === 'dungeon' ? 'dungeon' : 'field');
+  }
+  /** The dungeon run in progress, if any (issued by enterDungeon; never saved). */
   dungeonRun: DungeonRun | null = null;
   readonly specialShop = new SpecialShop(this.clock);
   /** Issues dungeon runs; each run's reward is claimed at most once (bounded history). */
@@ -123,6 +140,8 @@ export class CombatWorld implements MonsterWorld {
   playerRespawnAt: number | null = null;
 
   private readonly controller: PlayerCombatController;
+  /** Projectiles stop at the current map's walls. */
+  private readonly projectileWorld = { blocksProjectile: (x: number, y: number) => blocksProjectile(this.maps.map, x, y) };
   private readonly byId = new Map<EntityId, CombatEntity>();
   private readonly separationScratch: number[] = [];
   private freezeMs = 0;
@@ -132,11 +151,21 @@ export class CombatWorld implements MonsterWorld {
   /** Last server day seen; a new day can make quests available. */
   private lastServerDay = 0;
 
-  /**
-   * Map the player is on. DEMO: the prototype test map stands in for
-   * demo_field and physically hosts every demo map id (not saved yet).
-   */
-  location: Location = { kind: 'field', mapId: PROTOTYPE_MAP_ID };
+  /** The loaded map (tiles, collision, its monsters); changed only through enterMap(). */
+  readonly maps: MapSession<Monster>;
+  /** Why the last load used a fallback position (null = the saved spot was used). Dev / tests only. */
+  lastMapFallback: MapEntryFallback | null = null;
+
+  /** Map the player is on. */
+  get location(): Location {
+    const map = this.maps.map;
+    return { kind: map.type, mapId: map.id };
+  }
+
+  /** The current map's safe spawn (where the player respawns). */
+  get playerSpawn(): Point {
+    return this.maps.map.spawnPoint;
+  }
   /** Navigation targets and the portal map graph. */
   readonly navigation: NavIndex;
   /** Quest / [Go] navigation. Manual movement input cancels it (AutoMove.drive, called in update()). */
@@ -150,7 +179,6 @@ export class CombatWorld implements MonsterWorld {
   readonly skillTree: SkillTree;
   /** Proc passives (Guardian Instinct, Battle Instinct). */
   readonly skillProcs: SkillProcs;
-  private navGrid: (mapId: string) => CollisionGrid | undefined;
 
   /** Unlocked feature ids (Feature Unlock hook). */
   readonly features = new FeatureUnlocks(this.events);
@@ -164,14 +192,20 @@ export class CombatWorld implements MonsterWorld {
   constructor(
     readonly player: Player,
     input: InputController,
-    private readonly map: ProjectileWorld,
-    readonly playerSpawn: Point,
-    /** Collision tiles per map id, for Auto Move path checks (none = unchecked paths). */
-    navGrid: (mapId: string) => CollisionGrid | undefined = () => undefined,
+    /** Builds map visuals / collision and monster entities (the scene). */
+    private readonly view: WorldMapView,
     questDefs: Readonly<Record<string, QuestDef>> = INTERNAL_DEMO_QUESTS,
   ) {
     this.register(player);
-    this.navGrid = navGrid;
+    this.maps = new MapSession<Monster>({
+      build: (map) => view.build(map),
+      spawn: (spawn) => {
+        const monster = view.createMonster(spawn);
+        this.addMonster(monster);
+        return monster;
+      },
+      despawn: (monster) => this.removeMonster(monster),
+    });
     this.controller = new PlayerCombatController(player, input, this.skills, this.targeting, () => this.monsters, () => this.skillTree.loadout());
 
     this.events.on('damage', ({ sourceId, targetId }) => {
@@ -222,19 +256,13 @@ export class CombatWorld implements MonsterWorld {
         location: () => this.location,
         inCombat: () => this.playerEngaged(),
         arrive: (destination, kind, leftDungeon) => {
-          // DEMO: same prototype scene — town at the spawn point, a dungeon at its entrance marker.
-          const from = this.location.mapId;
+          // A real map change: a town warp lands on the town's spawn, a dungeon warp on the dungeon map's spawn (its entrance).
           if (leftDungeon) this.leaveDungeon();
           this.autoMove.cancel();
-          this.location = destination;
-          const entrance = this.navigation.find((t) => t.type === 'dungeon_entrance' && t.mapId === destination.mapId);
-          const at = kind === 'dungeon' && entrance ? entrance : this.playerSpawn;
-          this.player.body.reset(at.x, at.y);
-          this.events.emit('mapChanged', { fromMapId: from, toMapId: destination.mapId, portalId: `${kind}_warp_scroll` });
+          this.enterMap(destination.mapId, undefined, `${kind}_warp_scroll`);
         },
         startDungeonRun: (dungeonId, difficulty) => {
           this.dungeonRun = this.rewardLedger.startRun(dungeonId, difficulty, this.player.combat.level);
-          this.zone = 'dungeon';
           return this.dungeonRun;
         },
       },
@@ -258,7 +286,7 @@ export class CombatWorld implements MonsterWorld {
     this.navigation = new NavIndex(NAVIGATION);
     this.autoMove = new AutoMove(
       this.navigation,
-      new LPathPlanner(navGrid),
+      new LPathPlanner(mapCollision),
       {
         mapId: () => this.location.mapId,
         position: () => ({ x: this.player.x, y: this.player.y }),
@@ -276,6 +304,49 @@ export class CombatWorld implements MonsterWorld {
     monster.brain = new MonsterBrain(monster, this, this.now);
     this.monsters.push(monster);
     this.register(monster);
+  }
+
+  /** Unregister and destroy a monster (its map is being left). */
+  removeMonster(monster: Monster): void {
+    if (this.targeting.current === monster) this.targeting.select(null);
+    const i = this.monsters.indexOf(monster);
+    if (i >= 0) this.monsters.splice(i, 1);
+    const j = this.combatants.indexOf(monster);
+    if (j >= 0) this.combatants.splice(j, 1);
+    this.byId.delete(monster.id);
+    monster.destroy();
+  }
+
+  // --- Maps -----------------------------------------------------------------
+
+  /**
+   * Load a map for real: everything belonging to the old map (monsters, loot
+   * on the ground, projectiles, pending hits, the target) is cleared, the new
+   * map's tiles / collision / monsters are built, and the player is placed at
+   * `at` (default: the map's safe spawn). Leaving a dungeon map ends the run
+   * without a claim. Emits mapChanged (`cause`: the portal id, a warp scroll,
+   * 'load'...) except for the very first load.
+   */
+  enterMap(mapId: string, at?: NavPoint, cause = 'enter'): MapDef {
+    const from = this.maps.loaded ? this.maps.map : null;
+    this.loot.clear();
+    this.projectiles.clear();
+    this.skills.clear();
+    this.targeting.select(null);
+    const map = this.maps.enter(mapId);
+    if (from?.type === 'dungeon' && map.type !== 'dungeon') this.leaveDungeon();
+    const spot = at ?? map.spawnPoint;
+    this.player.body.reset(spot.x, spot.y);
+    this.view.entered(map);
+    if (from) this.events.emit('mapChanged', { fromMapId: from.id, toMapId: map.id, portalId: cause });
+    return map;
+  }
+
+  /** Walking into a portal's trigger area takes it (Auto Move takes its own portals). */
+  private checkPortalTrigger(): void {
+    if (this.autoMove.isActive() || this.player.combat.dead) return;
+    const portal = portalAt(this.maps.map, this.player.x, this.player.y);
+    if (portal) this.takePortal(portal.id);
   }
 
   getEntity(id: EntityId | null): CombatEntity | undefined {
@@ -329,13 +400,14 @@ export class CombatWorld implements MonsterWorld {
     }
     separate(this.monsters, MONSTER_SEPARATION_STRENGTH, this.separationScratch);
 
-    this.projectiles.update(dtMs, this.combatants, this.map);
+    this.projectiles.update(dtMs, this.combatants, this.projectileWorld);
     this.statuses.update(this.combatants, now);
     this.regenerate(dtMs);
     this.loot.update(now, this.player);
     this.targeting.validate(this.player);
 
     if (this.playerRespawnAt !== null && now >= this.playerRespawnAt) this.respawnPlayer();
+    this.checkPortalTrigger();
     this.settleLevelCap();
     this.checkServerDay();
   }
@@ -375,7 +447,7 @@ export class CombatWorld implements MonsterWorld {
   /** Leave (or fail / die out of) the current run without claiming: nothing is used. */
   leaveDungeon(): void {
     this.dungeonRun = null;
-    this.zone = 'field';
+    this.zoneOverride = null;
   }
 
   /**
@@ -410,17 +482,14 @@ export class CombatWorld implements MonsterWorld {
   }
 
   /**
-   * The real portal transition: the warp portal must start on the current map;
-   * the player moves to the far side's arrival point on the new map.
-   * DEMO: no scene change yet (all demo map ids share the prototype map).
+   * The real portal transition: the portal must start on the current map;
+   * the destination map is loaded and the player appears at the far side's
+   * arrival point.
    */
   takePortal(portalId: string): boolean {
-    const from = this.location;
-    const t = portalTransition(this.navigation, from, portalId);
+    const t = portalTransition(this.navigation, this.location, portalId);
     if (!t.ok) return false;
-    this.location = t.location;
-    this.player.body.reset(t.arrival.x, t.arrival.y);
-    this.events.emit('mapChanged', { fromMapId: from.mapId, toMapId: t.location.mapId, portalId });
+    this.enterMap(t.location.mapId, t.arrival, portalId);
     return true;
   }
 
@@ -436,7 +505,7 @@ export class CombatWorld implements MonsterWorld {
     const length = Math.hypot(dx, dy);
     const travel = Math.min(maxDistance, length - target.hitRadius - caster.hitRadius - 2);
     if (travel <= 0) return;
-    const grid = this.navGrid(this.location.mapId);
+    const grid = mapCollision(this.location.mapId);
     const margin = caster.hitRadius;
     const blocked = (x: number, y: number) =>
       !!grid && (grid.isBlocked(x - margin, y - margin) || grid.isBlocked(x + margin, y - margin) || grid.isBlocked(x - margin, y + margin) || grid.isBlocked(x + margin, y + margin));
@@ -540,6 +609,10 @@ export class CombatWorld implements MonsterWorld {
     // A run in progress belongs to the state being replaced; Auto Move never resumes from a save.
     this.leaveDungeon();
     this.autoMove.clear();
+    // Back on the saved map and spot, or a safe fallback (old save, unknown map, bad position, a dungeon → its entrance).
+    const entry = resolveMapEntry(target.location);
+    this.lastMapFallback = entry.fallback;
+    this.enterMap(entry.mapId, entry.at, 'load');
     // The server cap may have risen since the save was made.
     this.lastLevelCap = 0;
     this.settleLevelCap();
@@ -568,6 +641,7 @@ export class CombatWorld implements MonsterWorld {
       recurring: this.recurring,
       features: this.features,
       hooks: this.saveHooks,
+      location: { mapId: this.location.mapId, x: this.player.x, y: this.player.y },
     };
   }
 

@@ -7,9 +7,11 @@ import type { QuestDef, QuestRewards } from '../questData';
  * Points. These are ordinary quest definitions marked `repeat`; the
  * RecurringQuests service assigns and resets them per server day / week.
  *
- * DEMO NOTE: the prototype map has only normal Slimes, so the Elite / Mini
- * Boss Dailies have weight 0 (never selected) and the Weekly Elite / Boss
- * Hunter quests can't be finished yet; no Demo goal requires them.
+ * DEMO NOTE: the Field now has PLACEHOLDER Elite / Mini Boss spawns (map
+ * foundation), but the Elite / Mini Boss Dailies keep weight 0 (never
+ * selected) until the monster content pass balances them; the Weekly Elite /
+ * Boss Hunter quests are completable on those placeholders. No Demo goal
+ * requires them.
  */
 
 export const DAILY_FEATURE = 'daily_commission' as const;
