@@ -18,6 +18,7 @@ import { recurringSuite } from './recurring.test.mjs';
 import { featureUnlockSuite } from './featureUnlock.test.mjs';
 import { classArtSuite, floatingJoystickSuite } from './classArt.test.mjs';
 import { mapSuite } from './maps.test.mjs';
+import { envArtSuite } from './envArt.test.mjs';
 import { combatSliceSuite } from './combatSlice.test.mjs';
 import { inventorySuite } from './inventory.test.mjs';
 import { questFlowSuite } from './questFlow.test.mjs';
@@ -62,6 +63,7 @@ try {
     await b.reload();
     await boot();
   });
+  await envArtSuite(b, t, shot, URL);
   await b.goto(`${URL}?questFixtures=1`);
   await boot();
 

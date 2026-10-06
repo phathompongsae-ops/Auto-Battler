@@ -621,8 +621,10 @@ export function propArtSize(kind: PropKind): { w: number; h: number } {
   return { w: ART[kind].w, h: ART[kind].h };
 }
 
+/** Code-drawn props for every kind without a loaded PNG (a PNG under the same key wins). */
 export function createPropTextures(scene: Phaser.Scene): void {
   for (const [kind, art] of Object.entries(ART) as [PropKind, PropArt][]) {
+    if (scene.textures.exists(propTextureKey(kind))) continue;
     const texture = scene.textures.createCanvas(propTextureKey(kind), art.w, art.h);
     if (!texture) throw new Error(`Could not create ${kind} prop texture`);
     art.draw(texture.getContext(), art.w, art.h);

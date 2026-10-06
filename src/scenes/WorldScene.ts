@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { CAMERA_LERP, CAMERA_ZOOM, TILE_SIZE } from '../config';
 import { presentationFor } from '../data/demoConfig';
 import { STARTING_JOB } from '../data/jobData';
-import { DEFAULT_MAP_ID, MAPS, mapSize, portalCenter, PROP_KINDS, type MapDef } from '../data/maps';
+import { DEFAULT_MAP_ID, MAPS, mapSize, portalCenter, PROP_KINDS, type MapDef, type TileRect } from '../data/maps';
 import { INTERNAL_DEMO_QUESTS, QUESTS } from '../data/questData';
 import { MONSTERS } from '../data/monsterData';
 import { DebugPanel } from '../debug/DebugPanel';
@@ -15,6 +15,9 @@ import { NPC_BASE_KEY, NPC_ROBE_KEY, TILESET_KEY } from '../graphics/placeholder
 import { NPCS } from '../data/npcData';
 import { npcMarker } from '../quests/questText';
 import { propTextureKey } from '../graphics/propTextures';
+import { envDrawScale } from '../graphics/environmentArt';
+import { ENV_BUILDINGS, ENV_GROUND_MAP_IDS, ENV_GROUND_TILESET } from '../data/environmentArt';
+import { groundVisuals } from '../world/groundVisuals';
 import { InputController } from '../input/InputController';
 import { KeyboardActionSource } from '../input/KeyboardActionSource';
 import { KeyboardSource } from '../input/KeyboardSource';
@@ -30,6 +33,14 @@ import { SOLID_TILES } from '../world/tiles';
 
 /** Depth of the placeholder map labels: above the ground, below characters' bars. */
 const LABEL_DEPTH = 900_000;
+/** Opacity of a tall prop / building while it covers the player. */
+const OCCLUDER_ALPHA = 0.45;
+
+/** A tilemap layer as created by Tilemap.createLayer (CPU or GPU variant). */
+type GroundLayer = NonNullable<ReturnType<Phaser.Tilemaps.Tilemap['createLayer']>>;
+
+/** The code-drawn ground layer; visual ground layers sit just above it, below shadows (-0.6). */
+const GROUND_DEPTH = -1;
 /** Flat ground decoration: above the tiles and shadows, below every prop and character. */
 const PROP_GROUND_DEPTH = -0.5;
 
@@ -54,6 +65,13 @@ export class WorldScene extends Phaser.Scene implements WorldMapView {
   private monsterGroup!: Phaser.GameObjects.Group;
   /** Static bodies on the footprints of solid props (rebuilt with the map). */
   private propBodies!: Phaser.Physics.Arcade.StaticGroup;
+  /** The code-drawn tile layer: collision source (and fallback visuals). */
+  groundLayer: GroundLayer | null = null;
+  /** Visual-only ground layers (2x tiles, transitions); never collide. */
+  groundVisualLayers: GroundLayer[] = [];
+  private visualTilemaps: Phaser.Tilemaps.Tilemap[] = [];
+  /** Tall props and buildings that fade while they cover the player (readability over environment). */
+  occluders: { image: Phaser.GameObjects.Image; bounds: Phaser.Geom.Rectangle }[] = [];
   /** Quest markers over the current map's NPCs. */
   private npcMarkers: { npcId: string; mark: Phaser.GameObjects.Text }[] = [];
 
@@ -122,6 +140,10 @@ export class WorldScene extends Phaser.Scene implements WorldMapView {
     this.colliders = [];
     this.mapVisuals = [];
     this.tilemap?.destroy();
+    for (const t of this.visualTilemaps) t.destroy();
+    this.visualTilemaps = [];
+    this.groundVisualLayers = [];
+    this.occluders = [];
     this.propBodies.clear(true, true);
 
     const tilemap = this.make.tilemap({ data: map.tiles.map((r) => [...r]), tileWidth: TILE_SIZE, tileHeight: TILE_SIZE });
@@ -129,8 +151,10 @@ export class WorldScene extends Phaser.Scene implements WorldMapView {
     if (!tileset) throw new Error('Could not create tileset');
     const ground = tilemap.createLayer(0, tileset, 0, 0);
     if (!ground) throw new Error('Could not create ground layer');
-    ground.setCollision(SOLID_TILES).setDepth(-1);
+    ground.setCollision(SOLID_TILES).setDepth(GROUND_DEPTH);
     this.tilemap = tilemap;
+    this.groundLayer = ground;
+    this.drawGroundVisuals(map);
 
     const { width, height } = mapSize(map);
     this.physics.world.setBounds(0, 0, width * TILE_SIZE, height * TILE_SIZE);
@@ -141,7 +165,8 @@ export class WorldScene extends Phaser.Scene implements WorldMapView {
       this.physics.add.collider(this.player, this.propBodies),
       this.physics.add.collider(this.monsterGroup, this.propBodies),
     );
-    this.drawProps(map);
+    const covered = this.drawBuildings(map);
+    this.drawProps(map, covered);
     this.drawLabels(map);
   }
 
@@ -150,17 +175,87 @@ export class WorldScene extends Phaser.Scene implements WorldMapView {
    * (ground decoration stays under everyone). Solid props get a static body
    * on their footprint, matching the collision grid in world/mapRules.
    */
-  private drawProps(map: MapDef): void {
+  private drawProps(map: MapDef, covered: readonly TileRect[] = []): void {
     for (const p of map.props) {
       const kind = PROP_KINDS[p.kind];
+      // A building facade carries its own decoration: non-solid props on its footprint are hidden (no collision involved).
+      if (!kind.solid && covered.some((r) => p.x >= r.x && p.y >= r.y && p.x + kind.w <= r.x + r.w && p.y + kind.h <= r.y + r.h)) continue;
       const cx = (p.x + kind.w / 2) * TILE_SIZE;
       const bottom = (p.y + kind.h) * TILE_SIZE;
       // Slightly above the footprint edge: a character whose feet touch it from the south draws in front.
       const depth = kind.ground ? PROP_GROUND_DEPTH : bottom - 6;
-      this.mapVisuals.push(this.add.image(cx, bottom, propTextureKey(p.kind)).setOrigin(0.5, 1).setDepth(depth));
+      const key = propTextureKey(p.kind);
+      // 2x PNGs draw at half scale; the footprint (and so collision) is the same either way.
+      const image = this.add.image(cx, bottom, key).setOrigin(0.5, 1).setScale(envDrawScale(this, key)).setDepth(depth);
+      this.mapVisuals.push(image);
+      if (kind.tall) this.addOccluder(image);
       if (!kind.solid) continue;
       const zone = this.add.zone(cx, (p.y + kind.h / 2) * TILE_SIZE, kind.w * TILE_SIZE, kind.h * TILE_SIZE);
       this.propBodies.add(zone);
+    }
+  }
+
+  /**
+   * The visual ground layer (2x tiles, variants, transitions) over the
+   * code-drawn tile layer, on maps that have it. Visual only: no collision;
+   * the code-drawn layer stays the collision source and shows through
+   * wherever a cell has no visual tile. Unavailable (no PNG): nothing is added.
+   */
+  private drawGroundVisuals(map: MapDef): void {
+    const ts = ENV_GROUND_TILESET;
+    if (!ENV_GROUND_MAP_IDS.includes(map.id) || !this.textures.exists(ts.key)) return;
+    const layers = groundVisuals(map.tiles);
+    const scale = envDrawScale(this, ts.key);
+    const grids = [layers.base, layers.dirtFringe, layers.grassFringe];
+    grids.forEach((data, i) => {
+      if (!data.some((row) => row.some((f) => f >= 0))) return;
+      const tm = this.make.tilemap({ data: data.map((r) => [...r]), tileWidth: ts.frameSize, tileHeight: ts.frameSize });
+      const tileset = tm.addTilesetImage(ts.key, ts.key, ts.frameSize, ts.frameSize, ts.margin, ts.spacing);
+      const layer = tileset && tm.createLayer(0, tileset, 0, 0);
+      if (!layer) {
+        tm.destroy();
+        return;
+      }
+      layer.setScale(scale).setDepth(GROUND_DEPTH + 0.05 * (i + 1));
+      this.visualTilemaps.push(tm);
+      this.groundVisualLayers.push(layer);
+    });
+  }
+
+  /** Building facades (2x PNGs) over their Roof-tile footprints; returns the footprints covered. */
+  private drawBuildings(map: MapDef): TileRect[] {
+    const covered: TileRect[] = [];
+    for (const b of ENV_BUILDINGS) {
+      if (b.mapId !== map.id || !this.textures.exists(b.key)) continue;
+      const f = b.footprint;
+      const bottom = (f.y + f.h) * TILE_SIZE;
+      const image = this.add
+        .image((f.x + f.w / 2) * TILE_SIZE, bottom, b.key)
+        .setOrigin(0.5, 1)
+        .setScale(envDrawScale(this, b.key))
+        .setDepth(bottom - 6);
+      this.mapVisuals.push(image);
+      this.addOccluder(image);
+      covered.push(f);
+    }
+    return covered;
+  }
+
+  private addOccluder(image: Phaser.GameObjects.Image): void {
+    this.occluders.push({ image, bounds: image.getBounds() });
+  }
+
+  /**
+   * A tall prop or building drawn over the player (player behind it) fades so
+   * the character stays readable; it is opaque again once the player is clear.
+   */
+  private updateOccluders(): void {
+    const p = this.player;
+    const top = p.y - p.layout.height + p.layout.feetOffset;
+    for (const { image, bounds } of this.occluders) {
+      const covers = image.depth > p.depth && p.x > bounds.left && p.x < bounds.right && p.y + p.layout.feetOffset > bounds.top && top < bounds.bottom;
+      const alpha = covers ? OCCLUDER_ALPHA : 1;
+      if (image.alpha !== alpha) image.setAlpha(alpha);
     }
   }
 
@@ -249,6 +344,7 @@ export class WorldScene extends Phaser.Scene implements WorldMapView {
 
     this.overlays.update(this.world.now);
     this.updateNpcMarkers();
+    this.updateOccluders();
     this.hud.update(this.world.now);
   }
 
