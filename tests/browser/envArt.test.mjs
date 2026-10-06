@@ -38,7 +38,8 @@ export async function envArtSuite(b, t, shot, url) {
     JSON.stringify(placed),
   );
 
-  // 3. Visual ground layer: present, half scale, above the code-drawn layer, never colliding; the code-drawn layer still collides.
+  // 3. Visual ground: corner (Wang) ground on the half-tile dual grid + plaza + non-ground tiles, every layer on the 32 px world grid,
+  //    above the code-drawn layer, never colliding; the code-drawn layer is hidden but stays the collision source.
   const layers = await b.eval(`(() => {
     const s = ${SCENE};
     const collides = (layer) => layer.layer.data.some((row) => row.some((tile) => tile && tile.collides));
@@ -46,6 +47,9 @@ export async function envArtSuite(b, t, shot, url) {
     return {
       count: s.groundVisualLayers.length,
       scales: s.groundVisualLayers.map((l) => l.scaleX),
+      worldTile: s.groundVisualLayers.map((l) => l.tilemap.tileWidth * l.scaleX),
+      dualOffset: [s.groundVisualLayers[0]?.x, s.groundVisualLayers[0]?.y],
+      baseVisible: s.groundLayer.visible,
       depths: s.groundVisualLayers.map((l) => l.depth),
       visualCollide: s.groundVisualLayers.some(collides),
       visualInColliders: s.groundVisualLayers.some(inColliders),
@@ -55,8 +59,9 @@ export async function envArtSuite(b, t, shot, url) {
     };
   })()`);
   t.check(
-    'ENV-3. the visual ground layers (base + dirt + grass transitions) are half scale above the code-drawn layer and never collide; the code-drawn layer stays the collision source',
-    layers.count === 3 && layers.scales.every((x) => x === 0.5) && layers.depths.every((d) => d > layers.baseDepth && d < -0.6) &&
+    'ENV-3. the visual ground layers (dual-grid corner ground, plaza, non-ground tiles) sit on the 32 px world grid above the code-drawn layer and never collide; the hidden code-drawn layer stays the collision source',
+    layers.count === 3 && layers.worldTile.every((x) => x === 32) && layers.scales[0] === 0.5 && layers.dualOffset[0] === -16 && layers.dualOffset[1] === -16 &&
+      !layers.baseVisible && layers.depths.every((d) => d > layers.baseDepth && d < -0.6) &&
       !layers.visualCollide && !layers.visualInColliders && layers.baseCollides && layers.baseInColliders,
     JSON.stringify(layers),
   );
@@ -100,11 +105,11 @@ export async function envArtSuite(b, t, shot, url) {
   await b.goto(`${url}?envArt=off`);
   await b.waitFor(`!window.__stale && !!(window.debug && window.game && window.game.scene.getScene('World').player)`, { timeout: 15000, label: 'boot (envArt=off)' });
   await sleep(300);
-  const off = { monument: await b.eval(tex('prop-monument')), layers: await b.eval(`${SCENE}.groundVisualLayers.length`), forge: await b.eval(`game.textures.exists('building-forge')`) };
+  const off = { monument: await b.eval(tex('prop-monument')), layers: await b.eval(`${SCENE}.groundVisualLayers.length`), baseVisible: await b.eval(`${SCENE}.groundLayer.visible`), forge: await b.eval(`game.textures.exists('building-forge')`) };
   const offScale = await b.eval(`${SCENE}.children.list.find((o) => o.texture?.key === 'prop-monument').scaleX`);
   t.check(
     'ENV-6. without the PNGs (?envArt=off) the code-drawn placeholders render at 1x and no visual ground layer or facade is added',
-    off.monument.canvas && off.monument.filter === NEAREST && offScale === 1 && off.layers === 0 && !off.forge,
+    off.monument.canvas && off.monument.filter === NEAREST && offScale === 1 && off.layers === 0 && off.baseVisible && !off.forge,
     JSON.stringify({ off, offScale }),
   );
 }

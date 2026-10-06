@@ -46,6 +46,20 @@ export const ENV_GROUND_TILESET = {
   spacing: 4,
 } as const;
 
+/**
+ * Production ground (PixelLab corner tilesets): one atlas of 64 px frames
+ * (margin 2, spacing 4) drawn on a dual grid; the frame for each terrain
+ * pair and corner mask comes from the generated TOWN_GROUND_WANG lookup.
+ * Wins over the stand-in ground when present.
+ */
+export const ENV_GROUND_WANG = {
+  key: 'env-ground-town-wang',
+  url: `${DIR}/ground/town_ground_wang.png`,
+  frameSize: 64,
+  margin: 2,
+  spacing: 4,
+} as const;
+
 /** First frame and variant count of each visual ground family in the tileset. */
 export const GROUND_FRAMES = {
   grass: { first: 0, count: 4 },
@@ -84,6 +98,7 @@ export function environmentTextureFiles(): { key: string; url: string; kind: 'pr
   return [
     ...Object.entries(ENV_PROP_ART).map(([kind, url]) => ({ key: `prop-${kind}`, url: url!, kind: 'prop' as const })),
     { key: ENV_GROUND_TILESET.key, url: ENV_GROUND_TILESET.url, kind: 'ground' as const },
+    { key: ENV_GROUND_WANG.key, url: ENV_GROUND_WANG.url, kind: 'ground' as const },
     ...ENV_BUILDINGS.map((b) => ({ key: b.key, url: b.url, kind: 'building' as const })),
   ];
 }

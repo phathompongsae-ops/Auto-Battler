@@ -1,0 +1,70 @@
+// Fit a generated environment image (e.g. a PixelLab result) onto its 2x target canvas:
+// trims the transparent margin, scales the content to fit the target (never wider than the
+// footprint-based canvas), and anchors it bottom-centre so its base sits on the footprint edge.
+//   node tools/env-art/fitAsset.mjs <source url or file> <out.png> <width> <height> [--fill-width] [--pad-bottom N] [--largest]
+// --fill-width: scale the content to the full target width (buildings covering their footprint).
+// --pad-bottom: leave N transparent px under the content (baked shadow room).
+// --largest: keep only the largest connected opaque blob (drops stray specks a generation left on the canvas).
+import { readFileSync, writeFileSync } from 'node:fs';
+import { Browser } from '../../tests/browser/cdp.mjs';
+
+const [src, out, w, h, ...flags] = process.argv.slice(2);
+const width = Number(w);
+const height = Number(h);
+const fillWidth = flags.includes('--fill-width');
+const padIndex = flags.indexOf('--pad-bottom');
+const padBottom = padIndex >= 0 ? Number(flags[padIndex + 1]) : 0;
+const largest = flags.includes('--largest');
+
+const dataUrl = /^https?:/.test(src) ? null : `data:image/png;base64,${readFileSync(src).toString('base64')}`;
+const imageUrl = dataUrl ?? src;
+
+const b = await Browser.launch({ port: 9338 });
+try {
+  await b.goto('about:blank');
+  const result = await b.eval(`(async () => {
+    const res = await fetch(${JSON.stringify(imageUrl)});
+    const blob = await res.blob();
+    const img = await createImageBitmap(blob);
+    const c = document.createElement('canvas'); c.width = img.width; c.height = img.height;
+    const g = c.getContext('2d'); g.drawImage(img, 0, 0);
+    const id = g.getImageData(0, 0, img.width, img.height);
+    const { data } = id;
+    if (${largest}) {
+      const W = img.width, H = img.height, label = new Int32Array(W * H).fill(-1);
+      let best = -1, bestSize = 0, n = 0;
+      for (let i = 0; i < W * H; i++) {
+        if (label[i] >= 0 || data[i * 4 + 3] <= 8) continue;
+        const stack = [i]; label[i] = n; let size = 0;
+        while (stack.length) {
+          const j = stack.pop(); size++;
+          const x = j % W, y = (j / W) | 0;
+          for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+            const nx = x + dx, ny = y + dy, k = ny * W + nx;
+            if (nx >= 0 && ny >= 0 && nx < W && ny < H && label[k] < 0 && data[k * 4 + 3] > 8) { label[k] = n; stack.push(k); }
+          }
+        }
+        if (size > bestSize) { bestSize = size; best = n; }
+        n++;
+      }
+      for (let i = 0; i < W * H; i++) if (label[i] !== best) data[i * 4 + 3] = 0;
+      g.putImageData(id, 0, 0);
+    }
+    let x0 = img.width, y0 = img.height, x1 = -1, y1 = -1;
+    for (let y = 0; y < img.height; y++) for (let x = 0; x < img.width; x++) {
+      if (data[(y * img.width + x) * 4 + 3] > 8) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+    }
+    const cw = x1 - x0 + 1, ch = y1 - y0 + 1;
+    const availH = ${height} - ${padBottom};
+    const scale = ${fillWidth} ? Math.min(${width} / cw, availH / ch) : Math.min(1, ${width} / cw, availH / ch) || 1;
+    const dw = Math.round(cw * scale), dh = Math.round(ch * scale);
+    const o = document.createElement('canvas'); o.width = ${width}; o.height = ${height};
+    const og = o.getContext('2d'); og.imageSmoothingQuality = 'high';
+    og.drawImage(c, x0, y0, cw, ch, Math.round((${width} - dw) / 2), availH - dh, dw, dh);
+    return { source: [img.width, img.height], content: [cw, ch], scale, placed: [dw, dh], png: o.toDataURL('image/png') };
+  })()`);
+  writeFileSync(out, Buffer.from(result.png.split(',')[1], 'base64'));
+  console.log(JSON.stringify({ out, source: result.source, content: result.content, scale: Number(result.scale.toFixed(3)), placed: result.placed }));
+} finally {
+  await b.close();
+}

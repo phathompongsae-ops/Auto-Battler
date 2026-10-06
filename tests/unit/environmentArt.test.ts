@@ -2,10 +2,11 @@ import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, test } from 'node:test';
-import { ENV_BUILDINGS, ENV_DRAW_SCALE, ENV_GROUND_MAP_IDS, ENV_GROUND_TILESET, ENV_PROP_ART, ENV_SOURCE_SCALE, environmentTextureFiles, GROUND_FRAMES } from '../../src/data/environmentArt';
+import { ENV_BUILDINGS, ENV_DRAW_SCALE, ENV_GROUND_MAP_IDS, ENV_GROUND_TILESET, ENV_GROUND_WANG, ENV_PROP_ART, ENV_SOURCE_SCALE, environmentTextureFiles, GROUND_FRAMES } from '../../src/data/environmentArt';
 import { MAPS, PROP_KINDS, TOWN_MAP_ID } from '../../src/data/maps';
 import { mapCells } from '../../src/world/mapRules';
-import { groundFamily, groundVisuals, neighbourMask } from '../../src/world/groundVisuals';
+import { TOWN_GROUND_WANG, TOWN_GROUND_WANG_FRAMES } from '../../src/data/environment/townGroundWang';
+import { groundFamily, groundVisuals, neighbourMask, wangGroundVisuals, wangOverlayCells, wangTerrain } from '../../src/world/groundVisuals';
 import { SOLID_TILES, Tile } from '../../src/world/tiles';
 
 const pub = (url: string) => join(process.cwd(), 'public', url);
@@ -113,5 +114,76 @@ describe('visual ground layer (derived, never collision)', () => {
     assert.equal(v.dirtFringe[1][1], GROUND_FRAMES.dirtFringe.first + 12 - 1);
     assert.equal(v.grassFringe[0][0], -1, 'grass never fringes onto grass');
     assert.equal(v.dirtFringe[1][0], -1, 'dirt never fringes onto dirt');
+  });
+});
+
+describe('corner (Wang) ground on the dual grid (derived, never collision)', () => {
+  const town = MAPS[TOWN_MAP_ID];
+
+  test('the atlas holds every frame of the lookup; each terrain pair maps all 16 corner masks to distinct frames', () => {
+    const { w, h } = pngSize(ENV_GROUND_WANG.url);
+    const t = ENV_GROUND_WANG;
+    const cols = Math.floor((w - 2 * t.margin + t.spacing) / (t.frameSize + t.spacing));
+    const rows = Math.floor((h - 2 * t.margin + t.spacing) / (t.frameSize + t.spacing));
+    assert.ok(cols * rows >= TOWN_GROUND_WANG_FRAMES, `${cols}x${rows} for ${TOWN_GROUND_WANG_FRAMES} frames`);
+    // One tileset per pair of Town terrains (either direction).
+    assert.deepEqual(Object.keys(TOWN_GROUND_WANG).map((k) => k.split('|').sort().join('|')).sort(), ['cobble|dirt', 'cobble|grass', 'dirt|grass']);
+    const all = Object.values(TOWN_GROUND_WANG).flat();
+    for (const masks of Object.values(TOWN_GROUND_WANG)) {
+      assert.equal(masks.length, 16);
+      assert.equal(new Set(masks).size, 16);
+      for (const f of masks) assert.ok(f >= 0 && f < TOWN_GROUND_WANG_FRAMES);
+    }
+    assert.equal(new Set(all).size, all.length, 'no frame shared between pairs');
+  });
+
+  test('every Town vertex touching ground gets a frame; deterministic; map tiles and collision untouched', () => {
+    const before = JSON.stringify(town.tiles);
+    const cellsBefore = JSON.stringify(mapCells(town));
+    const a = wangGroundVisuals(town.tiles, TOWN_GROUND_WANG);
+    assert.deepEqual(a, wangGroundVisuals(town.tiles, TOWN_GROUND_WANG));
+    assert.equal(a.length, town.tiles.length + 1);
+    assert.equal(a[0].length, town.tiles[0].length + 1);
+    for (let vy = 0; vy <= town.tiles.length; vy++)
+      for (let vx = 0; vx <= town.tiles[0].length; vx++) {
+        const touches = [town.tiles[vy - 1]?.[vx - 1], town.tiles[vy - 1]?.[vx], town.tiles[vy]?.[vx - 1], town.tiles[vy]?.[vx]].some((t) => wangTerrain(t));
+        assert.equal(a[vy][vx] >= 0, touches, `vertex ${vx},${vy}`);
+      }
+    assert.equal(JSON.stringify(town.tiles), before);
+    assert.equal(JSON.stringify(mapCells(town)), cellsBefore);
+  });
+
+  test('corner masks: a vertex picks the pair tile whose upper corners match the cells around it', () => {
+    const G = Tile.Grass;
+    const C = Tile.Cobble;
+    const P = Tile.Path;
+    const W = Tile.Wall;
+    const lk = TOWN_GROUND_WANG;
+    // Vertex (1,1) between [G C / C C]: grass|cobble, NE + SW + SE upper -> 7.
+    assert.equal(wangGroundVisuals([[G, C], [C, C]], lk)[1][1], lk['grass|cobble'][7]);
+    // [P P / C C]: dirt|cobble, SW + SE upper -> 3.
+    assert.equal(wangGroundVisuals([[P, P], [C, C]], lk)[1][1], lk['dirt|cobble'][3]);
+    // [G P / P G]: dirt|grass, NW + SE -> 9.
+    assert.equal(wangGroundVisuals([[G, P], [P, G]], lk)[1][1], lk['dirt|grass'][9]);
+    // A wall borrows the majority (grass): no transition toward it.
+    // (a plain grass tile: either tileset holding grass)
+    assert.ok([lk['grass|cobble'][0], lk['dirt|grass'][15]].includes(wangGroundVisuals([[G, W], [G, G]], lk)[1][1]));
+    // Three terrains fold the rarest into the majority: [G G / C P] -> grass majority, cobble kept (tie-break), dirt -> grass.
+    assert.equal(wangGroundVisuals([[G, G], [C, P]], lk)[1][1], lk['grass|cobble'][2]);
+    // Nothing but walls: no frame.
+    assert.equal(wangGroundVisuals([[W, W], [W, W]], lk)[1][1], -1);
+  });
+
+  test('overlays: plaza cells get stand-in plaza / trim frames, non-ground cells keep their own tile index', () => {
+    const o = wangOverlayCells(town.tiles);
+    town.tiles.forEach((row, y) =>
+      row.forEach((tile, x) => {
+        if (tile === Tile.Plaza) assert.ok(o.plaza[y][x] >= GROUND_FRAMES.plaza.first && o.plaza[y][x] < GROUND_FRAMES.plaza.first + GROUND_FRAMES.plaza.count);
+        else if (tile === Tile.PlazaTrim) assert.ok(o.plaza[y][x] >= GROUND_FRAMES.trim.first && o.plaza[y][x] < GROUND_FRAMES.trim.first + GROUND_FRAMES.trim.count);
+        else assert.equal(o.plaza[y][x], -1);
+        assert.equal(o.solid[y][x], wangTerrain(tile) ? -1 : tile, `${x},${y}`);
+      }),
+    );
+    for (const tile of SOLID_TILES) assert.equal(wangTerrain(tile), null, `solid tile ${tile} is never corner ground`);
   });
 });

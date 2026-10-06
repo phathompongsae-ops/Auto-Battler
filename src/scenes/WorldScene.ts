@@ -16,8 +16,9 @@ import { NPCS } from '../data/npcData';
 import { npcMarker } from '../quests/questText';
 import { propTextureKey } from '../graphics/propTextures';
 import { envDrawScale } from '../graphics/environmentArt';
-import { ENV_BUILDINGS, ENV_GROUND_MAP_IDS, ENV_GROUND_TILESET } from '../data/environmentArt';
-import { groundVisuals } from '../world/groundVisuals';
+import { ENV_BUILDINGS, ENV_GROUND_MAP_IDS, ENV_GROUND_TILESET, ENV_GROUND_WANG } from '../data/environmentArt';
+import { TOWN_GROUND_WANG } from '../data/environment/townGroundWang';
+import { groundVisuals, wangGroundVisuals, wangOverlayCells } from '../world/groundVisuals';
 import { InputController } from '../input/InputController';
 import { KeyboardActionSource } from '../input/KeyboardActionSource';
 import { KeyboardSource } from '../input/KeyboardSource';
@@ -29,7 +30,7 @@ import { prewarmShaders } from '../rendering/prewarm';
 import { WorldOverlays } from '../rendering/WorldOverlays';
 import { Hud } from '../ui/hud/Hud';
 import type { MonsterSpawn } from '../world/mapRules';
-import { SOLID_TILES } from '../world/tiles';
+import { SOLID_TILES, Tile } from '../world/tiles';
 
 /** Depth of the placeholder map labels: above the ground, below characters' bars. */
 const LABEL_DEPTH = 900_000;
@@ -202,8 +203,10 @@ export class WorldScene extends Phaser.Scene implements WorldMapView {
    * wherever a cell has no visual tile. Unavailable (no PNG): nothing is added.
    */
   private drawGroundVisuals(map: MapDef): void {
+    if (!ENV_GROUND_MAP_IDS.includes(map.id)) return;
+    if (this.drawWangGround(map)) return;
     const ts = ENV_GROUND_TILESET;
-    if (!ENV_GROUND_MAP_IDS.includes(map.id) || !this.textures.exists(ts.key)) return;
+    if (!this.textures.exists(ts.key)) return;
     const layers = groundVisuals(map.tiles);
     const scale = envDrawScale(this, ts.key);
     const grids = [layers.base, layers.dirtFringe, layers.grassFringe];
@@ -220,6 +223,53 @@ export class WorldScene extends Phaser.Scene implements WorldMapView {
       this.visualTilemaps.push(tm);
       this.groundVisualLayers.push(layer);
     });
+  }
+
+  /** One visual-only tilemap layer from a frame grid (-1 = empty); null if nothing to draw or the tileset is missing. */
+  private visualLayer(data: number[][], key: string, frameSize: number, margin: number, spacing: number, firstgid = 0): GroundLayer | null {
+    if (!data.some((row) => row.some((f) => f >= 0))) return null;
+    const tm = this.make.tilemap({ data: data.map((r) => [...r]), tileWidth: frameSize, tileHeight: frameSize });
+    const tileset = tm.addTilesetImage(key, key, frameSize, frameSize, margin, spacing, firstgid);
+    const layer = tileset && tm.createLayer(0, tileset, 0, 0);
+    if (!layer) {
+      tm.destroy();
+      return null;
+    }
+    this.visualTilemaps.push(tm);
+    this.groundVisualLayers.push(layer);
+    return layer;
+  }
+
+  /**
+   * Production ground (corner tilesets on a dual grid, offset half a tile),
+   * the plaza on top (stand-in frames until it has production art), then
+   * every non-ground tile (walls, water, building bases, portals) in its own
+   * tile art. The code-drawn layer is hidden but stays the collision source.
+   * False when the production atlas is unavailable.
+   */
+  private drawWangGround(map: MapDef): boolean {
+    const ts = ENV_GROUND_WANG;
+    if (!this.textures.exists(ts.key) || !Object.keys(TOWN_GROUND_WANG).length) return false;
+    const scale = envDrawScale(this, ts.key);
+    // Under a facade the ground (cobble) shows through its transparent edges, not the code-drawn roof tiles.
+    // A visual-only copy: map.tiles and the hidden code-drawn layer stay the collision source.
+    const tiles = map.tiles.map((row) => [...row]);
+    for (const b of ENV_BUILDINGS) {
+      if (b.mapId !== map.id || !this.textures.exists(b.key)) continue;
+      const f = b.footprint;
+      for (let y = f.y; y < f.y + f.h; y++) for (let x = f.x; x < f.x + f.w; x++) tiles[y][x] = Tile.Cobble;
+    }
+    const dual = this.visualLayer(wangGroundVisuals(tiles, TOWN_GROUND_WANG), ts.key, ts.frameSize, ts.margin, ts.spacing);
+    if (!dual) return false;
+    dual.setScale(scale).setPosition(-TILE_SIZE / 2, -TILE_SIZE / 2).setDepth(GROUND_DEPTH + 0.05);
+    const overlay = wangOverlayCells(tiles);
+    const stand = ENV_GROUND_TILESET;
+    if (this.textures.exists(stand.key)) {
+      this.visualLayer(overlay.plaza, stand.key, stand.frameSize, stand.margin, stand.spacing)?.setScale(envDrawScale(this, stand.key)).setDepth(GROUND_DEPTH + 0.1);
+    }
+    this.visualLayer(overlay.solid, TILESET_KEY, TILE_SIZE, 0, 0)?.setDepth(GROUND_DEPTH + 0.15);
+    this.groundLayer?.setVisible(false);
+    return true;
   }
 
   /** Building facades (2x PNGs) over their Roof-tile footprints; returns the footprints covered. */
