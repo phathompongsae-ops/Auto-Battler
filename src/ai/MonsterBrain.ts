@@ -25,6 +25,8 @@ export interface MonsterAgent extends CombatEntity, SeparationAgent {
 export interface MonsterWorld {
   findAggroTarget(monster: MonsterAgent): CombatEntity | null;
   tryAttack(monster: MonsterAgent, target: CombatEntity, now: number): void;
+  /** Mid wind-up (a telegraphed attack): the monster holds still and decides nothing until it lands. */
+  busy?(monster: MonsterAgent): boolean;
 }
 
 interface BrainContext {
@@ -97,7 +99,15 @@ const returnHome: State<BrainContext, MonsterAiState> = {
     if (m.combat.dead) return 'dead';
     if (distance(m, spawnOf(m)) <= HOME_TOLERANCE || now - ctx.stateSince > RETURN_TIMEOUT) {
       m.snapToSpawn();
-      m.combat.restore(); // reset like an MMO mob that lost its target
+      // Reset like an MMO mob that lost its target: its own buffs (enrage) end, HP refills.
+      const statuses = m.combat.statuses;
+      if (statuses.some((s) => s.def.kind === 'buff')) {
+        const kept = statuses.filter((s) => s.def.kind !== 'buff');
+        statuses.length = 0;
+        statuses.push(...kept);
+        m.combat.refreshStats();
+      }
+      m.combat.restore();
       return 'idle';
     }
     m.moveToward(m.spawnX, m.spawnY);
@@ -144,8 +154,9 @@ export class MonsterBrain {
   }
 
   update(now: number, dtMs: number): void {
-    // Stunned: no movement, no attacks, no decisions until the stun ends.
-    if (this.fsm.current !== 'dead' && this.ctx.monster.combat.statuses.some((s) => s.def.stun)) {
+    // Stunned or mid wind-up: no movement, no attacks, no decisions until it ends.
+    const m = this.ctx.monster;
+    if (this.fsm.current !== 'dead' && (m.combat.statuses.some((s) => s.def.stun) || (!m.combat.dead && this.ctx.world.busy?.(m)))) {
       this.ctx.monster.halt();
       return;
     }

@@ -55,6 +55,15 @@ interface PendingHit {
   at: number;
 }
 
+/** An area hit waiting for its wind-up: it strikes whoever is inside the radius when it lands. */
+interface PendingArea {
+  caster: CombatEntity;
+  skillId: SkillId;
+  power: number;
+  radius: number;
+  at: number;
+}
+
 /**
  * One code path for every skill, player or monster: validate (learned,
  * alive, cooldown, target, range, MP), pay, then run the data-defined effect.
@@ -62,6 +71,8 @@ interface PendingHit {
 export class SkillSystem {
   /** Melee hits waiting for their wind-up (see SkillDef.windup). */
   private readonly pending: PendingHit[] = [];
+  /** Area hits waiting for their wind-up (telegraphed elite / boss attacks). */
+  private readonly pendingAreas: PendingArea[] = [];
 
   constructor(
     private readonly events: EventBus<GameEvents>,
@@ -137,6 +148,13 @@ export class SkillSystem {
       else if (hit.skill.windup?.recheckRange && reach(hit.caster, hit.target) > hit.skill.range) this.cancelled(hit, 'out_of_range');
       else this.strike(hit.caster, hit.target, hit.skillId, hit.power, hit.critBonus, hit.onHit, now);
     }
+    for (let i = this.pendingAreas.length - 1; i >= 0; i--) {
+      const area = this.pendingAreas[i];
+      if (area.at > now) continue;
+      this.pendingAreas.splice(i, 1);
+      if (area.caster.combat.dead) continue;
+      for (const enemy of this.enemiesAround(area.caster, area.radius)) this.strike(area.caster, enemy, area.skillId, area.power, 0, undefined, now);
+    }
   }
 
   /**
@@ -159,6 +177,17 @@ export class SkillSystem {
   /** Drop every pending hit (world reset). */
   clear(): void {
     this.pending.length = 0;
+    this.pendingAreas.length = 0;
+  }
+
+  /** The caster has a wind-up in progress (telegraphed attacks root the monster until they land). */
+  windingUp(caster: CombatEntity): boolean {
+    return this.pending.some((h) => h.caster === caster) || this.pendingAreas.some((a) => a.caster === caster);
+  }
+
+  /** Wind-up hits (single-target and area) not landed yet. */
+  pendingCount(): number {
+    return this.pending.length + this.pendingAreas.length;
   }
 
   private validTarget(caster: CombatEntity, target: CombatEntity | null): CombatEntity | null {
@@ -170,6 +199,10 @@ export class SkillSystem {
   private strike(caster: CombatEntity, target: CombatEntity, skillId: SkillId, power: number, critBonus: number, onHit: OnHitStatus | undefined, now: number): void {
     const result = this.combat.dealDamage(caster, target, skillId, power, { critBonus });
     if (result?.hit && onHit && !target.combat.dead) this.statuses.apply(target, onHit.statusId, onHit.duration, now);
+  }
+
+  private windup(caster: CombatEntity, skillId: SkillId, target: CombatEntity | null, radius: number | null, ms: number): void {
+    this.events.emit('skillWindup', { casterId: caster.id, skillId, targetId: target?.id ?? null, radius, ms });
   }
 
   /** Living enemies of the caster whose edge is within `radius` px. */
@@ -193,12 +226,16 @@ export class SkillSystem {
         if (!target) break;
         const critBonus = effect.critBonus ?? 0;
         if (skill.windup) {
+          this.windup(caster, skillId, target, null, skill.windup.ms);
           this.pending.push({ caster, target, skillId, skill, power: effect.power, critBonus, onHit: effect.onHit, at: now + skill.windup.ms });
         } else this.strike(caster, target, skillId, effect.power, critBonus, effect.onHit, now);
         break;
       }
       case 'aoe_damage':
-        for (const enemy of this.enemiesAround(caster, effect.radius)) this.strike(caster, enemy, skillId, effect.power, 0, undefined, now);
+        if (skill.windup) {
+          this.windup(caster, skillId, null, effect.radius, skill.windup.ms);
+          this.pendingAreas.push({ caster, skillId, power: effect.power, radius: effect.radius, at: now + skill.windup.ms });
+        } else for (const enemy of this.enemiesAround(caster, effect.radius)) this.strike(caster, enemy, skillId, effect.power, 0, undefined, now);
         break;
       case 'taunt':
         for (const enemy of this.enemiesAround(caster, effect.radius)) {

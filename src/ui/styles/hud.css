@@ -223,3 +223,75 @@
 .hud-actions > .ui-slot.is-pressed {
   transform: translate(-50%, -50%) scale(0.92);
 }
+
+/* ------------------------------------------------- target frame / respawn */
+.hud__top-center {
+  left: 50%;
+  top: var(--ui-space-4);
+  transform: translateX(-50%);
+}
+.hud__center {
+  left: 50%;
+  top: 38%;
+  transform: translate(-50%, -50%);
+}
+.hud-target,
+.hud-respawn {
+  pointer-events: none;
+}
+.hud-target[hidden],
+.hud-respawn[hidden] {
+  display: none !important;
+}
+.hud-target {
+  display: flex;
+  flex-direction: column;
+  gap: calc(3px * var(--ui-scale));
+  width: calc(220px * var(--ui-scale));
+  padding: var(--ui-space-2) var(--ui-space-3);
+  border-radius: var(--ui-radius-md);
+}
+.hud-target__head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--ui-space-2);
+  white-space: nowrap;
+}
+.hud-target__tier {
+  font-size: var(--ui-text-xs);
+  font-weight: 700;
+  color: #1d1b26;
+  background: var(--ui-gold);
+  border-radius: var(--ui-radius-sm, 4px);
+  padding: 0 calc(4px * var(--ui-scale));
+}
+.hud-target[data-tier='mini_boss'] .hud-target__tier,
+.hud-target[data-tier='dungeon_boss'] .hud-target__tier {
+  background: #e0524a;
+  color: #fff;
+}
+.hud-target[data-tier='dungeon_boss'] {
+  width: calc(300px * var(--ui-scale));
+}
+.hud-target__state {
+  margin-left: auto;
+  font-size: var(--ui-text-xs);
+  font-weight: 700;
+  color: #ff8a65;
+}
+.hud-target--danger {
+  box-shadow: var(--ui-shadow-sm), 0 0 0 2px rgba(224, 82, 74, 0.8);
+}
+.hud-respawn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--ui-space-1, 4px);
+  padding: var(--ui-space-3) var(--ui-space-5, 20px);
+  border-radius: var(--ui-radius-md);
+  color: var(--ui-text);
+}
+.hud-respawn strong {
+  color: #ff6b6b;
+  font-size: var(--ui-text-lg, 18px);
+}

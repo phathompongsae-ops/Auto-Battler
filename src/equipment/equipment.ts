@@ -55,21 +55,66 @@ const add = <K extends string>(into: Partial<Record<K, number>>, key: K, v: numb
   into[key] = (into[key] ?? 0) + v;
 };
 
-/** One item as an 'equipment' modifier: enhanced base + fixed bonuses + enchant lines. */
+/** What one layer of an item adds to its 'equipment' modifier. */
+export interface ItemStatContribution {
+  primary?: Partial<PrimaryStats>;
+  flat?: Partial<Record<DerivedStatKey, number>>;
+  percent?: Partial<Record<DerivedStatKey, number>>;
+  effects?: Readonly<Record<string, number>>;
+}
+
+/**
+ * One independent source of an item's stats. The item's modifier is the sum
+ * of every layer, so each system owns its own layer and none edits another:
+ * fixed definition bonuses, enhanced base stats (Enhancement), rolled lines
+ * (Enchant). Future Socket / Card systems add a layer reading their own
+ * instance data (e.g. socketed cards) — no change to the others, to the stat
+ * pipeline or to saves of existing items.
+ */
+export interface ItemStatLayer {
+  id: string;
+  contribute(item: EquipmentInstance, def: EquipmentDef): ItemStatContribution;
+}
+
+export const ITEM_STAT_LAYERS: readonly ItemStatLayer[] = [
+  { id: 'definition', contribute: (_item, def) => ({ primary: def.primary, flat: def.flat, percent: def.percent }) },
+  { id: 'enhancement', contribute: (item) => ({ flat: enhancedBaseStats(item) as Partial<Record<DerivedStatKey, number>> }) },
+  {
+    id: 'enchant',
+    contribute: (item) => {
+      const out: { primary: Partial<PrimaryStats>; flat: Partial<Record<DerivedStatKey, number>>; effects: Record<string, number> } = { primary: {}, flat: {}, effects: {} };
+      for (const line of item.enchants) {
+        const target = ENCHANT_OPTIONS[line.optionId]?.target;
+        if (!target) continue;
+        if (target.kind === 'primary') add(out.primary, target.stat, line.value);
+        else if (target.kind === 'flat') add(out.flat, target.stat, line.value);
+        else add(out.effects, target.effect, line.value);
+      }
+      return out;
+    },
+  },
+];
+
+/** One item as an 'equipment' modifier: the sum of its stat layers (definition + Enhancement + Enchant). */
 export function itemModifier(item: EquipmentInstance): StatModifier {
+  return itemModifierFrom(item, ITEM_STAT_LAYERS);
+}
+
+/** itemModifier over an explicit layer list (tests, or a future system previewing its own layer). */
+export function itemModifierFrom(item: EquipmentInstance, layers: readonly ItemStatLayer[]): StatModifier {
   const def = defOf(item);
-  const primary: Partial<PrimaryStats> = { ...def.primary };
-  const flat: Partial<Record<DerivedStatKey, number>> = { ...def.flat };
+  const primary: Partial<PrimaryStats> = {};
+  const flat: Partial<Record<DerivedStatKey, number>> = {};
+  const percent: Partial<Record<DerivedStatKey, number>> = {};
   const effects: Record<string, number> = {};
-  for (const [k, v] of Object.entries(enhancedBaseStats(item)) as [BaseStatKey, number][]) add(flat, k, v);
-  for (const line of item.enchants) {
-    const target = ENCHANT_OPTIONS[line.optionId]?.target;
-    if (!target) continue;
-    if (target.kind === 'primary') add(primary, target.stat, line.value);
-    else if (target.kind === 'flat') add(flat, target.stat, line.value);
-    else add(effects, target.effect, line.value);
+  for (const layer of layers) {
+    const c = layer.contribute(item, def);
+    for (const [k, v] of Object.entries(c.primary ?? {}) as [keyof PrimaryStats, number][]) add(primary, k, v);
+    for (const [k, v] of Object.entries(c.flat ?? {}) as [DerivedStatKey, number][]) add(flat, k, v);
+    for (const [k, v] of Object.entries(c.percent ?? {}) as [DerivedStatKey, number][]) add(percent, k, v);
+    for (const [k, v] of Object.entries(c.effects ?? {})) add(effects, k, v);
   }
-  return { source: 'equipment', id: `item:${item.instanceId}`, primary, flat, percent: { ...def.percent }, effects };
+  return { source: 'equipment', id: `item:${item.instanceId}`, primary, flat, percent, effects };
 }
 
 export type EquipError =

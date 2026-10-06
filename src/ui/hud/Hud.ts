@@ -14,6 +14,7 @@ import { MenuBar } from './MenuBar';
 import { Minimap } from './Minimap';
 import { PlayerFrame } from './PlayerFrame';
 import { QuestProgressSource, QuestTracker } from './QuestTracker';
+import { RespawnNotice, TargetFrame } from './TargetFrame';
 
 export interface HudOptions {
   world: CombatWorld;
@@ -41,6 +42,8 @@ export class Hud {
   private readonly tracker: QuestTracker;
   private readonly joystick: Joystick;
   private readonly actions: ActionCluster;
+  private readonly target: TargetFrame;
+  private readonly respawn: RespawnNotice;
 
   constructor(scene: Phaser.Scene, options: HudOptions) {
     const { world } = options;
@@ -55,6 +58,8 @@ export class Hud {
     this.tracker = new QuestTracker(this.quests);
     this.joystick = new Joystick(options.drag, this.root);
     this.actions = new ActionCluster(world, options.actions);
+    this.target = new TargetFrame(world);
+    this.respawn = new RespawnNotice(world);
 
     const region = (name: string, children: Node[]) =>
       h('div', { className: `hud__region hud__${name}`, attrs: { 'data-region': name } }, children);
@@ -62,6 +67,8 @@ export class Hud {
     const hud = h('div', { className: 'hud', attrs: { 'data-hud': 'root' } }, [
       this.joystick.el,
       region('top-left', [this.player.el]),
+      region('top-center', [this.target.el]),
+      region('center', [this.respawn.el]),
       region('top-right', [this.minimap.el, this.menu.el]),
       region('left-middle', options.fixtureQuests ? [this.tracker.el] : []),
       region('bottom-right', [this.actions.el]),
@@ -78,6 +85,8 @@ export class Hud {
     this.tracker.update();
     this.joystick.update();
     this.actions.update(now);
+    this.target.update();
+    this.respawn.update(now);
   }
 
   destroy(): void {

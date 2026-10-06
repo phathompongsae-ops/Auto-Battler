@@ -139,6 +139,50 @@ export class CombatEffects {
       const p = world.player;
       this.text.show(p.x, textY(p, 'death'), 'You were defeated', { color: '#ff6b6b', size: 16, duration: 2500, rise: 10 });
     });
+
+    // Telegraphs: a monster's wind-up shows where its hit will land, filling up until it does.
+    ev.on('skillWindup', ({ casterId, targetId, radius, ms }) => {
+      const caster = world.getEntity(casterId);
+      if (!caster || caster === world.player) return;
+      const target = targetId ? world.getEntity(targetId) : null;
+      // Area: the real radius around the caster. Single target: the caster's reach toward the target.
+      const r = radius ?? (target ? Math.hypot(target.x - caster.x, target.y - caster.y) + target.hitRadius : 40);
+      this.telegraph(caster, r, ms);
+    });
+
+    ev.on('goldGained', ({ entityId, amount }) => {
+      const e = world.getEntity(entityId);
+      if (e) this.text.show(e.x + 18, textY(e, 'loot'), `+${amount} G`, { color: '#ffd166', size: 13, duration: 1000 });
+    });
+
+    ev.on('monsterEnraged', ({ entityId }) => {
+      const m = world.getEntity(entityId);
+      if (!m) return;
+      this.text.show(m.x, textY(m, 'levelUp') - 20, 'ENRAGED!', { color: '#ff4d4d', size: 16, rise: 24, duration: 1400 });
+      this.ring(m.x, m.y, 0xff4d4d, 60, 500);
+    });
+
+    ev.on('bossDefeated', ({ claimed, runId }) => {
+      const p = world.player;
+      const message = claimed ? 'BOSS DEFEATED! Reward claimed' : runId ? 'BOSS DEFEATED! (no reward left today)' : 'BOSS DEFEATED! (no run: no reward)';
+      this.text.show(p.x, textY(p, 'levelUp') - 30, message, { color: '#ffe066', size: 18, rise: 36, duration: 2600 });
+    });
+  }
+
+  /** A danger zone around a winding-up monster: an outline plus a fill growing until the hit lands. */
+  private telegraph(caster: CombatEntity, radius: number, ms: number): void {
+    const depth = caster.y - 1;
+    const outline = this.scene.add.circle(caster.x, caster.y, radius, 0xff3b30, 0.12).setStrokeStyle(2, 0xff3b30, 0.9).setDepth(depth);
+    const fill = this.scene.add.circle(caster.x, caster.y, radius, 0xff3b30, 0.35).setScale(0.05).setDepth(depth);
+    this.scene.tweens.add({
+      targets: fill,
+      scale: 1,
+      duration: ms,
+      onComplete: () => {
+        outline.destroy();
+        fill.destroy();
+      },
+    });
   }
 
   private flash(target: CombatEntity): void {

@@ -56,7 +56,7 @@ import { RecurringQuests } from '../quests/RecurringQuests';
 import { NAVIGATION } from '../data/navigationData';
 import type { MapDef } from '../data/maps';
 import type { NavPoint } from '../data/navigationData';
-import type { Location } from '../data/warpData';
+import { DUNGEON_WARPS, type Location } from '../data/warpData';
 import { AutoMove } from '../navigation/AutoMove';
 import { NavIndex, portalTransition } from '../navigation/NavIndex';
 import { LPathPlanner } from '../navigation/pathing';
@@ -64,6 +64,9 @@ import { MapSession } from '../world/MapSession';
 import { blocksProjectile, mapCollision, portalAt, resolveMapEntry, type MapEntryFallback, type MonsterSpawn } from '../world/mapRules';
 import type { EnhanceOptions } from '../equipment/enhancement';
 import { PlayerCombatController } from './PlayerCombatController';
+
+/** How long an enrage lasts (effectively until death or a leash reset). */
+const ENRAGE_MS = 10 * 60 * 1000;
 
 /** What CombatWorld needs from the scene to load a map: its tiles / collision / visuals, and monster entities. */
 export interface WorldMapView {
@@ -212,6 +215,7 @@ export class CombatWorld implements MonsterWorld {
       const monster = this.monsterById(targetId);
       const source = this.getEntity(sourceId);
       if (monster && source && !this.peaceful) monster.brain.provoke(source, this.now);
+      if (monster) this.checkEnrage(monster);
     });
     this.events.on('death', ({ entityId, killerId }) => this.onDeath(entityId, killerId));
 
@@ -260,6 +264,7 @@ export class CombatWorld implements MonsterWorld {
           if (leftDungeon) this.leaveDungeon();
           this.autoMove.cancel();
           this.enterMap(destination.mapId, undefined, `${kind}_warp_scroll`);
+          if (kind === 'dungeon') this.startRunOnEntry();
         },
         startDungeonRun: (dungeonId, difficulty) => {
           this.dungeonRun = this.rewardLedger.startRun(dungeonId, difficulty, this.player.combat.level);
@@ -489,8 +494,22 @@ export class CombatWorld implements MonsterWorld {
   takePortal(portalId: string): boolean {
     const t = portalTransition(this.navigation, this.location, portalId);
     if (!t.ok) return false;
+    const from = this.location.kind;
     this.enterMap(t.location.mapId, t.arrival, portalId);
+    if (from !== 'dungeon' && t.location.kind === 'dungeon') this.startRunOnEntry();
     return true;
+  }
+
+  /**
+   * Walking into a dungeon (its gate or a Dungeon Warp) starts a Normal run
+   * when the Dungeon feature is unlocked and none is in progress. Entering
+   * costs nothing; the boss-clear claim spends today's entitlement. Locked:
+   * the dungeon is still walkable, and nothing is ever rewarded there.
+   */
+  private startRunOnEntry(): void {
+    if (this.dungeonRun || !this.featureProgression.check('dungeon').ok) return;
+    const dungeonId = Object.values(DUNGEON_WARPS).find((d) => d.entranceMapId === this.location.mapId)?.id;
+    if (dungeonId) this.actions.enterDungeon(dungeonId, 'normal');
   }
 
   /**
@@ -658,8 +677,25 @@ export class CombatWorld implements MonsterWorld {
     return distance(monster, this.player) <= monster.def.aggroRange ? this.player : null;
   }
 
+  /** The signature attack whenever it is ready and in reach, otherwise the basic attack. */
   tryAttack(monster: MonsterAgent, target: CombatEntity, now: number): void {
+    const special = monster.def.specialSkill;
+    if (special && this.skills.use(monster, special, now, { target, quiet: true }).ok) return;
     this.skills.use(monster, monster.def.attackSkill, now, { target, quiet: true });
+  }
+
+  /** Telegraphed attacks root the monster until they land. */
+  busy(monster: MonsterAgent): boolean {
+    return this.skills.windingUp(monster);
+  }
+
+  /** Elites / bosses enrage once below their threshold (an attack buff; a leash reset or death ends it). */
+  private checkEnrage(monster: Monster): void {
+    const below = monster.def.enrageBelow;
+    const c = monster.combat;
+    if (!below || c.dead || c.hp / c.stats.maxHp >= below || c.statuses.some((s) => s.def.id === 'enraged')) return;
+    this.statuses.apply(monster, 'enraged', ENRAGE_MS, this.now);
+    this.events.emit('monsterEnraged', { entityId: monster.id, monsterId: monster.def.id });
   }
 
   // ------------------------------------------------------------------------
@@ -692,11 +728,23 @@ export class CombatWorld implements MonsterWorld {
         now: this.now,
         events: this.events,
         tuning: this.demoTestMode,
+        wallet: this.wallet,
       });
       if (this.zone === 'field') {
         this.events.emit('fieldReward', { monsterId: monster.id, rewarded: reward.exp, energySpent: reward.energySpent, energyLeft: this.fieldEnergy.current() });
       }
+      if (monster.def.tier === 'dungeon_boss') this.bossDefeated(monster);
     }
+  }
+
+  /**
+   * The dungeon boss is down: the run in progress (if any) resolves its claim
+   * now, through the same retry-safe claim as before. No run → no reward.
+   */
+  private bossDefeated(monster: Monster): void {
+    const run = this.dungeonRun;
+    const claimed = run ? this.claimDungeonClear(run).ok : false;
+    this.events.emit('bossDefeated', { entityId: monster.id, monsterId: monster.def.id, mapId: this.location.mapId, runId: run?.runId ?? null, claimed });
   }
 
   private regenerate(dtMs: number): void {

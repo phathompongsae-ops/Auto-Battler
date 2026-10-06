@@ -34,6 +34,11 @@ export type GameEvents = {
   respawn: { entityId: EntityId };
   skillUsed: { casterId: EntityId; skillId: SkillId; targetId: EntityId | null };
   skillFailed: { casterId: EntityId; skillId: SkillId; reason: SkillFailReason };
+  /**
+   * A wind-up skill started (its hit lands in `ms`): the telegraph. Single-target
+   * wind-ups name the target; area ones give the radius around the caster.
+   */
+  skillWindup: { casterId: EntityId; skillId: SkillId; targetId: EntityId | null; radius: number | null; ms: number };
   /** A delayed (wind-up) hit was dropped before it landed. */
   hitCancelled: { casterId: EntityId; targetId: EntityId; skillId: SkillId; reason: HitCancelReason };
   projectileSpawned: {
@@ -93,6 +98,18 @@ export type GameEvents = {
   navigationChanged: NavigationState;
   /** The player changed map through a portal. */
   mapChanged: { fromMapId: string; toMapId: string; portalId: string };
+
+  // --- Combat encounters
+  /** Gold credited for a kill (Field kills with Field Energy only). */
+  goldGained: { entityId: EntityId; amount: number; source: 'kill' };
+  /** An elite / boss passed its enrage threshold. */
+  monsterEnraged: { entityId: EntityId; monsterId: string };
+  /**
+   * A dungeon boss died. With a run in progress its claim is resolved right
+   * away (`claimed`: the claim was accepted; rewards per the claim rules).
+   * Without a run nothing is granted (dungeon kills never reward by themselves).
+   */
+  bossDefeated: { entityId: EntityId; monsterId: string; mapId: string; runId: string | null; claimed: boolean };
 
   // --- Skill trees
   /** One rank learned. */

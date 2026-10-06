@@ -198,6 +198,45 @@ const SKILL_DEFS = {
     usesAttackSpeed: true,
     color: 0x9be36b,
   },
+  // Elite / boss signature attacks: telegraphed wind-ups the player can step out of.
+  boar_gore: {
+    id: 'boar_gore',
+    name: 'Gore',
+    mpCost: 0,
+    cooldown: 6000,
+    range: 30,
+    target: 'enemy',
+    effect: { kind: 'damage', power: 2.4, damageType: 'physical' },
+    // Misses if the target walked out of reach during the wind-up.
+    windup: { ms: 800, recheckRange: true },
+    heavy: true,
+    color: 0xe0b07a,
+  },
+  guardian_stomp: {
+    id: 'guardian_stomp',
+    name: 'Stomp',
+    mpCost: 0,
+    cooldown: 7000,
+    range: 50,
+    target: 'enemy',
+    // Hits whoever is still inside the radius when the wind-up ends.
+    effect: { kind: 'aoe_damage', power: 2, damageType: 'physical', radius: 70 },
+    windup: { ms: 1000 },
+    heavy: true,
+    color: 0x7cc46a,
+  },
+  crypt_slam: {
+    id: 'crypt_slam',
+    name: 'Grave Slam',
+    mpCost: 0,
+    cooldown: 6500,
+    range: 60,
+    target: 'enemy',
+    effect: { kind: 'aoe_damage', power: 2.2, damageType: 'physical', radius: 84 },
+    windup: { ms: 1100 },
+    heavy: true,
+    color: 0xe08af7,
+  },
 } satisfies Record<string, SkillDef>;
 
 export type SkillId = keyof typeof SKILL_DEFS;

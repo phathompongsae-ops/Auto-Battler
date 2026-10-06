@@ -113,7 +113,7 @@ export class WorldOverlays {
 
   private bar(g: Phaser.GameObjects.Graphics, x: number, y: number, ratio: number, color: number): void {
     g.fillStyle(0x1d1b26, 0.85).fillRect(x - 1, y - 1, BAR_WIDTH + 2, 5);
-    g.fillStyle(color, 1).fillRect(x, y, Math.max(0, Math.round(BAR_WIDTH * ratio)), 3);
+    g.fillStyle(color, 1).fillRect(x, y, Math.round(BAR_WIDTH * Math.min(1, Math.max(0, ratio))), 3);
   }
 
   private addProjectile(p: GameEvents['projectileSpawned']): void {

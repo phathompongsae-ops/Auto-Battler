@@ -32,6 +32,8 @@ const STATUS_DEFS = {
   },
   stunned: { id: 'stunned', name: 'Stunned', kind: 'debuff', modifier: {}, stun: true, color: 0xffe066 },
   taunted: { id: 'taunted', name: 'Taunted', kind: 'debuff', modifier: {}, taunt: true, color: 0xff6b6b },
+  /** Elite / boss low-HP enrage (MonsterDef.enrageBelow): hits harder until it dies or resets. */
+  enraged: { id: 'enraged', name: 'Enraged', kind: 'buff', modifier: { percent: { physicalAtk: 0.4 } }, color: 0xff4d4d },
   ...WARRIOR_STATUS_DEFS,
 } satisfies Record<string, StatusDef>;
 

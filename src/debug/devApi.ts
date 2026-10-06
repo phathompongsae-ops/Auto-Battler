@@ -103,6 +103,10 @@ export function createDevApi(world: CombatWorld, overlays: WorldOverlays) {
   ev.on('navigationChanged', (e) => record('navigationChanged', { target: e.targetId ?? undefined, status: e.status, reason: e.reason ?? undefined }));
   ev.on('mapChanged', (e) => record('mapChanged', { target: e.toMapId, item: e.portalId }));
   ev.on('locationReached', (e) => record('locationReached', { target: e.locationId }));
+  ev.on('skillWindup', (e) => record('skillWindup', { source: e.casterId, skill: e.skillId, target: e.targetId ?? undefined, amount: e.radius ?? undefined }));
+  ev.on('goldGained', (e) => record('goldGained', { entity: e.entityId, amount: e.amount }));
+  ev.on('monsterEnraged', (e) => record('monsterEnraged', { entity: e.entityId }));
+  ev.on('bossDefeated', (e) => record('bossDefeated', { entity: e.entityId, rewarded: e.claimed, item: e.runId ?? undefined }));
 
   const monster = (id: string) => {
     const m = world.monsters.find((x) => x.id === id);

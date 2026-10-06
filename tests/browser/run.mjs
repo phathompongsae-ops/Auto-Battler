@@ -18,6 +18,7 @@ import { recurringSuite } from './recurring.test.mjs';
 import { featureUnlockSuite } from './featureUnlock.test.mjs';
 import { classArtSuite, floatingJoystickSuite } from './classArt.test.mjs';
 import { mapSuite } from './maps.test.mjs';
+import { combatSliceSuite } from './combatSlice.test.mjs';
 
 const PORT = 5199;
 const URL = `http://127.0.0.1:${PORT}/`;
@@ -80,6 +81,7 @@ try {
   await warriorSkillSuite(b, t);
   await recurringSuite(b, t);
   await featureUnlockSuite(b, t);
+  await combatSliceSuite(b, t, shot);
   const artSummary = await classArtSuite(b, t, shot);
   console.log(`  class art anchors (worst world px): ${JSON.stringify(artSummary)}`);
   await hudSuite(b, t, shot);

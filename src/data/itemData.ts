@@ -18,6 +18,11 @@ export interface ItemDef {
 
 const ITEM_DEFS = {
   slime_gel: { id: 'slime_gel', name: 'Slime Gel', color: 0x9be36b },
+  // Field monster materials (PLACEHOLDER roster drops; the monster content pass may rename / rebalance).
+  wolf_fang: { id: 'wolf_fang', name: 'Wolf Fang', color: 0xd8d4c4 },
+  mushroom_cap: { id: 'mushroom_cap', name: 'Mushroom Cap', color: 0xd0524c },
+  boar_tusk: { id: 'boar_tusk', name: 'Boar Tusk', color: 0xe0b07a },
+  guardian_bark: { id: 'guardian_bark', name: 'Guardian Bark', color: 0x7cc46a },
   // Free during Alpha/Test: returns every allocated stat point.
   stat_reset_test: {
     id: 'stat_reset_test',
@@ -81,7 +86,21 @@ const LOOT_TABLE_DEFS = {
     // DEMO: until a Quest Engine exists, quest drops roll whether or not the quest is active.
     { itemId: 'slime_sample', chance: 0.4, category: 'quest' },
   ],
-  /** PLACEHOLDER monsters (map foundation): no drops until their content pass. */
+  // Field roster (combat vertical slice). Chances are placeholders until the monster content pass.
+  wolf: [{ itemId: 'wolf_fang', chance: 0.45 }],
+  mushroom: [{ itemId: 'mushroom_cap', chance: 0.5 }],
+  /** Elite: its material always drops, plus a chance at a progression material. */
+  elite_boar: [
+    { itemId: 'boar_tusk', chance: 1 },
+    { itemId: 'enhancement_stone', chance: 0.35, category: 'rare' },
+  ],
+  /** Mini Boss: guaranteed material and stone, a chance at an Enchant Stone. */
+  grove_guardian: [
+    { itemId: 'guardian_bark', chance: 1 },
+    { itemId: 'enhancement_stone', chance: 1, category: 'rare' },
+    { itemId: 'enchant_stone', chance: 0.5, category: 'rare' },
+  ],
+  /** Dungeon monsters: never rolled (dungeon kills grant nothing; the boss claim is the reward). */
   placeholder: [],
 } satisfies Record<string, LootEntry[]>;
 
