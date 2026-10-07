@@ -129,6 +129,8 @@ export async function questFlowSuite(b, t, shot) {
   );
 
   // 5. Dungeon: Go walks through the Dungeon Gate (reach it), defeat the Crypt Lord.
+  // The story requirement is already met (Trouble in the Meadow turned in); top up the Dungeon 1 minimum level.
+  await b.eval('debug.meetDungeonAccess()');
   const nav4 = await go('mvp_03_crypt', 'walk into the Crypt', 30000);
   const inCrypt = await api(`questProgress('mvp_03_crypt')`);
   await kill('crypt_lord-1');

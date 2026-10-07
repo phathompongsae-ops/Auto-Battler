@@ -98,6 +98,23 @@ export async function mapSuite(b, t, shot, reload) {
     JSON.stringify({ monsters: town.monsters.length, p: [p.x, p.y] }),
   );
 
+  // 7a. Dungeon 1 access gate: before its requirements are met, Auto Move can't get into the Crypt either —
+  // the route reaches the gate, the portal refuses, the player stays in Town and is told what is missing.
+  await b.eval('debug.clearLog()');
+  const gateBefore = await b.eval('debug.dungeonAccess()');
+  const lockedNav = await b.eval(`debug.navigateTo('nav_portal_demo_town_to_dungeon')`);
+  await b.waitFor(`debug.log.some((e) => e.type === 'mapEntryBlocked')`, { timeout: 15000, label: 'gate refuses' });
+  await sleep(300);
+  const refused = await b.eval(`({ map: debug.navState().mapId, nav: debug.navState().status, msg: debug.log.find((e) => e.type === 'mapEntryBlocked').status,
+    feed: [...document.querySelectorAll('[data-loot-kind=locked]')].map((e) => e.textContent), entered: debug.log.some((e) => e.type === 'mapChanged') })`);
+  t.check(
+    'M-7a. below the Dungeon 1 requirements, Auto Move cannot take the gate: Town kept, no map change, exactly what is missing is shown',
+    lockedNav.ok && refused.map === 'demo_town' && !refused.entered && refused.nav !== 'arrived' &&
+      !gateBefore.ok && refused.msg === gateBefore.message && refused.feed.includes(refused.msg),
+    JSON.stringify({ gateBefore, refused }),
+  );
+  await b.eval('debug.cancelNavigation(); debug.meetDungeonAccess()');
+
   // 7. Auto Move to the Dungeon gate portal and through it.
   const toGate = await b.eval(`debug.navigateTo('nav_portal_demo_town_to_dungeon')`);
   const crypt = await waitMap('demo_crypt', 15000);

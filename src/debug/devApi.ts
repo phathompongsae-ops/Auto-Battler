@@ -1,4 +1,5 @@
 import type { MonsterAiState } from '../ai/MonsterBrain';
+import { DUNGEON_ACCESS } from '../data/dungeonAccess';
 import type { GameEvents } from '../game/GameEvents';
 import type { CombatWorld } from '../game/CombatWorld';
 import type { ItemId } from '../data/itemData';
@@ -104,6 +105,7 @@ export function createDevApi(world: CombatWorld, overlays: WorldOverlays) {
   ev.on('jobSelectionAvailable', () => record('jobSelectionAvailable', {}));
   ev.on('navigationChanged', (e) => record('navigationChanged', { target: e.targetId ?? undefined, status: e.status, reason: e.reason ?? undefined }));
   ev.on('mapChanged', (e) => record('mapChanged', { target: e.toMapId, item: e.portalId }));
+  ev.on('mapEntryBlocked', (e) => record('mapEntryBlocked', { target: e.toMapId, item: e.via, status: e.message }));
   ev.on('locationReached', (e) => record('locationReached', { target: e.locationId }));
   ev.on('skillWindup', (e) => record('skillWindup', { source: e.casterId, skill: e.skillId, target: e.targetId ?? undefined, amount: e.radius ?? undefined }));
   ev.on('goldGained', (e) => record('goldGained', { entity: e.entityId, amount: e.amount }));
@@ -482,6 +484,26 @@ export function createDevApi(world: CombatWorld, overlays: WorldOverlays) {
     questProgress: (questId: string) => ({ status: world.quests.status(questId), objectives: world.quests.progress(questId) }),
     startQuest: (questId: string) => world.quests.start(questId),
     claimQuest: (questId: string) => world.quests.claim(questId),
+    /** Dungeon entry check for a map from here (data/dungeonAccess). */
+    dungeonAccess: (mapId = 'demo_crypt') => world.entryAccess(mapId),
+    /** Test setup: reach a dungeon's minimum level and mark its required story quest turned in (no rewards granted). */
+    meetDungeonAccess: (mapId = 'demo_crypt') => {
+      const rule = DUNGEON_ACCESS[mapId];
+      if (!rule) return;
+      if (world.player.combat.level < rule.minimumLevel) {
+        world.player.combat.level = rule.minimumLevel;
+        world.player.combat.exp = 0;
+        world.player.combat.refreshStats();
+        world.featureProgression.evaluate();
+      }
+      if (rule.requiredQuestId && world.quests.status(rule.requiredQuestId) !== 'claimed') {
+        const state = world.quests.toState();
+        const def = world.quests.defs[rule.requiredQuestId];
+        state.records[rule.requiredQuestId] = { status: 'claimed', progress: def.objectives.map((o) => ('count' in o && o.count) || 1) };
+        world.quests.load(state);
+        world.quests.refresh();
+      }
+    },
     trackQuest: (questId: string) => world.quests.track(questId),
     untrackQuest: (questId: string) => world.quests.untrack(questId),
     trackedQuests: () => world.quests.trackedQuestIds(),

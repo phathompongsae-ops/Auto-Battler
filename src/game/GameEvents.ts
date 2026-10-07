@@ -108,6 +108,8 @@ export type GameEvents = {
   navigationChanged: NavigationState;
   /** The player changed map through a portal. */
   mapChanged: { fromMapId: string; toMapId: string; portalId: string };
+  /** A dungeon's entry requirements stopped a portal / warp; the player stays on the current map. */
+  mapEntryBlocked: { toMapId: string; via: string; message: string };
 
   // --- Combat encounters
   /** Gold credited for a kill (Field kills with Field Energy only). */

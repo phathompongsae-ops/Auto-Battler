@@ -63,6 +63,7 @@ import { AutoMove } from '../navigation/AutoMove';
 import { NavIndex, portalTransition } from '../navigation/NavIndex';
 import { LPathPlanner } from '../navigation/pathing';
 import { MapSession } from '../world/MapSession';
+import { checkMapEntry, type AccessResult } from '../world/dungeonAccess';
 import { blocksProjectile, mapCollision, portalAt, resolveMapEntry, type MapEntryFallback, type MonsterSpawn } from '../world/mapRules';
 import type { EnhanceOptions } from '../equipment/enhancement';
 import { PlayerCombatController } from './PlayerCombatController';
@@ -154,6 +155,8 @@ export class CombatWorld implements MonsterWorld {
   private readonly byId = new Map<EntityId, CombatEntity>();
   private readonly separationScratch: number[] = [];
   private freezeMs = 0;
+  /** The portal whose entry requirements just refused the player (cleared on leaving its area). */
+  private refusedPortalId: string | null = null;
   private rewardRng: Rng = defaultRng;
   /** Last level cap seen; when it rises, stored Overflow EXP is applied. */
   private lastLevelCap = 0;
@@ -269,6 +272,11 @@ export class CombatWorld implements MonsterWorld {
       world: {
         location: () => this.location,
         inCombat: () => this.playerEngaged(),
+        entryAccess: (mapId) => {
+          const access = this.entryAccess(mapId);
+          if (!access.ok) this.refuseEntry(access, 'dungeon_warp_scroll');
+          return access;
+        },
         arrive: (destination, kind, leftDungeon) => {
           // A real map change: a town warp lands on the town's spawn, a dungeon warp on the dungeon map's spawn (its entrance).
           if (leftDungeon) this.leaveDungeon();
@@ -362,7 +370,22 @@ export class CombatWorld implements MonsterWorld {
   private checkPortalTrigger(): void {
     if (this.autoMove.isActive() || this.player.combat.dead) return;
     const portal = portalAt(this.maps.map, this.player.x, this.player.y);
-    if (portal) this.takePortal(portal.id);
+    // A refused portal is not retried (or re-announced) until the player steps out of its area.
+    if (!portal || portal.id !== this.refusedPortalId) this.refusedPortalId = null;
+    if (portal && portal.id !== this.refusedPortalId) this.takePortal(portal.id);
+  }
+
+  /** Dungeon entry requirements (data/dungeonAccess) for entering `toMapId` from the current map. */
+  entryAccess(toMapId: string): AccessResult {
+    return checkMapEntry(this.location.mapId, toMapId, {
+      level: this.player.combat.level,
+      questStatus: (id) => this.quests.status(id),
+      questTitle: (id) => this.quests.defs[id]?.title,
+    });
+  }
+
+  private refuseEntry(access: Extract<AccessResult, { ok: false }>, via: string): void {
+    this.events.emit('mapEntryBlocked', { toMapId: access.mapId, via, message: access.message });
   }
 
   getEntity(id: EntityId | null): CombatEntity | undefined {
@@ -583,6 +606,13 @@ export class CombatWorld implements MonsterWorld {
   takePortal(portalId: string): boolean {
     const t = portalTransition(this.navigation, this.location, portalId);
     if (!t.ok) return false;
+    // Walking in and Auto Move both come through here: neither can bypass a dungeon's requirements.
+    const access = this.entryAccess(t.location.mapId);
+    if (!access.ok) {
+      this.refusedPortalId = portalId;
+      this.refuseEntry(access, portalId);
+      return false;
+    }
     const from = this.location.kind;
     this.enterMap(t.location.mapId, t.arrival, portalId);
     if (from !== 'dungeon' && t.location.kind === 'dungeon') this.startRunOnEntry();

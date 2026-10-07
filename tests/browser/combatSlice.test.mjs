@@ -133,7 +133,7 @@ export async function combatSliceSuite(b, t, shot) {
 
   // 7. Boss encounter: Lv20 unlocks the Dungeon; the gate starts a run; the boss telegraphs, enrages, and its defeat claims the run.
   await api(`reset('demo_town')`);
-  await b.eval(`debug.setServerDay(60); debug.setPeaceful(true); debug.setRng(0.5); debug.jumpToLevel(11); debug.forceChangeJob('warrior'); debug.jumpToLevel(20); debug.clearLog()`);
+  await b.eval(`debug.setServerDay(60); debug.setPeaceful(true); debug.setRng(0.5); debug.jumpToLevel(11); debug.forceChangeJob('warrior'); debug.jumpToLevel(20); debug.meetDungeonAccess(); debug.clearLog()`);
   const entered = await api(`takePortal('demo_town_to_dungeon')`);
   const status0 = await api('dungeonStatus()');
   const boss = await api(`monster('crypt_lord-1')`);

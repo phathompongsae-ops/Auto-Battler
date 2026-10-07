@@ -5,7 +5,8 @@ import type { DifficultyId } from '../data/dungeonDifficulty';
 import type { EquipmentSlot } from '../data/equipmentData';
 import type { FeatureId } from '../data/featureData';
 import type { EggTier } from '../data/petData';
-import type { Location } from '../data/warpData';
+import { DUNGEON_WARPS, type Location } from '../data/warpData';
+import type { AccessResult } from '../world/dungeonAccess';
 import type { DungeonRun } from '../dungeon/rewards';
 import type { Wallet } from '../economy/Wallet';
 import { rerollEnchants } from '../equipment/enchant';
@@ -29,6 +30,8 @@ export interface PlayerActionWorld {
   location(): Location;
   /** A monster is engaging the player (warp scrolls can't be used). */
   inCombat(): boolean;
+  /** Dungeon entry requirements for a destination map (reports the refusal itself). */
+  entryAccess(mapId: string): AccessResult;
   /** Put the player on the destination map after a warp (also leaves a dungeon run when needed). */
   arrive(destination: Location, kind: 'town' | 'dungeon', leftDungeon: boolean): void;
   /** Issue a dungeon run and enter it. */
@@ -124,6 +127,10 @@ export class PlayerActions {
   useWarpScroll(kind: 'town' | 'dungeon', dungeonId = '') {
     const locked = this.gate('warp');
     if (locked) return locked;
+    // A Dungeon Warp can't bypass the dungeon's entry requirements (checked before a scroll is spent).
+    const entrance = kind === 'dungeon' ? DUNGEON_WARPS[dungeonId]?.entranceMapId : undefined;
+    const access = entrance ? this.d.world.entryAccess(entrance) : null;
+    if (access && !access.ok) return { ok: false as const, reason: 'entry_requirements' as const, message: access.message };
     const ctx = { location: this.d.world.location(), inCombat: this.d.world.inCombat(), inventory: this.d.inventory, unlocks: this.d.warpUnlocks };
     const result = kind === 'town' ? useTownWarp(ctx) : useDungeonWarp(ctx, dungeonId);
     if (result.ok) this.d.world.arrive(result.destination, kind, result.leftDungeon);
