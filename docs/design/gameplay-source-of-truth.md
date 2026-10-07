@@ -100,13 +100,20 @@ rule (needs a target; instant reposition).
 
 ## 3. Basic Dodge and class mobility
 
-### LOCKED, NOT IMPLEMENTED: Basic Dodge
+### IMPLEMENTED + LOCKED: Basic Dodge
 
-- Every class has it. Cooldown **5 s**, i-frame **0.30 s**.
-- No stamina, no charges. Separate from class Mobility/Survival skills.
-- Current code: only a reserved, disabled HUD socket (`dodge` in
-  `src/ui/data/actionBar.ts`). No input Action, no i-frame state.
-  *TBD:* dodge distance / speed.
+- Shared `DodgeSystem` requests operate on any combat actor through world collision
+  and movement adapters. Human controls: either Shift key or Dodge utility socket.
+- Every class; 5 s independent cooldown; 0.30 s reusable actor invulnerability;
+  72 px cardinal travel over 0.20 s (360 px/s), input direction then facing.
+- Game time only. No stamina, charges, GCD, cleanse or skill-cooldown changes.
+- Reject during an executing action. Collision sweeps every 2 px against the
+  actor footprint, solid map/props/water/bounds and closed Story gates.
+  Under 8 px available travel consumes nothing; partial movement consumes normally.
+- All incoming hits (normal, projectile, direct/AoE/telegraph) check actor
+  invulnerability in `CombatSystem`; rejected hits use existing Miss feedback.
+- Lightweight opacity cue, no assets, filters or particle system. Utility radial CD.
+- Tests: `dodge.test.ts`, `dodge.test.mjs`; real Brute and Lord damage resolution.
 
 ### LOCKED (direction), NOT IMPLEMENTED: class mobility
 

@@ -11,6 +11,7 @@ export const KEYBOARD_ACTION_BINDINGS: Record<Action, number[]> = {
   skill4: [K.F],
   skill5: [K.G],
   target_next: [K.TAB],
+  dodge: [K.SHIFT],
 };
 
 export class KeyboardActionSource implements ActionSource {

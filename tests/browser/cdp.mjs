@@ -30,10 +30,11 @@ function findChrome() {
 const KEY_CODES = {
   ArrowLeft: 37, ArrowUp: 38, ArrowRight: 39, ArrowDown: 40,
   KeyW: 87, KeyA: 65, KeyS: 83, KeyD: 68,
+  ShiftLeft: 16, ShiftRight: 16, Digit1: 49, Digit2: 50,
   KeyQ: 81, KeyE: 69, KeyR: 82, Space: 32, Tab: 9,
 };
 const keyName = (code) =>
-  code === 'Space' ? ' ' : code === 'Tab' ? 'Tab' : code.startsWith('Key') ? code.slice(3).toLowerCase() : code;
+  code.startsWith('Shift') ? 'Shift' : code.startsWith('Digit') ? code.slice(5) : code === 'Space' ? ' ' : code === 'Tab' ? 'Tab' : code.startsWith('Key') ? code.slice(3).toLowerCase() : code;
 
 export class Browser {
   static async launch({ port = 9333, width = 960, height = 540 } = {}) {

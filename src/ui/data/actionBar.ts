@@ -55,7 +55,7 @@ export const ACTION_SLOTS: readonly ActionSlotDef[] = [
   { id: 'skill2', group: 'combat', binding: { kind: 'action', action: 'skill2' }, size: 'md', keyHint: 'E', ...ring(1) },
   { id: 'skill3', group: 'combat', binding: { kind: 'action', action: 'skill3' }, size: 'md', keyHint: 'R', ...ring(2) },
   { id: 'skill4', group: 'combat', binding: { kind: 'action', action: 'skill4' }, size: 'md', keyHint: 'F', ...ring(3) },
-  { id: 'dodge', group: 'utility', binding: { kind: 'reserved', label: 'Dodge (coming soon)', abbr: 'DG', color: '#7fd4ff' }, size: 'sm', compact: null, ...outer(0) },
+  { id: 'dodge', group: 'utility', binding: { kind: 'action', action: 'dodge' }, keyHint: 'Shift', size: 'sm', compact: { x: 23, y: 182 }, ...outer(0) },
   { id: 'potion', group: 'utility', binding: { kind: 'reserved', label: 'Potion (coming soon)', abbr: 'HP', color: '#e0524a' }, size: 'sm', compact: null, ...outer(1) },
   // Keep the fifth existing binding available outside the primary four-skill ring.
   { id: 'skill5', group: 'utility', binding: { kind: 'action', action: 'skill5' }, size: 'sm', keyHint: 'G', ...outer(2), compact: polar(170, 200) },

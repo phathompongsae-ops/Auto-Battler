@@ -1,6 +1,7 @@
 import { MonsterBrain, type MonsterAgent, type MonsterWorld } from '../ai/MonsterBrain';
 import { separate } from '../ai/separation';
 import { CombatSystem } from '../combat/CombatSystem';
+import { DodgeSystem } from '../combat/DodgeSystem';
 import { ProjectileSystem } from '../combat/ProjectileSystem';
 import { SkillSystem } from '../combat/SkillSystem';
 import { StatusSystem } from '../combat/StatusSystem';
@@ -98,11 +99,20 @@ export class CombatWorld implements MonsterWorld {
   readonly statuses = new StatusSystem(this.events);
   readonly projectiles = new ProjectileSystem(this.events, this.combat);
   readonly skills = new SkillSystem(this.events, this.combat, this.statuses, this.projectiles, {
+    actionDuration: (caster, id) => caster === this.player ? this.player.skillActionDuration(id) : 0,
     resolve: (caster, skillId) => (caster === this.player ? this.skillTree.resolve(skillId) : SKILLS[skillId]),
     entities: () => this.combatants,
     dash: (caster, target, maxDistance) => this.dash(caster, target, maxDistance),
   });
   readonly targeting = new TargetingSystem(this.events, TARGETING.acquireRange, TARGETING.loseRange);
+  readonly dodge = new DodgeSystem({
+    blocked: (actor, x, y) => this.movementBlocked(actor, x, y),
+    move: (actor, x, y) => {
+      // Engine adapter; the ability itself has no player/Phaser dependency.
+      const body = (actor as Player | Monster).body;
+      body.reset(x, y);
+    },
+  });
   readonly inventory = new Inventory();
   readonly demoTestMode = new DemoTestMode();
   /** Currencies (gold). */
@@ -249,7 +259,12 @@ export class CombatWorld implements MonsterWorld {
       },
       despawn: (monster) => this.removeMonster(monster),
     });
-    this.controller = new PlayerCombatController(player, input, this.skills, this.targeting, () => this.monsters, () => this.skillTree.loadout());
+    this.controller = new PlayerCombatController(player, input, this.skills, this.targeting, () => this.monsters, () => this.skillTree.loadout(), now => {
+      if (this.dodge.start(player, input.getMove(), player.facing, now)) {
+        player.facing = player.combat.dodge!.direction;
+        this.autoMove.cancel();
+      }
+    });
 
     this.events.on('damage', ({ sourceId, targetId }) => {
       const monster = this.monsterById(targetId);
@@ -326,7 +341,7 @@ export class CombatWorld implements MonsterWorld {
     this.jobChange = new JobChange(player, this.quests, this.features, this.events, player.id);
     this.skillProcs = new SkillProcs(player, this.events, this.statuses, () => this.now);
     // A skill reset also forgets proc streaks / internal cooldowns.
-    this.skillTree = new SkillTree(player, this.features, this.events, () => this.skillProcs.reset(), () => this.skills.windingUp(player) || !!player.action);
+    this.skillTree = new SkillTree(player, this.features, this.events, () => this.skillProcs.reset(), () => player.combat.actionLocked(this.now) || this.skills.windingUp(player));
     // A new job brings a different tree (or none): the action bar changes with it.
     this.events.on('jobChanged', () => this.events.emit('skillAvailabilityChanged', { loadout: this.skillTree.loadout() }));
     this.events.on('taunted', ({ casterId, targetId }) => {
@@ -385,6 +400,9 @@ export class CombatWorld implements MonsterWorld {
     this.projectiles.clear();
     this.skills.clear();
     this.targeting.select(null);
+    this.player.combat.dodge = null;
+    this.player.combat.actionLockedUntil = 0;
+    this.player.combat.invulnerableUntil = 0;
     // Past the Story stage once the Dungeon feature is unlocked or already earned (older saves restore it after loading the map).
     const dungeonFeatureUnlocked = this.featureProgression.check('dungeon').ok || this.featureProgression.conditionsMet('dungeon');
     this.encounterProfile = selectEncounterProfile(mapId, { dungeonFeatureUnlocked });
@@ -462,13 +480,18 @@ export class CombatWorld implements MonsterWorld {
     }
     this.now += dtMs;
     const now = this.now;
+    this.combat.now = now;
 
     // Manual input always wins and cancels Auto Move; otherwise Auto Move may steer the same player.
     const direction = this.autoMove.drive(playerDirection, dtMs, this.player.combat.stats.moveSpeed);
-    this.player.move(direction);
+    const dodging = !!this.player.combat.dodge;
+    this.player.move(dodging ? null : direction);
     // Moving breaks a melee wind-up that hasn't landed yet (skills opt in via windup.cancelOnMove).
-    if (direction && !this.player.combat.dead) this.skills.interruptMovement(this.player);
+    if (!dodging && direction && !this.player.combat.dead) this.skills.interruptMovement(this.player);
     this.controller.update(now);
+    this.dodge.update(this.player, now);
+    const alpha = this.player.combat.invulnerable(now) ? 0.65 : 1;
+    if (this.player.alpha !== alpha) this.player.setAlpha(alpha);
     this.skills.update(now);
     this.skillTree.flushPending();
 
@@ -782,6 +805,21 @@ export class CombatWorld implements MonsterWorld {
       best = p;
     }
     this.player.body.reset(best.x, best.y);
+  }
+
+  /** Body footprint vs map geometry and live gate doors. Sweeps use this same query. */
+  private movementBlocked(actor: CombatEntity, x: number, y: number): boolean {
+    const grid = mapCollision(this.location.mapId);
+    if (!grid) return true;
+    const left = actor === this.player ? -8 : -actor.hitRadius;
+    const right = actor === this.player ? 8 : actor.hitRadius;
+    const top = actor === this.player ? 4 : -actor.hitRadius;
+    const bottom = actor === this.player ? 14 : actor.hitRadius;
+    const gates = activeGates(this.maps.map, this.encounterProfile);
+    for (const dx of [left, right]) for (const dy of [top, bottom]) {
+      if (grid.isBlocked(x + dx, y + dy) || closedGateAt(gates, x + dx, y + dy, z => this.zoneCleared(z))) return true;
+    }
+    return false;
   }
 
   /** Loot into the bag when it fits: items stack; an equipment drop becomes a new owned instance. */

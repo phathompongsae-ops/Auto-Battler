@@ -17,6 +17,7 @@ export class PlayerCombatController {
     private readonly enemies: () => readonly CombatEntity[],
     /** The skill on each action slot right now (from the skill tree, or the demo kit). */
     private readonly loadout: () => Record<SkillSlot, SkillId | null>,
+    private readonly dodge: (now: number) => void = () => {},
   ) {}
 
   update(now: number): void {
@@ -24,9 +25,12 @@ export class PlayerCombatController {
     const attackPressed = this.input.consumePressed('attack');
     const attackHeld = this.input.isHeld('attack');
     const cyclePressed = this.input.consumePressed('target_next');
+    const dodgePressed = this.input.consumePressed('dodge');
     const slotsPressed = SKILL_SLOTS.map((slot) => this.input.consumePressed(slot));
 
     if (this.player.combat.dead) return;
+    if (dodgePressed) this.dodge(now);
+    if (this.player.combat.dodge) return;
 
     if (cyclePressed) this.targeting.cycle(this.player, this.enemies());
 

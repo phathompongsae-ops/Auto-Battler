@@ -27,6 +27,8 @@ export interface CastOptions {
 
 /** World hooks some skill effects need. Defaults keep monsters and tests working without them. */
 export interface SkillWorld {
+  /** Presentation action duration used only to guard utility actions; no change to skill balance. */
+  actionDuration?: (caster: CombatEntity, skillId: SkillId) => number;
   /**
    * The caster's version of a skill (e.g. its learned skill-tree rank), or
    * null when the caster can't use it. Default: the static definition.
@@ -129,6 +131,7 @@ export class SkillSystem {
     }
 
     caster.combat.mp -= skill.mpCost;
+    caster.combat.actionLockedUntil = Math.max(caster.combat.actionLockedUntil, now + Math.max(skill.windup?.ms ?? 0, this.world.actionDuration?.(caster, skillId) ?? 0));
     caster.combat.cooldowns.set(skillId, now + this.cooldownDuration(caster, skillId));
     this.events.emit('skillUsed', { casterId: caster.id, skillId, targetId: target?.id ?? null });
     this.execute(caster, skillId, skill, target, options.aim, now);

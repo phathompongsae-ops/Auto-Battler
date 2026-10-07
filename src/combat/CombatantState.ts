@@ -2,6 +2,7 @@ import type { SkillId } from '../data/skillData';
 import type { StatusDef } from '../data/statusData';
 import { MAX_LEVEL } from '../data/progressionData';
 import type { CombatStats, Team } from './types';
+import type { Direction } from '../input/Direction';
 
 export interface ActiveStatus {
   def: StatusDef;
@@ -22,6 +23,12 @@ export class CombatantState {
   readonly statuses: ActiveStatus[] = [];
   /** Skill id → time (ms) when it is ready again. */
   readonly cooldowns = new Map<SkillId, number>();
+  readonly utilityCooldowns = new Map<'dodge' | 'hp_potion' | 'mp_potion', number>();
+  invulnerableUntil = 0;
+  actionLockedUntil = 0;
+  dodge: { direction: Direction; startX: number; startY: number; startedAt: number; distance: number; travelled: number } | null = null;
+  actionLocked(now: number): boolean { return now < this.actionLockedUntil; }
+  invulnerable(now: number): boolean { return now < this.invulnerableUntil; }
 
   private readonly effectiveStats: CombatStats;
 
@@ -71,6 +78,9 @@ export class CombatantState {
     this.dead = false;
     this.statuses.length = 0;
     this.cooldowns.clear();
+    this.utilityCooldowns.clear();
+    this.invulnerableUntil = this.actionLockedUntil = 0;
+    this.dodge = null;
     this.refreshStats();
     this.restore();
   }

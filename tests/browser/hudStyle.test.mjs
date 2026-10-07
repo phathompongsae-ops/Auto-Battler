@@ -100,7 +100,7 @@ export async function hudStyleSuite(b, t, shot) {
 
   // Two reserved utility slots are explicit and inert, alongside the existing
   // special/potion/dodge positions and retained fifth skill binding.
-  const utilities = await b.eval(`['auto','pet','potion','special','dodge'].map((id) => {
+  const utilities = await b.eval(`['auto','pet','potion','special'].map((id) => {
     const e = document.querySelector('[data-slot='+id+']'); return { id, utility: e.dataset.group === 'utility', disabled: e.getAttribute('aria-disabled') === 'true' };
   })`);
   t.check('HUD-S2. future utility positions are outside the combat ring and unavailable', utilities.every((s) => s.utility && s.disabled), JSON.stringify(utilities));

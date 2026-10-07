@@ -206,6 +206,13 @@ export class Player extends Phaser.Physics.Arcade.Sprite implements CombatEntity
   }
 
   /** VFX configured for an action in a facing. */
+  skillActionDuration(skillId: SkillId): number {
+    const action = this.art?.skillActions[skillId];
+    const art = action ? this.actionArt(action, this.facing) : undefined;
+    return art ? art.frames / art.frameRate * 1000 : 0;
+  }
+
+  /** VFX configured for an action in a facing. */
   actionVfx(action: CharacterAction, dir: Direction = this.facing): ActionVfx | undefined {
     return this.actionArt(action, dir)?.vfx;
   }

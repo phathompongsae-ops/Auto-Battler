@@ -1,5 +1,6 @@
 import { PLAYER_BASIC_ATTACK, SKILL_SLOTS, type SkillSlot as LoadoutSlot } from '../../data/playerData';
 import { SKILLS, type SkillId } from '../../data/skillData';
+import { BASIC_DODGE } from '../../combat/DodgeSystem';
 import type { CombatWorld } from '../../game/CombatWorld';
 import type { Action } from '../../input/Action';
 import type { VirtualActionSource } from '../../input/VirtualActionSource';
@@ -64,6 +65,7 @@ export class ActionCluster {
       const skillId = binding.kind === 'action' ? skillForAction(world, binding.action) : null;
       const content: SlotContent | null = skillId
         ? skillContent(skillId)
+        : def.id === 'dodge' ? { abbr: 'DG', color: '#7fd4ff', title: 'Dodge', glyph: 'dodge' }
         : binding.kind === 'reserved' && binding.abbr
           ? { abbr: binding.abbr, color: binding.color, title: binding.label, glyph: ({ special: 'skills', potion: 'potion', dodge: 'dodge', auto: 'auto', pet: 'pet' } as Record<string, IconName>)[def.id] }
           : null;
@@ -103,6 +105,11 @@ export class ActionCluster {
     const c = player.combat;
     for (const live of this.slots) {
       if (!live.action) continue;
+      if (live.action === 'dodge') {
+        live.slot.setCooldown(Math.max(0, (c.utilityCooldowns.get('dodge') ?? 0) - now), BASIC_DODGE.cooldown);
+        live.slot.setDisabled(c.dead || c.actionLocked(now));
+        continue;
+      }
       // Learned skills (or a job change) can change what a slot casts.
       const current = skillForAction(this.world, live.action);
       if (current !== live.skillId) {

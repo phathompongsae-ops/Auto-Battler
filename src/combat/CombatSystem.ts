@@ -14,6 +14,8 @@ function damageTypeOf(skillId: SkillId): DamageType {
 
 /** Resolves damage, healing and death. The only place HP goes down. */
 export class CombatSystem {
+  /** Simulation time, shared by all incoming damage (including projectiles). */
+  now = 0;
   rng: Rng = defaultRng;
 
   constructor(private readonly events: EventBus<GameEvents>) {}
@@ -25,6 +27,10 @@ export class CombatSystem {
    */
   dealDamage(source: CombatEntity, target: CombatEntity, skillId: SkillId, power: number, options: { critBonus?: number } = {}): AttackResult | null {
     if (target.combat.dead) return null;
+    if (target.combat.invulnerable(this.now)) {
+      this.events.emit('miss', { sourceId: source.id, targetId: target.id, skillId });
+      return { hit: false };
+    }
 
     const stats = source.combat.stats;
     const type = damageTypeOf(skillId);
