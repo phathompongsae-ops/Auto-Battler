@@ -91,6 +91,22 @@ const PROPS: PropPlacement[] = [
   { kind: 'banner', x: 18, y: 3 },
   { kind: 'banner', x: 26, y: 3 },
   { kind: 'gate_arch', x: 42, y: 14 },
+  // The north Dungeon Gate road passes under its own arch (non-solid, open passage).
+  { kind: 'gate_arch', x: 30, y: 1 },
+  // Service frontage dressing: against building corners, clear of doors, NPCs and through-routes.
+  { kind: 'flower_bed', x: 3, y: 7 },
+  { kind: 'flower_bed', x: 9, y: 7 },
+  { kind: 'crates', x: 34, y: 7 },
+  { kind: 'barrel', x: 35, y: 7 },
+  { kind: 'flower_bed', x: 3, y: 23 },
+  { kind: 'lamp_post', x: 10, y: 23 },
+  { kind: 'barrel', x: 34, y: 23 },
+  { kind: 'barrel', x: 18, y: 25 },
+  { kind: 'flower_bed', x: 3, y: 29 },
+  { kind: 'barrel', x: 41, y: 29 },
+  // East yard (Forge to Workshop): lamps and planters at the edges, the route to the gate stays open.
+  { kind: 'lamp_post', x: 34, y: 12 },
+  { kind: 'flower_bed', x: 39, y: 12 },
   ...scatterDecor(TILES, [Tile.Grass], ['flowers', 'grass_tuft'], 0.18, () => false, 2),
 ];
 

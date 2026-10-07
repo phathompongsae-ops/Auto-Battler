@@ -17,8 +17,8 @@ import { npcMarker } from '../quests/questText';
 import { propTextureKey } from '../graphics/propTextures';
 import { envDrawScale } from '../graphics/environmentArt';
 import { ENV_BUILDINGS, ENV_GROUND_MAP_IDS, ENV_GROUND_TILESET, ENV_GROUND_WANG } from '../data/environmentArt';
-import { TOWN_GROUND_WANG } from '../data/environment/townGroundWang';
-import { groundVisuals, wangGroundVisuals, wangOverlayCells } from '../world/groundVisuals';
+import { TOWN_GROUND_WALL, TOWN_GROUND_WANG, TOWN_GROUND_WANG_PLAIN } from '../data/environment/townGroundWang';
+import { groundVisuals, wangGroundVisuals, wallCells, wangOverlayCells } from '../world/groundVisuals';
 import { InputController } from '../input/InputController';
 import { KeyboardActionSource } from '../input/KeyboardActionSource';
 import { KeyboardSource } from '../input/KeyboardSource';
@@ -36,6 +36,17 @@ import { SOLID_TILES, Tile } from '../world/tiles';
 const LABEL_DEPTH = 900_000;
 /** Opacity of a tall prop / building while it covers the player. */
 const OCCLUDER_ALPHA = 0.45;
+/** Share of the player's body sample points that must sit under opaque art before it fades. */
+const OCCLUDER_COVER = 0.34;
+/** Source-pixel cell size of the coarse opaque masks used for the occlusion test. */
+const OCCLUDER_MASK_CELL = 4;
+
+/** Coarse opacity mask of a texture: one flag per OCCLUDER_MASK_CELL source pixels. */
+interface OpaqueMask {
+  cols: number;
+  rows: number;
+  opaque: Uint8Array;
+}
 
 /** A tilemap layer as created by Tilemap.createLayer (CPU or GPU variant). */
 type GroundLayer = NonNullable<ReturnType<Phaser.Tilemaps.Tilemap['createLayer']>>;
@@ -73,6 +84,7 @@ export class WorldScene extends Phaser.Scene implements WorldMapView {
   private visualTilemaps: Phaser.Tilemaps.Tilemap[] = [];
   /** Tall props and buildings that fade while they cover the player (readability over environment). */
   occluders: { image: Phaser.GameObjects.Image; bounds: Phaser.Geom.Rectangle }[] = [];
+  private opaqueMasks = new Map<string, OpaqueMask | null>();
   /** Quest markers over the current map's NPCs. */
   private npcMarkers: { npcId: string; mark: Phaser.GameObjects.Text }[] = [];
 
@@ -241,10 +253,9 @@ export class WorldScene extends Phaser.Scene implements WorldMapView {
   }
 
   /**
-   * Production ground (corner tilesets on a dual grid, offset half a tile),
-   * the plaza on top (stand-in frames until it has production art), then
-   * every non-ground tile (walls, water, building bases, portals) in its own
-   * tile art. The code-drawn layer is hidden but stays the collision source.
+   * Production ground (corner tilesets on a dual grid, offset half a tile:
+   * grass, dirt, cobble and the plaza with its kerb), then every non-ground
+   * tile (walls, water, building bases, portals) in its own tile art. The code-drawn layer is hidden but stays the collision source.
    * False when the production atlas is unavailable.
    */
   private drawWangGround(map: MapDef): boolean {
@@ -259,15 +270,12 @@ export class WorldScene extends Phaser.Scene implements WorldMapView {
       const f = b.footprint;
       for (let y = f.y; y < f.y + f.h; y++) for (let x = f.x; x < f.x + f.w; x++) tiles[y][x] = Tile.Cobble;
     }
-    const dual = this.visualLayer(wangGroundVisuals(tiles, TOWN_GROUND_WANG), ts.key, ts.frameSize, ts.margin, ts.spacing);
+    const dual = this.visualLayer(wangGroundVisuals(tiles, TOWN_GROUND_WANG, TOWN_GROUND_WANG_PLAIN), ts.key, ts.frameSize, ts.margin, ts.spacing);
     if (!dual) return false;
     dual.setScale(scale).setPosition(-TILE_SIZE / 2, -TILE_SIZE / 2).setDepth(GROUND_DEPTH + 0.05);
-    const overlay = wangOverlayCells(tiles);
-    const stand = ENV_GROUND_TILESET;
-    if (this.textures.exists(stand.key)) {
-      this.visualLayer(overlay.plaza, stand.key, stand.frameSize, stand.margin, stand.spacing)?.setScale(envDrawScale(this, stand.key)).setDepth(GROUND_DEPTH + 0.1);
-    }
-    this.visualLayer(overlay.solid, TILESET_KEY, TILE_SIZE, 0, 0)?.setDepth(GROUND_DEPTH + 0.15);
+    const wallArt = TOWN_GROUND_WALL.length > 0;
+    this.visualLayer(wangOverlayCells(tiles, wallArt), TILESET_KEY, TILE_SIZE, 0, 0)?.setDepth(GROUND_DEPTH + 0.15);
+    if (wallArt) this.visualLayer(wallCells(tiles, TOWN_GROUND_WALL), ts.key, ts.frameSize, ts.margin, ts.spacing)?.setScale(scale).setDepth(GROUND_DEPTH + 0.15);
     this.groundLayer?.setVisible(false);
     return true;
   }
@@ -295,15 +303,69 @@ export class WorldScene extends Phaser.Scene implements WorldMapView {
     this.occluders.push({ image, bounds: image.getBounds() });
   }
 
+  /** Opaque-pixel mask of a texture (cached per key); null when its pixels cannot be read. */
+  private opaqueMask(key: string): OpaqueMask | null {
+    const cached = this.opaqueMasks.get(key);
+    if (cached !== undefined) return cached;
+    let mask: OpaqueMask | null = null;
+    try {
+      const src = this.textures.get(key).getSourceImage() as HTMLImageElement | HTMLCanvasElement;
+      const canvas = document.createElement('canvas');
+      canvas.width = src.width;
+      canvas.height = src.height;
+      const ctx = canvas.getContext('2d', { willReadFrequently: true });
+      if (ctx && src.width && src.height) {
+        ctx.drawImage(src, 0, 0);
+        const { data } = ctx.getImageData(0, 0, src.width, src.height);
+        const cols = Math.ceil(src.width / OCCLUDER_MASK_CELL);
+        const rows = Math.ceil(src.height / OCCLUDER_MASK_CELL);
+        const opaque = new Uint8Array(cols * rows);
+        for (let y = 0; y < src.height; y++)
+          for (let x = 0; x < src.width; x++)
+            if (data[(y * src.width + x) * 4 + 3] > 96) opaque[Math.floor(y / OCCLUDER_MASK_CELL) * cols + Math.floor(x / OCCLUDER_MASK_CELL)] = 1;
+        mask = { cols, rows, opaque };
+      }
+    } catch {
+      mask = null;
+    }
+    this.opaqueMasks.set(key, mask);
+    return mask;
+  }
+
+  /** Share of the player's body (a grid of sample points) hidden under the image's opaque pixels. */
+  private bodyCoverage(image: Phaser.GameObjects.Image, left: number, right: number, top: number, bottom: number): number {
+    const mask = this.opaqueMask(image.texture.key);
+    const x0 = image.x - image.displayWidth * image.originX;
+    const y0 = image.y - image.displayHeight * image.originY;
+    let hidden = 0;
+    let total = 0;
+    for (let i = 0; i < 3; i++)
+      for (let j = 0; j < 5; j++) {
+        const wx = left + ((right - left) * i) / 2;
+        const wy = top + ((bottom - top) * j) / 4;
+        total++;
+        const sx = (wx - x0) / image.scaleX;
+        const sy = (wy - y0) / image.scaleY;
+        if (sx < 0 || sy < 0 || sx >= image.width || sy >= image.height) continue;
+        // Unreadable pixels: fall back to the image rectangle.
+        if (!mask || mask.opaque[Math.floor(sy / OCCLUDER_MASK_CELL) * mask.cols + Math.floor(sx / OCCLUDER_MASK_CELL)]) hidden++;
+      }
+    return hidden / total;
+  }
+
   /**
    * A tall prop or building drawn over the player (player behind it) fades so
-   * the character stays readable; it is opaque again once the player is clear.
+   * the character stays readable, but only while its opaque art genuinely hides
+   * a good part of the body (not when a canopy tip or a transparent margin
+   * overlaps); it is opaque again once the player is clear.
    */
   private updateOccluders(): void {
     const p = this.player;
     const top = p.y - p.layout.height + p.layout.feetOffset;
+    const feet = p.y + p.layout.feetOffset;
     for (const { image, bounds } of this.occluders) {
-      const covers = image.depth > p.depth && p.x > bounds.left && p.x < bounds.right && p.y + p.layout.feetOffset > bounds.top && top < bounds.bottom;
+      const near = image.depth > p.depth && p.x + 8 > bounds.left && p.x - 8 < bounds.right && feet > bounds.top && top < bounds.bottom;
+      const covers = near && this.bodyCoverage(image, p.x - 7, p.x + 7, top + 3, feet - 2) >= OCCLUDER_COVER;
       const alpha = covers ? OCCLUDER_ALPHA : 1;
       if (image.alpha !== alpha) image.setAlpha(alpha);
     }

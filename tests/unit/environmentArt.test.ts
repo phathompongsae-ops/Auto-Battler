@@ -5,8 +5,8 @@ import { describe, test } from 'node:test';
 import { ENV_BUILDINGS, ENV_DRAW_SCALE, ENV_GROUND_MAP_IDS, ENV_GROUND_TILESET, ENV_GROUND_WANG, ENV_PROP_ART, ENV_SOURCE_SCALE, environmentTextureFiles, GROUND_FRAMES } from '../../src/data/environmentArt';
 import { MAPS, PROP_KINDS, TOWN_MAP_ID } from '../../src/data/maps';
 import { mapCells } from '../../src/world/mapRules';
-import { TOWN_GROUND_WANG, TOWN_GROUND_WANG_FRAMES } from '../../src/data/environment/townGroundWang';
-import { groundFamily, groundVisuals, neighbourMask, wangGroundVisuals, wangOverlayCells, wangTerrain } from '../../src/world/groundVisuals';
+import { TOWN_GROUND_WANG, TOWN_GROUND_WANG_FRAMES, TOWN_GROUND_WANG_PLAIN } from '../../src/data/environment/townGroundWang';
+import { groundFamily, groundVisuals, neighbourMask, wallCells, wangGroundVisuals, wangOverlayCells, wangTerrain } from '../../src/world/groundVisuals';
 import { SOLID_TILES, Tile } from '../../src/world/tiles';
 
 const pub = (url: string) => join(process.cwd(), 'public', url);
@@ -120,14 +120,20 @@ describe('visual ground layer (derived, never collision)', () => {
 describe('corner (Wang) ground on the dual grid (derived, never collision)', () => {
   const town = MAPS[TOWN_MAP_ID];
 
-  test('the atlas holds every frame of the lookup; each terrain pair maps all 16 corner masks to distinct frames', () => {
+  test('the atlas holds every frame of the lookup; each tileset maps all 16 corner masks to distinct frames; every terrain has plain variants', () => {
     const { w, h } = pngSize(ENV_GROUND_WANG.url);
     const t = ENV_GROUND_WANG;
     const cols = Math.floor((w - 2 * t.margin + t.spacing) / (t.frameSize + t.spacing));
     const rows = Math.floor((h - 2 * t.margin + t.spacing) / (t.frameSize + t.spacing));
     assert.ok(cols * rows >= TOWN_GROUND_WANG_FRAMES, `${cols}x${rows} for ${TOWN_GROUND_WANG_FRAMES} frames`);
-    // One tileset per pair of Town terrains (either direction).
-    assert.deepEqual(Object.keys(TOWN_GROUND_WANG).map((k) => k.split('|').sort().join('|')).sort(), ['cobble|dirt', 'cobble|grass', 'dirt|grass']);
+    // Grass, dirt and plaza each pair with cobble (the connector); grass also pairs with dirt (either direction).
+    assert.deepEqual(Object.keys(TOWN_GROUND_WANG).map((k) => k.split('|').sort().join('|')).sort(), ['cobble|dirt', 'cobble|grass', 'cobble|plaza', 'dirt|grass']);
+    for (const terrain of ['cobble', 'dirt', 'grass', 'plaza']) {
+      const frames = TOWN_GROUND_WANG_PLAIN[terrain] ?? [];
+      assert.ok(frames.length >= 1, `${terrain} has a plain tile`);
+      for (const f of frames) assert.ok(f >= 0 && f < TOWN_GROUND_WANG_FRAMES);
+    }
+    assert.ok(TOWN_GROUND_WANG_PLAIN.cobble.length >= 2, 'large cobbled areas mix variants');
     const all = Object.values(TOWN_GROUND_WANG).flat();
     for (const masks of Object.values(TOWN_GROUND_WANG)) {
       assert.equal(masks.length, 16);
@@ -140,8 +146,8 @@ describe('corner (Wang) ground on the dual grid (derived, never collision)', () 
   test('every Town vertex touching ground gets a frame; deterministic; map tiles and collision untouched', () => {
     const before = JSON.stringify(town.tiles);
     const cellsBefore = JSON.stringify(mapCells(town));
-    const a = wangGroundVisuals(town.tiles, TOWN_GROUND_WANG);
-    assert.deepEqual(a, wangGroundVisuals(town.tiles, TOWN_GROUND_WANG));
+    const a = wangGroundVisuals(town.tiles, TOWN_GROUND_WANG, TOWN_GROUND_WANG_PLAIN);
+    assert.deepEqual(a, wangGroundVisuals(town.tiles, TOWN_GROUND_WANG, TOWN_GROUND_WANG_PLAIN));
     assert.equal(a.length, town.tiles.length + 1);
     assert.equal(a[0].length, town.tiles[0].length + 1);
     for (let vy = 0; vy <= town.tiles.length; vy++)
@@ -165,25 +171,44 @@ describe('corner (Wang) ground on the dual grid (derived, never collision)', () 
     assert.equal(wangGroundVisuals([[P, P], [C, C]], lk)[1][1], lk['dirt|cobble'][3]);
     // [G P / P G]: dirt|grass, NW + SE -> 9.
     assert.equal(wangGroundVisuals([[G, P], [P, G]], lk)[1][1], lk['dirt|grass'][9]);
-    // A wall borrows the majority (grass): no transition toward it.
-    // (a plain grass tile: either tileset holding grass)
-    assert.ok([lk['grass|cobble'][0], lk['dirt|grass'][15]].includes(wangGroundVisuals([[G, W], [G, G]], lk)[1][1]));
+    // A wall borrows the majority (grass): no transition toward it; a plain tile is one of the terrain's variants.
+    const plain = { grass: [101, 102], cobble: [201, 202, 203] };
+    assert.ok(plain.grass.includes(wangGroundVisuals([[G, W], [G, G]], lk, plain)[1][1]));
+    // Plain variants are picked by position: deterministic, and a large area uses several of them.
+    const field = Array.from({ length: 12 }, () => Array.from({ length: 12 }, () => C));
+    const picked = wangGroundVisuals(field, lk, plain).flat();
+    assert.deepEqual(picked, wangGroundVisuals(field, lk, plain).flat());
+    assert.equal(new Set(picked).size, 3);
+    // Two terrains without a tileset of their own meet through the connector (cobble): never a hole.
+    const PZ = Tile.Plaza;
+    const viaConnector = wangGroundVisuals([[PZ, PZ], [G, PZ]], lk)[1][1];
+    assert.equal(viaConnector, lk['cobble|plaza'][8 | 4 | 1]);
     // Three terrains fold the rarest into the majority: [G G / C P] -> grass majority, cobble kept (tie-break), dirt -> grass.
     assert.equal(wangGroundVisuals([[G, G], [C, P]], lk)[1][1], lk['grass|cobble'][2]);
     // Nothing but walls: no frame.
     assert.equal(wangGroundVisuals([[W, W], [W, W]], lk)[1][1], -1);
   });
 
-  test('overlays: plaza cells get stand-in plaza / trim frames, non-ground cells keep their own tile index', () => {
+  test('the plaza (and its trim ring) is corner ground; the overlay keeps every non-ground cell in its own tile index', () => {
+    assert.equal(wangTerrain(Tile.Plaza), 'plaza');
+    assert.equal(wangTerrain(Tile.PlazaTrim), 'plaza');
     const o = wangOverlayCells(town.tiles);
+    town.tiles.forEach((row, y) => row.forEach((tile, x) => assert.equal(o[y][x], wangTerrain(tile) ? -1 : tile, `${x},${y}`)));
+    // With production wall art the Wall cells move to their own layer (a variant per cell); collision is unchanged.
+    const withWalls = wangOverlayCells(town.tiles, true);
+    const walls = wallCells(town.tiles, [7, 8]);
     town.tiles.forEach((row, y) =>
       row.forEach((tile, x) => {
-        if (tile === Tile.Plaza) assert.ok(o.plaza[y][x] >= GROUND_FRAMES.plaza.first && o.plaza[y][x] < GROUND_FRAMES.plaza.first + GROUND_FRAMES.plaza.count);
-        else if (tile === Tile.PlazaTrim) assert.ok(o.plaza[y][x] >= GROUND_FRAMES.trim.first && o.plaza[y][x] < GROUND_FRAMES.trim.first + GROUND_FRAMES.trim.count);
-        else assert.equal(o.plaza[y][x], -1);
-        assert.equal(o.solid[y][x], wangTerrain(tile) ? -1 : tile, `${x},${y}`);
+        if (tile === Tile.Wall) {
+          assert.equal(withWalls[y][x], -1);
+          assert.ok([7, 8].includes(walls[y][x]));
+        } else {
+          assert.equal(withWalls[y][x], o[y][x]);
+          assert.equal(walls[y][x], -1);
+        }
       }),
     );
+    assert.ok(wallCells(town.tiles, []).flat().every((f) => f === -1), 'no wall art: nothing drawn, the code-drawn walls stay');
     for (const tile of SOLID_TILES) assert.equal(wangTerrain(tile), null, `solid tile ${tile} is never corner ground`);
   });
 });

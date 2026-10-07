@@ -17,28 +17,29 @@ export async function envArtSuite(b, t, shot, url) {
 
   // 1. PNG wins over the placeholder (same key), linear filtering; other keys keep the code-drawn fallback.
   const monument = await b.eval(tex('prop-monument'));
-  const bench = await b.eval(tex('prop-bench'));
+  // A Town prop kind that still has no PNG (scattered grass tufts) keeps its code-drawn placeholder.
+  const placeholder = await b.eval(tex('prop-grass_tuft'));
   const ground = await b.eval(tex('env-ground-town'));
   t.check(
     'ENV-1. a 2x PNG replaces the placeholder under the same texture key with linear filtering; keys without a PNG keep the code-drawn placeholder',
-    !monument.canvas && monument.w === 256 && monument.filter === LINEAR && !ground.canvas && ground.filter === LINEAR && bench.canvas && bench.filter === NEAREST,
-    JSON.stringify({ monument, bench, ground }),
+    !monument.canvas && monument.w === 256 && monument.filter === LINEAR && !ground.canvas && ground.filter === LINEAR && placeholder.canvas && placeholder.filter === NEAREST,
+    JSON.stringify({ monument, placeholder, ground }),
   );
 
   // 2. Half-scale drawing on the same footprint: the monument is 128 world px wide, bottom on its footprint.
   const placed = await b.eval(`(() => {
     const s = ${SCENE};
     const m = s.children.list.find((o) => o.texture?.key === 'prop-monument');
-    const bench = s.children.list.find((o) => o.texture?.key === 'prop-bench');
-    return { scale: m.scaleX, w: m.displayWidth, bottom: m.y, originY: m.originY, benchScale: bench.scaleX };
+    const placeholder = s.children.list.find((o) => o.texture?.key === 'prop-grass_tuft');
+    return { scale: m.scaleX, w: m.displayWidth, bottom: m.y, originY: m.originY, placeholderScale: placeholder.scaleX };
   })()`);
   t.check(
     'ENV-2. 2x art draws at half scale, bottom-centred on its footprint (monument: 128 world px wide, base at the footprint edge); placeholders stay 1x',
-    placed.scale === 0.5 && placed.w === 128 && placed.bottom === (5 + 2) * 32 && placed.originY === 1 && placed.benchScale === 1,
+    placed.scale === 0.5 && placed.w === 128 && placed.bottom === (5 + 2) * 32 && placed.originY === 1 && placed.placeholderScale === 1,
     JSON.stringify(placed),
   );
 
-  // 3. Visual ground: corner (Wang) ground on the half-tile dual grid + plaza + non-ground tiles, every layer on the 32 px world grid,
+  // 3. Visual ground: corner (Wang) ground on the half-tile dual grid (grass, dirt, cobble, plaza) + non-ground tiles, every layer on the 32 px world grid,
   //    above the code-drawn layer, never colliding; the code-drawn layer is hidden but stays the collision source.
   const layers = await b.eval(`(() => {
     const s = ${SCENE};
@@ -59,8 +60,8 @@ export async function envArtSuite(b, t, shot, url) {
     };
   })()`);
   t.check(
-    'ENV-3. the visual ground layers (dual-grid corner ground, plaza, non-ground tiles) sit on the 32 px world grid above the code-drawn layer and never collide; the hidden code-drawn layer stays the collision source',
-    layers.count === 3 && layers.worldTile.every((x) => x === 32) && layers.scales[0] === 0.5 && layers.dualOffset[0] === -16 && layers.dualOffset[1] === -16 &&
+    'ENV-3. the visual ground layers (dual-grid corner ground incl. the plaza, non-ground tiles) sit on the 32 px world grid above the code-drawn layer and never collide; the hidden code-drawn layer stays the collision source',
+    layers.count === 2 && layers.worldTile.every((x) => x === 32) && layers.scales[0] === 0.5 && layers.dualOffset[0] === -16 && layers.dualOffset[1] === -16 &&
       !layers.baseVisible && layers.depths.every((d) => d > layers.baseDepth && d < -0.6) &&
       !layers.visualCollide && !layers.visualInColliders && layers.baseCollides && layers.baseInColliders,
     JSON.stringify(layers),

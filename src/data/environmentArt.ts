@@ -31,6 +31,14 @@ export const ENV_PROP_ART: Partial<Record<PropKind, string>> = {
   crates: `${DIR}/props/crates.png`,
   market_stall: `${DIR}/props/market_stall.png`,
   enchant_crystal: `${DIR}/props/enchant_crystal.png`,
+  fountain: `${DIR}/props/fountain.png`,
+  statue: `${DIR}/props/statue.png`,
+  bench: `${DIR}/props/bench.png`,
+  notice_board: `${DIR}/props/notice_board.png`,
+  plaza_mosaic: `${DIR}/props/plaza_mosaic.png`,
+  pet_house: `${DIR}/props/pet_house.png`,
+  workbench: `${DIR}/props/workbench.png`,
+  gate_arch: `${DIR}/props/gate_arch.png`,
 };
 
 /**
@@ -91,6 +99,11 @@ export interface EnvBuildingArt {
 
 export const ENV_BUILDINGS: readonly EnvBuildingArt[] = [
   { key: 'building-forge', url: `${DIR}/buildings/forge.png`, mapId: 'demo_town', footprint: { x: 34, y: 2, w: 8, h: 5 } },
+  { key: 'building-job-hall', url: `${DIR}/buildings/job_hall.png`, mapId: 'demo_town', footprint: { x: 3, y: 2, w: 8, h: 5 } },
+  { key: 'building-enchant-hall', url: `${DIR}/buildings/enchant_hall.png`, mapId: 'demo_town', footprint: { x: 3, y: 24, w: 7, h: 5 } },
+  { key: 'building-hall-of-legends', url: `${DIR}/buildings/hall_of_legends.png`, mapId: 'demo_town', footprint: { x: 16, y: 1, w: 13, h: 3 } },
+  { key: 'building-workshop', url: `${DIR}/buildings/workshop.png`, mapId: 'demo_town', footprint: { x: 34, y: 24, w: 8, h: 5 } },
+  { key: 'building-pet-stable', url: `${DIR}/buildings/pet_stable.png`, mapId: 'demo_town', footprint: { x: 18, y: 26, w: 9, h: 4 } },
 ];
 
 /** Every PNG the environment art loads, by texture key. */

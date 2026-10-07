@@ -46,33 +46,40 @@ export function neighbourMask(tiles: readonly (readonly number[])[], x: number, 
 // ("lower|upper") gives the frame for every corner mask. Cells without a
 // ground terrain (walls, water, building bases, portals) borrow the majority
 // terrain of the tile so no transition is drawn toward them; they are drawn
-// on top by their own layer.
+// on top by their own layer. Plain tiles (all four corners one terrain) pick a
+// deterministic variant by position so large areas do not stamp one tile.
 
-export type WangTerrain = 'cobble' | 'dirt' | 'grass';
+export type WangTerrain = 'cobble' | 'dirt' | 'grass' | 'plaza';
 
 const WANG_TERRAIN: Partial<Record<number, WangTerrain>> = {
   [Tile.Grass]: 'grass',
   [Tile.Flowers]: 'grass',
   [Tile.Path]: 'dirt',
   [Tile.Cobble]: 'cobble',
-  // The plaza sits on cobble; its own layer draws it on top.
-  [Tile.Plaza]: 'cobble',
-  [Tile.PlazaTrim]: 'cobble',
+  // The trim ring belongs to the plaza; the plaza / cobble transition draws its kerb border.
+  [Tile.Plaza]: 'plaza',
+  [Tile.PlazaTrim]: 'plaza',
 };
 
 export const wangTerrain = (tile: number | undefined): WangTerrain | null => (tile === undefined ? null : (WANG_TERRAIN[tile] ?? null));
 
 /** Tie-break order when terrains are equally common. */
-const TERRAIN_ORDER: readonly WangTerrain[] = ['cobble', 'dirt', 'grass'];
+const TERRAIN_ORDER: readonly WangTerrain[] = ['cobble', 'dirt', 'grass', 'plaza'];
+
+/** Terrain every other one has a tileset with; bridges two terrains without a shared tileset. */
+const CONNECTOR: WangTerrain = 'cobble';
 
 /** Frame per corner mask (bit 8 NW, 4 NE, 2 SW, 1 SE; set = upper) for each "lower|upper" pair. */
 export type WangLookup = Readonly<Record<string, readonly number[]>>;
+
+/** Plain-tile variant frames per terrain (optional; default: the pair tilesets' plain tiles). */
+export type WangPlain = Readonly<Partial<Record<WangTerrain, readonly number[]>>>;
 
 /**
  * The dual-grid frame grid ((H+1) x (W+1)); -1 where nothing is drawn.
  * A tile mixing three terrains folds its rarest one into the majority.
  */
-export function wangGroundVisuals(tiles: readonly (readonly number[])[], lookup: WangLookup): number[][] {
+export function wangGroundVisuals(tiles: readonly (readonly number[])[], lookup: WangLookup, plain: WangPlain = {}): number[][] {
   const h = tiles.length;
   const w = tiles[0]?.length ?? 0;
   const pairs = Object.keys(lookup).map((k) => k.split('|') as [WangTerrain, WangTerrain]);
@@ -90,23 +97,31 @@ export function wangGroundVisuals(tiles: readonly (readonly number[])[], lookup:
       const ranked = [...counts.keys()].sort((a, b) => counts.get(b)! - counts.get(a)! || TERRAIN_ORDER.indexOf(a) - TERRAIN_ORDER.indexOf(b));
       const majority = ranked[0];
       const keep = new Set(ranked.slice(0, 2));
-      const resolved = corners.map((c) => (c && keep.has(c) ? c : majority));
-      row.push(wangFrame(resolved, lookup, pairs, vx, vy));
+      let resolved = corners.map((c) => (c && keep.has(c) ? c : majority));
+      // Two terrains without a tileset of their own: the minority becomes the connector.
+      const two = [...new Set(resolved)];
+      if (two.length === 2 && !pairs.some(([l, u]) => two.includes(l) && two.includes(u))) {
+        const minority = two[0] === majority ? two[1] : two[0];
+        const into = two.includes(CONNECTOR) ? majority : CONNECTOR;
+        resolved = resolved.map((c) => (c === minority ? into : c));
+      }
+      row.push(wangFrame(resolved, lookup, pairs, plain, vx, vy));
     }
     out.push(row);
   }
   return out;
 }
 
-function wangFrame(corners: WangTerrain[], lookup: WangLookup, pairs: [WangTerrain, WangTerrain][], vx: number, vy: number): number {
+function wangFrame(corners: WangTerrain[], lookup: WangLookup, pairs: [WangTerrain, WangTerrain][], plain: WangPlain, vx: number, vy: number): number {
   const distinct = [...new Set(corners)];
   if (distinct.length === 1) {
-    // A plain tile: any tileset containing the terrain has one; alternate between them for variety.
+    // A plain tile: a listed variant, else any tileset containing the terrain has one.
     const t = distinct[0];
-    const options = pairs.filter(([lower, upper]) => lower === t || upper === t);
-    if (!options.length) return -1;
-    const [lower, upper] = options[Math.floor(tileHash(vx, vy) * options.length)];
-    return lookup[`${lower}|${upper}`][t === upper ? 15 : 0] ?? -1;
+    const variants = plain[t]?.length
+      ? plain[t]!
+      : pairs.filter(([lower, upper]) => lower === t || upper === t).map(([lower, upper]) => lookup[`${lower}|${upper}`][t === upper ? 15 : 0]);
+    if (!variants.length) return -1;
+    return variants[Math.floor(tileHash(vx, vy) * variants.length)] ?? -1;
   }
   const pair = pairs.find(([lower, upper]) => distinct.includes(lower) && distinct.includes(upper));
   if (!pair) return -1;
@@ -115,21 +130,18 @@ function wangFrame(corners: WangTerrain[], lookup: WangLookup, pairs: [WangTerra
   return lookup[`${pair[0]}|${upper}`][mask] ?? -1;
 }
 
-/** Cells drawn on top of the corner ground: the plaza (stand-in frames) and every non-ground tile (its own tile art). */
-export function wangOverlayCells(tiles: readonly (readonly number[])[]): { plaza: number[][]; solid: number[][] } {
-  const plaza: number[][] = [];
-  const solid: number[][] = [];
-  tiles.forEach((row, y) => {
-    plaza.push([]);
-    solid.push([]);
-    row.forEach((tile, x) => {
-      const isPlaza = tile === Tile.Plaza || tile === Tile.PlazaTrim;
-      const f = tile === Tile.Plaza ? GROUND_FRAMES.plaza : GROUND_FRAMES.trim;
-      plaza[y].push(isPlaza ? f.first + Math.floor(tileHash(x, y) * f.count) : -1);
-      solid[y].push(wangTerrain(tile) ? -1 : tile);
-    });
-  });
-  return { plaza, solid };
+/**
+ * Cells drawn on top of the corner ground: every non-ground tile in its own
+ * tile art (-1 elsewhere). With production wall art, Wall cells are left to
+ * wallCells instead.
+ */
+export function wangOverlayCells(tiles: readonly (readonly number[])[], wallArt = false): number[][] {
+  return tiles.map((row) => row.map((tile) => (wangTerrain(tile) || (wallArt && tile === Tile.Wall) ? -1 : tile)));
+}
+
+/** Wall-top frame per Wall cell (a deterministic variant by position), -1 elsewhere. */
+export function wallCells(tiles: readonly (readonly number[])[], frames: readonly number[]): number[][] {
+  return tiles.map((row, y) => row.map((tile, x) => (tile === Tile.Wall && frames.length ? frames[Math.floor(tileHash(x, y) * frames.length)] : -1)));
 }
 
 export interface GroundVisualLayers {

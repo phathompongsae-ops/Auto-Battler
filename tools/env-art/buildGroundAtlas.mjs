@@ -1,7 +1,12 @@
 // Builds the Town ground atlas from PixelLab corner (Wang) tilesets:
-//   node tools/env-art/buildGroundAtlas.mjs <dir with ts_<lower>_<upper>.png/.json ...>
+//   node tools/env-art/buildGroundAtlas.mjs <dir with ts_<lower>_<upper>.png/.json ... [plain_<terrain>_<n>.png ...]>
 // - applies one uniform colour grade (greens desaturated toward the style lock: ground calmer than characters)
 // - slices every tile by its metadata bounding box
+// - collects the plain (single-terrain) tiles of every set, plus optional extra 64 px plain variants
+//   (plain_<terrain>_<n>.png, e.g. interiors inpainted inside a plain tile's border), deduplicated;
+//   seamless_<terrain>_<n>.png (self-tiling plain tiles, e.g. healed across their own seams) REPLACE the
+//   set-derived plain tiles of that terrain
+// - wall_<n>.png: 64 px self-tiling wall-top tiles for the map's Wall cells (TOWN_GROUND_WALL)
 // - packs 64 px frames with 2 px extruded borders (margin 2, spacing 4) so linear filtering never bleeds
 // - writes public/assets/environment/town/ground/town_ground_wang.png and the corner lookup
 //   src/data/environment/townGroundWang.ts (generated; do not edit by hand)
@@ -23,12 +28,39 @@ const sets = readdirSync(dir)
     return { lower, upper, png, tiles, source: meta.id };
   });
 if (!sets.length) throw new Error(`no ts_<lower>_<upper>.json tilesets in ${dir}`);
+const walls = readdirSync(dir)
+  .filter((f) => /^wall_\d+\.png$/.test(f))
+  .sort()
+  .map((f) => readFileSync(join(dir, f)).toString('base64'));
+const extras = readdirSync(dir)
+  .filter((f) => /^(plain|seamless)_[a-z]+_\d+\.png$/.test(f))
+  .sort()
+  .map((f) => {
+    const [, kind, terrain] = f.match(/^(plain|seamless)_([a-z]+)_/);
+    return { terrain, seamless: kind === 'seamless', png: readFileSync(join(dir, f)).toString('base64') };
+  });
 
 const b = await Browser.launch({ port: 9339 });
 try {
   await b.goto('about:blank');
   const out = await b.eval(`(async () => {
     const sets = ${JSON.stringify(sets)};
+    const extras = ${JSON.stringify(extras)};
+    const walls = ${JSON.stringify(walls)};
+    const wallFrames = [];
+    const plain = {};
+    const seen = new Map();
+    const addPlain = (terrain, frame, canvas) => {
+      const key = canvas.toDataURL();
+      const list = (plain[terrain] ??= []);
+      const existing = seen.get(key);
+      if (existing !== undefined) {
+        if (!list.includes(existing)) list.push(existing);
+        return;
+      }
+      seen.set(key, frame);
+      list.push(frame);
+    };
     const T = 64, CELL = T + 4, COLS = 8;
     const frames = [];
     const lookup = {};
@@ -63,9 +95,26 @@ try {
         const f = document.createElement('canvas'); f.width = T; f.height = T;
         f.getContext('2d').drawImage(sheet, t.box.x, t.box.y, t.box.width, t.box.height, 0, 0, T, T);
         masks[mask] = frames.length;
+        if (mask === 0) addPlain(set.lower, frames.length, f);
+        if (mask === 15) addPlain(set.upper, frames.length, f);
         frames.push(f);
       }
       lookup[set.lower + '|' + set.upper] = masks;
+    }
+    for (const t of new Set(extras.filter((e) => e.seamless).map((e) => e.terrain))) plain[t] = [];
+    for (const e of extras) {
+      const bmp = await createImageBitmap(await (await fetch('data:image/png;base64,' + e.png)).blob());
+      const f = document.createElement('canvas'); f.width = T; f.height = T;
+      const g = f.getContext('2d'); g.drawImage(bmp, 0, 0, T, T); grade(g, T, T);
+      addPlain(e.terrain, frames.length, f);
+      if (plain[e.terrain].at(-1) === frames.length) frames.push(f);
+    }
+    for (const w of walls) {
+      const bmp = await createImageBitmap(await (await fetch('data:image/png;base64,' + w)).blob());
+      const f = document.createElement('canvas'); f.width = T; f.height = T;
+      const g = f.getContext('2d'); g.drawImage(bmp, 0, 0, T, T); grade(g, T, T);
+      wallFrames.push(frames.length);
+      frames.push(f);
     }
     const rows = Math.ceil(frames.length / COLS);
     const atlas = document.createElement('canvas'); atlas.width = COLS * CELL - 0; atlas.height = rows * CELL;
@@ -78,7 +127,7 @@ try {
       ctx.drawImage(f, 0, T - 1, 1, 1, x - 2, y + T, 2, 2); ctx.drawImage(f, T - 1, T - 1, 1, 1, x + T, y + T, 2, 2);
       ctx.drawImage(f, x, y);
     });
-    return { png: atlas.toDataURL('image/png'), lookup, frames: frames.length, size: [atlas.width, atlas.height] };
+    return { png: atlas.toDataURL('image/png'), lookup, plain, wallFrames, frames: frames.length, size: [atlas.width, atlas.height] };
   })()`);
   const pngOut = join(root, 'public', 'assets', 'environment', 'town', 'ground', 'town_ground_wang.png');
   writeFileSync(pngOut, Buffer.from(out.png.split(',')[1], 'base64'));
@@ -87,13 +136,21 @@ try {
   const pairs = Object.entries(out.lookup)
     .map(([pair, masks]) => `  '${pair}': [${masks.join(', ')}],`)
     .join('\n');
+  const plainRows = Object.entries(out.plain)
+    .map(([terrain, frames]) => `  ${terrain}: [${frames.join(', ')}],`)
+    .join('\n');
   writeFileSync(
     tsOut,
     `// GENERATED by tools/env-art/buildGroundAtlas.mjs from PixelLab corner tilesets (${sets.map((s) => s.source).join(', ')}).\n` +
       `// Do not edit by hand. Frame index per corner mask (bit 8 NW, 4 NE, 2 SW, 1 SE; set = the "upper" terrain), per terrain pair "lower|upper".\n` +
-      `export const TOWN_GROUND_WANG: Readonly<Record<string, readonly number[]>> = {\n${pairs}\n};\n\nexport const TOWN_GROUND_WANG_FRAMES = ${out.frames};\n`,
+      `export const TOWN_GROUND_WANG: Readonly<Record<string, readonly number[]>> = {\n${pairs}\n};\n\n` +
+      `/** Plain-tile variant frames per terrain (picked by tile position). */\n` +
+      `export const TOWN_GROUND_WANG_PLAIN: Readonly<Record<string, readonly number[]>> = {\n${plainRows}\n};\n\n` +
+      `/** Self-tiling wall-top frames for Wall cells (picked by tile position; empty = code-drawn walls). */\n` +
+      `export const TOWN_GROUND_WALL: readonly number[] = [${out.wallFrames.join(', ')}];\n\n` +
+      `export const TOWN_GROUND_WANG_FRAMES = ${out.frames};\n`,
   );
-  console.log(JSON.stringify({ frames: out.frames, size: out.size, pairs: Object.keys(out.lookup) }));
+  console.log(JSON.stringify({ frames: out.frames, size: out.size, pairs: Object.keys(out.lookup), plain: out.plain }));
 } finally {
   await b.close();
 }

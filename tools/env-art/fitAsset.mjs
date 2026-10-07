@@ -1,10 +1,12 @@
 // Fit a generated environment image (e.g. a PixelLab result) onto its 2x target canvas:
 // trims the transparent margin, scales the content to fit the target (never wider than the
 // footprint-based canvas), and anchors it bottom-centre so its base sits on the footprint edge.
-//   node tools/env-art/fitAsset.mjs <source url or file> <out.png> <width> <height> [--fill-width] [--pad-bottom N] [--largest]
+//   node tools/env-art/fitAsset.mjs <source url or file> <out.png> <width> <height> [--fill-width] [--pad-bottom N] [--largest] [--fill-holes]
 // --fill-width: scale the content to the full target width (buildings covering their footprint).
 // --pad-bottom: leave N transparent px under the content (baked shadow room).
 // --largest: keep only the largest connected opaque blob (drops stray specks a generation left on the canvas).
+// --fill-holes: make transparent pixels enclosed by the silhouette opaque again (background removal that
+//   knocked out light highlights inside the art), coloured from their opaque neighbours.
 import { readFileSync, writeFileSync } from 'node:fs';
 import { Browser } from '../../tests/browser/cdp.mjs';
 
@@ -15,6 +17,7 @@ const fillWidth = flags.includes('--fill-width');
 const padIndex = flags.indexOf('--pad-bottom');
 const padBottom = padIndex >= 0 ? Number(flags[padIndex + 1]) : 0;
 const largest = flags.includes('--largest');
+const fillHoles = flags.includes('--fill-holes');
 
 const dataUrl = /^https?:/.test(src) ? null : `data:image/png;base64,${readFileSync(src).toString('base64')}`;
 const imageUrl = dataUrl ?? src;
@@ -48,6 +51,36 @@ try {
         n++;
       }
       for (let i = 0; i < W * H; i++) if (label[i] !== best) data[i * 4 + 3] = 0;
+      g.putImageData(id, 0, 0);
+    }
+    if (${fillHoles}) {
+      const W = img.width, H = img.height, outside = new Uint8Array(W * H), stack = [];
+      const solid = (i) => data[i * 4 + 3] > 8;
+      for (let x = 0; x < W; x++) { stack.push(x, (H - 1) * W + x); }
+      for (let y = 0; y < H; y++) { stack.push(y * W, y * W + W - 1); }
+      while (stack.length) {
+        const i = stack.pop();
+        if (outside[i] || solid(i)) continue;
+        outside[i] = 1;
+        const x = i % W, y = (i / W) | 0;
+        if (x > 0) stack.push(i - 1); if (x < W - 1) stack.push(i + 1); if (y > 0) stack.push(i - W); if (y < H - 1) stack.push(i + W);
+      }
+      let holes = [];
+      for (let i = 0; i < W * H; i++) if (!outside[i] && !solid(i)) holes.push(i);
+      // Grow inward from opaque neighbours until every hole has a colour.
+      while (holes.length) {
+        const next = [], fills = [];
+        for (const i of holes) {
+          const x = i % W, y = (i / W) | 0; let r = 0, gg = 0, b = 0, n = 0;
+          for (const j of [x > 0 ? i - 1 : -1, x < W - 1 ? i + 1 : -1, y > 0 ? i - W : -1, y < H - 1 ? i + W : -1]) {
+            if (j >= 0 && solid(j)) { r += data[j * 4]; gg += data[j * 4 + 1]; b += data[j * 4 + 2]; n++; }
+          }
+          if (n) fills.push([i, r / n, gg / n, b / n]); else next.push(i);
+        }
+        if (!fills.length) break;
+        for (const [i, r, gg, b] of fills) { data[i * 4] = r; data[i * 4 + 1] = gg; data[i * 4 + 2] = b; data[i * 4 + 3] = 255; }
+        holes = next;
+      }
       g.putImageData(id, 0, 0);
     }
     let x0 = img.width, y0 = img.height, x1 = -1, y1 = -1;
