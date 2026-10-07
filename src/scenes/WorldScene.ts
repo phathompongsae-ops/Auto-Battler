@@ -4,7 +4,7 @@ import { presentationFor } from '../data/demoConfig';
 import { STARTING_JOB } from '../data/jobData';
 import { DEFAULT_MAP_ID, MAPS, mapSize, portalCenter, PROP_KINDS, type MapDef, type TileRect } from '../data/maps';
 import { INTERNAL_DEMO_QUESTS, QUESTS } from '../data/questData';
-import { MONSTERS } from '../data/monsterData';
+import type { MonsterDef } from '../data/monsterData';
 import { DebugPanel } from '../debug/DebugPanel';
 import { createDevApi } from '../debug/devApi';
 import { Monster } from '../entities/Monster';
@@ -375,8 +375,8 @@ export class WorldScene extends Phaser.Scene implements WorldMapView {
     }
   }
 
-  createMonster(spawn: MonsterSpawn): Monster {
-    const monster = new Monster(this, spawn.id, MONSTERS[spawn.monsterId], spawn.x, spawn.y);
+  createMonster(spawn: MonsterSpawn, def: MonsterDef): Monster {
+    const monster = new Monster(this, spawn.id, def, spawn.x, spawn.y);
     monster.on(Phaser.Input.Events.GAMEOBJECT_POINTER_DOWN, () => this.world.targeting.select(monster));
     this.monsterGroup.add(monster);
     return monster;

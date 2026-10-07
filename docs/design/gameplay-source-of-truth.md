@@ -138,6 +138,55 @@ rule (needs a target; instant reposition).
   return to Town through either exit portal.
   Tests: `tests/unit/storyCrypt.test.ts`, `tests/browser/questFlow.test.mjs` (QF-6, QF-7).
 
+### IMPLEMENTED: Story / Tutorial combat profile (Lv3–5)
+
+Story visits and Lv20 repeat runs share the map but **not** the monster
+numbers. The repeat (base) data in `src/data/monsterData.ts` is unchanged.
+
+- **Selection** (`src/dungeon/encounterProfile.ts`, chosen in
+  `CombatWorld.enterMap` before monsters spawn): `story` when the map has a
+  Story profile **and** the Lv20 Dungeon feature is neither unlocked nor
+  already earned; otherwise `standard` (base data). A run is only issued with
+  the feature unlocked, and `startRunOnEntry` also refuses during a Story
+  visit, so a Story clear never issues, claims or spends a run.
+- **Data** (`src/data/storyEncounters.ts`): per-monster level / HP / ATK / DEF
+  (MDEF follows DEF), an optional Story signature attack, and a respawn delay.
+  Story mobs stay down for the visit (30 min), so a cleared section stays
+  cleared after a death; leaving and re-entering respawns everything.
+- **Story signature attacks** (`src/data/skillData.ts`): `crypt_slam_story`
+  and `crypt_cleave_story` keep the exact telegraph (wind-up, radius / reach,
+  cooldown) of `crypt_slam` / `boar_gore` with multipliers sized for Story ATK.
+
+| Monster | Story (Lv3–5) | Lv20 repeat (unchanged) |
+| --- | --- | --- |
+| Crypt Skeleton | Lv4, 110 HP, ATK 10, DEF 4 | Lv20, 140 HP, ATK 14, DEF 6, respawn 5 s |
+| Crypt Knight (Elite) | Lv5, 550 HP, ATK 12, DEF 7, Cleave ×6.5 (0.8 s wind-up, step out of reach) | Lv20, 700 HP, ATK 20, DEF 12, Gore ×2.4, respawn 15 s |
+| Crypt Lord (Boss) | Lv6, 2,800 HP, ATK 9, DEF 8, Grave Slam ×8 (1.1 s wind-up, 84 px), Enrage <35% (+40% ATK) | Lv20, 3,000 HP, ATK 26, DEF 16, Grave Slam ×2.2, Enrage <35%, respawn 120 s |
+
+Reference player: Lv3–5 Novice, no gear (all early drops are equipment
+level 10), 2–4 free points split STR / VIT, demo kit (Power Slash, Fire
+Bolt, Guard); 425–525 HP; **no HP recovery in the Crypt** (no regen, no
+potions yet, dungeon kills give no EXP), death respawns at the entrance with
+full HP/MP.
+
+Measured with the real combat systems (`tests/unit/storyEncounter.test.ts`,
+20 seeds; player steps out of 3 of 4 telegraphs):
+
+- 3 Skeletons: always won, ~3 s, ~8–10% HP lost.
+- Knight + guard Skeleton: always won, ~7 s, ~17% HP lost; a Cleave that
+  lands is ~13% of a Lv3 bar.
+- Crypt Lord at Lv3 from full HP: ~100% won, ~36 s, ~6 Slams, ~40% HP left;
+  ignoring every Slam: ~10% won; arriving with 60% HP: ~50% won; its basic
+  attacks alone never outpace a player who keeps attacking. Slam that lands:
+  ~14% (enraged ~20%) of a Lv3 bar.
+- The Lv20 Crypt Lord against the same player: never won.
+
+Estimated Story Crypt duration for a new player: **about 4–7 minutes**
+(walking ~1–2 min, combat ~1.5 min, about one boss retry including the walk
+back). The locked 12–15 min target needs the Dungeon 1 run content below
+(teaching section, checkpoints); stat tuning alone cannot reach it on the
+current layout.
+
 ### What the Lv20 Dungeon feature controls (as implemented)
 
 Feature `dungeon` (`requiredLevel: 20`, `src/data/featureData.ts`):
@@ -146,6 +195,7 @@ Feature `dungeon` (`requiredLevel: 20`, `src/data/featureData.ts`):
 | --- | --- | --- |
 | Story Crypt entry (portal / Auto Move / warp) | **No**. Lv3 + quest rule only | `dungeonAccess.ts` |
 | Walking inside the Crypt, fighting mobs / Elite / Crypt Lord | **No** | map spawns, `cryptMap.ts` |
+| Which monster numbers spawn (Story profile vs Lv20 base) | **Yes**: Story while locked, base once unlocked | `dungeon/encounterProfile.ts` |
 | `mvp_03_crypt` progress, completion, turn-in rewards | **No** | `QuestSystem` (kill signal has no run/feature check) |
 | Story / first-clear rewards (= `mvp_03_crypt` rewards) | **No** | `src/data/quests/mainQuests.ts` |
 | Issuing a dungeon run on entry (`startRunOnEntry`) | **Yes**: no run below Lv20 | `CombatWorld.startRunOnEntry` |
@@ -321,7 +371,7 @@ milestone; nothing here may be "fixed" by inventing numbers.
 
 | # | Conflict | Status |
 | --- | --- | --- |
-| C-1 | **Story Crypt is tuned as Lv20 content.** Crypt mobs, the Crypt Knight and the Crypt Lord are level 20 (`crypt_lord`: 3,000 HP, ATK 26, DEF 16; `src/data/monsterData.ts`) and damage has no level term. Estimated solo Novice at Lv3 (all stat points spent, basic attacks only, no gear, no potions): about 46-52 s to kill the boss vs about 23-27 s survival against its basic attack alone (slam, enrage, adds ignored). The Lv3 loop is **mechanically open but not realistically winnable solo**. | **Open.** Needs a story-tier tuning decision (e.g. Story Crypt stat profile or a story difficulty) and the 12-15 min target. Monster balance left unchanged per audit rules. |
+| C-1 | **Story Crypt is tuned as Lv20 content.** Crypt mobs, the Crypt Knight and the Crypt Lord are level 20 (`crypt_lord`: 3,000 HP, ATK 26, DEF 16; `src/data/monsterData.ts`) and damage has no level term. Estimated solo Novice at Lv3 (all stat points spent, basic attacks only, no gear, no potions): about 46-52 s to kill the boss vs about 23-27 s survival against its basic attack alone (slam, enrage, adds ignored). The Lv3 loop is **mechanically open but not realistically winnable solo**. | **Resolved (stats)** by the Story profile (section 4); the Lv20 data is unchanged. The 12-15 min length is still open (Dungeon 1 run milestone). |
 | C-2 | No checkpoint / wipe system: after dying in the Crypt the player respawns at the Crypt entrance spawn with full HP/MP (`CombatantState.reset`), not HP 100% / MP 50% at a checkpoint; there is no wipe limit. The boss already resets when it loses its target (`MonsterBrain.returnHome`: HP refilled, enrage removed), which matches "boss resets fully". | Open: part of the Dungeon 1 run milestone. |
 | C-3 | Skill loadout is derived (learned actives in tree order fill 5 slots). A Warrior can learn up to 8 actives; the 6th onward is silently unslotted; a new skill can shift existing slots; no manual arrangement. | Open: skill-assignment milestone (needs a persisted loadout). |
 | C-4 | Basic Dodge and potions do not exist (reserved HUD sockets only). | Open: Demo V1 combat-basics milestone. |
@@ -331,6 +381,8 @@ milestone; nothing here may be "fixed" by inventing numbers.
 | C-8 | Single-character world (see section 9). Party and AI members are impossible without per-character ownership of inventory / wallet / quests and multi-target aggro. | Open: plan before any party work. |
 | C-9 | Daily pool lists `daily_dungeon_adventurer` with `minLevel: 1`, while Dailies unlock at Lv16 and dungeon clears need the Lv20 run, so a Lv16-19 player can roll a Daily they cannot complete. | Open (not part of the Story loop); fix with a data `minLevel` once confirmed. |
 | C-10 | The Captain's Dungeon Gate note mentions only the Lv20 run, not the Lv3 + Meadow entry rule (the gate itself explains refusals). | Minor copy, open. |
+| C-11 | The boss room is larger than the Crypt Lord's leash: its far corners are ~430 px from the throne (leash 380), so kiting into a corner makes the boss walk home and refill (both profiles). | Open: Dungeon 1 run milestone (leash vs room size). |
+| C-12 | The Crypt Knight's aggro (170 px) reaches into the boss room's south doorway. In a Story run it is already dead (30 min respawn); in a Lv20 run it respawns after 15 s and a boss fight pulled into the doorway can add it. | Open, minor (repeat-run encounter layout). |
 
 ### Fixed in the alignment pass
 
@@ -338,3 +390,11 @@ milestone; nothing here may be "fixed" by inventing numbers.
   gates only runs, run rewards, `dungeon_clear` objectives and the Dungeon
   menu. Added `tests/unit/storyCrypt.test.ts` so the story loop stays
   independent of the Lv20 feature.
+
+### Story Crypt Lv3–5 balance pass
+
+- C-1 (stats): Story profile added (`src/data/storyEncounters.ts`,
+  `src/dungeon/encounterProfile.ts`, two Story signature attacks). Tests:
+  `tests/unit/storyEncounter.test.ts`, `tests/browser/storyCrypt.test.mjs`
+  (a real Lv3 fight against the Story Crypt Lord, no HP set by hand),
+  `tests/browser/combatSlice.test.mjs` CS-8 (Lv20 entry uses base data).

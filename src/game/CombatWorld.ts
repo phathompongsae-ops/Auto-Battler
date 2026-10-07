@@ -11,7 +11,7 @@ import type { Point } from '../core/math';
 import { distance } from '../core/math';
 import { defaultRng, type Rng } from '../core/rng';
 import type { ItemId } from '../data/itemData';
-import { MONSTER_SEPARATION_STRENGTH } from '../data/monsterData';
+import { MONSTER_SEPARATION_STRENGTH, MONSTERS, type MonsterDef } from '../data/monsterData';
 import { DemoTestMode } from '../data/demoTestMode';
 import { PLAYER_RESPAWN_DELAY, TARGETING } from '../data/playerData';
 import type { Monster } from '../entities/Monster';
@@ -25,6 +25,7 @@ import { FieldEnergy, type RewardZone } from '../energy/fieldEnergy';
 import { DailyState } from '../daily/DailyState';
 import { DungeonEntitlements } from '../dungeon/entitlements';
 import { claimDungeonClear, type DungeonClaimResult } from '../dungeon/claim';
+import { profiledMonsterDef, selectEncounterProfile, type EncounterProfileId } from '../dungeon/encounterProfile';
 import type { DifficultyId } from '../data/dungeonDifficulty';
 import { SpecialShop } from '../pets/specialShop';
 import { RewardLedger, type DungeonRun } from '../dungeon/rewards';
@@ -75,8 +76,8 @@ const ENRAGE_MS = 10 * 60 * 1000;
 export interface WorldMapView {
   /** Tear down the previous map's tiles, collision and visuals; build `map`'s. */
   build(map: MapDef): void;
-  /** A monster entity for one spawn (not yet registered with the world). */
-  createMonster(spawn: MonsterSpawn): Monster;
+  /** A monster entity for one spawn, built from `def` (its encounter profile applied; not yet registered with the world). */
+  createMonster(spawn: MonsterSpawn, def: MonsterDef): Monster;
   /** The player was placed on the new map (camera snap, HUD...). */
   entered(map: MapDef): void;
 }
@@ -123,6 +124,12 @@ export class CombatWorld implements MonsterWorld {
   }
   /** The dungeon run in progress, if any (issued by enterDungeon; never saved). */
   dungeonRun: DungeonRun | null = null;
+  /**
+   * Combat profile of the loaded map's monsters, chosen on entering it
+   * (dungeon/encounterProfile): 'story' while the Lv20 Dungeon feature is
+   * locked (the Story Crypt; never with a run), otherwise 'standard'.
+   */
+  encounterProfile: EncounterProfileId = 'standard';
   readonly specialShop = new SpecialShop(this.clock);
   /** Issues dungeon runs; each run's reward is claimed at most once (bounded history). */
   readonly rewardLedger = new RewardLedger();
@@ -215,7 +222,7 @@ export class CombatWorld implements MonsterWorld {
     this.maps = new MapSession<Monster>({
       build: (map) => view.build(map),
       spawn: (spawn) => {
-        const monster = view.createMonster(spawn);
+        const monster = view.createMonster(spawn, profiledMonsterDef(MONSTERS[spawn.monsterId], this.maps.map.id, this.encounterProfile));
         this.addMonster(monster);
         return monster;
       },
@@ -357,6 +364,9 @@ export class CombatWorld implements MonsterWorld {
     this.projectiles.clear();
     this.skills.clear();
     this.targeting.select(null);
+    // Past the Story stage once the Dungeon feature is unlocked or already earned (older saves restore it after loading the map).
+    const dungeonFeatureUnlocked = this.featureProgression.check('dungeon').ok || this.featureProgression.conditionsMet('dungeon');
+    this.encounterProfile = selectEncounterProfile(mapId, { dungeonFeatureUnlocked });
     const map = this.maps.enter(mapId);
     if (from?.type === 'dungeon' && map.type !== 'dungeon') this.leaveDungeon();
     const spot = at ?? map.spawnPoint;
@@ -626,7 +636,8 @@ export class CombatWorld implements MonsterWorld {
    * the dungeon is still walkable, and nothing is ever rewarded there.
    */
   private startRunOnEntry(): void {
-    if (this.dungeonRun || !this.featureProgression.check('dungeon').ok) return;
+    // A Story visit never issues (or spends) a run.
+    if (this.dungeonRun || this.encounterProfile === 'story' || !this.featureProgression.check('dungeon').ok) return;
     const dungeonId = Object.values(DUNGEON_WARPS).find((d) => d.entranceMapId === this.location.mapId)?.id;
     if (dungeonId) this.actions.enterDungeon(dungeonId, 'normal');
   }

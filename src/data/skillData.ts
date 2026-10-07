@@ -237,6 +237,33 @@ const SKILL_DEFS = {
     heavy: true,
     color: 0xe08af7,
   },
+  // Story Crypt profile (data/storyEncounters.ts): the same telegraphs as the Lv20
+  // signatures, with multipliers sized for Story-level ATK so a hit still costs a
+  // real share of a Lv3–5 HP bar. The Lv20 versions above are untouched.
+  crypt_cleave_story: {
+    id: 'crypt_cleave_story',
+    name: 'Cleave',
+    mpCost: 0,
+    cooldown: 6000,
+    range: 30,
+    target: 'enemy',
+    effect: { kind: 'damage', power: 6.5, damageType: 'physical' },
+    windup: { ms: 800, recheckRange: true },
+    heavy: true,
+    color: 0xc9d1e3,
+  },
+  crypt_slam_story: {
+    id: 'crypt_slam_story',
+    name: 'Grave Slam',
+    mpCost: 0,
+    cooldown: 6500,
+    range: 60,
+    target: 'enemy',
+    effect: { kind: 'aoe_damage', power: 8, damageType: 'physical', radius: 84 },
+    windup: { ms: 1100 },
+    heavy: true,
+    color: 0xe08af7,
+  },
 } satisfies Record<string, SkillDef>;
 
 export type SkillId = keyof typeof SKILL_DEFS;

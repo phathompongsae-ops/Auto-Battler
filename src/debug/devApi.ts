@@ -140,6 +140,10 @@ export function createDevApi(world: CombatWorld, overlays: WorldOverlays) {
         spawnY: m.spawnY,
         hp: m.combat.hp,
         maxHp: m.combat.stats.maxHp,
+        level: m.combat.level,
+        attack: m.combat.stats.attack,
+        defense: m.combat.stats.defense,
+        special: m.def.specialSkill ?? null,
         dead: m.combat.dead,
         state: m.brain.state as MonsterAiState,
         visible: m.visible,
@@ -475,6 +479,8 @@ export function createDevApi(world: CombatWorld, overlays: WorldOverlays) {
     },
     /** Today's Full Reward / ticket / Assist state, plus the run counter. */
     dungeonStatus: () => ({ ...world.dungeonEntitlements.status(), serverDay: world.serverDay.day(), nextRun: world.rewardLedger.nextSeq, inRun: world.dungeonRun?.runId ?? null }),
+    /** Combat profile of the loaded map's monsters (dungeon/encounterProfile): story | standard. */
+    encounterProfile: () => world.encounterProfile,
     resetDungeonDaily: () => world.dungeonEntitlements.resetToday(),
     grantDungeonTicket: (amount = 1) => world.inventory.add('additional_dungeon_ticket', amount),
 
