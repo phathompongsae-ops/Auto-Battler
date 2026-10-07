@@ -6,6 +6,7 @@ import type { VirtualActionSource } from '../../input/VirtualActionSource';
 import { SkillSlot, type SlotContent } from '../components/Slot';
 import { h, onPress } from '../dom';
 import { ACTION_CLUSTER, ACTION_SLOTS, type ActionSlotDef } from '../data/actionBar';
+import type { IconName } from '../icons';
 
 /** Which skill an input action fires for the player right now (skill tree or demo kit). */
 function skillForAction(world: CombatWorld, action: Action): SkillId | null {
@@ -21,7 +22,11 @@ function skillContent(skillId: SkillId): SlotContent {
   const abbr = skillId === PLAYER_BASIC_ATTACK ? 'ATK' : skill.name.split(/\s+/).map((w) => w[0]).join('').slice(0, 2);
   // White reads as "no colour" on a light disc; basic attack gets the gold accent.
   const color = skill.color !== undefined && skill.color !== 0xffffff ? hex(skill.color) : '#a8823a';
-  return { abbr, color, title: skill.name };
+  const glyph: IconName = skillId === PLAYER_BASIC_ATTACK ? 'sword'
+    : /guard|shield|provoke/.test(skillId) ? 'shield'
+    : /fire/.test(skillId) ? 'flame' : /heal/.test(skillId) ? 'heal'
+    : /arrow|shot/.test(skillId) ? 'bow' : /whirl|berserk/.test(skillId) ? 'whirl' : 'slash';
+  return { abbr, color, title: skill.name, glyph };
 }
 
 interface LiveSlot {
@@ -33,8 +38,8 @@ interface LiveSlot {
 }
 
 /**
- * Bottom-right cluster: large Basic Attack, five skill slots, potion / dodge /
- * special. Buttons press the same input Actions as the keyboard.
+ * Bottom-right: ATK plus four core skills, with skill 5 and utility positions
+ * outside the ring. Buttons use the existing keyboard Actions.
  */
 export class ActionCluster {
   readonly el: HTMLDivElement;
@@ -60,12 +65,22 @@ export class ActionCluster {
       const content: SlotContent | null = skillId
         ? skillContent(skillId)
         : binding.kind === 'reserved' && binding.abbr
-          ? { abbr: binding.abbr, color: binding.color, title: binding.label }
+          ? { abbr: binding.abbr, color: binding.color, title: binding.label, glyph: ({ special: 'skills', potion: 'potion', dodge: 'dodge', auto: 'auto', pet: 'pet' } as Record<string, IconName>)[def.id] }
           : null;
       const slot = new SkillSlot({ kind: 'action', size: def.size, keyHint: def.keyHint, content });
       slot.el.dataset.slot = def.id;
-      slot.el.style.left = `calc(${def.x}px * var(--ui-scale))`;
-      slot.el.style.top = `calc(${def.y}px * var(--ui-scale))`;
+      slot.el.dataset.group = def.group;
+      slot.el.append(h('span', { className: 'hud-action__label', text: def.id === 'attack' ? 'ATK' : def.id.startsWith('skill') ? `Skill ${def.id.slice(5)}` : def.id === 'pet' ? 'Pet' : def.id[0].toUpperCase() + def.id.slice(1) }));
+      // Wide and compact positions; the stylesheet's compact media query switches --ax-now / --ay-now.
+      const compact = def.compact === undefined ? { x: def.x, y: def.y } : def.compact;
+      slot.el.style.setProperty('--ax', `${def.x}px`);
+      slot.el.style.setProperty('--ay', `${def.y}px`);
+      if (compact) {
+        slot.el.style.setProperty('--ax-c', `${compact.x}px`);
+        slot.el.style.setProperty('--ay-c', `${compact.y}px`);
+      } else slot.el.dataset.compact = 'hidden';
+      slot.el.style.left = 'calc(var(--ax-now, var(--ax)) * var(--ui-scale))';
+      slot.el.style.top = 'calc(var(--ay-now, var(--ay)) * var(--ui-scale))';
       if (binding.kind === 'action') {
         const action = binding.action;
         this.cleanups.push(onPress(slot.el, () => actions.press(action), () => actions.release(action)));
@@ -74,6 +89,8 @@ export class ActionCluster {
       } else {
         slot.setDisabled(true);
         slot.el.title = binding.label;
+        slot.el.setAttribute('role', 'button');
+        slot.el.setAttribute('aria-label', binding.label);
       }
       this.slots.push({ def, slot, action: binding.kind === 'action' ? binding.action : null, skillId });
       this.el.append(slot.el);

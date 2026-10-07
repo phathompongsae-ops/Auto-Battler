@@ -1,0 +1,9 @@
+{
+  "date": "2026-10-07",
+  "tool": "built-in image_gen.imagegen",
+  "source": "medallion-source.png",
+  "production": "public/assets/ui/haven/medallion.png",
+  "reference": "public/assets/environment/town/buildings/forge.png",
+  "processing": "Alpha trim and Lanczos resize to transparent 256x256. Original source preserved. No Town assets modified.",
+  "prompt": "Create one ORIGINAL production fantasy mobile RPG UI medallion frame, isolated on fully transparent background. The attached game's Town forge is a material and restrained saturation reference only. UI should be cleaner and darker than this nostalgic warm fantasy world. A single circular bronze and dark steel medallion socket, perfectly straight front facing, centered with generous transparent padding, NO perspective. Broad polished antique bronze double rim, simple chased leaf/chevron engraving, four small original angular clasp tips at cardinal directions, tiny rivets at diagonals. Warm gold highlight upper left, restrained soft lower right shade. Rich sculpted metal volumes, clean readable silhouette, restrained ornament, hand-painted stylized MMORPG look, no photorealism, no clutter. Inner circular face matte dark blue-grey steel with subtle engraved radial texture, EMPTY of any symbol, so original game SVG icons can be overlaid. Outer diameter about 82 percent of image width. Keep all ornament within an almost circular footprint to work at 52px and 92px touch button size. No text, letters, logo, weapon, character, gems, multiple objects, mockup or UI screen. No imitation of any existing game assets. Outside the single socket must be transparent alpha. Deliver the one frame only."
+}

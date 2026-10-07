@@ -5,7 +5,7 @@ import { describe, test } from 'node:test';
 import { ENV_BUILDINGS, ENV_DRAW_SCALE, ENV_GROUND_MAP_IDS, ENV_GROUND_TILESET, ENV_GROUND_WANG, ENV_PROP_ART, ENV_SOURCE_SCALE, environmentTextureFiles, GROUND_FRAMES } from '../../src/data/environmentArt';
 import { MAPS, PROP_KINDS, TOWN_MAP_ID } from '../../src/data/maps';
 import { mapCells } from '../../src/world/mapRules';
-import { TOWN_GROUND_WANG, TOWN_GROUND_WANG_FRAMES, TOWN_GROUND_WANG_PLAIN } from '../../src/data/environment/townGroundWang';
+import { TOWN_GROUND_WALL, TOWN_GROUND_WANG, TOWN_GROUND_WANG_FRAMES, TOWN_GROUND_WANG_PLAIN } from '../../src/data/environment/townGroundWang';
 import { groundFamily, groundVisuals, neighbourMask, wallCells, wangGroundVisuals, wangOverlayCells, wangTerrain } from '../../src/world/groundVisuals';
 import { SOLID_TILES, Tile } from '../../src/world/tiles';
 
@@ -126,6 +126,8 @@ describe('corner (Wang) ground on the dual grid (derived, never collision)', () 
     const cols = Math.floor((w - 2 * t.margin + t.spacing) / (t.frameSize + t.spacing));
     const rows = Math.floor((h - 2 * t.margin + t.spacing) / (t.frameSize + t.spacing));
     assert.ok(cols * rows >= TOWN_GROUND_WANG_FRAMES, `${cols}x${rows} for ${TOWN_GROUND_WANG_FRAMES} frames`);
+    assert.ok(TOWN_GROUND_WALL.length > 0, 'production walls have art');
+    for (const frame of TOWN_GROUND_WALL) assert.ok(frame >= 0 && frame < TOWN_GROUND_WANG_FRAMES, 'wall frame fits atlas');
     // Grass, dirt and plaza each pair with cobble (the connector); grass also pairs with dirt (either direction).
     assert.deepEqual(Object.keys(TOWN_GROUND_WANG).map((k) => k.split('|').sort().join('|')).sort(), ['cobble|dirt', 'cobble|grass', 'cobble|plaza', 'dirt|grass']);
     for (const terrain of ['cobble', 'dirt', 'grass', 'plaza']) {

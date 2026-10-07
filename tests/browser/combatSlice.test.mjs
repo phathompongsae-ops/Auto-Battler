@@ -72,7 +72,9 @@ export async function combatSliceSuite(b, t, shot) {
   await b.eval(`debug.setMonsterHp('mushroom-1', 20)`);
   await api(`teleport(${home.spawnX - 520}, ${home.spawnY - 40})`);
   await b.waitFor(`debug.monster('mushroom-1').state === 'return'`, { timeout: 2000, label: 'leash' });
-  const back = await b.waitFor(`debug.monster('mushroom-1').state === 'idle' && debug.monster('mushroom-1')`, { timeout: 8000, label: 'returns home' });
+  // AI's terrain-stuck safety net itself takes 8s of simulation time. Allow
+  // headless frame scheduling and the final state transition beyond that.
+  const back = await b.waitFor(`debug.monster('mushroom-1').state === 'idle' && debug.monster('mushroom-1')`, { timeout: 12000, label: 'returns home' });
   t.check(
     'CS-4. a Field mushroom aggroes, chases, hits the player (HP bar drops), then leashes home and resets to full HP',
     hpBar < 1 && Math.hypot(back.x - back.spawnX, back.y - back.spawnY) < 6 && back.hp === back.maxHp,

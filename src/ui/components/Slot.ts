@@ -1,4 +1,5 @@
 import { h, setText, setVar, toggleClass } from '../dom';
+import { icon, type IconName } from '../icons';
 
 export type SlotSize = 'sm' | 'md' | 'lg';
 export type Rarity = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
@@ -9,6 +10,8 @@ export interface SlotContent {
   color?: string;
   /** Icon image URL; replaces the placeholder disc when set. */
   iconUrl?: string;
+  /** Original vector glyph from the game's shared icon language. */
+  glyph?: IconName;
   title?: string;
 }
 
@@ -40,7 +43,9 @@ abstract class SlotBase {
       return;
     }
     setText(this.icon, content.iconUrl ? '' : content.abbr);
+    if (content.glyph) this.icon.replaceChildren(icon(content.glyph));
     setVar(this.icon, '--slot-color', content.color ?? '#5b6478');
+    setVar(this.el, '--slot-color', content.color ?? '#5b6478');
     this.icon.style.backgroundImage = content.iconUrl ? `url("${content.iconUrl}")` : '';
     if (content.title) this.el.title = content.title;
   }
@@ -80,6 +85,7 @@ export class SkillSlot extends SlotBase {
 
   setDisabled(disabled: boolean): void {
     toggleClass(this.el, 'is-disabled', disabled);
+    this.el.setAttribute('aria-disabled', String(disabled));
   }
 }
 

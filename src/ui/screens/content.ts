@@ -7,6 +7,7 @@ import { renderRecurring } from './recurringView';
 import { renderCraft, renderEnchant, renderEnhancement, renderJobChange, renderWarp } from './systemScreens';
 import type { ScreenId } from '../data/screens';
 import type { QuestProgressSource } from '../hud/QuestTracker';
+import { renderAreaMap, renderHudSettings } from './navigationView';
 
 /*
  * Window bodies per screen. Each is a placeholder built from the shared
@@ -104,8 +105,8 @@ export const SCREEN_CONTENT: Record<ScreenId, ScreenRenderer> = {
   enchant: (_tab, { world }) => renderEnchant(world),
   craft: (_tab, { world }) => renderCraft(world),
   pet: () => emptyState('Your companion, its skills and care.'),
-  map: () => emptyState('The world map with discovered areas.'),
+  map: (_tab, { world }) => renderAreaMap(world),
   party: () => emptyState('Group up with other players.'),
   dungeon: () => emptyState('Dungeon entry, difficulty and rewards.'),
-  settings: () => emptyState('Graphics, audio and control options.'),
+  settings: (tab) => renderHudSettings(tab),
 };

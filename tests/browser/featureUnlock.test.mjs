@@ -18,7 +18,7 @@ export async function featureUnlockSuite(b, t) {
     inventory: !!document.querySelector('[data-window="menu"] [data-screen="inventory"]:not([disabled])'),
     enhancement: document.querySelector('[data-locked-screen="enhancement"]')?.textContent,
     daily: document.querySelector('[data-locked-screen="commissions"]')?.textContent,
-    pet: document.querySelector('[data-locked-screen="pet"]')?.textContent,
+    placeholderCount: document.querySelectorAll('[data-window="menu"] [data-screen="pet"], [data-window="menu"] [data-screen="party"], [data-window="menu"] [data-screen="dungeon"]').length,
     lockedCount: document.querySelectorAll('[data-window="menu"] [data-locked-screen]').length,
   })`);
   await b.press('Escape');
@@ -29,7 +29,7 @@ export async function featureUnlockSuite(b, t) {
   t.check(
     'F-1. a new character has only Equipment; locked menus show their requirement and cannot be opened',
     JSON.stringify(await unlocked()) === '["equipment"]' && menu.inventory && menu.enhancement.includes('Unlocks at Lv15') &&
-      menu.daily.includes('Unlocks at Lv16') && menu.pet.includes('Unlocks at Lv20') && menu.lockedCount === 9 &&
+      menu.daily.includes('Unlocks at Lv16') && menu.placeholderCount === 0 && menu.lockedCount === 7 &&
       !skillsOpened && skillsButton.disabled && skillsButton.title.includes('Change Job to unlock'),
     JSON.stringify({ menu, skillsOpened, skillsButton }),
   );

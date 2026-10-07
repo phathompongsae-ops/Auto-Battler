@@ -19,11 +19,11 @@ export class MenuBar {
   private readonly pinned: { id: ScreenId; button: HTMLButtonElement; title: string }[] = [];
 
   constructor(
-    world: CombatWorld,
+    private readonly world: CombatWorld,
     private readonly windows: WindowManager,
     private readonly quests: QuestProgressSource,
   ) {
-    const buttons = SCREENS.filter((s) => s.pinned).map((s) => {
+    const buttons = SCREENS.filter((s) => s.id === 'map' || s.id === 'settings').map((s) => {
       const button = createButton({
         icon: s.icon,
         iconOnly: true,
@@ -36,11 +36,11 @@ export class MenuBar {
       return button;
     });
     const menu = createButton({ icon: 'menu', iconOnly: true, title: 'Menu', onClick: () => windows.toggle('menu') });
-    menu.dataset.menu = 'menu';
+    menu.dataset.nav = 'more';
     this.badges.set('menu', new Badge(menu));
     this.el = h('div', { className: 'hud-menu', attrs: { 'data-hud': 'menu' } }, [...buttons, menu]);
 
-    const offPicked = world.events.on('lootPicked', () => this.newItems++);
+    const offPicked = world.events.on('itemAcquired', () => this.newItems++);
     const offEquipment = world.events.on('equipmentPicked', () => this.newItems++);
     this.unsubscribe = () => {
       offPicked();
@@ -62,7 +62,7 @@ export class MenuBar {
     }
     this.badges.get('inventory')?.set(this.newItems);
     // Quests live under Menu; a dot there means one is ready to hand in.
-    this.badges.get('menu')?.set(this.quests.progress().some((q) => q.done));
+    this.badges.get('menu')?.set(this.newItems > 0 || this.quests.progress().some((q) => q.done) || Object.values(this.world.quests.defs).some((q) => this.world.quests.status(q.id) === 'completed'));
   }
 
   destroy(): void {

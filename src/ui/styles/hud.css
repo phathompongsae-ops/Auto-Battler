@@ -1,6 +1,6 @@
 /*
  * HUD layout. Five anchored regions around an open centre:
- *   top-left player frame · top-right minimap + menu · left-middle quests
+ *   top-left player frame · top-right minimap + menu + quests
  *   bottom-left joystick · bottom-right action cluster
  */
 
@@ -17,12 +17,12 @@
   gap: var(--ui-space-3);
 }
 .hud__top-left {
-  left: var(--ui-space-4);
-  top: var(--ui-space-4);
+  left: max(var(--ui-space-4), env(safe-area-inset-left));
+  top: max(var(--ui-space-4), env(safe-area-inset-top));
 }
 .hud__top-right {
-  right: var(--ui-space-4);
-  top: var(--ui-space-4);
+  right: max(var(--ui-space-4), env(safe-area-inset-right));
+  top: max(var(--ui-space-4), env(safe-area-inset-top));
   flex-direction: column;
   align-items: flex-end;
 }
@@ -35,8 +35,8 @@
   bottom: 0;
 }
 .hud__bottom-right {
-  right: var(--ui-space-4);
-  bottom: var(--ui-space-4);
+  right: max(var(--ui-space-4), env(safe-area-inset-right));
+  bottom: max(var(--ui-space-4), env(safe-area-inset-bottom));
 }
 
 /* ------------------------------------------------------- player frame */
@@ -396,3 +396,213 @@
   font-weight: 700;
   box-shadow: var(--ui-shadow-sm), 0 0 0 2px var(--ui-gold);
 }
+
+/* Haven HUD style lock: bevelled bronze over leather and blue steel.
+ * Code-native rims stay crisp at every tap size; decorative layers ignore input.
+ */
+.hud-player,
+.hud-target,
+.hud-respawn {
+  background: linear-gradient(135deg, rgba(76, 60, 41, .93), rgba(28, 32, 37, .89) 60%);
+  border: 2px solid #9b8053;
+  border-top-color: #d3bd8b;
+  border-bottom-color: #685039;
+  box-shadow: 0 3px 8px #17171b66, inset 0 0 0 1px #ead7a52b, inset 0 -3px 6px #12192155;
+}
+.hud-player {
+  padding: calc(7px * var(--ui-scale)) calc(12px * var(--ui-scale)) calc(7px * var(--ui-scale)) calc(6px * var(--ui-scale));
+  gap: calc(10px * var(--ui-scale));
+  border-radius: calc(32px * var(--ui-scale)) calc(8px * var(--ui-scale)) calc(8px * var(--ui-scale)) calc(32px * var(--ui-scale));
+}
+.hud-portrait {
+  width: calc(56px * var(--ui-scale));
+  height: calc(56px * var(--ui-scale));
+  border: 3px double #e5c98b;
+  background-color: #2d3940;
+  box-shadow: 0 0 0 2px #624b33, inset 0 0 9px #111b22;
+}
+.hud-portrait__level {
+  color: #f7e5b9;
+  background: linear-gradient(#725e3e, #352e26);
+  border-color: #bf9d62;
+  bottom: calc(-5px * var(--ui-scale));
+}
+.hud-player__info { width: calc(174px * var(--ui-scale)); }
+.hud-player__name .ui-label {
+  font-family: var(--ui-font-display);
+  font-size: calc(14px * var(--ui-scale));
+  letter-spacing: .02em;
+  color: #faedcf;
+}
+.hud-player .ui-bar {
+  border-radius: calc(3px * var(--ui-scale));
+  border-color: #171b20;
+  box-shadow: 0 0 0 1px #9c835f55, inset 0 1px 3px #0c111a;
+}
+.hud-player .ui-bar:not(.ui-bar--thin)::before {
+  content: attr(data-bar);
+  position: absolute;
+  z-index: 1;
+  left: calc(5px * var(--ui-scale));
+  top: 0;
+  font-size: calc(9px * var(--ui-scale));
+  font-weight: 700;
+  color: #fff8e5;
+  text-shadow: 0 1px 2px #151923;
+  text-transform: uppercase;
+}
+.hud-player .ui-bar__text { padding-left: calc(16px * var(--ui-scale)); }
+.hud-player__gold { color: #dcc38d; }
+
+.hud__top-right { gap: calc(7px * var(--ui-scale)); }
+.hud-map-group { display: flex; align-items: flex-start; gap: calc(8px * var(--ui-scale)); }
+.hud-minimap {
+  width: calc(140px * var(--ui-scale));
+  height: calc(112px * var(--ui-scale));
+  padding: calc(5px * var(--ui-scale));
+  border: 3px double #b99e67;
+  border-top-color: #e8d5a3;
+  border-bottom-color: #70583c;
+  border-radius: calc(12px * var(--ui-scale)) calc(3px * var(--ui-scale));
+  background: #29342f;
+  box-shadow: 0 3px 8px #181b2366, inset 0 0 0 2px #40392d;
+}
+.hud-minimap canvas { border-radius: calc(4px * var(--ui-scale)); }
+.hud-minimap__label {
+  left: calc(5px * var(--ui-scale));
+  right: calc(5px * var(--ui-scale));
+  bottom: calc(5px * var(--ui-scale));
+  padding: calc(3px * var(--ui-scale));
+  color: #f7e7be;
+  text-align: center;
+  background: linear-gradient(0deg, #21272eef, #21272e66);
+}
+.hud-minimap::after {
+  content: 'N';
+  position: absolute;
+  right: calc(8px * var(--ui-scale));
+  top: calc(4px * var(--ui-scale));
+  font-family: var(--ui-font-display);
+  font-size: calc(9px * var(--ui-scale));
+  color: #f6df9c;
+  text-shadow: 0 1px 2px #141c24;
+  pointer-events: none;
+}
+.hud-menu { display: grid; grid-template-columns: repeat(2, auto); gap: calc(6px * var(--ui-scale)); }
+.hud-menu .ui-button--icon {
+  border-radius: calc(7px * var(--ui-scale));
+  background: linear-gradient(145deg, #726147, #333735 55%, #23282d);
+  border: 2px solid #9c8055;
+  border-top-color: #cdb98b;
+  box-shadow: inset 0 0 0 1px #e6d4a52b, 0 2px 4px #1c20224d;
+}
+.hud-menu .ui-icon { width: calc(20px * var(--ui-scale)); height: calc(20px * var(--ui-scale)); color: #eed9a5; }
+.hud-menu .ui-button:disabled { opacity: .6; filter: saturate(.3); }
+.hud-quests {
+  width: calc(214px * var(--ui-scale));
+  gap: calc(7px * var(--ui-scale));
+  max-height: calc(140px * var(--ui-scale));
+  padding: calc(7px * var(--ui-scale)) calc(9px * var(--ui-scale));
+  border: 1px solid #a68a555c;
+  border-left: 2px solid #c7a568;
+  border-radius: calc(4px * var(--ui-scale));
+  background: linear-gradient(90deg, #2b2d2edb, #292d31a6);
+  box-shadow: 0 2px 5px #161b222b;
+  backdrop-filter: blur(2px);
+  overflow-y: auto;
+  pointer-events: auto;
+}
+.hud-quests__head { align-items: flex-start; gap: calc(6px * var(--ui-scale)); }
+.hud-quests__head .ui-label {
+  font-size: calc(12px * var(--ui-scale));
+  color: #f0dca4;
+  line-height: 1.3;
+}
+.hud-quests__head .ui-button {
+  flex: none;
+  min-width: var(--ui-hit-min);
+  min-height: var(--ui-hit-min);
+  margin: calc(-3px * var(--ui-scale)) calc(-4px * var(--ui-scale)) 0 0;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+  color: #f5dfaa;
+}
+.hud-quests__hint,
+.hud-quests__objective { font-size: calc(11px * var(--ui-scale)); line-height: 1.45; }
+.hud-quests__hint { color: #dadbd3; font-weight: 500; margin-top: calc(-9px * var(--ui-scale)); padding-right: calc(30px * var(--ui-scale)); }
+.hud-quests__objective.is-next { color: #fff4d9; }
+.hud-quests__quest + .hud-quests__quest { border-top: 1px solid #aa90603b; padding-top: calc(6px * var(--ui-scale)); }
+
+/* Four skill sockets orbit the dominant thumb button. Smaller utility sockets
+ * ride a quieter outer arc around them, outside the combat ring. */
+.hud-actions > .ui-slot {
+  width: calc(52px * var(--ui-scale));
+  height: calc(52px * var(--ui-scale));
+  border: 3px solid #bca16b;
+  border-top-color: #e6d3a0;
+  border-bottom-color: #79603c;
+  background: conic-gradient(from 45deg, #6f756a, #e0c995, #765f3d, #343d43, #bba67a, #6f756a);
+  box-shadow: 0 3px 6px #141c2266, inset 0 0 0 2px #343839;
+}
+.hud-actions > [data-slot='attack'] {
+  width: calc(92px * var(--ui-scale));
+  height: calc(92px * var(--ui-scale));
+  border: 4px solid #c9ad72;
+  border-top-color: #f3deaa;
+  border-bottom-color: #7f6038;
+  box-shadow: 0 3px 9px #17212b88, 0 0 0 1px #564530, inset 0 0 0 2px #f2d79d66;
+}
+.hud-actions .ui-slot__icon {
+  width: 86%; height: 86%;
+  background: radial-gradient(circle at 32% 25%, #ffffff26, transparent 65%), color-mix(in srgb, var(--slot-color) 28%, #25343c);
+  box-shadow: inset 0 2px 3px #f2d9a229, inset 0 -4px 7px #111b2680;
+  border: 1px solid #d4b78566;
+}
+.hud-actions .ui-slot__icon .ui-icon { width: 65%; height: 65%; color: #fae7b7; }
+.hud-actions [data-slot='attack'] .ui-slot__icon { background: radial-gradient(circle at 35% 25%, #aa8750, #695439 60%, #354047); padding-bottom: 18%; }
+.hud-actions [data-slot='attack'] .ui-icon { width: 55%; height: 55%; }
+.hud-actions .ui-slot[data-group='combat']:not(.is-disabled):not([data-cooldown='true']) {
+  box-shadow: 0 2px 6px #101b2577, 0 0 7px #f5dca138, inset 0 0 0 1px #ead9b155;
+}
+.hud-action__label {
+  position: absolute;
+  top: calc(100% + 4px * var(--ui-scale));
+  left: 50%; transform: translateX(-50%);
+  color: #fff0d0;
+  font-size: calc(9px * var(--ui-scale));
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+  text-shadow: 0 1px 2px #16202c, 0 0 3px #16202c;
+  pointer-events: none;
+}
+.hud-actions [data-slot='attack'] .hud-action__label {
+  top: auto; bottom: 15%;
+  font-family: var(--ui-font-display);
+  font-size: calc(17px * var(--ui-scale));
+  letter-spacing: .06em;
+}
+.hud-actions .ui-slot__key { top: calc(-6px * var(--ui-scale)); right: calc(-5px * var(--ui-scale)); bottom: auto; background: #373c3c; border-color: #ae9669; font-size: calc(9px * var(--ui-scale)); }
+.hud-actions [data-slot='attack'] .ui-slot__key { top: auto; right: 16%; bottom: calc(-8px * var(--ui-scale)); }
+.hud-actions .ui-slot__cooldown { inset: 5%; background: conic-gradient(#111c2cd9 calc(var(--cd, 0) * 360deg), transparent 0); }
+.hud-actions .ui-slot__cooldown-text { font-size: calc(19px * var(--ui-scale)); text-shadow: 0 1px 3px #08131c; }
+.hud-actions .ui-slot--empty { border-style: solid; border-color: #85775d; background: radial-gradient(circle, #394347, #252d35); }
+.hud-actions .ui-slot--empty::before { content: '—'; font-size: calc(20px * var(--ui-scale)); color: #9a998c; }
+.hud-actions .is-disabled .ui-slot__icon { filter: grayscale(.9) brightness(.75); }
+.hud-actions .is-disabled { border-color: #81795f; box-shadow: 0 2px 4px #111a2244, inset 0 0 0 1px #aaa08429; }
+.hud-actions > .ui-slot[data-group='utility'] {
+  width: calc(38px * var(--ui-scale)); height: calc(38px * var(--ui-scale));
+  border-width: 2px;
+  border-radius: calc(11px * var(--ui-scale));
+  background: linear-gradient(145deg, #6e6450, #303b3e);
+  border-color: #9b8d6e;
+}
+.hud-actions [data-group='utility'] .ui-slot__icon { border-radius: calc(7px * var(--ui-scale)); }
+.hud-actions [data-group='utility'].is-disabled { opacity: .63; }
+.hud-actions [data-group='utility'] .hud-action__label { font-size: calc(8px * var(--ui-scale)); color: #ece0c4; }
+.hud-actions > .ui-slot:focus-visible { outline: 2px solid #fff0cb; outline-offset: 4px; }
+.ui-root[data-touch='true'] .hud-actions .ui-slot__key { display: none; }
+.hud-interact { background: linear-gradient(#6a583d, #2d373d); border: 2px solid #bba16a; color: #fceac3; }
+.hud-action__label { font-size: max(10px, calc(9px * var(--ui-scale))); }
+.hud-actions [data-group='utility'] .hud-action__label { font-size: max(9px, calc(8px * var(--ui-scale))); }

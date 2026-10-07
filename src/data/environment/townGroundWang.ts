@@ -16,6 +16,6 @@ export const TOWN_GROUND_WANG_PLAIN: Readonly<Record<string, readonly number[]>>
 };
 
 /** Self-tiling wall-top frames for Wall cells (picked by tile position; empty = code-drawn walls). */
-export const TOWN_GROUND_WALL: readonly number[] = [];
+export const TOWN_GROUND_WALL: readonly number[] = [69];
 
-export const TOWN_GROUND_WANG_FRAMES = 69;
+export const TOWN_GROUND_WANG_FRAMES = 70;

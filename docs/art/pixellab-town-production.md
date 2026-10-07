@@ -107,3 +107,16 @@ Remedy for 8202's height: the Enchant Hall, Workshop and Stable sit south of the
 ## Occlusion
 
 A tall prop or building now fades only when its **opaque pixels** cover at least 34% of 15 sample points on the player's body. It uses a coarse 4 px alpha mask per texture, built once. Canopy tips and transparent margins no longer trigger the fade. The fade stays instant (alpha 0.45), as before.
+
+## Codex Town V1 completion — 2026-10-07
+
+The historical wall stopping point above is now completed.
+
+- Original wall-top image generated with the built-in Codex image tool. The committed ground atlas, Forge and Hall of Legends were the primary style inputs. No separate user Town reference was found in the allowed project files. `.codex-remote-attachments/` was not accessed.
+- Final `art-source/environment/town/atlas/wall_0.png`: 64×64 opaque warm limestone capstones. The source was downsampled, with a four-pixel boundary reconciliation strip; opposite edge pixels match exactly. The generated interior and palette are preserved. No PixelLab credits were used.
+- `buildGroundAtlas.mjs <wall-directory> --append-walls` preserves accepted ground pixels/frame indices, packs the wall with the existing 2px extrusion and updates the generated lookup. Wall frame 69; 70 total frames. Re-running replaces the final wall frames rather than duplicating them. Inputs are checked for 64px size, full opacity and matching opposite edges.
+- The Town's visual-only gate thresholds continue the road rather than show placeholder purple squares. Original map tiles, portals, collision, navigation targets, buildings and prop placements are unchanged.
+- Two original transparent 64px lawn decals (`flowers`, `grass_tuft`) replace coarse placeholder marks through the existing prop manifest. Their style inputs were the Town ground, flower bed and cherry tree. These shared prop keys also serve Field lawns; no placement changes were made.
+- Visible static Town environment art now uses 2×/LINEAR. Banner placeholders inside façades remain hidden as before. `?envArt=off` retains the original fallback path.
+- Seven requested Town views are captured by the browser regression suite into `test-results/town-01-overview.png` through `town-07-gate.png`. Review found no obvious wall seams or building/prop alignment regressions. Character/NPC art, optional decoration animation and future variant expansion are separate tracks. Repetitive grass/dirt and identical market awnings remain visible but do not block static V1.
+- Source images and generation prompts are retained in `art-source/environment/town/`.

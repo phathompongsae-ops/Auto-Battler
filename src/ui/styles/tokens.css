@@ -8,16 +8,16 @@
 .ui-root {
   --ui-scale: 1;
 
-  /* Surfaces: dark slate/navy, translucent so the world shows through. */
-  --ui-surface: rgba(17, 24, 39, 0.78);
-  --ui-surface-strong: rgba(14, 20, 33, 0.92);
-  --ui-surface-raised: rgba(35, 46, 68, 0.88);
-  --ui-surface-sunken: rgba(8, 12, 20, 0.6);
+  /* Warm leather and blue steel, matching Haven's stone/wood/metal family. */
+  --ui-surface: rgba(34, 30, 27, 0.83);
+  --ui-surface-strong: rgba(27, 28, 31, 0.95);
+  --ui-surface-raised: rgba(57, 49, 38, 0.92);
+  --ui-surface-sunken: rgba(13, 19, 23, 0.7);
   --ui-scrim: rgba(6, 9, 15, 0.55);
 
   /* Lines */
-  --ui-border: rgba(214, 190, 128, 0.28);
-  --ui-border-strong: rgba(222, 196, 128, 0.6);
+  --ui-border: rgba(178, 146, 91, 0.5);
+  --ui-border-strong: rgba(214, 185, 126, 0.82);
   --ui-border-subtle: rgba(255, 255, 255, 0.08);
 
   /* Text: cream/white, readable on the dark surfaces. */
@@ -27,9 +27,9 @@
   --ui-text-inverse: #1a1408;
 
   /* Accent: soft gold */
-  --ui-gold: #e3c27a;
-  --ui-gold-bright: #f3d898;
-  --ui-gold-deep: #9c7a3a;
+  --ui-gold: #c9ab70;
+  --ui-gold-bright: #efdbac;
+  --ui-gold-deep: #81603a;
 
   /* Resource colours */
   --ui-hp: #e0524a;
@@ -60,7 +60,7 @@
 
   /* Typography */
   --ui-font: 'Nunito', 'Segoe UI', system-ui, -apple-system, Roboto, 'Helvetica Neue', Arial, sans-serif;
-  --ui-font-display: 'Segoe UI Semibold', 'Segoe UI', system-ui, -apple-system, Roboto, sans-serif;
+  --ui-font-display: Georgia, 'Times New Roman', serif;
   --ui-text-xs: calc(10px * var(--ui-scale));
   --ui-text-sm: calc(12px * var(--ui-scale));
   --ui-text-md: calc(14px * var(--ui-scale));
@@ -76,9 +76,9 @@
   --ui-text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
 
   /* Component sizes */
-  --ui-bar-height: calc(10px * var(--ui-scale));
+  --ui-bar-height: calc(12px * var(--ui-scale));
   --ui-slot-size: calc(46px * var(--ui-scale));
-  --ui-slot-size-lg: calc(84px * var(--ui-scale));
+  --ui-slot-size-lg: calc(92px * var(--ui-scale));
   --ui-slot-size-sm: calc(38px * var(--ui-scale));
   --ui-icon-button: calc(34px * var(--ui-scale));
   --ui-hit-min: 40px; /* never shrink touch targets below this */

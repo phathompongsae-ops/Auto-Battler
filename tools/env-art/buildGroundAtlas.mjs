@@ -17,6 +17,57 @@ import { Browser } from '../../tests/browser/cdp.mjs';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const dir = process.argv[2];
+// Finish an existing atlas without the original PixelLab source tilesets:
+// node tools/env-art/buildGroundAtlas.mjs <wall directory> --append-walls
+if (process.argv.includes('--append-walls')) {
+  const pngOut = join(root, 'public/assets/environment/town/ground/town_ground_wang.png');
+  const tsOut = join(root, 'src/data/environment/townGroundWang.ts');
+  const source = readFileSync(tsOut, 'utf8');
+  const oldWalls = source.match(/TOWN_GROUND_WALL: readonly number\[\] = \[([^\]]*)\]/)[1].split(',').map(Number).filter((n) => n > 0);
+  const oldCount = Number(source.match(/TOWN_GROUND_WANG_FRAMES = (\d+)/)[1]);
+  const first = oldWalls.length ? Math.min(...oldWalls) : oldCount;
+  if (oldWalls.length && oldWalls.some((f, i) => f !== first + i || first + oldWalls.length !== oldCount)) throw new Error('Wall frames must be the final contiguous frames');
+  const walls = readdirSync(dir).filter((f) => /^wall_\d+\.png$/.test(f)).sort().map((f) => readFileSync(join(dir, f)).toString('base64'));
+  if (!walls.length) throw new Error('No wall_<n>.png files');
+  const b = await Browser.launch({ port: 9339 });
+  try {
+    await b.goto('about:blank');
+    const out = await b.eval(`(async () => {
+      const load = async (png) => createImageBitmap(await (await fetch('data:image/png;base64,' + png)).blob());
+      const old = await load('${readFileSync(pngOut).toString('base64')}');
+      const walls = ${JSON.stringify(walls)};
+      const T = 64, CELL = 68, COLS = 8, first = ${first};
+      const canvas = document.createElement('canvas');
+      canvas.width = COLS * CELL; canvas.height = Math.ceil((first + walls.length) / COLS) * CELL;
+      const ctx = canvas.getContext('2d');
+      for (let i = 0; i < first; i++) {
+        const x = i % COLS * CELL, y = Math.floor(i / COLS) * CELL;
+        ctx.drawImage(old, x, y, CELL, CELL, x, y, CELL, CELL);
+      }
+      for (let i = 0; i < walls.length; i++) {
+        const bmp = await load(walls[i]);
+        if (bmp.width !== T || bmp.height !== T) throw new Error('Wall input must be exactly 64x64');
+        const f = document.createElement('canvas'); f.width = f.height = T;
+        const g = f.getContext('2d'); g.drawImage(bmp, 0, 0);
+        const data = g.getImageData(0, 0, T, T).data;
+        for (let p = 0; p < data.length; p += 4) if (data[p + 3] !== 255) throw new Error('Wall must be fully opaque');
+        for (let p = 0; p < T; p++) for (let c = 0; c < 4; c++) {
+          if (data[p * 4 + c] !== data[((T - 1) * T + p) * 4 + c] || data[p * T * 4 + c] !== data[(p * T + T - 1) * 4 + c]) throw new Error('Wall opposite edges must match');
+        }
+        const x = (first + i) % COLS * CELL + 2, y = Math.floor((first + i) / COLS) * CELL + 2;
+        // Extrude the edges exactly like the full atlas build (linear filtering).
+        for (let dy = -2; dy < T + 2; dy++) for (let dx = -2; dx < T + 2; dx++) {
+          ctx.drawImage(f, Math.max(0, Math.min(T - 1, dx)), Math.max(0, Math.min(T - 1, dy)), 1, 1, x + dx, y + dy, 1, 1);
+        }
+      }
+      return canvas.toDataURL('image/png');
+    })()`);
+    writeFileSync(pngOut, Buffer.from(out.split(',')[1], 'base64'));
+    writeFileSync(tsOut, source.replace(/TOWN_GROUND_WALL: readonly number\[\] = \[[^\]]*\]/, `TOWN_GROUND_WALL: readonly number[] = [${walls.map((_, i) => first + i).join(', ')}]`).replace(/TOWN_GROUND_WANG_FRAMES = \d+/, `TOWN_GROUND_WANG_FRAMES = ${first + walls.length}`));
+    console.log(JSON.stringify({ preservedGroundFrames: first, wallFrames: walls.map((_, i) => first + i), frames: first + walls.length }));
+  } finally { await b.close(); }
+  process.exit(0);
+}
 const sets = readdirSync(dir)
   .filter((f) => /^ts_[a-z]+_[a-z]+\.json$/.test(f))
   .sort()

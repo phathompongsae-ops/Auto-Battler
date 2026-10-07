@@ -36,6 +36,8 @@ export interface ScreenDef {
   pinned?: boolean;
   /** Feature that must be unlocked to open it (locked: shown disabled with its requirement). */
   feature?: FeatureId;
+  /** False for placeholder screens: omit from the production system grid. */
+  implemented?: boolean;
 }
 
 export const SCREENS: readonly ScreenDef[] = [
@@ -85,22 +87,21 @@ export const SCREENS: readonly ScreenDef[] = [
       { id: 'weekly', label: 'Weekly' },
     ],
   },
-  { id: 'pet', title: 'Pet', icon: 'pet', hotkey: 'KeyP', feature: 'pet' },
+  { id: 'pet', title: 'Pet', icon: 'pet', hotkey: 'KeyP', feature: 'pet', implemented: false },
   { id: 'job', title: 'Job Change', icon: 'character', feature: 'job_change' },
-  { id: 'warp', title: 'Warp', icon: 'map', feature: 'warp' },
-  { id: 'enhancement', title: 'Enhancement', icon: 'inventory', feature: 'enhancement' },
-  { id: 'enchant', title: 'Enchant', icon: 'skills', feature: 'enchant' },
-  { id: 'craft', title: 'Craft', icon: 'inventory', feature: 'crafting' },
-  { id: 'map', title: 'World Map', icon: 'map', hotkey: 'KeyM' },
-  { id: 'party', title: 'Party', icon: 'party', hotkey: 'KeyO' },
-  { id: 'dungeon', title: 'Dungeon', icon: 'dungeon', hotkey: 'KeyU', feature: 'dungeon' },
+  { id: 'warp', title: 'Warp', icon: 'compass', feature: 'warp' },
+  { id: 'enhancement', title: 'Enhancement', icon: 'enhance', feature: 'enhancement' },
+  { id: 'enchant', title: 'Enchant', icon: 'rune', feature: 'enchant' },
+  { id: 'craft', title: 'Craft', icon: 'craft', feature: 'crafting' },
+  { id: 'map', title: 'Area Map', icon: 'map', hotkey: 'KeyM' },
+  { id: 'party', title: 'Party', icon: 'party', hotkey: 'KeyO', implemented: false },
+  { id: 'dungeon', title: 'Dungeon', icon: 'dungeon', hotkey: 'KeyU', feature: 'dungeon', implemented: false },
   {
     id: 'settings',
     title: 'Settings',
     icon: 'settings',
     tabs: [
       { id: 'general', label: 'General' },
-      { id: 'audio', label: 'Audio' },
       { id: 'controls', label: 'Controls' },
     ],
   },

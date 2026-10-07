@@ -181,8 +181,8 @@ export class Browser {
     return this.send('Input.dispatchTouchEvent', { type, touchPoints: type === 'touchEnd' ? [] : [{ x, y, id: 1 }] });
   }
 
-  async screenshot(path) {
-    const r = await this.send('Page.captureScreenshot', { format: 'png' });
+  async screenshot(path, clip) {
+    const r = await this.send('Page.captureScreenshot', { format: 'png', ...(clip ? { clip: { ...clip, scale: 1 } } : {}) });
     writeFileSync(path, Buffer.from(r.data, 'base64'));
   }
 

@@ -3,6 +3,7 @@ import { h } from './dom';
 import './styles/tokens.css';
 import './styles/components.css';
 import './styles/hud.css';
+import './styles/production.css';
 
 /** --ui-scale is the canvas height relative to the design height, kept in this range. */
 const DESIGN_HEIGHT = 540;

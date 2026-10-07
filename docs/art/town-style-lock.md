@@ -1,6 +1,6 @@
 # Environment Art Style Lock — Town (v1)
 
-Status: **specification for validation** (no production art yet).
+Status: **Town static environment V1 implemented; awaiting user visual acceptance**. Production history is in `pixellab-town-production.md`, including the Codex completion pass.
 Scope: Town (`demo_town`) first; every rule is written so Field and Dungeon can reuse it.
 Baseline: HEAD `e88e36f` — typecheck clean, unit 478/478, browser 274/274, build OK.
 
@@ -74,7 +74,7 @@ smoothed, like the characters.**
 - Minimum feature size: 4 art px (2 world px). Anything smaller disappears at
   0.675 screen px per art px.
 
-> Technical validation needed in the next step (see §11): 2× textures with
+> Rendering contract (implemented; see §11): 2× textures with
 > LINEAR filtering for props/buildings (simple: `image.setScale(0.5)`), and
 > for ground tiles a visual-only ground layer (2× tileset, scale 0.5)
 > separate from the existing 32 px collision tilemap (kept, made invisible).
@@ -357,7 +357,7 @@ the Warrior and an NPC):
 
 ---
 
-## 11. Implementation notes for the validation step (not done yet)
+## 11. Implementation contract (implemented)
 
 Needed to put 2× art into the game without breaking contracts:
 1. **Props/buildings:** load PNGs under the existing keys (`prop-<kind>`), set

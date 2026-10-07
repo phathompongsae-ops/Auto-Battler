@@ -265,6 +265,10 @@ export class WorldScene extends Phaser.Scene implements WorldMapView {
     // Under a facade the ground (cobble) shows through its transparent edges, not the code-drawn roof tiles.
     // A visual-only copy: map.tiles and the hidden code-drawn layer stay the collision source.
     const tiles = map.tiles.map((row) => [...row]);
+    // Town gate thresholds continue the road instead of the placeholder's
+    // purple debug squares. This copy affects art only; portals/collision stay
+    // in map.tiles and the original ground layer, with their violet markers.
+    for (const row of tiles) for (let x = 0; x < row.length; x++) if (row[x] === Tile.Portal) row[x] = Tile.Path;
     for (const b of ENV_BUILDINGS) {
       if (b.mapId !== map.id || !this.textures.exists(b.key)) continue;
       const f = b.footprint;

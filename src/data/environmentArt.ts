@@ -39,6 +39,8 @@ export const ENV_PROP_ART: Partial<Record<PropKind, string>> = {
   pet_house: `${DIR}/props/pet_house.png`,
   workbench: `${DIR}/props/workbench.png`,
   gate_arch: `${DIR}/props/gate_arch.png`,
+  flowers: `${DIR}/props/flowers.png`,
+  grass_tuft: `${DIR}/props/grass_tuft.png`,
 };
 
 /**

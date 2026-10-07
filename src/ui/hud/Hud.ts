@@ -11,6 +11,7 @@ import { UiRoot } from '../UiRoot';
 import { ActionCluster } from './ActionCluster';
 import { Joystick } from './Joystick';
 import { MenuBar } from './MenuBar';
+import { SystemStrip } from './SystemStrip';
 import { Minimap } from './Minimap';
 import { PlayerFrame } from './PlayerFrame';
 import { QuestProgressSource, QuestTracker } from './QuestTracker';
@@ -41,6 +42,7 @@ export class Hud {
   private readonly player: PlayerFrame;
   private readonly minimap: Minimap;
   private readonly menu: MenuBar;
+  private readonly systems: SystemStrip;
   private readonly tracker: QuestTracker;
   private readonly joystick: Joystick;
   private readonly actions: ActionCluster;
@@ -60,6 +62,7 @@ export class Hud {
     this.player = new PlayerFrame(world.player, options.art, world.wallet);
     this.minimap = new Minimap(world, scene.cameras.main);
     this.menu = new MenuBar(world, this.windows, this.quests);
+    this.systems = new SystemStrip(world, this.windows);
     this.tracker = new QuestTracker(this.quests);
     this.joystick = new Joystick(options.drag, this.root);
     this.actions = new ActionCluster(world, options.actions);
@@ -79,9 +82,10 @@ export class Hud {
       region('center', [this.respawn.el]),
       region('loot', [this.lootFeed.el]),
       region('interact', [this.interact.el]),
-      region('top-right', [this.minimap.el, this.menu.el, this.questTracker.el]),
+      region('top-right', [h('div', { className: 'hud-map-group' }, [this.menu.el, this.minimap.el]), this.questTracker.el]),
       region('left-middle', options.fixtureQuests ? [this.tracker.el] : []),
       region('bottom-right', [this.actions.el]),
+      region('systems', [this.systems.el]),
     ]);
     // Only buttons and slots take pointer events (see components.css); gaps between
     // them and every panel let clicks and drags through to the game.
@@ -92,6 +96,7 @@ export class Hud {
     this.player.update();
     this.minimap.update(now);
     this.menu.update();
+    this.systems.update();
     this.tracker.update();
     this.joystick.update();
     this.actions.update(now);
@@ -106,6 +111,7 @@ export class Hud {
     this.interact.destroy();
     this.actions.destroy();
     this.menu.destroy();
+    this.systems.destroy();
     this.quests.destroy();
     this.jobSelect.destroy();
     this.windows.destroy();

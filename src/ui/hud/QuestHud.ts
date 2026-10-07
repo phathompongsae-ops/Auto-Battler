@@ -68,10 +68,26 @@ export class InteractPrompt {
 export class QuestTrackerHud {
   readonly el: HTMLDivElement;
   private signature = '';
+  private readonly body: HTMLDivElement;
+  private readonly toggle: HTMLButtonElement;
+  private collapsed = false;
 
   constructor(private readonly world: CombatWorld) {
     this.el = createPanel({ className: 'hud-quests' }, []);
     this.el.dataset.hud = 'quest-tracker';
+    this.body = h('div', { className: 'hud-quests__body', attrs: { id: 'hud-quest-objectives' } });
+    this.toggle = createButton({ label: 'Adventure', icon: 'quest', title: 'Collapse quest tracker', onClick: () => {
+      this.collapsed = !this.collapsed;
+      this.body.hidden = this.collapsed;
+      this.toggle.setAttribute('aria-expanded', String(!this.collapsed));
+      this.toggle.title = this.collapsed ? 'Expand quest tracker' : 'Collapse quest tracker';
+      this.el.dataset.collapsed = String(this.collapsed);
+    } });
+    this.toggle.classList.add('hud-quests__toggle');
+    this.toggle.dataset.action = 'quest-collapse';
+    this.toggle.setAttribute('aria-expanded', 'true');
+    this.toggle.setAttribute('aria-controls', 'hud-quest-objectives');
+    this.el.append(this.toggle, this.body);
   }
 
   /** Quests to show: tracked ones, else the first main quest an NPC is offering, as a hint. */
@@ -90,7 +106,7 @@ export class QuestTrackerHud {
     if (signature === this.signature) return;
     this.signature = signature;
     this.el.hidden = ids.length === 0;
-    this.el.replaceChildren(
+    this.body.replaceChildren(
       ...ids.map((id) => {
         const def = q.defs[id];
         const phase = questPhase(q, id);

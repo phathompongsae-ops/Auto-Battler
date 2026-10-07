@@ -1,4 +1,5 @@
-import { createButton } from '../components/Button';
+import { medallion } from '../components/Medallion';
+import { Badge } from '../components/Badge';
 import { UiWindow } from '../components/Window';
 import { h } from '../dom';
 import { SCREENS, SCREEN_BY_ID, type ScreenId } from '../data/screens';
@@ -11,6 +12,8 @@ export type OpenWindowId = ScreenId | 'menu' | 'dialog';
 export class WindowManager {
   private current: { id: OpenWindowId; window: UiWindow } | null = null;
   private readonly listeners = new Set<(id: OpenWindowId | null) => void>();
+  private readonly menuBadges = new Map<ScreenId, Badge>();
+  private notices = { items: 0, questReady: false };
 
   constructor(
     private readonly host: HTMLElement,
@@ -25,6 +28,13 @@ export class WindowManager {
 
   onChange(listener: (id: OpenWindowId | null) => void): void {
     this.listeners.add(listener);
+  }
+
+  /** Presentation counters, shared with the permanent strip; no saved state. */
+  setNotices(items: number, questReady: boolean): void {
+    this.notices = { items, questReady };
+    this.menuBadges.get('inventory')?.set(items);
+    this.menuBadges.get('quest')?.set(questReady);
   }
 
   toggle(id: ScreenId | 'menu'): void {
@@ -47,7 +57,7 @@ export class WindowManager {
     this.close();
     const window =
       id === 'menu'
-        ? new UiWindow({ id: 'menu', title: 'Menu', render: () => this.renderMenu(), onClose: () => this.closed() })
+        ? new UiWindow({ id: 'menu', title: 'Adventurer’s Crest', render: () => this.renderMenu(), onClose: () => this.closed() })
         : new UiWindow({
             id,
             title: SCREEN_BY_ID[id].title,
@@ -85,6 +95,7 @@ export class WindowManager {
 
   private closed(): void {
     this.current = null;
+    this.menuBadges.clear();
     this.emit();
   }
 
@@ -94,13 +105,20 @@ export class WindowManager {
 
   /** Grid of every screen, for the ones not pinned to the HUD. */
   private renderMenu(): Node {
+    this.menuBadges.clear();
     return h(
       'div',
       { className: 'ui-menu-grid' },
-      SCREENS.map((s) => {
+      SCREENS.filter((s) => s.implemented !== false).map((s) => {
         const reason = this.lockReason(s.id);
-        const button = createButton({ label: s.title, icon: s.icon, title: reason ? `${s.title} — ${reason}` : s.title, onClick: () => this.open(s.id) });
+        const button = medallion(s.title, s.icon, () => this.open(s.id));
+        button.title = reason ? `${s.title} — ${reason}` : s.title;
         button.dataset.screen = s.id;
+        if (s.id === 'inventory' || s.id === 'quest') {
+          const badge = new Badge(button);
+          badge.set(s.id === 'inventory' ? this.notices.items : this.notices.questReady);
+          this.menuBadges.set(s.id, badge);
+        }
         if (!reason) return button;
         // Locked systems stay visible so players can see what is coming.
         button.disabled = true;

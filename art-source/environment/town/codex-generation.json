@@ -1,0 +1,41 @@
+{
+  "date": "2026-10-07",
+  "tool": "built-in image_gen.imagegen",
+  "assets": [
+    {
+      "asset": "wall",
+      "source": "wall-source.png",
+      "final": "atlas/wall_0.png",
+      "references": [
+        "public/assets/environment/town/ground/town_ground_wang.png",
+        "public/assets/environment/town/buildings/forge.png",
+        "public/assets/environment/town/buildings/hall_of_legends.png"
+      ],
+      "transparent": false,
+      "prompt": "Use case: stylized-concept. Asset type: production seamless wall-top texture for a bright fantasy MMORPG Town. The attached images are PRIMARY STYLE REFERENCES ONLY: image 1 is the actual Town's ground atlas, image 2 its Forge, image 3 Hall of Legends. Generate ONE original square texture, exactly 64x64 pixels if supported, filling every pixel. It is the TOP surface of a solid town stone wall on a square axis-aligned grid, viewed directly from above, not a side wall, not a whole wall object. Match the existing PixelLab-produced art exactly in quiet saturation, warm beige limestone/stone colour, outlined broad shapes, and simple three-tone shading. A few medium rectangular worn capstones in staggered courses with soft beige-grey joints. Broad readable shapes that remain clear at 32x32 world pixels. Light on each stone from upper left, subtle cooler muted lower-right bevel shadows, no global lighting gradient. TRULY seamless tile both horizontally and vertically: stone shapes continue across opposite boundaries, same matching edge colours, no outer outline, no border, no framing, no seams or grid around the whole tile. Low contrast, moderate clean detail, no tiny noise, no photoreal texture, no grass, plants, roof, text, UI, marks, logos, transparency or extra images. Do not introduce a different rendering style. Deliver only the flat repeatable stone cap texture, no surrounding scene or sample tiled preview."
+    },
+    {
+      "asset": "flowers",
+      "source": "flowers-source.png",
+      "final": "public/assets/environment/town/props/flowers.png",
+      "references": [
+        "public/assets/environment/town/props/flower_bed.png",
+        "public/assets/environment/town/props/cherry_tree.png",
+        "public/assets/environment/town/ground/town_ground_wang.png"
+      ],
+      "transparent": true,
+      "prompt": "Use case: stylized-concept. Production asset: one tiny flower ground decal for this exact fantasy MMORPG Town. The existing Town PNG images attached are the PRIMARY style anchor. Match their soft modern pixel-art hand-drawn forms, three shading bands, quiet saturation and simplified shapes. Generate exactly ONE isolated small loose patch of 3 low wildflowers (muted golden yellow, cream, pale pink) with a few understated olive green leaves, seen high from above, top-left lighting, gentle cool lower-right shade. Not a planter or flower bed, no container, no stone, no grass background, no ground rectangle, no garden scene. It sits flat on the ground under characters. Broad simple shapes readable when reduced to a 64x64-art-pixel canvas and drawn at 32x32 world pixels. Sparse composition, flowers at most 6 world px high, about 16 world px wide. Leave generous transparent space around the small central patch. Transparent background with real alpha. No black heavy outlines, no white or coloured backdrop, no text or logos. Only this single simple flower patch; no sheet of variants."
+    },
+    {
+      "asset": "grass_tuft",
+      "source": "grass-tuft-source.png",
+      "final": "public/assets/environment/town/props/grass_tuft.png",
+      "references": [
+        "public/assets/environment/town/props/flower_bed.png",
+        "public/assets/environment/town/ground/town_ground_wang.png"
+      ],
+      "transparent": true,
+      "prompt": "Use case: stylized-concept. Production asset: one very small grass ground decal for this exact fantasy MMORPG Town. Match the attached existing Town assets as PRIMARY style reference: clean simplified soft modern pixel art, calm muted olive yellow-green foliage, three simple shading bands. ONE sparse low tuft made from 5 broad curved tapered grass blades in two tiny clusters, high top-down oblique view, light upper-left, very gentle cool lower-right shading. No outer black outlines, no noisy texture, no tall bush, no vegetation patch, no soil base, no stones, no scene, no background rectangle. It is a subtle flat ground decoration, lower contrast than the characters and barely taller than the ground. For a 64x64 art px canvas displayed at 32x32 world px: actual tuft spans only about 14 world px wide and 8 world px high. Plenty of transparent empty space around the tuft. Real alpha transparency, no text, no logos, no sheet of variants. Deliver only the small isolated grass tuft matching the existing art."
+    }
+  ]
+}

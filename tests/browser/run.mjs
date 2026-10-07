@@ -22,8 +22,11 @@ import { envArtSuite } from './envArt.test.mjs';
 import { combatSliceSuite } from './combatSlice.test.mjs';
 import { inventorySuite } from './inventory.test.mjs';
 import { questFlowSuite } from './questFlow.test.mjs';
+import { hudStyleSuite } from './hudStyle.test.mjs';
 
-const PORT = 5199;
+const ENVIRONMENT_REVIEW = process.argv.includes('--environment-review');
+const HUD_REVIEW = process.argv.includes('--hud-review');
+const PORT = ENVIRONMENT_REVIEW ? 5201 : HUD_REVIEW ? 5202 : 5199;
 const URL = `http://127.0.0.1:${PORT}/`;
 const OUT = ensureDir(join(process.cwd(), 'test-results'));
 
@@ -36,8 +39,8 @@ await server.listen();
 const t = new Checks();
 let b;
 try {
-  b = await Browser.launch();
-  const shot = (name) => b.screenshot(join(OUT, `${name}.png`));
+  b = await Browser.launch({ port: ENVIRONMENT_REVIEW ? 9340 : HUD_REVIEW ? 9341 : 9333 });
+  const shot = (name, clip) => b.screenshot(join(OUT, `${name}.png`), clip);
 
   // `__stale` is set on the old page before a reload, so we never mistake it for the new one.
   const boot = async () => {
@@ -58,61 +61,74 @@ try {
       demoQuests.find((q) => q.questId === 'mvp_01_welcome')?.status === 'available' && demoLevel === 11 &&
       (await b.eval(`debug.questProgress('job_c1_01_instructor').status`)) === 'available' &&
       !(await b.eval(`!!document.querySelector('[data-hud="quests"]')`)));
-  await mapSuite(b, t, shot, async () => {
+  if (HUD_REVIEW) {
+    await hudStyleSuite(b, t, shot);
+  } else if (ENVIRONMENT_REVIEW) {
+    await envArtSuite(b, t, shot, URL);
+  } else {
+    await mapSuite(b, t, shot, async () => {
+      await b.eval('window.__stale = true');
+      await b.reload();
+      await boot();
+    });
+    await envArtSuite(b, t, shot, URL);
+    await b.goto(URL);
+    await boot();
+    await hudStyleSuite(b, t, shot);
+    await b.goto(`${URL}?questFixtures=1`);
+    await boot();
+
+    await movementSuite(b, t, shot);
+    t.section('Pointer drag (mouse)');
+    await dragSuite(b, t, 'mouse', (phase, x, y) =>
+      b.mouse({ start: 'mousePressed', move: 'mouseMoved', end: 'mouseReleased' }[phase], x, y),
+    );
+
+    await attackAnimationSuite(b, t, shot);
+    await powerSlashSuite(b, t, shot);
+    await delayedHitSuite(b, t);
+    await progressionSuite(b, t);
+    await equipmentSuite(b, t);
+    await petSuite(b, t);
+    await dungeonRewardSuite(b, t);
+    await questSuite(b, t);
+    await navigationSuite(b, t);
+    await jobChangeSuite(b, t);
+    await warriorSkillSuite(b, t);
+    await recurringSuite(b, t);
+    await featureUnlockSuite(b, t);
+    await combatSliceSuite(b, t, shot);
+    await inventorySuite(b, t, shot);
+    await questFlowSuite(b, t, shot);
+    const artSummary = await classArtSuite(b, t, shot);
+    console.log(`  class art anchors (worst world px): ${JSON.stringify(artSummary)}`);
+    await hudSuite(b, t, shot);
+    await combatSuite(b, t, shot);
+    await combatPerformance(b, t);
+
+    t.section('Touch device');
+    await b.send('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 2 });
+    await b.setViewport({ mobile: true });
     await b.eval('window.__stale = true');
     await b.reload();
     await boot();
-  });
-  await envArtSuite(b, t, shot, URL);
-  await b.goto(`${URL}?questFixtures=1`);
-  await boot();
-
-  await movementSuite(b, t, shot);
-  t.section('Pointer drag (mouse)');
-  await dragSuite(b, t, 'mouse', (phase, x, y) =>
-    b.mouse({ start: 'mousePressed', move: 'mouseMoved', end: 'mouseReleased' }[phase], x, y),
-  );
-
-  await attackAnimationSuite(b, t, shot);
-  await powerSlashSuite(b, t, shot);
-  await delayedHitSuite(b, t);
-  await progressionSuite(b, t);
-  await equipmentSuite(b, t);
-  await petSuite(b, t);
-  await dungeonRewardSuite(b, t);
-  await questSuite(b, t);
-  await navigationSuite(b, t);
-  await jobChangeSuite(b, t);
-  await warriorSkillSuite(b, t);
-  await recurringSuite(b, t);
-  await featureUnlockSuite(b, t);
-  await combatSliceSuite(b, t, shot);
-  await inventorySuite(b, t, shot);
-  await questFlowSuite(b, t, shot);
-  const artSummary = await classArtSuite(b, t, shot);
-  console.log(`  class art anchors (worst world px): ${JSON.stringify(artSummary)}`);
-  await hudSuite(b, t, shot);
-  await combatSuite(b, t, shot);
-  await combatPerformance(b, t);
-
-  t.section('Touch device');
-  await b.send('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 2 });
-  await b.setViewport({ mobile: true });
-  await b.eval('window.__stale = true');
-  await b.reload();
-  await boot();
-  // A fresh page is a new game in Town; the touch suites use the Field test ground (slimes).
-  await b.eval('debug.reset(); debug.setPeaceful(true)');
-  await sleep(300);
-  await dragSuite(b, t, 'touch', (phase, x, y) =>
-    b.touch({ start: 'touchStart', move: 'touchMove', end: 'touchEnd' }[phase], x, y),
-  );
-  await hudTouchSuite(b, t, shot);
-  await floatingJoystickSuite(b, t, shot);
+    // A fresh page is a new game in Town; the touch suites use the Field test ground (slimes).
+    await b.eval('debug.reset(); debug.setPeaceful(true)');
+    await sleep(300);
+    await dragSuite(b, t, 'touch', (phase, x, y) =>
+      b.touch({ start: 'touchStart', move: 'touchMove', end: 'touchEnd' }[phase], x, y),
+    );
+    await hudTouchSuite(b, t, shot);
+    await floatingJoystickSuite(b, t, shot);
+  }
 
   t.section('Console');
   t.check('26. no console errors or exceptions', b.consoleErrors.length === 0, b.consoleErrors.join(' | '));
 } catch (err) {
+  if (b) {
+    console.error('Browser console errors:', b.consoleErrors);
+    await b.screenshot(join(OUT, 'test-failure.png')).catch(() => {});
+  }
   t.check('test run completed without crashing', false, String(err?.stack ?? err));
 } finally {
   await b?.close();
