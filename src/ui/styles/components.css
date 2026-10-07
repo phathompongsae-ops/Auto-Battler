@@ -607,3 +607,7 @@
   flex-direction: column;
   gap: calc(2px * var(--ui-scale));
 }
+
+.hotbar-editor__buttons { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0; }
+.hotbar-editor__buttons button { min-height: 44px; }
+.hotbar-editor__buttons [aria-pressed=true] { outline: 2px solid #f3d898; }

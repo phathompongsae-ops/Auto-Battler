@@ -1,3 +1,4 @@
+import { activeSkills, normalizeHotbar, placeSkill, type Loadout } from './hotbar';
 import type { EventBus } from '../core/EventBus';
 import { DEMO_KIT_LOADOUT, PLAYER_BASIC_ATTACK, SKILL_SLOTS, type SkillSlot } from '../data/playerData';
 import { SKILLS, type SkillDef, type SkillId } from '../data/skillData';
@@ -6,7 +7,7 @@ import type { StatusId } from '../data/statusData';
 import type { FeatureUnlocks } from '../features/FeatureUnlocks';
 import type { GameEvents } from '../game/GameEvents';
 import type { StatOwner } from '../progression/statActions';
-import { checkLearn, learnedActives, nodeForSkill, rankOf, skillAtRank, spentInBranch, treeForJob, type LearnError } from './skillTreeRules';
+import { checkLearn, nodeForSkill, rankOf, skillAtRank, spentInBranch, treeForJob, type LearnError } from './skillTreeRules';
 
 export interface SkillPoints {
   /** From job and level (Class 1: +1 per level Lv11–40). */
@@ -28,7 +29,7 @@ export interface NodeView {
   next: SkillDef | null;
 }
 
-export type Loadout = Record<SkillSlot, SkillId | null>;
+export type { Loadout } from './hotbar';
 
 /**
  * The character's skill tree for its current job: one validated learn path,
@@ -37,12 +38,14 @@ export type Loadout = Record<SkillSlot, SkillId | null>;
  * and the action-bar loadout. Ranks live in CharacterProgress.skillRanks.
  */
 export class SkillTree {
+  private pending: Loadout | null = null;
   constructor(
     private readonly owner: StatOwner,
     private readonly features: FeatureUnlocks,
     private readonly events: EventBus<GameEvents>,
     /** Extra clean-up on reset (proc streaks / internal cooldowns). */
     private readonly onReset: () => void = () => {},
+    private readonly actionLocked: () => boolean = () => false,
   ) {}
 
   tree(): SkillTreeDef | null {
@@ -80,9 +83,15 @@ export class SkillTree {
     const before = this.loadout();
     const rank = this.rank(nodeId) + 1;
     this.owner.progress.skillRanks[nodeId] = rank;
+    const node = this.tree()!.nodes.find(n => n.id === nodeId)!;
+    if (rank === 1 && node.combatSkillId && this.activeSkills().includes(node.combatSkillId)) {
+      const next = { ...(this.pending ?? before) };
+      const empty = SKILL_SLOTS.find(s => next[s] === null);
+      if (empty) { next[empty] = node.combatSkillId; this.request(next); }
+      else this.events.emit('skillUnassigned', { skillId: node.combatSkillId });
+    }
     this.owner.combat.refreshStats(); // passives
     this.events.emit('skillRankChanged', { nodeId, rank, available: this.points().available });
-    this.emitIfLoadoutChanged(before);
     return { ok: true, rank };
   }
 
@@ -109,6 +118,8 @@ export class SkillTree {
       statuses.splice(i, 1);
       this.events.emit('statusExpired', { targetId: this.owner.combat.id, statusId: id });
     }
+    this.pending = null;
+    this.owner.progress.hotbar = normalizeHotbar({}, this.activeSkills());
     this.onReset();
     this.owner.combat.refreshStats();
     this.events.emit('skillTreeReset', { refunded });
@@ -145,16 +156,41 @@ export class SkillTree {
     return node ? skillAtRank(node, this.rank(node.id)) : null;
   }
 
-  /**
-   * Action-bar skills (temporary mapping): learned castable skills in tree
-   * order fill slots 1–5; without a tree, the demo kit.
-   */
-  loadout(): Loadout {
-    const tree = this.tree();
-    if (!tree) return { ...DEMO_KIT_LOADOUT };
-    const learned = learnedActives(tree, this.owner.progress.skillRanks).map((n) => n.combatSkillId!);
-    return Object.fromEntries(SKILL_SLOTS.map((slot, i) => [slot, learned[i] ?? null])) as Loadout;
+  activeSkills(): SkillId[] {
+    return activeSkills(this.owner.progress.classId, this.owner.progress.skillRanks);
   }
+
+  loadout(): Loadout {
+    if (!this.owner.progress.hotbar) this.owner.progress.hotbar = normalizeHotbar(null, this.activeSkills());
+    return this.owner.progress.hotbar;
+  }
+
+  editingLoadout(): Loadout { return this.pending ?? this.loadout(); }
+
+  assign(slot: SkillSlot, id: SkillId | null, swap = true): { ok: boolean; queued?: boolean } {
+    if (!SKILL_SLOTS.includes(slot) || (id !== null && !this.activeSkills().includes(id))) return { ok: false };
+    const before = this.editingLoadout();
+    if (!swap && id && SKILL_SLOTS.some(s => s !== slot && before[s] === id)) return { ok: false };
+    this.request(placeSkill(before, slot, id));
+    return { ok: true, queued: this.pending !== null };
+  }
+
+  private request(next: Loadout): void {
+    if (this.actionLocked()) this.pending = next;
+    else {
+      this.owner.progress.hotbar = next;
+      this.events.emit('skillAvailabilityChanged', { loadout: next });
+    }
+  }
+
+  flushPending(): void {
+    if (!this.pending || this.actionLocked()) return;
+    const next = normalizeHotbar(this.pending, this.activeSkills());
+    this.pending = null;
+    this.request(next);
+  }
+
+  clearPending(): void { this.pending = null; }
 
   private emitIfLoadoutChanged(before: Loadout): void {
     const after = this.loadout();

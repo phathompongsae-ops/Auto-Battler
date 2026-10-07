@@ -355,25 +355,19 @@ Checkpoint progress belongs to the current attempt.
 
 ### IMPLEMENTED + LOCKED
 
-- Cooldown belongs to the **skill**, not the slot
-  (`CombatantState.cooldowns: Map<SkillId, number>`, `src/combat/SkillSystem.ts`).
-- Starter skills are auto-assigned (`DEMO_KIT_LOADOUT`); learned actives fill
-  slots automatically in tree order (`SkillTree.loadout`).
-- Q / E / R / F / G and the mobile cluster buttons are the same five
-  `skill1..skill5` Actions (`src/input/Action.ts`, `src/ui/data/actionBar.ts`).
-- Buffs / procs are statuses on the combatant; the hotbar does not own them
-  (only a tree **reset** clears tree buffs).
-
-### LOCKED, NOT IMPLEMENTED
-
-- A newly learned active fills an **empty** slot (existing slots never move).
-- Player can drag / rearrange learned skills.
-- When learned actives exceed slots, the player chooses the loadout.
-- The loadout can change during combat; the change applies after the current
-  action/animation ends; changing slots never resets a cooldown; unequipping
-  never removes buffs / debuffs / procs.
-- Needs a persisted per-character loadout (save format change; do it once,
-  with migration).
+- Five unique active slots, stable skill ids in `CharacterProgress.hotbar`.
+- Q / E / R / F / G and mobile use the same logical slots.
+- Learning an active fills the first empty slot; a full bar leaves it learned
+  and unassigned with feed feedback. Passives and procs cannot be assigned.
+- Skills window supports click/tap selection and slot placement, swapping,
+  replacement, clearing and drag placement. Edits during an executing action
+  wait until it finishes; they do not cancel it.
+- Cooldowns remain skill-owned; slot edits never touch MP, cooldowns, statuses,
+  buffs or proc internal cooldowns. Only the existing tree reset removes tree buffs.
+- Save v4 adds optional `hotbar`; older records migrate deterministically from
+  the original tree-order layout. Invalid/unlearned/duplicate ids become empty
+  slots without changing ranks. Explicit empty slots persist. No presets.
+- Tests: `hotbar.test.ts`, `hotbar.test.mjs`, existing Warrior/save suites.
 
 ---
 
@@ -490,7 +484,7 @@ milestone; nothing here may be "fixed" by inventing numbers.
 | --- | --- | --- |
 | C-1 | **Story Crypt is tuned as Lv20 content.** Crypt mobs, the Crypt Knight and the Crypt Lord are level 20 (`crypt_lord`: 3,000 HP, ATK 26, DEF 16; `src/data/monsterData.ts`) and damage has no level term. Estimated solo Novice at Lv3 (all stat points spent, basic attacks only, no gear, no potions): about 46-52 s to kill the boss vs about 23-27 s survival against its basic attack alone (slam, enrage, adds ignored). The Lv3 loop is **mechanically open but not realistically winnable solo**. | **Resolved (stats)** by the Story profile (section 4); the Lv20 data is unchanged. The length target (now ~10 min, 8–11) is tracked as C-13. |
 | C-2 | No checkpoint / wipe system. | **Resolved** (structure pass): checkpoints, party-wipe limits, HP 100% / MP 50% retries, failure flow (section 4). |
-| C-3 | Skill loadout is derived (learned actives in tree order fill 5 slots). A Warrior can learn up to 8 actives; the 6th onward is silently unslotted; a new skill can shift existing slots; no manual arrangement. | Open: skill-assignment milestone (needs a persisted loadout). |
+| C-3 | Skill loadout is derived (learned actives in tree order fill 5 slots). A Warrior can learn up to 8 actives; the 6th onward is silently unslotted; a new skill can shift existing slots; no manual arrangement. | **Resolved:** persistent assignment, safe edits, migration and Skills editor (section 5). |
 | C-4 | Basic Dodge and potions do not exist (reserved HUD sockets only). | Open: Demo V1 combat-basics milestone. |
 | C-5 | Warrior Charge requires a target (no input/facing fallback) and repositions instantly (the target cannot step out of the line). | Accepted for Warrior (preserved as is). The general movement rule applies to every **new** movement skill. |
 | C-6 | Guaranteed rewards (quest claim, dungeon claim, crafting) go straight into the bag even past 48 slots instead of a Reward Cache. Satisfies "never lost", but not the Cache design. | Open: inventory/weight + Reward Cache milestone. |

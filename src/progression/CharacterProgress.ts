@@ -1,3 +1,4 @@
+import type { Loadout } from '../skills/hotbar';
 import { FREE_STAT_POINTS_PER_LEVEL, NOVICE_BASE_STATS } from '../data/statData';
 import { isJobId, JOB_CHANGE_LEVEL, JOBS, SKILL_POINT_PROGRESSION, STARTING_JOB, type JobId } from '../data/jobData';
 import { classGrowthMaxLevel } from '../stats/classBaseStats';
@@ -38,6 +39,7 @@ export interface CharacterProgressData {
    * sum; earned points are derived from job and level, so neither is stored.
    */
   skillRanks: Record<string, number>;
+  hotbar: Loadout | null;
 }
 
 /**
@@ -52,8 +54,10 @@ export class CharacterProgress {
   readonly jobBonuses: Partial<Record<JobId, Partial<PrimaryStats>>>;
   /** Learned skill-tree ranks; change them only through the SkillTree service. */
   readonly skillRanks: Record<string, number>;
+  hotbar: Loadout | null;
 
   constructor(data?: Partial<CharacterProgressData>) {
+    this.hotbar = data?.hotbar ? { ...data.hotbar } : null;
     this.classId = data?.classId ?? STARTING_JOB;
     this.base = clonePrimary(data?.base ?? NOVICE_BASE_STATS);
     this.allocated = clonePrimary(data?.allocated ?? zeroPrimary());
@@ -124,6 +128,7 @@ export class CharacterProgress {
     if (!check.ok) return check;
     const id = jobId as JobId;
     this.classId = id;
+    this.hotbar = null;
     const bonus = JOBS[id].jobBonus;
     if (bonus) this.jobBonuses[id] = { ...bonus };
     return { ok: true };
@@ -149,6 +154,7 @@ export class CharacterProgress {
   assign(data: Partial<CharacterProgressData>): void {
     const fresh = new CharacterProgress(data);
     this.classId = fresh.classId;
+    this.hotbar = fresh.hotbar;
     Object.assign(this.base, fresh.base);
     Object.assign(this.allocated, fresh.allocated);
     for (const key of Object.keys(this.jobBonuses)) delete this.jobBonuses[key as JobId];
@@ -164,6 +170,7 @@ export class CharacterProgress {
       allocated: clonePrimary(this.allocated),
       jobBonuses: Object.fromEntries(Object.entries(this.jobBonuses).map(([j, b]) => [j, { ...b }])),
       skillRanks: { ...this.skillRanks },
+      hotbar: this.hotbar ? { ...this.hotbar } : null,
     };
   }
 }

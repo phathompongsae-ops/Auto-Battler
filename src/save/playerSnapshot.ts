@@ -1,3 +1,4 @@
+import { activeSkills, normalizeHotbar } from '../skills/hotbar';
 import type { CombatantState } from '../combat/CombatantState';
 import type { CraftingQueue } from '../crafting/crafting';
 import type { RewardLedger } from '../dungeon/rewards';
@@ -59,6 +60,7 @@ export function capturePlayerSave(t: SaveTarget): PlayerSave {
     unspentStatPoints: t.progress.remaining(level),
     skillPointsSpent: t.progress.skillPointsSpent,
     skillRanks: data.skillRanks,
+    hotbar: normalizeHotbar(data.hotbar, activeSkills(data.classId, data.skillRanks)),
     inventory: t.inventory.entries().map(([itemId, count]) => ({ itemId, count })),
     currencies: t.wallet.toRecord(),
     equipment: structuredClone({ items: [...t.equipment.items.values()], equipped: { ...t.equipment.equipped } }),
@@ -88,6 +90,7 @@ export function applyPlayerSave(t: SaveTarget, save: PlayerSave): void {
     jobBonuses: s.stats.jobBonuses,
     // Passives come from these ranks (derived), so loading can never apply them twice.
     skillRanks: s.skillRanks,
+    hotbar: s.hotbar,
   });
   t.combat.level = s.level;
   t.combat.exp = s.exp;

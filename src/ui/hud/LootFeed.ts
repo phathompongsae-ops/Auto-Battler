@@ -1,5 +1,6 @@
 import { RARITY_INFO, type Rarity } from '../../data/equipmentData';
 import { EQUIPMENT_DEFS } from '../../data/equipmentItems';
+import { SKILLS } from '../../data/skillData';
 import { ITEMS } from '../../data/itemData';
 import type { CombatWorld } from '../../game/CombatWorld';
 import { rewardText } from '../../quests/questText';
@@ -28,6 +29,7 @@ export class LootFeed {
     this.el = h('div', { className: 'hud-loot', attrs: { 'data-hud': 'loot-feed', 'aria-live': 'polite' } });
     const ev = world.events;
     this.unsubscribe.push(
+      ev.on('skillUnassigned', ({ skillId }) => this.push('locked', SKILLS[skillId].name + ' learned. Assign it in Skills; all five slots are occupied.', '#fbe7b8')),
       ev.on('goldGained', ({ amount }) => this.stack('gold', 'gold', amount, (n) => `+${n} Gold`, '#ffd166')),
       ev.on('itemAcquired', ({ itemId, amount, source }) => {
         if (source !== 'loot') return;

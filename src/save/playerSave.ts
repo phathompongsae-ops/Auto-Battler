@@ -1,3 +1,4 @@
+import { activeSkills, normalizeHotbar, type Loadout } from '../skills/hotbar';
 import { RECIPES } from '../data/craftingData';
 import { ENCHANT_LINES, ENCHANT_OPTIONS, ENCHANT_QUALITIES, ENCHANT_QUALITY_WEIGHTS, type EnchantQuality } from '../data/enchantData';
 import { EQUIPMENT_SLOTS, MAX_ENHANCEMENT, type EquipmentSlot } from '../data/equipmentData';
@@ -71,6 +72,8 @@ export interface PlayerSaveV4 {
    * a save without it has learned nothing.
    */
   skillRanks: Record<string, number>;
+  /** Optional in older v4 saves; missing reproduces the old tree-order bar. */
+  hotbar: Loadout;
 
   /** Stackable items (materials, eggs, scrolls...) by stable item id. */
   inventory: { itemId: ItemId; count: number }[];
@@ -148,6 +151,7 @@ export function newPlayerSave(characterId: string): PlayerSave {
     unspentStatPoints: 0,
     skillPointsSpent: 0,
     skillRanks: {},
+    hotbar: normalizeHotbar(null, activeSkills('novice', {})),
     inventory: [],
     currencies: {},
     equipment: { items: [], equipped: emptyEquipped() },
@@ -535,6 +539,7 @@ function validate(raw: unknown): PlayerSave {
     unspentStatPoints: s.unspentStatPoints,
     skillPointsSpent: totalSpent(skillRanks),
     skillRanks,
+    hotbar: normalizeHotbar(s.hotbar, activeSkills(s.classId, skillRanks)),
     inventory,
     currencies: record(s.currencies, 'currencies', (x): x is number => isFiniteNumber(x) && x >= 0),
     equipment: validateEquipment(s.equipment, s.classId),

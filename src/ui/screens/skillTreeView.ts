@@ -1,4 +1,5 @@
-import type { SkillDef } from '../../data/skillData';
+import { SKILLS, type SkillDef, type SkillId } from '../../data/skillData';
+import { SKILL_SLOTS, type SkillSlot } from '../../data/playerData';
 import { STATUSES } from '../../data/statusData';
 import type { SkillNodeDef } from '../../data/skillTreeData';
 import { JOBS } from '../../data/jobData';
@@ -50,6 +51,8 @@ const BLOCKED_TEXT: Record<string, string> = {
 };
 
 export function renderSkillTree(world: CombatWorld): HTMLElement {
+  let selected: SkillId | null | undefined;
+  let feedback = 'Select a learned active skill, then a slot. Equipped skills swap positions.';
   const root = h('div', { className: 'ui-list', attrs: { 'data-skill-tree': 'root' } });
   const render = () => root.replaceChildren(...build());
 
@@ -92,7 +95,7 @@ export function renderSkillTree(world: CombatWorld): HTMLElement {
       reset,
     ]);
 
-    const sections: Node[] = [header];
+    const sections: Node[] = [header, hotbar()];
     for (const branch of tree.branches) {
       const nodes = tree.nodes.filter((n) => n.branch === branch.id);
       const branchSpent = nodes.reduce((sum, n) => sum + st.rank(n.id), 0);
@@ -134,6 +137,48 @@ export function renderSkillTree(world: CombatWorld): HTMLElement {
       }
     }
     return sections;
+  }
+
+  function hotbar(): HTMLElement {
+    const st = world.skillTree;
+    const layout = st.editingLoadout();
+    const place = (slot: SkillSlot, id: SkillId | null) => {
+      const result = st.assign(slot, id);
+      feedback = result.queued ? 'Assignment queued until the current action finishes.' : 'Assignment updated.';
+      selected = undefined;
+      render();
+    };
+    const slots = SKILL_SLOTS.map((slot, i) => {
+      const id = layout[slot];
+      const button = createButton({ label: `${['Q', 'E', 'R', 'F', 'G'][i]}: ${id ? SKILLS[id].name : 'Empty'}`, onClick: () => {
+        if (selected !== undefined) place(slot, selected);
+        else if (id) { selected = id; render(); }
+      } });
+      button.dataset.assignSlot = slot;
+      button.addEventListener('dragover', e => e.preventDefault());
+      button.addEventListener('drop', e => {
+        e.preventDefault();
+        const id = e.dataTransfer?.getData('text/plain') as SkillId;
+        if (st.activeSkills().includes(id)) place(slot, id);
+      });
+      return button;
+    });
+    const learned = st.activeSkills().map(id => {
+      const assigned = SKILL_SLOTS.find(s => layout[s] === id);
+      const button = createButton({ label: `${SKILLS[id].name} (${assigned ? `Slot ${assigned.slice(5)}` : 'unassigned'})`, onClick: () => { selected = id; render(); } });
+      button.dataset.assignSkill = id;
+      button.setAttribute('aria-pressed', String(selected === id));
+      button.draggable = true;
+      button.addEventListener('dragstart', e => e.dataTransfer?.setData('text/plain', id));
+      return button;
+    });
+    return h('section', { attrs: { 'data-hotbar-editor': '', 'aria-label': 'Active skill assignment' } }, [
+      h('div', { className: 'ui-label', text: 'Active slots' }),
+      h('div', { className: 'ui-caption', text: feedback, attrs: { 'aria-live': 'polite' } }),
+      h('div', { className: 'hotbar-editor__buttons' }, slots),
+      h('div', { className: 'hotbar-editor__buttons' }, learned),
+      createButton({ label: 'Clear a slot', onClick: () => { selected = null; feedback = 'Choose the slot to clear.'; render(); } }),
+    ]);
   }
 
   render();

@@ -326,7 +326,7 @@ export class CombatWorld implements MonsterWorld {
     this.jobChange = new JobChange(player, this.quests, this.features, this.events, player.id);
     this.skillProcs = new SkillProcs(player, this.events, this.statuses, () => this.now);
     // A skill reset also forgets proc streaks / internal cooldowns.
-    this.skillTree = new SkillTree(player, this.features, this.events, () => this.skillProcs.reset());
+    this.skillTree = new SkillTree(player, this.features, this.events, () => this.skillProcs.reset(), () => this.skills.windingUp(player) || !!player.action);
     // A new job brings a different tree (or none): the action bar changes with it.
     this.events.on('jobChanged', () => this.events.emit('skillAvailabilityChanged', { loadout: this.skillTree.loadout() }));
     this.events.on('taunted', ({ casterId, targetId }) => {
@@ -470,6 +470,7 @@ export class CombatWorld implements MonsterWorld {
     if (direction && !this.player.combat.dead) this.skills.interruptMovement(this.player);
     this.controller.update(now);
     this.skills.update(now);
+    this.skillTree.flushPending();
 
     for (const monster of this.monsters) {
       monster.brain.update(now, dtMs);
@@ -880,6 +881,7 @@ export class CombatWorld implements MonsterWorld {
   /** Validate and load a serialized save. Throws SaveError and changes nothing if it's invalid. */
   loadPlayer(text: string): void {
     const save = deserializePlayerSave(text);
+    this.skillTree.clearPending();
     const target = this.saveTarget();
     applyPlayerSave(target, save);
     this.characterId = target.characterId;

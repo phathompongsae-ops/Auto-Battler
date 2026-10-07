@@ -27,9 +27,11 @@ import { dungeonStructureSuite } from './dungeonStructure.test.mjs';
 import { combatFeedbackSuite } from './combatFeedback.test.mjs';
 import { storyFeedbackSuite } from './storyFeedback.test.mjs';
 import { hudStyleSuite } from './hudStyle.test.mjs';
+import { hotbarSuite } from './hotbar.test.mjs';
 
 const ENVIRONMENT_REVIEW = process.argv.includes('--environment-review');
 const HUD_REVIEW = process.argv.includes('--hud-review');
+const CORE_REVIEW = process.argv.includes('--core-review');
 const PORT = ENVIRONMENT_REVIEW ? 5201 : HUD_REVIEW ? 5202 : 5199;
 const URL = `http://127.0.0.1:${PORT}/`;
 const OUT = ensureDir(join(process.cwd(), 'test-results'));
@@ -65,7 +67,9 @@ try {
       demoQuests.find((q) => q.questId === 'mvp_01_welcome')?.status === 'available' && demoLevel === 11 &&
       (await b.eval(`debug.questProgress('job_c1_01_instructor').status`)) === 'available' &&
       !(await b.eval(`!!document.querySelector('[data-hud="quests"]')`)));
-  if (HUD_REVIEW) {
+  if (CORE_REVIEW) {
+    await hotbarSuite(b, t);
+  } else if (HUD_REVIEW) {
     await hudStyleSuite(b, t, shot);
   } else if (ENVIRONMENT_REVIEW) {
     await envArtSuite(b, t, shot, URL);
@@ -99,6 +103,7 @@ try {
     await navigationSuite(b, t);
     await jobChangeSuite(b, t);
     await warriorSkillSuite(b, t);
+    await hotbarSuite(b, t);
     await recurringSuite(b, t);
     await featureUnlockSuite(b, t);
     await combatSliceSuite(b, t, shot);

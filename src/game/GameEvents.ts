@@ -20,6 +20,7 @@ export type ProjectileEndReason = 'hit' | 'wall' | 'expired';
  * over the network. Presentation looks entities up by id when it needs them.
  */
 export type GameEvents = {
+  skillUnassigned: { skillId: SkillId };
   damage: {
     sourceId: EntityId;
     targetId: EntityId;
