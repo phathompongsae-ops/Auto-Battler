@@ -1,7 +1,8 @@
 import type { Rarity } from './equipmentData';
 
 /** What using an item does. Items without one are materials (not usable). */
-export type ItemUse = { kind: 'resetAllocatedStats' } | { kind: 'addDungeonFullReward' };
+export type ItemUse = { kind: 'resetAllocatedStats' } | { kind: 'addDungeonFullReward' }
+  | { kind: 'potion'; resource: 'hp' | 'mp'; instant: number; hotPercent: number };
 
 /** Bag grouping and sort order (equipment instances sort before every item type). */
 export type ItemType = 'consumable' | 'material' | 'quest' | 'misc';
@@ -31,6 +32,10 @@ export interface ItemDef {
 }
 
 const ITEM_DEFS = {
+  small_hp_potion: { id: 'small_hp_potion', name: 'Small HP Potion', color: 0x77cc88, type: 'consumable', rarity: 'common', sellValue: 0, maxStack: 20, use: { kind: 'potion', resource: 'hp', instant: 100, hotPercent: 0.05 } },
+  medium_hp_potion: { id: 'medium_hp_potion', name: 'Medium HP Potion', color: 0x77cc88, type: 'consumable', rarity: 'uncommon', sellValue: 0, maxStack: 20, use: { kind: 'potion', resource: 'hp', instant: 180, hotPercent: 0.08 } },
+  small_mp_potion: { id: 'small_mp_potion', name: 'Small MP Potion', color: 0x7fd4ff, type: 'consumable', rarity: 'common', sellValue: 0, maxStack: 20, use: { kind: 'potion', resource: 'mp', instant: 50, hotPercent: 0.05 } },
+  medium_mp_potion: { id: 'medium_mp_potion', name: 'Medium MP Potion', color: 0x7fd4ff, type: 'consumable', rarity: 'uncommon', sellValue: 0, maxStack: 20, use: { kind: 'potion', resource: 'mp', instant: 90, hotPercent: 0.08 } },
   slime_gel: { id: 'slime_gel', name: 'Slime Gel', color: 0x9be36b, type: 'material', rarity: 'common', sellValue: 2 },
   // Field monster materials (PLACEHOLDER roster drops; the monster content pass may rename / rebalance).
   wolf_fang: { id: 'wolf_fang', name: 'Wolf Fang', color: 0xd8d4c4, type: 'material', rarity: 'common', sellValue: 3 },

@@ -29,6 +29,7 @@ import { storyFeedbackSuite } from './storyFeedback.test.mjs';
 import { hudStyleSuite } from './hudStyle.test.mjs';
 import { hotbarSuite } from './hotbar.test.mjs';
 import { dodgeSuite } from './dodge.test.mjs';
+import { potionSuite } from './potions.test.mjs';
 
 const ENVIRONMENT_REVIEW = process.argv.includes('--environment-review');
 const HUD_REVIEW = process.argv.includes('--hud-review');
@@ -71,6 +72,7 @@ try {
   if (CORE_REVIEW) {
     await hotbarSuite(b, t);
     await dodgeSuite(b, t);
+    await potionSuite(b, t);
   } else if (HUD_REVIEW) {
     await hudStyleSuite(b, t, shot);
   } else if (ENVIRONMENT_REVIEW) {
@@ -107,6 +109,7 @@ try {
     await warriorSkillSuite(b, t);
     await hotbarSuite(b, t);
     await dodgeSuite(b, t);
+    await potionSuite(b, t);
     await recurringSuite(b, t);
     await featureUnlockSuite(b, t);
     await combatSliceSuite(b, t, shot);

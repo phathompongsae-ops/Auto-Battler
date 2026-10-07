@@ -380,18 +380,33 @@ Checkpoint progress belongs to the current attempt.
 
 ## 6. Potions
 
-### LOCKED, NOT IMPLEMENTED
+### IMPLEMENTED + LOCKED
 
-- HP Potion and MP Potion are separate items with separate cooldowns:
-  **HP 8 s, MP 12 s**. No global cooldown.
-- Cannot cancel a hard-locked action/animation.
-- Recovery: immediate flat amount by tier, then a small % heal-over-time.
-- Demo V1 tiers: **Small** and **Medium**.
-- Auto Potion with separate HP% and MP% thresholds, player-configurable.
-- Current code: no potion items; a reserved HUD socket (`potion` in
-  `src/ui/data/actionBar.ts`).
-- *TBD:* flat amounts per tier, HoT % and duration, default Auto Potion
-  thresholds, prices / drop sources.
+- Four real inventory consumables (stable ids `small_hp_potion`,
+  `medium_hp_potion`, `small_mp_potion`, `medium_mp_potion`), 20 per slot.
+- Small HP: 100 instant + 5% Max HP; Medium HP: 180 + 8% Max HP.
+  Small MP: 50 instant + 5% Max MP; Medium MP: 90 + 8% Max MP.
+- HoT duration 3 s, one tick each second (three ticks). Percentage snapshots
+  Max HP/MP at use; cumulative rounding distributes the rounded total exactly.
+  HP and MP coexist; a new potion replaces the same resource's potion HoT.
+  Clamp to max; dead actors receive nothing. Quiet HoT ticks avoid text flooding.
+- HP cooldown 8 s; MP cooldown 12 s; independent, no GCD. Cannot cancel an
+  action: reject cleanly during its lock. Full resources and zero count refuse.
+- Keyboard 1 / 2; distinct HP/MP utility buttons, radial cooldowns; inventory
+  Use calls the same `useItem` path. Small preferred, Medium fallback.
+- Auto HP defaults enabled at 35%; Auto MP enabled at 25%, effective only
+  with a real inventory item and current combat engagement. Never fires dead,
+  out of combat, during a lock or cooldown. 250 ms game-time checks with
+  hysteresis/cooldown debounce, same item-use path and no free healing.
+- Minimal Settings controls persist toggles and thresholds in optional v4
+  `autoPotions`; older saves default without altering inventory. No schema bump.
+- No general consumable vendor exists. New Demo characters receive 3 Small
+  HP + 3 Small MP through initial inventory; loading an old save never grants
+  a new supply. Medium data exists without a new shop or broad drop source.
+- Shared `PeriodicResourceSystem` owns deterministic game-time recovery on
+  combat actor state (available for future poison/regen). Runtime effects and
+  utility cooldowns are not serialized, consistent with skill timer policy.
+- Tests: `potions.test.ts`, `potions.test.mjs`, save and HUD/browser suites.
 
 ---
 
@@ -492,7 +507,7 @@ milestone; nothing here may be "fixed" by inventing numbers.
 | C-1 | **Story Crypt is tuned as Lv20 content.** Crypt mobs, the Crypt Knight and the Crypt Lord are level 20 (`crypt_lord`: 3,000 HP, ATK 26, DEF 16; `src/data/monsterData.ts`) and damage has no level term. Estimated solo Novice at Lv3 (all stat points spent, basic attacks only, no gear, no potions): about 46-52 s to kill the boss vs about 23-27 s survival against its basic attack alone (slam, enrage, adds ignored). The Lv3 loop is **mechanically open but not realistically winnable solo**. | **Resolved (stats)** by the Story profile (section 4); the Lv20 data is unchanged. The length target (now ~10 min, 8–11) is tracked as C-13. |
 | C-2 | No checkpoint / wipe system. | **Resolved** (structure pass): checkpoints, party-wipe limits, HP 100% / MP 50% retries, failure flow (section 4). |
 | C-3 | Skill loadout is derived (learned actives in tree order fill 5 slots). A Warrior can learn up to 8 actives; the 6th onward is silently unslotted; a new skill can shift existing slots; no manual arrangement. | **Resolved:** persistent assignment, safe edits, migration and Skills editor (section 5). |
-| C-4 | Basic Dodge and potions do not exist (reserved HUD sockets only). | Open: Demo V1 combat-basics milestone. |
+| C-4 | Basic Dodge and potions do not exist (reserved HUD sockets only). | **Resolved:** shared Basic Dodge and real HP/MP/Auto Potion systems (sections 3/6). |
 | C-5 | Warrior Charge requires a target (no input/facing fallback) and repositions instantly (the target cannot step out of the line). | Accepted for Warrior (preserved as is). The general movement rule applies to every **new** movement skill. |
 | C-6 | Guaranteed rewards (quest claim, dungeon claim, crafting) go straight into the bag even past 48 slots instead of a Reward Cache. Satisfies "never lost", but not the Cache design. | Open: inventory/weight + Reward Cache milestone. |
 | C-7 | The Lv20 run Full Reward also grants EXP and equipment, beyond the "Fragment / Material / upgrade resources" focus for repeat clears. | Open, needs a decision; reward data unchanged. |

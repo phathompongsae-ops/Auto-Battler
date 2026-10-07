@@ -1,3 +1,4 @@
+import { POTION_COOLDOWNS, preferredPotion, potionKey } from '../../items/PotionSystem';
 import { PLAYER_BASIC_ATTACK, SKILL_SLOTS, type SkillSlot as LoadoutSlot } from '../../data/playerData';
 import { SKILLS, type SkillId } from '../../data/skillData';
 import { BASIC_DODGE } from '../../combat/DodgeSystem';
@@ -65,6 +66,7 @@ export class ActionCluster {
       const skillId = binding.kind === 'action' ? skillForAction(world, binding.action) : null;
       const content: SlotContent | null = skillId
         ? skillContent(skillId)
+        : binding.kind === 'action' && (binding.action === 'hp_potion' || binding.action === 'mp_potion') ? { abbr: binding.action === 'hp_potion' ? 'HP' : 'MP', color: binding.action === 'hp_potion' ? '#86ef8f' : '#7fd4ff', title: binding.action === 'hp_potion' ? 'HP Potion' : 'MP Potion', glyph: 'potion' }
         : def.id === 'dodge' ? { abbr: 'DG', color: '#7fd4ff', title: 'Dodge', glyph: 'dodge' }
         : binding.kind === 'reserved' && binding.abbr
           ? { abbr: binding.abbr, color: binding.color, title: binding.label, glyph: ({ special: 'skills', potion: 'potion', dodge: 'dodge', auto: 'auto', pet: 'pet' } as Record<string, IconName>)[def.id] }
@@ -73,7 +75,7 @@ export class ActionCluster {
       const slot = new SkillSlot({ kind: 'action', size: def.size, keyHint: def.keyHint, content, showCooldown: def.id !== 'attack' });
       slot.el.dataset.slot = def.id;
       slot.el.dataset.group = def.group;
-      slot.el.append(h('span', { className: 'hud-action__label', text: def.id === 'attack' ? 'ATK' : def.id.startsWith('skill') ? `Skill ${def.id.slice(5)}` : def.id === 'pet' ? 'Pet' : def.id[0].toUpperCase() + def.id.slice(1) }));
+      slot.el.append(h('span', { className: 'hud-action__label', text: def.id === 'attack' ? 'ATK' : def.id.startsWith('skill') ? `Skill ${def.id.slice(5)}` : def.id === 'potion' ? 'HP' : def.id === 'mp_potion' ? 'MP' : def.id === 'pet' ? 'Pet' : def.id[0].toUpperCase() + def.id.slice(1) }));
       // Wide and compact positions; the stylesheet's compact media query switches --ax-now / --ay-now.
       const compact = def.compact === undefined ? { x: def.x, y: def.y } : def.compact;
       slot.el.style.setProperty('--ax', `${def.x}px`);
@@ -105,6 +107,13 @@ export class ActionCluster {
     const c = player.combat;
     for (const live of this.slots) {
       if (!live.action) continue;
+      if (live.action === 'hp_potion' || live.action === 'mp_potion') {
+        const resource = live.action === 'hp_potion' ? 'hp' : 'mp';
+        const max = resource === 'hp' ? c.stats.maxHp : c.stats.maxMp;
+        live.slot.setCooldown(Math.max(0, (c.utilityCooldowns.get(potionKey(resource)) ?? 0) - now), POTION_COOLDOWNS[resource]);
+        live.slot.setDisabled(c.dead || c.actionLocked(now) || c[resource] >= max || !preferredPotion(this.world.inventory, resource));
+        continue;
+      }
       if (live.action === 'dodge') {
         live.slot.setCooldown(Math.max(0, (c.utilityCooldowns.get('dodge') ?? 0) - now), BASIC_DODGE.cooldown);
         live.slot.setDisabled(c.dead || c.actionLocked(now));

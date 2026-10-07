@@ -188,7 +188,8 @@
 
 /* Inert reserved sockets (Special, Potion, Dodge, Auto, Pet / Summon) show their glyph only: the name stays in
  * title / aria-label, and the ring's own labels and key hints stay uncluttered. */
-.hud-actions > .ui-slot[data-group='utility'][aria-disabled='true']:not([data-slot='skill5']) .hud-action__label { display: none; }
+.hud-actions > .ui-slot[data-slot='special'] .hud-action__label,
+.hud-actions > .ui-slot[data-slot='pet'] .hud-action__label { display: none; }
 
 /* ---------------------------------------------------------------------------
  * Readability polish (typography / ATK). Hierarchy: quest title > objective >

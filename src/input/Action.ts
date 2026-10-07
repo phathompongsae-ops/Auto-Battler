@@ -1,7 +1,7 @@
 /** Abstract gameplay actions. Combat code only ever sees these, never keys or buttons. */
-export type Action = 'attack' | 'skill1' | 'skill2' | 'skill3' | 'skill4' | 'skill5' | 'target_next' | 'dodge';
+export type Action = 'attack' | 'skill1' | 'skill2' | 'skill3' | 'skill4' | 'skill5' | 'target_next' | 'dodge' | 'hp_potion' | 'mp_potion';
 
-export const ACTIONS: readonly Action[] = ['attack', 'skill1', 'skill2', 'skill3', 'skill4', 'skill5', 'target_next', 'dodge'];
+export const ACTIONS: readonly Action[] = ['attack', 'skill1', 'skill2', 'skill3', 'skill4', 'skill5', 'target_next', 'dodge', 'hp_potion', 'mp_potion'];
 
 /**
  * Something that can trigger actions: keyboard now, on-screen buttons or a

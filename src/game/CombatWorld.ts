@@ -2,6 +2,7 @@ import { MonsterBrain, type MonsterAgent, type MonsterWorld } from '../ai/Monste
 import { separate } from '../ai/separation';
 import { CombatSystem } from '../combat/CombatSystem';
 import { DodgeSystem } from '../combat/DodgeSystem';
+import { AutoPotion, PotionSystem, preferredPotion } from '../items/PotionSystem';
 import { ProjectileSystem } from '../combat/ProjectileSystem';
 import { SkillSystem } from '../combat/SkillSystem';
 import { StatusSystem } from '../combat/StatusSystem';
@@ -114,6 +115,9 @@ export class CombatWorld implements MonsterWorld {
     },
   });
   readonly inventory = new Inventory();
+  readonly potions = new PotionSystem(this.events, () => this.now);
+  readonly autoPotions = new AutoPotion();
+  private readonly autoUsePotion = (id: ItemId) => this.usePlayerItem(id);
   readonly demoTestMode = new DemoTestMode();
   /** Currencies (gold). */
   readonly wallet = new Wallet();
@@ -246,6 +250,9 @@ export class CombatWorld implements MonsterWorld {
   ) {
     this.register(player);
     this.bag = new Bag(this.inventory, player.equipment);
+    // New Demo supply only; loading replaces the inventory and never grants it again.
+    this.inventory.add('small_hp_potion', 3);
+    this.inventory.add('small_mp_potion', 3);
     // Loot: normal rewards auto-loot into the bag; special drops wait on the ground for a collector (the player now, a pet later).
     this.loot.receiver = { id: player.id, store: (drop) => this.storeLoot(drop) };
     this.maps = new MapSession<Monster>({
@@ -264,7 +271,7 @@ export class CombatWorld implements MonsterWorld {
         player.facing = player.combat.dodge!.direction;
         this.autoMove.cancel();
       }
-    });
+    }, resource => this.usePreferredPotion(resource));
 
     this.events.on('damage', ({ sourceId, targetId }) => {
       const monster = this.monsterById(targetId);
@@ -503,6 +510,8 @@ export class CombatWorld implements MonsterWorld {
 
     this.projectiles.update(dtMs, this.combatants, this.projectileWorld);
     this.statuses.update(this.combatants, now);
+    for (const actor of this.combatants) this.potions.periodic.update(actor.combat, now);
+    this.autoPotions.update(this.player.combat, this.inventory, this.player.progress.autoPotions, this.playerEngaged(), now, this.autoUsePotion);
     this.regenerate(dtMs);
     this.loot.update(now, this.player);
     this.targeting.validate(this.player);
@@ -899,9 +908,14 @@ export class CombatWorld implements MonsterWorld {
 
   /** Use one of the player's items (e.g. the Stat Reset test item). */
   usePlayerItem(itemId: string): UseItemResult {
-    const result = applyItem(this.inventory, this.player, itemId, { dungeon: this.dungeonEntitlements });
+    const result = applyItem(this.inventory, this.player, itemId, { dungeon: this.dungeonEntitlements, potions: this.potions });
     if (result.ok) this.events.emit('itemUsed', { entityId: this.player.id, itemId: itemId as ItemId });
     return result;
+  }
+
+  usePreferredPotion(resource: 'hp' | 'mp'): UseItemResult {
+    const id = preferredPotion(this.inventory, resource);
+    return id ? this.usePlayerItem(id) : { ok: false, reason: 'not_owned' };
   }
 
   // --- Player save --------------------------------------------------------
@@ -920,6 +934,7 @@ export class CombatWorld implements MonsterWorld {
   loadPlayer(text: string): void {
     const save = deserializePlayerSave(text);
     this.skillTree.clearPending();
+    this.autoPotions.reset();
     const target = this.saveTarget();
     applyPlayerSave(target, save);
     this.characterId = target.characterId;

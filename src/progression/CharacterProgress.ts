@@ -1,4 +1,5 @@
 import type { Loadout } from '../skills/hotbar';
+import { normalizePotionSettings, type AutoPotionSettings } from '../items/potionSettings';
 import { FREE_STAT_POINTS_PER_LEVEL, NOVICE_BASE_STATS } from '../data/statData';
 import { isJobId, JOB_CHANGE_LEVEL, JOBS, SKILL_POINT_PROGRESSION, STARTING_JOB, type JobId } from '../data/jobData';
 import { classGrowthMaxLevel } from '../stats/classBaseStats';
@@ -40,6 +41,7 @@ export interface CharacterProgressData {
    */
   skillRanks: Record<string, number>;
   hotbar: Loadout | null;
+  autoPotions: AutoPotionSettings;
 }
 
 /**
@@ -55,9 +57,11 @@ export class CharacterProgress {
   /** Learned skill-tree ranks; change them only through the SkillTree service. */
   readonly skillRanks: Record<string, number>;
   hotbar: Loadout | null;
+  autoPotions: AutoPotionSettings;
 
   constructor(data?: Partial<CharacterProgressData>) {
     this.hotbar = data?.hotbar ? { ...data.hotbar } : null;
+    this.autoPotions = normalizePotionSettings(data?.autoPotions);
     this.classId = data?.classId ?? STARTING_JOB;
     this.base = clonePrimary(data?.base ?? NOVICE_BASE_STATS);
     this.allocated = clonePrimary(data?.allocated ?? zeroPrimary());
@@ -155,6 +159,7 @@ export class CharacterProgress {
     const fresh = new CharacterProgress(data);
     this.classId = fresh.classId;
     this.hotbar = fresh.hotbar;
+    this.autoPotions = fresh.autoPotions;
     Object.assign(this.base, fresh.base);
     Object.assign(this.allocated, fresh.allocated);
     for (const key of Object.keys(this.jobBonuses)) delete this.jobBonuses[key as JobId];
@@ -171,6 +176,7 @@ export class CharacterProgress {
       jobBonuses: Object.fromEntries(Object.entries(this.jobBonuses).map(([j, b]) => [j, { ...b }])),
       skillRanks: { ...this.skillRanks },
       hotbar: this.hotbar ? { ...this.hotbar } : null,
+      autoPotions: { ...this.autoPotions },
     };
   }
 }

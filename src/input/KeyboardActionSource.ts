@@ -12,6 +12,8 @@ export const KEYBOARD_ACTION_BINDINGS: Record<Action, number[]> = {
   skill5: [K.G],
   target_next: [K.TAB],
   dodge: [K.SHIFT],
+  hp_potion: [K.ONE],
+  mp_potion: [K.TWO],
 };
 
 export class KeyboardActionSource implements ActionSource {

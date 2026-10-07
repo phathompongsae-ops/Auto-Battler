@@ -73,6 +73,8 @@ export class CombatSystem {
     c.hp = 0;
     c.dead = true;
     c.statuses.length = 0;
+    c.periodicResources.clear();
+    c.dodge = null;
     c.refreshStats();
     this.events.emit('death', { entityId: target.id, killerId: killer?.id ?? null });
   }

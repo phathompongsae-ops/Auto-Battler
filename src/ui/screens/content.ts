@@ -108,5 +108,5 @@ export const SCREEN_CONTENT: Record<ScreenId, ScreenRenderer> = {
   map: (_tab, { world }) => renderAreaMap(world),
   party: () => emptyState('Group up with other players.'),
   dungeon: () => emptyState('Dungeon entry, difficulty and rewards.'),
-  settings: (tab) => renderHudSettings(tab),
+  settings: (tab, ctx) => renderHudSettings(tab, ctx.world),
 };

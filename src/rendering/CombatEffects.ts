@@ -93,6 +93,11 @@ export class CombatEffects {
       if (target) number(target, 'miss', 'Miss', 'damage');
     });
 
+    ev.on('mpRestored', ({ targetId, amount }) => {
+      const target = world.getEntity(targetId);
+      if (target && amount > 0) this.text.show(target.x, textY(target, 'heal'), '+' + amount + ' MP', { ...COMBAT_NUMBER_STYLES.heal, color: '#7fd4ff' });
+    });
+
     ev.on('heal', ({ targetId, amount }) => {
       const target = world.getEntity(targetId);
       if (target && amount > 0) number(target, 'heal', `+${amount}`, 'heal');

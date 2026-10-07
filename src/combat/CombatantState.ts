@@ -3,6 +3,7 @@ import type { StatusDef } from '../data/statusData';
 import { MAX_LEVEL } from '../data/progressionData';
 import type { CombatStats, Team } from './types';
 import type { Direction } from '../input/Direction';
+import type { PeriodicResourceEffect } from './PeriodicResourceSystem';
 
 export interface ActiveStatus {
   def: StatusDef;
@@ -24,6 +25,7 @@ export class CombatantState {
   /** Skill id → time (ms) when it is ready again. */
   readonly cooldowns = new Map<SkillId, number>();
   readonly utilityCooldowns = new Map<'dodge' | 'hp_potion' | 'mp_potion', number>();
+  readonly periodicResources = new Map<string, PeriodicResourceEffect>();
   invulnerableUntil = 0;
   actionLockedUntil = 0;
   dodge: { direction: Direction; startX: number; startY: number; startedAt: number; distance: number; travelled: number } | null = null;
@@ -79,6 +81,7 @@ export class CombatantState {
     this.statuses.length = 0;
     this.cooldowns.clear();
     this.utilityCooldowns.clear();
+    this.periodicResources.clear();
     this.invulnerableUntil = this.actionLockedUntil = 0;
     this.dodge = null;
     this.refreshStats();

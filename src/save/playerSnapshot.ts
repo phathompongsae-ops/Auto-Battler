@@ -61,6 +61,7 @@ export function capturePlayerSave(t: SaveTarget): PlayerSave {
     skillPointsSpent: t.progress.skillPointsSpent,
     skillRanks: data.skillRanks,
     hotbar: normalizeHotbar(data.hotbar, activeSkills(data.classId, data.skillRanks)),
+    autoPotions: { ...data.autoPotions },
     inventory: t.inventory.entries().map(([itemId, count]) => ({ itemId, count })),
     currencies: t.wallet.toRecord(),
     equipment: structuredClone({ items: [...t.equipment.items.values()], equipped: { ...t.equipment.equipped } }),
@@ -91,6 +92,7 @@ export function applyPlayerSave(t: SaveTarget, save: PlayerSave): void {
     // Passives come from these ranks (derived), so loading can never apply them twice.
     skillRanks: s.skillRanks,
     hotbar: s.hotbar,
+    autoPotions: s.autoPotions,
   });
   t.combat.level = s.level;
   t.combat.exp = s.exp;

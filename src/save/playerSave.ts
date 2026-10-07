@@ -1,4 +1,5 @@
 import { activeSkills, normalizeHotbar, type Loadout } from '../skills/hotbar';
+import { normalizePotionSettings, type AutoPotionSettings } from '../items/potionSettings';
 import { RECIPES } from '../data/craftingData';
 import { ENCHANT_LINES, ENCHANT_OPTIONS, ENCHANT_QUALITIES, ENCHANT_QUALITY_WEIGHTS, type EnchantQuality } from '../data/enchantData';
 import { EQUIPMENT_SLOTS, MAX_ENHANCEMENT, type EquipmentSlot } from '../data/equipmentData';
@@ -74,6 +75,7 @@ export interface PlayerSaveV4 {
   skillRanks: Record<string, number>;
   /** Optional in older v4 saves; missing reproduces the old tree-order bar. */
   hotbar: Loadout;
+  autoPotions: AutoPotionSettings;
 
   /** Stackable items (materials, eggs, scrolls...) by stable item id. */
   inventory: { itemId: ItemId; count: number }[];
@@ -152,7 +154,8 @@ export function newPlayerSave(characterId: string): PlayerSave {
     skillPointsSpent: 0,
     skillRanks: {},
     hotbar: normalizeHotbar(null, activeSkills('novice', {})),
-    inventory: [],
+    autoPotions: normalizePotionSettings(null),
+    inventory: [{ itemId: 'small_hp_potion', count: 3 }, { itemId: 'small_mp_potion', count: 3 }],
     currencies: {},
     equipment: { items: [], equipped: emptyEquipped() },
     pets: { owned: [], activePetId: null },
@@ -540,6 +543,7 @@ function validate(raw: unknown): PlayerSave {
     skillPointsSpent: totalSpent(skillRanks),
     skillRanks,
     hotbar: normalizeHotbar(s.hotbar, activeSkills(s.classId, skillRanks)),
+    autoPotions: normalizePotionSettings(s.autoPotions),
     inventory,
     currencies: record(s.currencies, 'currencies', (x): x is number => isFiniteNumber(x) && x >= 0),
     equipment: validateEquipment(s.equipment, s.classId),

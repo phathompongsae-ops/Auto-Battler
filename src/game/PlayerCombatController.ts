@@ -18,6 +18,7 @@ export class PlayerCombatController {
     /** The skill on each action slot right now (from the skill tree, or the demo kit). */
     private readonly loadout: () => Record<SkillSlot, SkillId | null>,
     private readonly dodge: (now: number) => void = () => {},
+    private readonly potion: (resource: 'hp' | 'mp') => void = () => {},
   ) {}
 
   update(now: number): void {
@@ -26,9 +27,13 @@ export class PlayerCombatController {
     const attackHeld = this.input.isHeld('attack');
     const cyclePressed = this.input.consumePressed('target_next');
     const dodgePressed = this.input.consumePressed('dodge');
+    const hpPressed = this.input.consumePressed('hp_potion');
+    const mpPressed = this.input.consumePressed('mp_potion');
     const slotsPressed = SKILL_SLOTS.map((slot) => this.input.consumePressed(slot));
 
     if (this.player.combat.dead) return;
+    if (hpPressed) this.potion('hp');
+    if (mpPressed) this.potion('mp');
     if (dodgePressed) this.dodge(now);
     if (this.player.combat.dodge) return;
 

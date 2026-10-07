@@ -55,11 +55,11 @@ export const ACTION_SLOTS: readonly ActionSlotDef[] = [
   { id: 'skill2', group: 'combat', binding: { kind: 'action', action: 'skill2' }, size: 'md', keyHint: 'E', ...ring(1) },
   { id: 'skill3', group: 'combat', binding: { kind: 'action', action: 'skill3' }, size: 'md', keyHint: 'R', ...ring(2) },
   { id: 'skill4', group: 'combat', binding: { kind: 'action', action: 'skill4' }, size: 'md', keyHint: 'F', ...ring(3) },
-  { id: 'dodge', group: 'utility', binding: { kind: 'action', action: 'dodge' }, keyHint: 'Shift', size: 'sm', compact: { x: 23, y: 182 }, ...outer(0) },
-  { id: 'potion', group: 'utility', binding: { kind: 'reserved', label: 'Potion (coming soon)', abbr: 'HP', color: '#e0524a' }, size: 'sm', compact: null, ...outer(1) },
+  { id: 'dodge', group: 'utility', binding: { kind: 'action', action: 'dodge' }, keyHint: 'Shift', size: 'sm', compact: { x: 23, y: 80 }, ...outer(0) },
+  { id: 'potion', group: 'utility', binding: { kind: 'action', action: 'hp_potion' }, keyHint: '1', size: 'sm', compact: { x: 23, y: 136 }, ...outer(1) },
   // Keep the fifth existing binding available outside the primary four-skill ring.
-  { id: 'skill5', group: 'utility', binding: { kind: 'action', action: 'skill5' }, size: 'sm', keyHint: 'G', ...outer(2), compact: polar(170, 200) },
+  { id: 'skill5', group: 'utility', binding: { kind: 'action', action: 'skill5' }, size: 'sm', keyHint: 'G', ...outer(2), compact: { x: 23, y: 24 } },
   { id: 'special', group: 'utility', binding: { kind: 'reserved', label: 'Special (coming soon)', abbr: 'SP', color: '#b781ff' }, size: 'sm', compact: null, ...outer(3) },
-  { id: 'auto', group: 'utility', binding: { kind: 'reserved', label: 'Auto (coming soon)', abbr: 'A', color: '#cab786' }, size: 'sm', compact: null, ...outer(4) },
-  { id: 'pet', group: 'utility', binding: { kind: 'reserved', label: 'Pet / Summon (coming soon)', abbr: 'P', color: '#a4ba89' }, size: 'sm', ...outer(5), compact: { x: 88, y: 66 } },
+  { id: 'mp_potion', group: 'utility', binding: { kind: 'action', action: 'mp_potion' }, keyHint: '2', size: 'sm', compact: { x: -30, y: 136 }, ...outer(4) },
+  { id: 'pet', group: 'utility', binding: { kind: 'reserved', label: 'Pet / Summon (coming soon)', abbr: 'P', color: '#a4ba89' }, size: 'sm', ...outer(5), compact: null },
 ];
