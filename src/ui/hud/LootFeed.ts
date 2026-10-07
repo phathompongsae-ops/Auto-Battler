@@ -9,7 +9,7 @@ import { h } from '../dom';
 const LINE_MS = 4500;
 const MAX_LINES = 6;
 
-export type LootFeedKind = 'gold' | 'item' | 'equipment' | 'rare' | 'full' | 'quest' | 'locked';
+export type LootFeedKind = 'gold' | 'item' | 'equipment' | 'rare' | 'full' | 'quest' | 'locked' | 'dungeon';
 
 /**
  * Left side: a short feed of what the player just received or what dropped
@@ -45,6 +45,13 @@ export class LootFeed {
       ev.on('lootBlocked', ({ name }) => this.push('full', `Bag full: ${name} left on the ground`, '#ff6b6b')),
       // Dungeon entry refused: say exactly what is missing (the player stays on this map).
       ev.on('mapEntryBlocked', ({ message }) => this.push('locked', message, '#ffb86b')),
+      // Dungeon attempt: checkpoints (retry positions, no healing), party wipes and failure.
+      ev.on('progressBlocked', ({ message }) => this.push('locked', message, '#ffb86b')),
+      ev.on('checkpointReached', ({ label }) => this.push('dungeon', `Checkpoint: ${label}`, '#9fd8ff')),
+      ev.on('partyWiped', ({ retriesLeft, failed }) =>
+        this.push('dungeon', failed ? 'Defeated: no retries left' : `Defeated: ${retriesLeft} ${retriesLeft === 1 ? 'retry' : 'retries'} left`, '#ff6b6b'),
+      ),
+      ev.on('dungeonFailed', () => this.push('dungeon', 'Dungeon failed: returned to Town', '#ff6b6b')),
       // Quest feedback (main / side quests; Daily and Weekly have their own screen).
       ev.on('questStarted', ({ questId }) => {
         const def = world.quests.defs[questId];

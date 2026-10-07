@@ -1,8 +1,9 @@
 import { TILE_SIZE } from '../config';
-import { DEFAULT_MAP_ID, mapDef, mapSize, MAPS, PROP_KINDS, type MapDef, type MapPortalDef } from '../data/maps';
+import { DEFAULT_MAP_ID, mapDef, mapSize, MAPS, PROP_KINDS, type EncounterProfileId, type MapDef, type MapPortalDef } from '../data/maps';
 import type { MonsterId } from '../data/monsterData';
 import type { NavPoint } from '../data/navigationData';
 import type { CollisionGrid } from '../navigation/pathing';
+import { arenaRects, type PxRect } from './encounters';
 import { PROJECTILE_BLOCKING_TILES, SOLID_TILES, type Tile } from './tiles';
 
 /*
@@ -71,16 +72,31 @@ export interface MonsterSpawn {
   zoneId: string;
   x: number;
   y: number;
+  /** Its encounter arena in px (MonsterSpawnZone.arena), if any. */
+  arena?: readonly PxRect[];
 }
 
-export function spawnPlan(map: MapDef): MonsterSpawn[] {
+/** The spawn zones used under a profile (zones without `profiles` spawn under every profile). */
+export function activeSpawnZones(map: MapDef, profile: EncounterProfileId = 'standard') {
+  return map.monsterSpawnZones.filter((z) => !z.profiles || z.profiles.includes(profile));
+}
+
+export function spawnPlan(map: MapDef, profile: EncounterProfileId = 'standard'): MonsterSpawn[] {
   const counts = new Map<string, number>();
   const out: MonsterSpawn[] = [];
-  for (const zone of map.monsterSpawnZones) {
+  for (const zone of activeSpawnZones(map, profile)) {
+    const arena = arenaRects(map, zone.arena);
     for (const p of zone.points) {
       const n = (counts.get(zone.monsterId) ?? 0) + 1;
       counts.set(zone.monsterId, n);
-      out.push({ id: `${zone.monsterId}-${n}`, monsterId: zone.monsterId, zoneId: zone.id, x: p.tileX * TILE_SIZE + TILE_SIZE / 2, y: p.tileY * TILE_SIZE + TILE_SIZE / 2 });
+      out.push({
+        id: `${zone.monsterId}-${n}`,
+        monsterId: zone.monsterId,
+        zoneId: zone.id,
+        x: p.tileX * TILE_SIZE + TILE_SIZE / 2,
+        y: p.tileY * TILE_SIZE + TILE_SIZE / 2,
+        ...(arena ? { arena } : {}),
+      });
     }
   }
   return out;

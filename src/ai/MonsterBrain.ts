@@ -3,6 +3,7 @@ import type { CombatEntity } from '../combat/types';
 import { distance } from '../core/math';
 import { SKILLS } from '../data/skillData';
 import type { MonsterDef } from '../data/monsterData';
+import { inArena, type PxRect } from '../world/encounters';
 import type { SeparationAgent } from './separation';
 import { StateMachine, type State } from './StateMachine';
 
@@ -14,6 +15,8 @@ export interface MonsterAgent extends CombatEntity, SeparationAgent {
   readonly def: MonsterDef;
   spawnX: number;
   spawnY: number;
+  /** Encounter arena (px): when set, it replaces the radius leash (see leashed). */
+  readonly arena?: readonly PxRect[];
   moveToward(x: number, y: number): void;
   halt(): void;
   /** Instantly place back at spawn (stuck safety net). */
@@ -47,8 +50,14 @@ const targetAlive = (t: CombatEntity | null): t is CombatEntity => !!t && !t.com
 /** Taunted monsters never give up on their target (no leash) until the taunt ends. */
 const taunted = (m: MonsterAgent) => m.combat.statuses.some((s) => s.def.taunt);
 
+/**
+ * Gives up the chase. An arena monster fights anywhere on its encounter's
+ * floor and gives up only when it or its target leaves it; any other monster
+ * uses its radius leash around its spawn.
+ */
 function leashed(m: MonsterAgent, target: CombatEntity): boolean {
   if (taunted(m)) return false;
+  if (m.arena) return !inArena(m.arena, m.x, m.y) || !inArena(m.arena, target.x, target.y);
   const home = spawnOf(m);
   return distance(m, home) > m.def.leashRange || distance(target, home) > m.def.leashRange;
 }

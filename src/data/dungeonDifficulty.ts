@@ -31,6 +31,12 @@ export interface DifficultyDef {
    * scaling). Final rare-drop numbers are intentionally undecided.
    */
   rareDropMultiplier: number | null;
+  /**
+   * Party wipes a dungeon attempt can recover from (locked): each full-party
+   * wipe spends one and the party retries from its latest checkpoint; a wipe
+   * with none left fails the attempt. A single member's death never counts.
+   */
+  partyWipeLimit: number;
 }
 
 const DIFFICULTY_DEFS = {
@@ -42,6 +48,7 @@ const DIFFICULTY_DEFS = {
     boss: { hp: 1, atk: 1, def: 1, mdef: 1 },
     rewards: { exp: 1, currency: 1, material: 1 },
     rareDropMultiplier: null,
+    partyWipeLimit: 4,
   },
   hard: {
     id: 'hard',
@@ -51,6 +58,7 @@ const DIFFICULTY_DEFS = {
     boss: { hp: 1.6, atk: 1.25, def: 1.1, mdef: 1.1 },
     rewards: { exp: 1.3, currency: 1.5, material: 1.5 },
     rareDropMultiplier: null,
+    partyWipeLimit: 3,
   },
   hell: {
     id: 'hell',
@@ -60,6 +68,7 @@ const DIFFICULTY_DEFS = {
     boss: { hp: 2.3, atk: 1.55, def: 1.25, mdef: 1.25 },
     rewards: { exp: 1.7, currency: 2, material: 2 },
     rareDropMultiplier: null,
+    partyWipeLimit: 2,
   },
 } satisfies Record<DifficultyId, DifficultyDef>;
 

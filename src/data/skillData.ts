@@ -252,6 +252,21 @@ const SKILL_DEFS = {
     heavy: true,
     color: 0xc9d1e3,
   },
+  // The Story Crypt's telegraph lesson (Skeleton Brute): slower and wider than anything
+  // before it, so the wind-up is easy to read and stepping out is the obvious answer.
+  brute_smash_story: {
+    id: 'brute_smash_story',
+    name: 'Bone Smash',
+    mpCost: 0,
+    // Short enough to come round again inside the fight: the lesson is seen at least twice.
+    cooldown: 3500,
+    range: 40,
+    target: 'enemy',
+    effect: { kind: 'aoe_damage', power: 6, damageType: 'physical', radius: 70 },
+    windup: { ms: 1400 },
+    heavy: true,
+    color: 0xd8d4c4,
+  },
   crypt_slam_story: {
     id: 'crypt_slam_story',
     name: 'Grave Slam',

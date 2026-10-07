@@ -26,7 +26,9 @@ import { DailyState } from '../daily/DailyState';
 import { DungeonEntitlements } from '../dungeon/entitlements';
 import { claimDungeonClear, type DungeonClaimResult } from '../dungeon/claim';
 import { profiledMonsterDef, selectEncounterProfile, type EncounterProfileId } from '../dungeon/encounterProfile';
-import type { DifficultyId } from '../data/dungeonDifficulty';
+import { DIFFICULTIES, type DifficultyId } from '../data/dungeonDifficulty';
+import { activeGates, closedGateAt } from '../dungeon/gates';
+import { checkpointReady, DungeonAttempt, partyDefeated, RETRY_HP_FRACTION, RETRY_MP_FRACTION, type WipeOutcome } from '../dungeon/attempt';
 import { SpecialShop } from '../pets/specialShop';
 import { RewardLedger, type DungeonRun } from '../dungeon/rewards';
 import { CraftingQueue } from '../crafting/crafting';
@@ -56,7 +58,7 @@ import type { EquipmentSlot } from '../data/equipmentData';
 import type { EggTier } from '../data/petData';
 import { RecurringQuests } from '../quests/RecurringQuests';
 import { NAVIGATION } from '../data/navigationData';
-import type { MapDef } from '../data/maps';
+import { DEFAULT_MAP_ID, type MapDef } from '../data/maps';
 import { NAV_DEFAULT_RADIUS, type NavPoint, type NavTarget } from '../data/navigationData';
 import { NPC_INTERACT_RADIUS, NPCS, type NpcDef } from '../data/npcData';
 import { DUNGEON_WARPS, type Location } from '../data/warpData';
@@ -65,6 +67,7 @@ import { NavIndex, portalTransition } from '../navigation/NavIndex';
 import { LPathPlanner } from '../navigation/pathing';
 import { MapSession } from '../world/MapSession';
 import { checkMapEntry, type AccessResult } from '../world/dungeonAccess';
+import { inTileRect, withinEncounter } from '../world/encounters';
 import { blocksProjectile, mapCollision, portalAt, resolveMapEntry, type MapEntryFallback, type MonsterSpawn } from '../world/mapRules';
 import type { EnhanceOptions } from '../equipment/enhancement';
 import { PlayerCombatController } from './PlayerCombatController';
@@ -155,6 +158,18 @@ export class CombatWorld implements MonsterWorld {
    */
   now = 0;
   playerRespawnAt: number | null = null;
+  /**
+   * The dungeon attempt on the current dungeon map (checkpoints, party
+   * wipes, failure); null outside dungeons. A new one starts whenever a
+   * dungeon map is entered. Never saved.
+   */
+  dungeonAttempt: DungeonAttempt | null = null;
+  /** How the pending respawn resolves a party wipe (set on the wipe, used by respawnPlayer). */
+  private pendingWipe: WipeOutcome | null = null;
+  /** Last player position outside every closed progression gate (where a gate holds them back to). */
+  private gateSafe: NavPoint | null = null;
+  /** When each gate last told the player what is missing (so bumping it doesn't spam). */
+  private readonly gateNotice = new Map<string, number>();
 
   private readonly controller: PlayerCombatController;
   /** Projectiles stop at the current map's walls. */
@@ -223,6 +238,8 @@ export class CombatWorld implements MonsterWorld {
       build: (map) => view.build(map),
       spawn: (spawn) => {
         const monster = view.createMonster(spawn, profiledMonsterDef(MONSTERS[spawn.monsterId], this.maps.map.id, this.encounterProfile));
+        monster.zoneId = spawn.zoneId;
+        monster.arena = spawn.arena;
         this.addMonster(monster);
         return monster;
       },
@@ -367,8 +384,13 @@ export class CombatWorld implements MonsterWorld {
     // Past the Story stage once the Dungeon feature is unlocked or already earned (older saves restore it after loading the map).
     const dungeonFeatureUnlocked = this.featureProgression.check('dungeon').ok || this.featureProgression.conditionsMet('dungeon');
     this.encounterProfile = selectEncounterProfile(mapId, { dungeonFeatureUnlocked });
-    const map = this.maps.enter(mapId);
+    const map = this.maps.enter(mapId, this.encounterProfile);
     if (from?.type === 'dungeon' && map.type !== 'dungeon') this.leaveDungeon();
+    // Every entry into a dungeon map is a fresh attempt (its spawns were just rebuilt).
+    // Wipe allowance: the run's difficulty, read when a wipe happens (the Story Crypt has no run: Normal's).
+    this.pendingWipe = null;
+    this.gateSafe = null;
+    this.dungeonAttempt = map.type === 'dungeon' ? new DungeonAttempt(map.id, () => DIFFICULTIES[this.dungeonRun?.difficulty ?? 'normal'].partyWipeLimit) : null;
     const spot = at ?? map.spawnPoint;
     this.player.body.reset(spot.x, spot.y);
     this.view.entered(map);
@@ -456,8 +478,10 @@ export class CombatWorld implements MonsterWorld {
     this.targeting.validate(this.player);
 
     if (this.playerRespawnAt !== null && now >= this.playerRespawnAt) this.respawnPlayer();
+    this.checkProgressionGates();
     this.checkPortalTrigger();
     this.checkLocations();
+    this.checkCheckpoints();
     this.settleLevelCap();
     this.checkServerDay();
   }
@@ -539,6 +563,71 @@ export class CombatWorld implements MonsterWorld {
     if (this.insideLocations.has(locationId)) return;
     this.insideLocations.add(locationId);
     this.reachLocation(locationId);
+  }
+
+  /**
+   * Progression gates (dungeon/gates): a closed gate's doorway can't be
+   * entered. Walking (or Auto Move) into it puts the player back where they
+   * last stood outside every closed gate, stops Auto Move and says what is
+   * missing. Inside a room the player moves freely.
+   */
+  private checkProgressionGates(): void {
+    const p = this.player;
+    const gates = activeGates(this.maps.map, this.encounterProfile);
+    if (!gates.length || p.combat.dead) return;
+    const gate = closedGateAt(gates, p.x, p.y, (z) => this.zoneCleared(z));
+    if (!gate) {
+      this.gateSafe = { x: p.x, y: p.y };
+      return;
+    }
+    const back = this.gateSafe ?? this.playerSpawn;
+    p.body.reset(back.x, back.y);
+    if (this.autoMove.isActive()) this.autoMove.cancel('cancelled');
+    if (this.now - (this.gateNotice.get(gate.id) ?? -Infinity) >= 2000) {
+      this.gateNotice.set(gate.id, this.now);
+      this.events.emit('progressBlocked', { mapId: this.location.mapId, gateId: gate.id, message: gate.message });
+    }
+  }
+
+  /** Standing in a checkpoint's trigger with its encounters down activates it (a retry position; restores nothing). */
+  private checkCheckpoints(): void {
+    const attempt = this.dungeonAttempt;
+    if (!attempt || attempt.status !== 'active' || this.player.combat.dead) return;
+    for (const cp of this.maps.map.checkpoints ?? []) {
+      const ready = checkpointReady(cp, { inTrigger: inTileRect(cp.trigger, this.player.x, this.player.y), zoneCleared: (z) => this.zoneCleared(z) });
+      if (ready && attempt.activate(cp)) this.events.emit('checkpointReached', { mapId: this.location.mapId, checkpointId: cp.id, label: cp.label });
+    }
+  }
+
+  /** Every monster of a spawn zone is down (a zone with no monsters on this map counts as cleared). */
+  zoneCleared(zoneId: string): boolean {
+    return this.monsters.every((m) => m.zoneId !== zoneId || m.combat.dead);
+  }
+
+  /**
+   * After a party wipe: every encounter that is not fully down starts over
+   * (its fallen monsters stand back up; all of it at full HP, home, idle),
+   * and nothing in flight survives. Cleared encounters stay cleared.
+   */
+  private resetOpenEncounters(): void {
+    const open = new Set(this.monsters.filter((m) => !this.zoneCleared(m.zoneId)).map((m) => m.zoneId));
+    for (const m of this.monsters) {
+      if (!open.has(m.zoneId)) continue;
+      if (m.combat.dead) m.respawn();
+      else {
+        m.combat.reset();
+        m.snapToSpawn();
+      }
+      m.brain.setState('idle', this.now);
+    }
+    this.skills.clear();
+    this.projectiles.clear();
+    this.targeting.select(null);
+  }
+
+  /** The active party (solo for now; party members join here later). A wipe is all of them down. */
+  activeParty(): CombatEntity[] {
+    return [this.player];
   }
 
   /** Walking into a location marker's radius reaches it (visit objectives); leaving re-arms it. */
@@ -809,7 +898,36 @@ export class CombatWorld implements MonsterWorld {
 
   respawnPlayer(): void {
     this.playerRespawnAt = null;
-    this.player.respawn(this.playerSpawn.x, this.playerSpawn.y);
+    const wipe = this.pendingWipe;
+    this.pendingWipe = null;
+    if (wipe?.kind === 'failed') return this.failDungeonAttempt();
+    const checkpoint = this.dungeonAttempt?.checkpoint ?? null;
+    const at = checkpoint?.respawn ?? this.playerSpawn;
+    if (wipe?.kind === 'retry') this.resetOpenEncounters();
+    this.player.respawn(at.x, at.y);
+    this.gateSafe = null;
+    if (wipe?.kind === 'retry') {
+      // Locked retry vitals: HP 100%, MP 50%.
+      const c = this.player.combat;
+      c.hp = Math.round(c.stats.maxHp * RETRY_HP_FRACTION);
+      c.mp = Math.floor(c.stats.maxMp * RETRY_MP_FRACTION);
+      this.events.emit('dungeonRetry', { mapId: this.location.mapId, checkpointId: checkpoint?.id ?? null, retriesLeft: wipe.retriesLeft });
+    }
+    this.events.emit('respawn', { entityId: this.player.id });
+  }
+
+  /**
+   * Out of retries: the attempt ends without any clear reward and the party
+   * is returned to Town through the dungeon's exit (full HP, as any Town
+   * respawn). Quest progress is left exactly as it was, so the dungeon (and
+   * its story quest) can simply be attempted again.
+   */
+  private failDungeonAttempt(): void {
+    const mapId = this.location.mapId;
+    const exit = this.maps.map.portals[0];
+    this.events.emit('dungeonFailed', { mapId });
+    this.enterMap(exit?.to ?? DEFAULT_MAP_ID, exit?.arrival, 'dungeon_failed');
+    this.player.respawn(this.player.x, this.player.y);
     this.events.emit('respawn', { entityId: this.player.id });
   }
 
@@ -817,6 +935,8 @@ export class CombatWorld implements MonsterWorld {
 
   findAggroTarget(monster: MonsterAgent): CombatEntity | null {
     if (this.peaceful || this.player.combat.dead) return null;
+    // An encounter's monsters only notice players on its own floor (no cross-encounter pulls).
+    if (!withinEncounter(monster.arena, this.player.x, this.player.y)) return null;
     return distance(monster, this.player) <= monster.def.aggroRange ? this.player : null;
   }
 
@@ -853,6 +973,15 @@ export class CombatWorld implements MonsterWorld {
     if (entityId === this.player.id) {
       this.player.die();
       this.playerRespawnAt = this.now + PLAYER_RESPAWN_DELAY;
+      // In a dungeon only a full-party wipe counts (one member down is not a wipe).
+      const attempt = this.dungeonAttempt;
+      if (attempt && partyDefeated(this.activeParty())) {
+        const outcome = attempt.recordPartyWipe();
+        if (outcome.kind !== 'ignored') {
+          this.pendingWipe = outcome;
+          this.events.emit('partyWiped', { mapId: this.location.mapId, retriesLeft: outcome.kind === 'retry' ? outcome.retriesLeft : 0, failed: outcome.kind === 'failed' });
+        }
+      }
       return;
     }
 
@@ -887,6 +1016,7 @@ export class CombatWorld implements MonsterWorld {
   private bossDefeated(monster: Monster): void {
     const run = this.dungeonRun;
     const claimed = run ? this.claimDungeonClear(run).ok : false;
+    this.dungeonAttempt?.markCleared();
     this.events.emit('bossDefeated', { entityId: monster.id, monsterId: monster.def.id, mapId: this.location.mapId, runId: run?.runId ?? null, claimed });
   }
 

@@ -1,3 +1,4 @@
+import type { EncounterProfileId } from '../data/maps';
 import type { MonsterDef } from '../data/monsterData';
 import { STORY_ENCOUNTERS, type StoryEncounterProfile } from '../data/storyEncounters';
 
@@ -13,7 +14,7 @@ import { STORY_ENCOUNTERS, type StoryEncounterProfile } from '../data/storyEncou
  * visit never has a run and a run never sees Story stats.
  */
 
-export type EncounterProfileId = 'story' | 'standard';
+export type { EncounterProfileId } from '../data/maps';
 
 export function selectEncounterProfile(mapId: string, ctx: { dungeonFeatureUnlocked: boolean }, profiles = STORY_ENCOUNTERS): EncounterProfileId {
   return profiles[mapId] && !ctx.dungeonFeatureUnlocked ? 'story' : 'standard';

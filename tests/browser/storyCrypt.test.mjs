@@ -63,8 +63,13 @@ export async function storyCryptSuite(b, t, shot) {
     JSON.stringify({ who, profile, lord, knight, skeleton, status0, status1 }),
   );
 
-  // The boss fight, for real. Start just south of the Crypt Lord, in its room.
-  await api(`teleport(${lord.spawnX}, ${lord.spawnY + 64})`);
+  // Walk in the legitimate way: the route's encounters go down (real death path, credited to the player;
+  // their fights are measured in tests/unit/storyEncounter.test.ts), then Auto Move walks the player from
+  // the entrance through every opened gate into the Boss Room. Then the boss fight, for real.
+  await b.eval(`for (let i = 1; i <= 6; i++) debug.defeatMonster('crypt_skeleton-' + i); debug.defeatMonster('crypt_brute-1'); debug.defeatMonster('crypt_knight-1')`);
+  await api(`navigateToQuest('mvp_03_crypt', 1)`);
+  const walked = await b.waitFor(`debug.navState().status !== 'moving' && debug.navState()`, { timeout: 30000, label: 'walk to the Crypt Lord' });
+  const walkedIn = walked.status === 'arrived' && walked.x >= 6 * 32 && walked.x < 26 * 32 && walked.y >= 3 * 32 && walked.y < 18 * 32;
   await b.eval(`debug.selectTarget('crypt_lord-1'); debug.clearLog(); debug.setPeaceful(false)`);
   await b.keyDown('Space');
   const home = { x: lord.spawnX, y: lord.spawnY };
@@ -134,10 +139,10 @@ export async function storyCryptSuite(b, t, shot) {
   const status2 = await api('dungeonStatus()');
   await shot('story-crypt-01-lord-defeated');
   t.check(
-    'SC-2. a Lv3 Story player beats the Story Crypt Lord in a real fight (no HP set by hand): several Slams telegraphed, the Enrage phase reached, no run claimed',
-    s.bossDead && !after.dead && slamsSeen >= 3 && log.enraged && log.defeated && log.defeated.rewarded === false && log.defeated.item === undefined &&
+    'SC-2. a Lv3 Story player walks through the opened gates into the Boss Room and beats the Story Crypt Lord in a real fight (no HP set by hand): several Slams telegraphed, the Enrage phase reached, no run claimed',
+    walkedIn && s.bossDead && !after.dead && slamsSeen >= 3 && log.enraged && log.defeated && log.defeated.rewarded === false && log.defeated.item === undefined &&
       status2.inRun === null && status2.nextRun === status0.nextRun && status2.fullClaimsUsed === status0.fullClaimsUsed,
-    JSON.stringify({ fightSec, slamsSeen, dodged, approaches, slamHits: log.slamHits, hpLeft: after.hp, bossHpLeft: s.bossHp, bossState: s.bossState, at: [Math.round(s.px), Math.round(s.py), Math.round(s.bx), Math.round(s.by)], enraged: log.enraged, defeated: log.defeated, dealt: log.dealt, taken: log.taken, failed: log.failed, status0, status2 }),
+    JSON.stringify({ walked: [walked.status, Math.round(walked.x), Math.round(walked.y)], fightSec, slamsSeen, dodged, approaches, slamHits: log.slamHits, hpLeft: after.hp, bossHpLeft: s.bossHp, bossState: s.bossState, at: [Math.round(s.px), Math.round(s.py), Math.round(s.bx), Math.round(s.by)], enraged: log.enraged, defeated: log.defeated, dealt: log.dealt, taken: log.taken, failed: log.failed, status0, status2 }),
   );
 
   // The Story reward: once, then never again.

@@ -1,4 +1,4 @@
-import { DEFAULT_MAP_ID, mapDef, MAPS, type MapDef } from '../data/maps';
+import { DEFAULT_MAP_ID, mapDef, MAPS, type EncounterProfileId, type MapDef } from '../data/maps';
 import { spawnPlan, type MonsterSpawn } from './mapRules';
 
 /** What a map change needs from the game (CombatWorld + scene); tests fake it. */
@@ -34,13 +34,13 @@ export class MapSession<M> {
     return this.spawned;
   }
 
-  /** Load `mapId` (unknown ids load the default map). Returns the map loaded. */
-  enter(mapId: string): MapDef {
+  /** Load `mapId` (unknown ids load the default map) with its spawns under `profile`. Returns the map loaded. */
+  enter(mapId: string, profile: EncounterProfileId = 'standard'): MapDef {
     const map = mapDef(mapId) ?? MAPS[DEFAULT_MAP_ID];
     for (const monster of this.spawned.splice(0)) this.host.despawn(monster);
     this.current = map;
     this.host.build(map);
-    this.spawned = spawnPlan(map).map((s) => this.host.spawn(s));
+    this.spawned = spawnPlan(map, profile).map((s) => this.host.spawn(s));
     return map;
   }
 }

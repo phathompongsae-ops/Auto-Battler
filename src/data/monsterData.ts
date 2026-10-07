@@ -128,11 +128,29 @@ const MONSTER_DEFS = {
     // One boss per run: it stays down long enough to claim and leave.
     respawnDelay: 120000,
   }),
+  // Story Crypt only (spawns only in Story zones, data/maps/cryptMap.ts): the telegraph
+  // lesson before the Elite. A slow, wide, clearly announced Smash that is worth stepping
+  // out of; its numbers ARE its Story numbers (no Lv20 version exists). Skeleton art, bigger.
+  crypt_brute: placeholder({
+    id: 'crypt_brute',
+    name: 'Skeleton Brute',
+    texture: 'crypt_skeleton',
+    tier: 'normal',
+    level: 4,
+    stats: { maxHp: 380, attack: 9, defense: 4, moveSpeed: 70 },
+    hitRadius: 16,
+    scale: 1.45,
+    special: 'brute_smash_story',
+    // Stays down for the Story visit, like the rest of the Story Crypt (data/storyEncounters.ts).
+    respawnDelay: 30 * 60_000,
+  }),
 } satisfies Record<string, MonsterDef>;
 
 interface PlaceholderSpec {
   id: string;
   name: string;
+  /** Art to reuse (default: the id). */
+  texture?: string;
   tier: MonsterTier;
   level: number;
   stats: Pick<MonsterStats, 'maxHp' | 'attack' | 'defense' | 'moveSpeed'>;
@@ -154,7 +172,7 @@ function placeholder(spec: PlaceholderSpec): MonsterDef {
   return {
     id: spec.id,
     name: spec.name,
-    texture: spec.id,
+    texture: spec.texture ?? spec.id,
     level: spec.level,
     tier,
     stats: { maxMp: 0, magicDefense: stats.defense, critChance: 0.05, critMultiplier: 1.5, mpRegen: 0, ...stats },

@@ -1,5 +1,6 @@
 import type { MonsterAiState } from '../ai/MonsterBrain';
 import { DUNGEON_ACCESS } from '../data/dungeonAccess';
+import { activeGates, gateOpen } from '../dungeon/gates';
 import type { GameEvents } from '../game/GameEvents';
 import type { CombatWorld } from '../game/CombatWorld';
 import type { ItemId } from '../data/itemData';
@@ -106,6 +107,11 @@ export function createDevApi(world: CombatWorld, overlays: WorldOverlays) {
   ev.on('navigationChanged', (e) => record('navigationChanged', { target: e.targetId ?? undefined, status: e.status, reason: e.reason ?? undefined }));
   ev.on('mapChanged', (e) => record('mapChanged', { target: e.toMapId, item: e.portalId }));
   ev.on('mapEntryBlocked', (e) => record('mapEntryBlocked', { target: e.toMapId, item: e.via, status: e.message }));
+  ev.on('progressBlocked', (e) => record('progressBlocked', { target: e.mapId, item: e.gateId, status: e.message }));
+  ev.on('checkpointReached', (e) => record('checkpointReached', { target: e.mapId, item: e.checkpointId }));
+  ev.on('partyWiped', (e) => record('partyWiped', { target: e.mapId, amount: e.retriesLeft, status: e.failed ? 'failed' : 'retry' }));
+  ev.on('dungeonRetry', (e) => record('dungeonRetry', { target: e.mapId, item: e.checkpointId ?? undefined, amount: e.retriesLeft }));
+  ev.on('dungeonFailed', (e) => record('dungeonFailed', { target: e.mapId }));
   ev.on('locationReached', (e) => record('locationReached', { target: e.locationId }));
   ev.on('skillWindup', (e) => record('skillWindup', { source: e.casterId, skill: e.skillId, target: e.targetId ?? undefined, amount: e.radius ?? undefined }));
   ev.on('goldGained', (e) => record('goldGained', { entity: e.entityId, amount: e.amount }));
@@ -144,6 +150,7 @@ export function createDevApi(world: CombatWorld, overlays: WorldOverlays) {
         attack: m.combat.stats.attack,
         defense: m.combat.stats.defense,
         special: m.def.specialSkill ?? null,
+        zone: m.zoneId,
         dead: m.combat.dead,
         state: m.brain.state as MonsterAiState,
         visible: m.visible,
@@ -481,6 +488,20 @@ export function createDevApi(world: CombatWorld, overlays: WorldOverlays) {
     dungeonStatus: () => ({ ...world.dungeonEntitlements.status(), serverDay: world.serverDay.day(), nextRun: world.rewardLedger.nextSeq, inRun: world.dungeonRun?.runId ?? null }),
     /** Combat profile of the loaded map's monsters (dungeon/encounterProfile): story | standard. */
     encounterProfile: () => world.encounterProfile,
+    /** The current dungeon attempt (checkpoint, wipes, retries, status), or null outside dungeons. */
+    dungeonAttempt: () => {
+      const a = world.dungeonAttempt;
+      return a && { mapId: a.mapId, status: a.status, checkpoint: a.checkpoint?.id ?? null, wipesUsed: a.wipesUsed, wipeLimit: a.wipeLimit, retriesLeft: a.retriesLeft };
+    },
+    /** The loaded map's progression gates in force (profile) and whether each is open. */
+    progressionGates: () =>
+      activeGates(world.maps.map, world.encounterProfile).map((g) => ({ id: g.id, open: gateOpen(g, (z) => world.zoneCleared(z)) })),
+    /** Whether every monster of a spawn zone on this map is down. */
+    zoneCleared: (zoneId: string) => world.zoneCleared(zoneId),
+    /** Test: the player falls through the real death path (as if killed; a dungeon wipe counts). */
+    defeatPlayer: () => world.combat.kill(world.player, null),
+    /** Test: a monster falls through the real death path, killed by the player (quests count it). */
+    defeatMonster: (id: string) => world.combat.kill(monster(id), world.player),
     resetDungeonDaily: () => world.dungeonEntitlements.resetToday(),
     grantDungeonTicket: (amount = 1) => world.inventory.add('additional_dungeon_ticket', amount),
 

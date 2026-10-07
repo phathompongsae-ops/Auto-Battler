@@ -5,7 +5,7 @@ import { TOWN_MAP, TOWN_MAP_ID } from './townMap';
 import type { MapDef, MapPortalDef } from './types';
 
 export { CRYPT_MAP_ID, FIELD_MAP_ID, TOWN_MAP_ID };
-export type { MapDef, MapPortalDef, MapType, MonsterSpawnZone, TileRect } from './types';
+export type { CheckpointDef, EncounterAreaDef, EncounterProfileId, MapDef, MapPortalDef, MapType, MonsterSpawnZone, ProgressionGateDef, TileRect } from './types';
 export { tileCenter } from './types';
 export { PROP_KINDS, type PropKind, type PropPlacement } from './props';
 

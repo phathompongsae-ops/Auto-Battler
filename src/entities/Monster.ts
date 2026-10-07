@@ -3,6 +3,7 @@ import type { MonsterAgent, MonsterBrain } from '../ai/MonsterBrain';
 import { CombatantState } from '../combat/CombatantState';
 import { applyStatusModifiers } from '../combat/stats';
 import { monsterCombatStats, type MonsterDef } from '../data/monsterData';
+import type { PxRect } from '../world/encounters';
 
 const ARRIVE_EPSILON = 2; // px
 
@@ -14,6 +15,10 @@ export class Monster extends Phaser.Physics.Arcade.Sprite implements MonsterAgen
   readonly homeX: number;
   readonly homeY: number;
   brain!: MonsterBrain;
+  /** Spawn zone it belongs to (one zone = one encounter); set by the world on spawn. */
+  zoneId = '';
+  /** Encounter arena (px), if its zone has one; set by the world on spawn. */
+  arena?: readonly PxRect[];
 
   declare body: Phaser.Physics.Arcade.Body;
 

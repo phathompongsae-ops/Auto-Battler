@@ -77,6 +77,8 @@ interface DuelOptions {
   useSkills?: boolean;
   /** Starting HP as a fraction of max. */
   startHp?: number;
+  /** Starting MP as a fraction of max (a checkpoint retry starts at 50%). */
+  startMp?: number;
   seed?: number;
 }
 
@@ -96,6 +98,7 @@ function duel(level: number, defs: MonsterDef[], o: DuelOptions = {}) {
   const projectiles = new ProjectileSystem(events, combat);
   const pc = storyPlayer(level);
   pc.hp = Math.round(pc.stats.maxHp * (o.startHp ?? 1));
+  pc.mp = Math.floor(pc.stats.maxMp * (o.startMp ?? 1));
   const player: CombatEntity = { id: pc.id, x: 0, y: 0, hitRadius: 10, combat: pc };
   const mons = defs.map((d, i) => new Body(`${d.id}-${i}`, d, 60 + i * 30, (i % 2) * 30));
   const entities: CombatEntity[] = [player, ...mons];
@@ -195,11 +198,13 @@ const median = (xs: number[]) => [...xs].sort((a, b) => a - b)[xs.length >> 1];
 if (process.env.STORY_BALANCE_REPORT) {
   for (const lv of [3, 4, 5]) {
     for (const [name, defs] of [
-      ['3 skeletons', () => [story('crypt_skeleton'), story('crypt_skeleton'), story('crypt_skeleton')]],
+      ['1 skeleton', () => [story('crypt_skeleton')]],
+      ['4 skeletons', () => [story('crypt_skeleton'), story('crypt_skeleton'), story('crypt_skeleton'), story('crypt_skeleton')]],
+      ['brute', () => [MONSTERS.crypt_brute]],
       ['knight + skeleton', () => [story('crypt_knight'), story('crypt_skeleton')]],
       ['lord', () => [story('crypt_lord')]],
     ] as const) {
-      for (const [label, o] of [['dodge 3/4', {}], ['never dodge', { dodges: () => false }], ['60% HP', { startHp: 0.6 }]] as const) {
+      for (const [label, o] of [['dodge 3/4', {}], ['never dodge', { dodges: () => false }], ['60% HP', { startHp: 0.6 }], ['retry (MP 50%)', { startMp: 0.5 }]] as const) {
         const rs = runs(lv, defs as () => MonsterDef[], o);
         console.log(`Lv${lv} ${name} ${label}: win ${winRate(rs)}, ${median(rs.map((r) => r.ms)) / 1000}s, hpLeft ${median(rs.map((r) => r.hpLeft)).toFixed(2)}, biggest special ${median(rs.map((r) => r.taken.biggestSpecial))}/${rs[0].maxHp}, telegraphs ${median(rs.map((r) => r.telegraphs))}`);
       }
@@ -300,6 +305,23 @@ describe('Story Crypt balance (real combat systems, Lv3–5 Novice, no gear, dem
   test('Crypt Lord: its basic attacks alone never beat a Lv3 player who keeps attacking (basic attacks only)', () => {
     const noSlam = () => [{ ...story('crypt_lord'), specialSkill: undefined }];
     assert.equal(winRate(runs(3, noSlam, { useSkills: false })), 1);
+  });
+
+  test('teaching encounters: a pack of four is a real but survivable group; the Skeleton Brute telegraphs at least twice and a Smash that lands hurts', () => {
+    const pack = runs(3, () => [story('crypt_skeleton'), story('crypt_skeleton'), story('crypt_skeleton'), story('crypt_skeleton')]);
+    assert.equal(winRate(pack), 1);
+    const lost = 1 - median(pack.map((r) => r.hpLeft));
+    assert.ok(lost >= 0.08 && lost <= 0.25, `pack of four costs ${lost.toFixed(2)} of HP`);
+    const brute = runs(3, () => [MONSTERS.crypt_brute]);
+    assert.equal(winRate(brute), 1);
+    assert.ok(median(brute.map((r) => r.telegraphs)) >= 2, 'the lesson comes round again');
+    const hit = median(runs(3, () => [MONSTERS.crypt_brute], { dodges: () => false }).map((r) => r.taken.biggestSpecial / r.maxHp));
+    assert.ok(hit >= 0.08, `a Smash that lands takes ${hit.toFixed(2)} of a Lv3 bar`);
+  });
+
+  test('Crypt Lord after a checkpoint retry (HP 100%, MP 50%): still a fair, winnable fight at Lv3', () => {
+    const rs = runs(3, () => [story('crypt_lord')], { startMp: 0.5 });
+    assert.ok(winRate(rs) >= 0.85, `win rate ${winRate(rs)}`);
   });
 
   test('the Lv20 Crypt Lord stays out of reach for the same Lv3 player (why the Story profile exists)', () => {

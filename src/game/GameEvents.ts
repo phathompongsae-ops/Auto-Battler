@@ -122,6 +122,16 @@ export type GameEvents = {
    * Without a run nothing is granted (dungeon kills never reward by themselves).
    */
   bossDefeated: { entityId: EntityId; monsterId: string; mapId: string; runId: string | null; claimed: boolean };
+  /** A dungeon checkpoint became the party's retry position (it restores nothing). */
+  checkpointReached: { mapId: string; checkpointId: string; label: string };
+  /** The whole active party went down in a dungeon: a retry was spent (retriesLeft after it) or the attempt failed. */
+  partyWiped: { mapId: string; retriesLeft: number; failed: boolean };
+  /** The party reappeared after a wipe (latest checkpoint, or the entrance): open encounters reset, HP 100% / MP 50%. */
+  dungeonRetry: { mapId: string; checkpointId: string | null; retriesLeft: number };
+  /** A progression gate stopped the player: the encounters before it are not all down yet. */
+  progressBlocked: { mapId: string; gateId: string; message: string };
+  /** Out of retries: the attempt ended without a clear and the party is sent back to Town. */
+  dungeonFailed: { mapId: string };
 
   // --- Skill trees
   /** One rank learned. */

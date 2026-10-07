@@ -11,6 +11,14 @@ import { tileCenter, type MapDef } from './types';
  * Boss room (with its own exit back to Town). Torches, braziers, pillars and
  * tombs mark each section. Dungeon reward rules apply to everything here:
  * mobs grant nothing, the boss-clear claim is the reward.
+ *
+ * Every room is an encounter arena (its monsters only notice and chase a
+ * player on its floor; the connecting corridors belong to no encounter), and
+ * the corridors before the Elite Chamber and the Boss Room hold the two
+ * checkpoints. Story visits (Lv3–5 tutorial, data/storyEncounters.ts) use
+ * their own teaching spawns in Sections I–II: a lone Skeleton (basic combat),
+ * a pack of four (handling a group), a Skeleton Brute (reading and stepping
+ * out of a telegraph); Lv20 runs keep their original Section spawns.
  */
 export const CRYPT_MAP_ID = 'demo_crypt';
 
@@ -100,11 +108,78 @@ export const CRYPT_MAP: MapDef = {
     },
   ],
   monsterSpawnZones: [
-    { id: 'section_1', monsterId: 'crypt_skeleton', points: [{ tileX: 8, tileY: 45 }, { tileX: 23, tileY: 46 }, { tileX: 16, tileY: 44 }] },
-    { id: 'section_2', monsterId: 'crypt_skeleton', points: [{ tileX: 8, tileY: 34 }, { tileX: 23, tileY: 34 }, { tileX: 15, tileY: 33 }] },
-    { id: 'elite_section_guard', monsterId: 'crypt_skeleton', points: [{ tileX: 11, tileY: 23 }] },
-    { id: 'elite_section', monsterId: 'crypt_knight', points: [{ tileX: 16, tileY: 24 }] },
-    { id: 'boss_room', monsterId: 'crypt_lord', points: [{ tileX: 16, tileY: 8 }] },
+    // Lv20 runs (unchanged spawns).
+    { id: 'section_1', monsterId: 'crypt_skeleton', arena: 'section_1', profiles: ['standard'], points: [{ tileX: 8, tileY: 45 }, { tileX: 23, tileY: 46 }, { tileX: 16, tileY: 44 }] },
+    { id: 'section_2', monsterId: 'crypt_skeleton', arena: 'section_2', profiles: ['standard'], points: [{ tileX: 8, tileY: 34 }, { tileX: 23, tileY: 34 }, { tileX: 15, tileY: 33 }] },
+    // Story teaching flow. Section I: one Skeleton just inside the door (basic targeting and
+    // combat), then a pack of four at the far end, out of reach of the first fight (a group).
+    { id: 'story_s1_lone', monsterId: 'crypt_skeleton', arena: 'section_1', profiles: ['story'], points: [{ tileX: 17, tileY: 48 }] },
+    {
+      id: 'story_s1_pack',
+      monsterId: 'crypt_skeleton',
+      arena: 'section_1',
+      profiles: ['story'],
+      points: [{ tileX: 14, tileY: 43 }, { tileX: 18, tileY: 43 }, { tileX: 15, tileY: 42 }, { tileX: 17, tileY: 42 }],
+    },
+    // Section II: the Skeleton Brute alone between the tombs (a telegraph to read and step out of).
+    { id: 'story_s2_brute', monsterId: 'crypt_brute', arena: 'section_2', profiles: ['story'], points: [{ tileX: 16, tileY: 34 }] },
+    // Both profiles: the Elite Chamber and the Boss Room.
+    { id: 'elite_section_guard', monsterId: 'crypt_skeleton', arena: 'elite', points: [{ tileX: 11, tileY: 23 }] },
+    { id: 'elite_section', monsterId: 'crypt_knight', arena: 'elite', points: [{ tileX: 16, tileY: 24 }] },
+    { id: 'boss_room', monsterId: 'crypt_lord', arena: 'boss', points: [{ tileX: 16, tileY: 8 }] },
+  ],
+  // Room floors (same rectangles as tiles()); corridors between them belong to no encounter.
+  encounterAreas: {
+    section_1: { label: 'Section I', rects: [{ x: 5, y: 42, w: 22, h: 8 }] },
+    section_2: { label: 'Section II', rects: [{ x: 5, y: 31, w: 22, h: 8 }] },
+    elite: { label: 'Elite Chamber', rects: [{ x: 8, y: 21, w: 16, h: 7 }] },
+    boss: { label: 'Boss Room', rects: [{ x: 6, y: 3, w: 20, h: 15 }] },
+  },
+  // Story: each doorway north stays shut until every required encounter before it is down
+  // (cumulative), so the tutorial runs in order: Section I → Section II → Elite → Boss.
+  // Lv20 runs have no gates. Each gate is the first row of the corridor out of a room.
+  progressionGates: [
+    {
+      id: 'story_gate_section_1',
+      area: { x: 14, y: 41, w: 4, h: 1 },
+      requiresCleared: ['story_s1_lone', 'story_s1_pack'],
+      message: 'Defeat the Skeletons of Section I first',
+      profiles: ['story'],
+    },
+    {
+      id: 'story_gate_section_2',
+      area: { x: 14, y: 30, w: 4, h: 1 },
+      requiresCleared: ['story_s1_lone', 'story_s1_pack', 'story_s2_brute'],
+      message: 'Defeat the Skeleton Brute first',
+      profiles: ['story'],
+    },
+    {
+      id: 'story_gate_elite',
+      area: { x: 14, y: 20, w: 4, h: 1 },
+      requiresCleared: ['story_s1_lone', 'story_s1_pack', 'story_s2_brute', 'elite_section_guard', 'elite_section'],
+      message: 'Defeat the Crypt Knight and its guard first',
+      profiles: ['story'],
+    },
+  ],
+  checkpoints: [
+    // Before the Elite Chamber, once the teaching encounters are down (Story; none to require in Lv20 runs).
+    {
+      id: 'crypt_cp_elite',
+      label: 'Elite Chamber Gate',
+      order: 1,
+      trigger: { x: 14, y: 28, w: 4, h: 3 },
+      respawn: { x: 512, y: 29 * 32 + 16 },
+      requiresCleared: ['story_s1_lone', 'story_s1_pack', 'story_s2_brute'],
+    },
+    // Between the Crypt Knight and the Crypt Lord, once the Elite Chamber is down.
+    {
+      id: 'crypt_cp_boss',
+      label: 'Boss Room Gate',
+      order: 2,
+      trigger: { x: 14, y: 18, w: 4, h: 3 },
+      respawn: { x: 512, y: 19 * 32 + 16 },
+      requiresCleared: ['elite_section_guard', 'elite_section'],
+    },
   ],
   navigationTargets: [
     // The entrance hall: arriving counts as entering the dungeon.

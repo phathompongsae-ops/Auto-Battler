@@ -138,6 +138,7 @@ export async function combatSliceSuite(b, t, shot) {
   const status0 = await api('dungeonStatus()');
   const boss = await api(`monster('crypt_lord-1')`);
   const profile = await api('encounterProfile()');
+  const attemptLv20 = await api('dungeonAttempt()');
   await api(`teleport(${boss.spawnX}, ${boss.spawnY + 70})`);
   await b.eval(`debug.setPlayerHp(9999); debug.selectTarget('crypt_lord-1'); debug.setPeaceful(false)`);
   await b.waitFor(`debug.log.some(e => e.type === 'skillWindup' && e.source === 'crypt_lord-1' && e.skill === 'crypt_slam')`, { timeout: 8000, label: 'boss slam wind-up' });
@@ -150,9 +151,9 @@ export async function combatSliceSuite(b, t, shot) {
   await b.waitFor(`debug.log.some(e => e.type === 'monsterEnraged' && e.entity === 'crypt_lord-1')`, { timeout: 2000, label: 'boss enrages' });
   const enragedFrame = await target();
   t.check(
-    'CS-8. the Dungeon gate starts a run with the Lv20 (standard) Crypt, not the Story profile; the Boss shows in a Boss target frame, telegraphs Grave Slam (it lands if you stay) and enrages at low HP',
-    entered && status0.inRun !== null && profile === 'standard' && boss.level === 20 && boss.maxHp === 3000 && boss.special === 'crypt_slam' && tf.tier === 'dungeon_boss' && tf.text.includes('Boss') && enragedFrame.state === 'enraged',
-    JSON.stringify({ entered, inRun: status0.inRun, profile, boss, tf, enragedFrame }),
+    'CS-8. the Dungeon gate starts a run with the Lv20 (standard) Crypt, not the Story profile, and a Normal attempt (4 wipes); the Boss shows in a Boss target frame, telegraphs Grave Slam (it lands if you stay) and enrages at low HP',
+    entered && status0.inRun !== null && profile === 'standard' && attemptLv20?.wipeLimit === 4 && attemptLv20.status === 'active' && boss.level === 20 && boss.maxHp === 3000 && boss.special === 'crypt_slam' && tf.tier === 'dungeon_boss' && tf.text.includes('Boss') && enragedFrame.state === 'enraged',
+    JSON.stringify({ entered, inRun: status0.inRun, profile, attemptLv20, boss, tf, enragedFrame }),
   );
   const wallet0 = await b.eval(`debug.equipment().gold`);
   await b.eval(`debug.clearLog()`);
