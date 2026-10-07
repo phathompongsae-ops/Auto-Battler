@@ -29,9 +29,21 @@ export interface MonsterProfileOverride {
   respawnDelay?: number;
 }
 
+/** When a Story tutorial line appears: on entering, when an encounter first engages, on a checkpoint. */
+export type TutorialTrigger = { on: 'enter' } | { on: 'engage'; zone: string } | { on: 'checkpoint'; checkpointId: string };
+
+/** One short Story tutorial line, shown once per dungeon attempt. */
+export interface TutorialBeat {
+  id: string;
+  trigger: TutorialTrigger;
+  message: string;
+}
+
 export interface StoryEncounterProfile {
   mapId: string;
   monsters: Readonly<Record<string, MonsterProfileOverride>>;
+  /** Story-only guidance in the HUD feed (short; never pauses play). */
+  tutorial?: readonly TutorialBeat[];
 }
 
 /** Long enough that nothing comes back during one Story visit; re-entering the map respawns everything. */
@@ -48,5 +60,17 @@ export const STORY_ENCOUNTERS: Readonly<Record<string, StoryEncounterProfile>> =
       // ~35 s fight (~5 Slams); Slam ~15% of a Lv3 bar (~22% enraged); Enrage below 35% as in the base data.
       crypt_lord: { level: 6, stats: { maxHp: 2800, attack: 9, defense: 8 }, specialSkill: 'crypt_slam_story', respawnDelay: STAYS_CLEARED_MS },
     },
+    // One line per teaching moment, in route order. Controls named are the ones that exist now
+    // (tap / Tab to target, ATK / Space to attack, movement); no Dodge or Potion yet.
+    tutorial: [
+      { id: 'entrance', trigger: { on: 'enter' }, message: 'Fight through the Crypt to its Lord. Clear each chamber to open the way on.' },
+      { id: 'first_skeleton', trigger: { on: 'engage', zone: 'story_s1_lone' }, message: 'Tap an enemy (or Tab) to target it. Hold ATK (Space) to keep attacking.' },
+      { id: 'pack', trigger: { on: 'engage', zone: 'story_s1_pack' }, message: 'A pack attacks together. Back away so they can’t surround you.' },
+      { id: 'brute', trigger: { on: 'engage', zone: 'story_s2_brute' }, message: 'Red circles mark heavy attacks. Move out before they land.' },
+      { id: 'checkpoint_a', trigger: { on: 'checkpoint', checkpointId: 'crypt_cp_elite' }, message: 'Retry point set: if you fall, you return here. It does not heal.' },
+      { id: 'elite', trigger: { on: 'engage', zone: 'elite_section' }, message: 'Elite: Crypt Knight. Step out of reach when it raises its blade.' },
+      { id: 'checkpoint_b', trigger: { on: 'checkpoint', checkpointId: 'crypt_cp_boss' }, message: 'The Crypt Lord waits beyond. Retry point set — no healing.' },
+      { id: 'boss', trigger: { on: 'engage', zone: 'boss_room' }, message: 'The Crypt Lord awakens! Leave the red circle before Grave Slam lands.' },
+    ],
   },
 };

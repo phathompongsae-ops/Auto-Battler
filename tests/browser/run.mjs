@@ -24,6 +24,8 @@ import { inventorySuite } from './inventory.test.mjs';
 import { questFlowSuite } from './questFlow.test.mjs';
 import { storyCryptSuite } from './storyCrypt.test.mjs';
 import { dungeonStructureSuite } from './dungeonStructure.test.mjs';
+import { combatFeedbackSuite } from './combatFeedback.test.mjs';
+import { storyFeedbackSuite } from './storyFeedback.test.mjs';
 import { hudStyleSuite } from './hudStyle.test.mjs';
 
 const ENVIRONMENT_REVIEW = process.argv.includes('--environment-review');
@@ -104,6 +106,8 @@ try {
     await questFlowSuite(b, t, shot);
     await storyCryptSuite(b, t, shot);
     await dungeonStructureSuite(b, t, shot);
+    await combatFeedbackSuite(b, t, shot);
+    await storyFeedbackSuite(b, t, shot);
     const artSummary = await classArtSuite(b, t, shot);
     console.log(`  class art anchors (worst world px): ${JSON.stringify(artSummary)}`);
     await hudSuite(b, t, shot);

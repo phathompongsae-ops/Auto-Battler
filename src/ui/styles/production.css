@@ -189,3 +189,156 @@
 /* Inert reserved sockets (Special, Potion, Dodge, Auto, Pet / Summon) show their glyph only: the name stays in
  * title / aria-label, and the ring's own labels and key hints stay uncluttered. */
 .hud-actions > .ui-slot[data-group='utility'][aria-disabled='true']:not([data-slot='skill5']) .hud-action__label { display: none; }
+
+/* ---------------------------------------------------------------------------
+ * Readability polish (typography / ATK). Hierarchy: quest title > objective >
+ * control labels. Every HUD label gets a crisp 1px dark outline plus a soft
+ * shadow so it holds over grass, stone and water alike. No layout changes.
+ * ------------------------------------------------------------------------- */
+.ui-root {
+  --hud-ink: #0a0f15;
+  --hud-outline: 0 1px 0 var(--hud-ink), 0 -1px 0 var(--hud-ink), 1px 0 0 var(--hud-ink), -1px 0 0 var(--hud-ink), 0 1px 3px #000000cc;
+  --hud-outline-strong: 0 1px 0 var(--hud-ink), 0 -1px 0 var(--hud-ink), 1px 0 0 var(--hud-ink), -1px 0 0 var(--hud-ink),
+    1px 1px 0 var(--hud-ink), -1px 1px 0 var(--hud-ink), 1px -1px 0 var(--hud-ink), -1px -1px 0 var(--hud-ink), 0 2px 4px #000000d9;
+}
+
+/* Skill / utility labels under the ring: readable, never louder than the buttons. Sitting just under
+ * their own socket keeps them clear of the next socket's key tag on the 35-degree arc. */
+.hud-action__label {
+  top: calc(100% + 1px * var(--ui-scale));
+  font-size: max(11px, calc(10.5px * var(--ui-scale)));
+  font-weight: 800;
+  letter-spacing: .02em;
+  color: #fff1d2;
+  text-shadow: var(--hud-outline);
+}
+.hud-actions [data-group='utility'] .hud-action__label { font-size: max(10px, calc(9.5px * var(--ui-scale))); font-weight: 700; color: #f1e5c8; }
+
+/* Key hints (Q / E / R / F / G, Space): small bronze tags with crisp, bold glyphs. */
+.hud-actions .ui-slot__key {
+  min-width: calc(16px * var(--ui-scale));
+  padding: 0 calc(4px * var(--ui-scale));
+  font-size: max(10px, calc(10px * var(--ui-scale)));
+  font-weight: 800;
+  line-height: calc(15px * var(--ui-scale));
+  text-align: center;
+  color: #fff4d8;
+  text-shadow: 0 1px 1px var(--hud-ink);
+  border: 1px solid #c9ab70;
+  background: linear-gradient(#6d5a3c, #262d31);
+  box-shadow: 0 1px 2px #0a0f15aa;
+}
+
+/* Cooldowns (locked direction): a translucent charcoal radial sweep carries the time. It covers the icon
+ * face and uncovers it clockwise from 12 o'clock in step with the real remaining fraction (--cd), with a
+ * thin silver edge on the sweep line; the skill art stays visible underneath. The timer is small and
+ * secondary. No filters (combat frame time), no per-frame DOM: only --cd and the text change. */
+.hud-actions .ui-slot__cooldown {
+  inset: 19%;
+  border-radius: 50%;
+  background: conic-gradient(
+    transparent 0 calc((1 - var(--cd, 0)) * 360deg),
+    #cfd5dc80 0 calc((1 - var(--cd, 0)) * 360deg + 1.5deg),
+    #12171dad 0
+  );
+}
+.hud-actions .ui-slot__cooldown-text {
+  font-size: max(11px, calc(12px * var(--ui-scale)));
+  font-weight: 600;
+  letter-spacing: .01em;
+  font-variant-numeric: tabular-nums;
+  color: #fbf4e2;
+  text-shadow: 0 0 2px #0a0f15, 0 1px 1px #0a0f15;
+}
+/* Ready: one short, restrained flash over the face when a cooldown ends (opacity only; runs once). */
+.hud-actions .ui-slot.is-ready-flash::after {
+  content: '';
+  position: absolute;
+  z-index: 1;
+  inset: 19%;
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff3d270, #fff3d200 72%);
+  pointer-events: none;
+  animation: ui-slot-ready 320ms ease-out 1 both;
+}
+@keyframes ui-slot-ready {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+.ui-root[data-calm='true'] .hud-actions .ui-slot.is-ready-flash::after { display: none; }
+
+/* ATK: the primary action. Crossed swords (steel blades, bronze hilts, dark outline) above a gold serif label. */
+.hud-actions [data-slot='attack'] .ui-slot__icon {
+  background: radial-gradient(circle at 32% 22%, #c99d55, #7a5a32 58%, #2a3438);
+  border: 1px solid #e3c27f99;
+  box-shadow: inset 0 1px 3px #ffe7b04d, inset 0 -4px 6px #120c0699, 0 0 0 1px #3a2a1688;
+}
+.hud-actions [data-slot='attack'] .ui-slot__icon { padding-bottom: 21%; }
+.hud-actions [data-slot='attack'] .ui-icon {
+  width: 100%; height: 100%;
+  color: #2b1d0d;
+  stroke-width: 1.15;
+  /* No filter here: a filtered socket re-rasterises every frame during combat (see .hud-actions > .ui-slot). */
+  filter: none;
+}
+.hud-actions [data-slot='attack'] .ui-icon [data-part='blade'] { fill: #eef0ea; }
+.hud-actions [data-slot='attack'] .ui-icon [data-part='fuller'] { stroke: #9aa3a6; stroke-width: .8; }
+.hud-actions [data-slot='attack'] .ui-icon [data-part='hilt'] { fill: #e1b25a; }
+.hud-actions [data-slot='attack'] .hud-action__label {
+  bottom: 22%;
+  font-family: var(--ui-font-display);
+  font-size: calc(17px * var(--ui-scale));
+  font-weight: 800;
+  letter-spacing: .08em;
+  color: #ffe6a8;
+  text-shadow: var(--hud-outline-strong);
+}
+/* Ready ATK carries a warm gold halo the skills don't have: the eye finds the main button first. */
+.hud-actions .ui-slot[data-slot='attack']:not(.is-disabled):not([data-cooldown='true']) {
+  box-shadow: 0 3px 6px #0b1219aa, 0 0 0 2px #e7c27440, 0 0 10px 2px #f0c46a59;
+}
+.hud-actions .ui-slot[data-slot='attack'].is-pressed { box-shadow: 0 1px 3px #08131b, 0 0 0 2px #f6d78a88, 0 0 14px 3px #f6d78a88; }
+.ui-root[data-calm='true'] .hud-actions .ui-slot[data-slot='attack'] { box-shadow: none; }
+
+/* Quest tracker hierarchy: title strongest, objectives secondary, done lines quiet. */
+.hud-quests__toggle { font-size: 13px; font-weight: 700; color: #ead2a0; text-shadow: var(--hud-outline); }
+.hud-quests__head .ui-label {
+  font-size: max(12px, calc(13px * var(--ui-scale)));
+  font-weight: 800;
+  line-height: 1.25;
+  color: #ffdd92;
+  text-shadow: var(--hud-outline);
+}
+.hud-quests__objective,
+.hud-quests__hint { font-size: max(11px, calc(11.5px * var(--ui-scale))); font-weight: 600; line-height: 1.4; text-shadow: var(--hud-outline); }
+.hud-quests__objective { color: #e6e1d3; }
+.hud-quests__objective.is-next { color: #fff7e2; font-weight: 700; }
+.hud-quests__objective.is-done { color: #9fd99a; font-weight: 600; }
+.hud-quests__hint { color: #9fdcff; font-weight: 700; }
+
+/* Other HUD text: same outline treatment, slightly heavier. */
+.ui-medallion__label { font-size: max(10px, calc(11.5px * var(--ui-scale))); font-weight: 700; text-shadow: var(--hud-outline); }
+.hud-player .ui-label,
+.hud-player__gold,
+.hud-player .ui-caption,
+.hud .ui-bar__text,
+.hud-target__name { text-shadow: var(--hud-outline); font-weight: 700; }
+
+@media (max-height: 420px), (max-width: 760px) {
+  .hud-quests__toggle { font-size: 12px; }
+  .hud-systems .ui-medallion__label { font-size: 9.5px; }
+}
+
+/* Story tutorial lines in the feed: short sentences that wrap within a narrow column (never reaching the
+ * combat cluster or the quest tracker), a bronze edge to set them apart from loot lines. */
+.hud-loot__line--tutorial {
+  white-space: normal;
+  max-width: min(calc(300px * var(--ui-scale)), 44vw);
+  padding: calc(4px * var(--ui-scale)) calc(8px * var(--ui-scale));
+  font-size: max(11px, calc(12px * var(--ui-scale)));
+  font-weight: 700;
+  line-height: 1.3;
+  background: linear-gradient(90deg, #2c2319eb, #1b2228cc);
+  box-shadow: inset 2px 0 0 #d9b56a;
+  text-shadow: var(--hud-outline);
+}

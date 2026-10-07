@@ -56,6 +56,25 @@ export interface SkillSlotOptions extends BaseSlotOptions {
   keyHint?: string;
   /** Round action button (attack/skills) vs. square bar slot. */
   kind?: 'skill' | 'action';
+  /**
+   * Show the cooldown sweep / timer (default true). Off for the basic attack,
+   * whose swing interval is not a player-facing cooldown.
+   */
+  showCooldown?: boolean;
+}
+
+/**
+ * Player-facing cooldown text: whole seconds from 10 s ("12"), one decimal
+ * from 1 s ("7.4", "2.1"; never a trailing ".0"), nothing below 1 s (the
+ * sweep finishes on its own). Values are truncated, so the number never
+ * shows more time than is left and never reads "10.0".
+ */
+export function formatCooldown(remainingMs: number): string {
+  if (!(remainingMs >= 1000)) return '';
+  const seconds = remainingMs / 1000;
+  if (seconds >= 10) return String(Math.floor(seconds));
+  const tenths = Math.floor(seconds * 10) / 10;
+  return Number.isInteger(tenths) ? String(tenths) : tenths.toFixed(1);
 }
 
 /** Skill or action button with a clock-wipe cooldown and disabled state. */
@@ -63,29 +82,44 @@ export class SkillSlot extends SlotBase {
   private readonly cooldown: HTMLDivElement;
   private readonly cooldownText: HTMLSpanElement;
   private readonly keyHint: HTMLSpanElement;
+  private readonly showCooldown: boolean;
+  /** Whether the last update was cooling down (a cooldown ending gets one brief ready flash). */
+  private coolingDown = false;
 
   constructor(options: SkillSlotOptions = {}) {
     super(options.kind ?? 'skill', options);
+    this.showCooldown = options.showCooldown ?? true;
     this.cooldown = h('div', { className: 'ui-slot__cooldown' });
     this.cooldownText = h('span', { className: 'ui-slot__cooldown-text' });
     this.keyHint = h('span', { className: 'ui-slot__key', text: options.keyHint ?? '' });
     this.el.append(this.cooldown, this.cooldownText, this.keyHint);
+    // The ready flash is a one-shot CSS animation; clear its class when it ends so it can run again.
+    this.el.addEventListener('animationend', (e) => {
+      if (e.animationName === 'ui-slot-ready') this.el.classList.remove('is-ready-flash');
+    });
     this.setCooldown(0, 0);
   }
 
-  /** @param remainingMs time left; @param totalMs full cooldown length. */
+  /**
+   * @param remainingMs time left; @param totalMs full cooldown length. Drives
+   * the radial sweep (--cd = remaining fraction) and the small timer; called
+   * every frame, it only touches the DOM when a value actually changes.
+   */
   setCooldown(remainingMs: number, totalMs: number): void {
-    const fraction = remainingMs > 0 && totalMs > 0 ? Math.min(1, remainingMs / totalMs) : 0;
+    const fraction = this.showCooldown && remainingMs > 0 && totalMs > 0 ? Math.min(1, remainingMs / totalMs) : 0;
     setVar(this.cooldown, '--cd', fraction.toFixed(3));
-    this.cooldown.hidden = fraction === 0;
-    // Only label long cooldowns; a half-second swing timer would just flicker.
-    setText(this.cooldownText, remainingMs >= 1000 ? (remainingMs / 1000).toFixed(remainingMs < 10000 ? 1 : 0) : '');
-    this.el.dataset.cooldown = fraction > 0 ? 'true' : 'false';
+    // Called every frame: only write what changed (attribute writes invalidate the styles keyed on them).
+    if (this.cooldown.hidden !== (fraction === 0)) this.cooldown.hidden = fraction === 0;
+    setText(this.cooldownText, fraction > 0 ? formatCooldown(remainingMs) : '');
+    const state = fraction > 0 ? 'true' : 'false';
+    if (this.el.dataset.cooldown !== state) this.el.dataset.cooldown = state;
+    if (this.coolingDown && fraction === 0) this.el.classList.add('is-ready-flash');
+    this.coolingDown = fraction > 0;
   }
 
   setDisabled(disabled: boolean): void {
     toggleClass(this.el, 'is-disabled', disabled);
-    this.el.setAttribute('aria-disabled', String(disabled));
+    if (this.el.getAttribute('aria-disabled') !== String(disabled)) this.el.setAttribute('aria-disabled', String(disabled));
   }
 }
 

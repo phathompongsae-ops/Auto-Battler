@@ -6,6 +6,7 @@ import { SKILLS } from '../data/skillData';
 import { STATUSES } from '../data/statusData';
 import type { CombatWorld } from '../game/CombatWorld';
 import { bodyCenterY, textAnchorY } from './characterLayout';
+import { COMBAT_NUMBER_STYLES, damageKind, NumberSlots, type CombatNumberKind } from './damageNumbers';
 import { FloatingText } from './FloatingText';
 
 /** A view that can flash when hit. Player and Monster both implement it. */
@@ -36,6 +37,9 @@ const MONSTER_TEXT_ANCHOR_Y = -16;
 const TEXT_LIFT = { damage: 0, heal: 0, fail: 6, death: 8, exp: 14, loot: 14, levelUp: 24 } as const;
 type TextKind = keyof typeof TEXT_LIFT;
 
+/** Extra px a critical number starts above its slot. */
+const CRIT_EXTRA_LIFT = 6;
+
 const hex = (color: number) => `#${color.toString(16).padStart(6, '0')}`;
 
 /**
@@ -45,6 +49,8 @@ const hex = (color: number) => `#${color.toString(16).padStart(6, '0')}`;
  */
 export class CombatEffects {
   private readonly text: FloatingText;
+  /** Target-local start offsets so rapid hits on one target fan out instead of stacking on one point. */
+  private readonly slots = new NumberSlots();
 
   constructor(
     private readonly scene: Phaser.Scene,
@@ -57,15 +63,20 @@ export class CombatEffects {
     const textY = (e: CombatEntity, kind: TextKind) =>
       e.y + (e === world.player ? textAnchorY(world.player.layout) : MONSTER_TEXT_ANCHOR_Y) - TEXT_LIFT[kind];
     const centerY = (e: CombatEntity) => e.y + (e === world.player ? bodyCenterY(world.player.layout) : 0);
+    /** A combat number (damage / heal / miss) in its style, at the target's next slot. */
+    const number = (target: CombatEntity, kind: CombatNumberKind, value: string, lift: TextKind) => {
+      const at = this.slots.next(target.id, world.now);
+      // Bigger critical numbers start a little higher so a hit landing with them stays readable underneath.
+      const critLift = kind === 'crit' || kind === 'player_crit' ? CRIT_EXTRA_LIFT : 0;
+      this.text.show(target.x + at.dx, textY(target, lift) + at.dy - critLift, value, COMBAT_NUMBER_STYLES[kind]);
+    };
 
     ev.on('damage', ({ sourceId, targetId, skillId, amount, crit, heavy }) => {
       const target = world.getEntity(targetId);
       if (!target) return;
       this.flash(target);
-      this.text.show(target.x, textY(target, 'damage'), crit ? `${amount}!` : `${amount}`, {
-        color: isPlayer(targetId) ? '#ff6b6b' : crit ? '#ffd166' : '#ffffff',
-        size: crit ? 20 : heavy ? 17 : 14,
-      });
+      // Crits keep a trailing "!" as a non-colour cue next to their size and colour.
+      number(target, damageKind({ targetIsPlayer: isPlayer(targetId), crit, heavy }), crit ? `${amount}!` : `${amount}`, 'damage');
       const source = world.getEntity(sourceId);
       const skill = SKILLS[skillId];
       // Player skills with their own action VFX (e.g. Power Slash) draw their arc on the hit frame instead.
@@ -79,12 +90,12 @@ export class CombatEffects {
 
     ev.on('miss', ({ targetId }) => {
       const target = world.getEntity(targetId);
-      if (target) this.text.show(target.x, textY(target, 'damage'), 'Miss', { color: '#c9d1e3', size: 13 });
+      if (target) number(target, 'miss', 'Miss', 'damage');
     });
 
     ev.on('heal', ({ targetId, amount }) => {
       const target = world.getEntity(targetId);
-      if (target && amount > 0) this.text.show(target.x, textY(target, 'heal'), `+${amount}`, { color: '#7ee787' });
+      if (target && amount > 0) number(target, 'heal', `+${amount}`, 'heal');
     });
 
     ev.on('skillFailed', ({ casterId, reason }) => {
@@ -168,6 +179,14 @@ export class CombatEffects {
       const p = world.player;
       this.text.show(p.x, textY(p, 'levelUp') - 30, `QUEST COMPLETE: ${def.title}`, { color: '#ffe066', size: 16, rise: 36, duration: 2400 });
       this.ring(p.x, centerY(p), 0xffe066, 56, 600);
+    });
+
+    // A checkpoint became the retry point (fires once per checkpoint per attempt): one cool-blue pulse and a
+    // short line, then nothing stays behind. Not green and no sparkle: it restores nothing.
+    ev.on('checkpointReached', () => {
+      const p = world.player;
+      this.ring(p.x, centerY(p), 0x9fd8ff, 44, 650);
+      this.text.show(p.x, textY(p, 'levelUp') - 8, 'Retry point updated', { color: '#bfe6ff', size: 13, rise: 18, duration: 1500 });
     });
 
     ev.on('bossDefeated', ({ claimed, runId }) => {

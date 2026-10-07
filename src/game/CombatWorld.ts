@@ -28,6 +28,8 @@ import { claimDungeonClear, type DungeonClaimResult } from '../dungeon/claim';
 import { profiledMonsterDef, selectEncounterProfile, type EncounterProfileId } from '../dungeon/encounterProfile';
 import { DIFFICULTIES, type DifficultyId } from '../data/dungeonDifficulty';
 import { activeGates, closedGateAt } from '../dungeon/gates';
+import { dueTutorialBeats, type TutorialMoment } from '../dungeon/tutorial';
+import { STORY_ENCOUNTERS } from '../data/storyEncounters';
 import { checkpointReady, DungeonAttempt, partyDefeated, RETRY_HP_FRACTION, RETRY_MP_FRACTION, type WipeOutcome } from '../dungeon/attempt';
 import { SpecialShop } from '../pets/specialShop';
 import { RewardLedger, type DungeonRun } from '../dungeon/rewards';
@@ -170,6 +172,8 @@ export class CombatWorld implements MonsterWorld {
   private gateSafe: NavPoint | null = null;
   /** When each gate last told the player what is missing (so bumping it doesn't spam). */
   private readonly gateNotice = new Map<string, number>();
+  /** Story tutorial beats already shown in this dungeon attempt (reset on every map entry). */
+  private readonly tutorialSeen = new Set<string>();
 
   private readonly controller: PlayerCombatController;
   /** Projectiles stop at the current map's walls. */
@@ -390,11 +394,13 @@ export class CombatWorld implements MonsterWorld {
     // Wipe allowance: the run's difficulty, read when a wipe happens (the Story Crypt has no run: Normal's).
     this.pendingWipe = null;
     this.gateSafe = null;
+    this.tutorialSeen.clear();
     this.dungeonAttempt = map.type === 'dungeon' ? new DungeonAttempt(map.id, () => DIFFICULTIES[this.dungeonRun?.difficulty ?? 'normal'].partyWipeLimit) : null;
     const spot = at ?? map.spawnPoint;
     this.player.body.reset(spot.x, spot.y);
     this.view.entered(map);
     if (from) this.events.emit('mapChanged', { fromMapId: from.id, toMapId: map.id, portalId: cause });
+    this.tutorial({ entered: true });
     return map;
   }
 
@@ -482,6 +488,7 @@ export class CombatWorld implements MonsterWorld {
     this.checkPortalTrigger();
     this.checkLocations();
     this.checkCheckpoints();
+    this.checkTutorialEngagements();
     this.settleLevelCap();
     this.checkServerDay();
   }
@@ -595,8 +602,28 @@ export class CombatWorld implements MonsterWorld {
     if (!attempt || attempt.status !== 'active' || this.player.combat.dead) return;
     for (const cp of this.maps.map.checkpoints ?? []) {
       const ready = checkpointReady(cp, { inTrigger: inTileRect(cp.trigger, this.player.x, this.player.y), zoneCleared: (z) => this.zoneCleared(z) });
-      if (ready && attempt.activate(cp)) this.events.emit('checkpointReached', { mapId: this.location.mapId, checkpointId: cp.id, label: cp.label });
+      if (ready && attempt.activate(cp)) {
+        this.events.emit('checkpointReached', { mapId: this.location.mapId, checkpointId: cp.id, label: cp.label });
+        this.tutorial({ checkpointId: cp.id });
+      }
     }
+  }
+
+  /** Story tutorial lines (Story profile only): each due beat is announced once per attempt. */
+  private tutorial(moment: TutorialMoment): void {
+    const beats = this.encounterProfile === 'story' ? STORY_ENCOUNTERS[this.location.mapId]?.tutorial : undefined;
+    if (!beats || this.tutorialSeen.size >= beats.length) return;
+    for (const beat of dueTutorialBeats(beats, this.tutorialSeen, moment)) {
+      this.tutorialSeen.add(beat.id);
+      this.events.emit('tutorialHint', { mapId: this.location.mapId, beatId: beat.id, message: beat.message });
+    }
+  }
+
+  /** An encounter's first engagement (one of its monsters chasing or attacking) is a tutorial moment. */
+  private checkTutorialEngagements(): void {
+    const beats = this.encounterProfile === 'story' ? STORY_ENCOUNTERS[this.location.mapId]?.tutorial : undefined;
+    if (!beats || this.tutorialSeen.size >= beats.length || this.player.combat.dead) return;
+    this.tutorial({ engaged: (zone) => this.monsters.some((m) => m.zoneId === zone && !m.combat.dead && (m.brain.state === 'chase' || m.brain.state === 'attack')) });
   }
 
   /** Every monster of a spawn zone is down (a zone with no monsters on this map counts as cleared). */

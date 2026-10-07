@@ -128,6 +128,8 @@ export type GameEvents = {
   partyWiped: { mapId: string; retriesLeft: number; failed: boolean };
   /** The party reappeared after a wipe (latest checkpoint, or the entrance): open encounters reset, HP 100% / MP 50%. */
   dungeonRetry: { mapId: string; checkpointId: string | null; retriesLeft: number };
+  /** A Story tutorial line for the HUD feed (once per beat per dungeon attempt). */
+  tutorialHint: { mapId: string; beatId: string; message: string };
   /** A progression gate stopped the player: the encounters before it are not all down yet. */
   progressBlocked: { mapId: string; gateId: string; message: string };
   /** Out of retries: the attempt ended without a clear and the party is sent back to Town. */

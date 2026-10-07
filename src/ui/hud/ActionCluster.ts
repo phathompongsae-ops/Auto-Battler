@@ -22,7 +22,7 @@ function skillContent(skillId: SkillId): SlotContent {
   const abbr = skillId === PLAYER_BASIC_ATTACK ? 'ATK' : skill.name.split(/\s+/).map((w) => w[0]).join('').slice(0, 2);
   // White reads as "no colour" on a light disc; basic attack gets the gold accent.
   const color = skill.color !== undefined && skill.color !== 0xffffff ? hex(skill.color) : '#a8823a';
-  const glyph: IconName = skillId === PLAYER_BASIC_ATTACK ? 'sword'
+  const glyph: IconName = skillId === PLAYER_BASIC_ATTACK ? 'crossed_swords'
     : /guard|shield|provoke/.test(skillId) ? 'shield'
     : /fire/.test(skillId) ? 'flame' : /heal/.test(skillId) ? 'heal'
     : /arrow|shot/.test(skillId) ? 'bow' : /whirl|berserk/.test(skillId) ? 'whirl' : 'slash';
@@ -67,7 +67,8 @@ export class ActionCluster {
         : binding.kind === 'reserved' && binding.abbr
           ? { abbr: binding.abbr, color: binding.color, title: binding.label, glyph: ({ special: 'skills', potion: 'potion', dodge: 'dodge', auto: 'auto', pet: 'pet' } as Record<string, IconName>)[def.id] }
           : null;
-      const slot = new SkillSlot({ kind: 'action', size: def.size, keyHint: def.keyHint, content });
+      // ATK's swing interval is not a player-facing cooldown: no sweep or timer on it.
+      const slot = new SkillSlot({ kind: 'action', size: def.size, keyHint: def.keyHint, content, showCooldown: def.id !== 'attack' });
       slot.el.dataset.slot = def.id;
       slot.el.dataset.group = def.group;
       slot.el.append(h('span', { className: 'hud-action__label', text: def.id === 'attack' ? 'ATK' : def.id.startsWith('skill') ? `Skill ${def.id.slice(5)}` : def.id === 'pet' ? 'Pet' : def.id[0].toUpperCase() + def.id.slice(1) }));

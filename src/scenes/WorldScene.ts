@@ -26,6 +26,9 @@ import { TouchDragSource } from '../input/TouchDragSource';
 import { VirtualActionSource } from '../input/VirtualActionSource';
 import { ActionEffects } from '../rendering/ActionEffects';
 import { CombatEffects } from '../rendering/CombatEffects';
+import { WORLD_TEXT_FONT } from '../rendering/fonts';
+import { GateBarriers } from '../rendering/GateBarriers';
+import { activeGates, gateOpen } from '../dungeon/gates';
 import { prewarmShaders } from '../rendering/prewarm';
 import { WorldOverlays } from '../rendering/WorldOverlays';
 import { Hud } from '../ui/hud/Hud';
@@ -74,6 +77,8 @@ export class WorldScene extends Phaser.Scene implements WorldMapView {
   private colliders: Phaser.Physics.Arcade.Collider[] = [];
   /** Everything drawn for the current map besides tiles: props, markers, signs. */
   private mapVisuals: Phaser.GameObjects.GameObject[] = [];
+  /** Closed Story progression gates drawn as rune seals (rebuilt per map, shown while closed). */
+  private gateBarriers!: GateBarriers;
   private monsterGroup!: Phaser.GameObjects.Group;
   /** Static bodies on the footprints of solid props (rebuilt with the map). */
   private propBodies!: Phaser.Physics.Arcade.StaticGroup;
@@ -112,6 +117,7 @@ export class WorldScene extends Phaser.Scene implements WorldMapView {
       [new KeyboardActionSource(this), this.virtualActions],
     );
 
+    this.gateBarriers = new GateBarriers(this);
     const fixtureQuests = import.meta.env.DEV && new URLSearchParams(window.location.search).has('questFixtures');
     this.world = new CombatWorld(this.player, this.controls, this, fixtureQuests ? QUESTS : INTERNAL_DEMO_QUESTS);
     // Skill animations are presentation only; damage timing stays with the simulation.
@@ -181,6 +187,8 @@ export class WorldScene extends Phaser.Scene implements WorldMapView {
     const covered = this.drawBuildings(map);
     this.drawProps(map, covered);
     this.drawLabels(map);
+    // The world has already chosen this map's encounter profile (gates are profile-specific).
+    this.gateBarriers.build(activeGates(map, this.world.encounterProfile));
   }
 
   /**
@@ -389,22 +397,25 @@ export class WorldScene extends Phaser.Scene implements WorldMapView {
 
   /** PLACEHOLDER signage: a marker and name for every navigation target and portal, plus landmark names. */
   private drawLabels(map: MapDef): void {
-    const text = (x: number, y: number, value: string, color: string, size: number) =>
+    // World signage shares the HUD's sans stack: bold, a dark stroke and a soft shadow so it reads on any ground.
+    const text = (x: number, y: number, value: string, color: string, size: number, letterSpacing = 0) =>
       this.add
         .text(x, y, value, {
-          fontFamily: 'monospace',
+          fontFamily: WORLD_TEXT_FONT,
           fontSize: `${size}px`,
           fontStyle: 'bold',
           color,
-          stroke: '#1d1b26',
-          strokeThickness: 3,
+          stroke: '#0d1117',
+          strokeThickness: 4,
+          shadow: { offsetX: 0, offsetY: 1, color: '#000000', blur: 3, stroke: true, fill: true },
+          letterSpacing,
           resolution: 2,
         })
         .setOrigin(0.5, 1)
         .setDepth(LABEL_DEPTH);
     const marker = (x: number, y: number, value: string, color: number) => {
       const dot = this.add.circle(x, y, 4, color, 0.9).setStrokeStyle(1, 0x1d1b26).setDepth(LABEL_DEPTH - 1);
-      this.mapVisuals.push(dot, text(x, y - 8, value, '#f4ecdb', 9));
+      this.mapVisuals.push(dot, text(x, y - 8, value, '#f4ecdb', 10));
     };
     for (const t of map.navigationTargets) {
       // NPCs are drawn as figures with their own name plate (see drawNpcs).
@@ -415,7 +426,7 @@ export class WorldScene extends Phaser.Scene implements WorldMapView {
       const c = portalCenter(p);
       marker(c.x, c.y, p.label, 0xb388ff);
     }
-    for (const l of map.landmarks ?? []) this.mapVisuals.push(text(l.x, l.y, l.label.toUpperCase(), '#f3d898', 10));
+    for (const l of map.landmarks ?? []) this.mapVisuals.push(text(l.x, l.y, l.label.toUpperCase(), '#ffe2a0', 12, 1));
     this.drawNpcs(map, text);
   }
 
@@ -459,6 +470,7 @@ export class WorldScene extends Phaser.Scene implements WorldMapView {
     else if (!this.world.frozen && physics.isPaused) physics.resume();
 
     this.overlays.update(this.world.now);
+    this.gateBarriers.update((gate) => gateOpen(gate, (zone) => this.world.zoneCleared(zone)));
     this.updateNpcMarkers();
     this.updateOccluders();
     this.hud.update(this.world.now);

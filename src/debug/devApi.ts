@@ -107,6 +107,7 @@ export function createDevApi(world: CombatWorld, overlays: WorldOverlays) {
   ev.on('navigationChanged', (e) => record('navigationChanged', { target: e.targetId ?? undefined, status: e.status, reason: e.reason ?? undefined }));
   ev.on('mapChanged', (e) => record('mapChanged', { target: e.toMapId, item: e.portalId }));
   ev.on('mapEntryBlocked', (e) => record('mapEntryBlocked', { target: e.toMapId, item: e.via, status: e.message }));
+  ev.on('tutorialHint', (e) => record('tutorialHint', { target: e.mapId, item: e.beatId, status: e.message }));
   ev.on('progressBlocked', (e) => record('progressBlocked', { target: e.mapId, item: e.gateId, status: e.message }));
   ev.on('checkpointReached', (e) => record('checkpointReached', { target: e.mapId, item: e.checkpointId }));
   ev.on('partyWiped', (e) => record('partyWiped', { target: e.mapId, amount: e.retriesLeft, status: e.failed ? 'failed' : 'retry' }));

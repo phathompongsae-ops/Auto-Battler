@@ -7,9 +7,11 @@ import { h } from '../dom';
 
 /** How long a line stays on screen (real time, ms). */
 const LINE_MS = 4500;
+/** Story tutorial lines stay a little longer: they are read, not glanced at. */
+const TUTORIAL_LINE_MS = 7000;
 const MAX_LINES = 6;
 
-export type LootFeedKind = 'gold' | 'item' | 'equipment' | 'rare' | 'full' | 'quest' | 'locked' | 'dungeon';
+export type LootFeedKind = 'gold' | 'item' | 'equipment' | 'rare' | 'full' | 'quest' | 'locked' | 'dungeon' | 'tutorial';
 
 /**
  * Left side: a short feed of what the player just received or what dropped
@@ -46,6 +48,11 @@ export class LootFeed {
       // Dungeon entry refused: say exactly what is missing (the player stays on this map).
       ev.on('mapEntryBlocked', ({ message }) => this.push('locked', message, '#ffb86b')),
       // Dungeon attempt: checkpoints (retry positions, no healing), party wipes and failure.
+      ev.on('tutorialHint', ({ message }) => this.push('tutorial', message, '#fbe7b8', TUTORIAL_LINE_MS)),
+      // Story guidance belongs to its dungeon: leaving the map clears it from the feed.
+      ev.on('mapChanged', () => {
+        for (const line of this.el.querySelectorAll('[data-loot-kind=tutorial]')) line.remove();
+      }),
       ev.on('progressBlocked', ({ message }) => this.push('locked', message, '#ffb86b')),
       ev.on('checkpointReached', ({ label }) => this.push('dungeon', `Checkpoint: ${label}`, '#9fd8ff')),
       ev.on('partyWiped', ({ retriesLeft, failed }) =>
@@ -84,11 +91,11 @@ export class LootFeed {
     this.recent.set(key, { line, amount, at: now });
   }
 
-  private push(kind: LootFeedKind, text: string, color: string): HTMLDivElement {
+  private push(kind: LootFeedKind, text: string, color: string, ms = LINE_MS): HTMLDivElement {
     const line = h('div', { className: `hud-loot__line hud-loot__line--${kind}`, text, attrs: { 'data-loot-kind': kind }, style: { color } });
     this.el.append(line);
     while (this.el.childElementCount > MAX_LINES) this.el.firstElementChild?.remove();
-    setTimeout(() => line.remove(), LINE_MS);
+    setTimeout(() => line.remove(), ms);
     return line;
   }
 

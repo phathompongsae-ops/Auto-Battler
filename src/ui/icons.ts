@@ -32,7 +32,28 @@ const PATHS = {
   close: 'M6 6l12 12M18 6 6 18',
 } as const;
 
-export type IconName = keyof typeof PATHS;
+/**
+ * Layered emblems: several shapes drawn in order (later parts sit in front), each
+ * tagged with data-part so CSS can colour blades and hilts separately.
+ */
+const LAYERED = {
+  // Primary attack: two long swords crossed point-up, the left-leaning one in front.
+  // Each: pointed blade with a fuller line, a crossguard, a grip and a round pommel.
+  crossed_swords: [
+    { part: 'blade', d: 'M21 3 18 4 9.5 12.5 11.5 14.5 20 6Z' },
+    { part: 'fuller', d: 'M18 6 11.4 12.6' },
+    { part: 'hilt', d: 'M7.5 10.1 6.1 11.5 12.5 17.9 13.9 16.5Z' },
+    { part: 'hilt', d: 'M8.7 14.1 4.8 18 6 19.2 9.9 15.3Z' },
+    { part: 'hilt', d: 'M2.6 19.9a1.5 1.5 0 1 0 3 0 1.5 1.5 0 1 0-3 0Z' },
+    { part: 'blade', d: 'M3 3 6 4 14.5 12.5 12.5 14.5 4 6Z' },
+    { part: 'fuller', d: 'M6 6 12.6 12.6' },
+    { part: 'hilt', d: 'M16.5 10.1 17.9 11.5 11.5 17.9 10.1 16.5Z' },
+    { part: 'hilt', d: 'M15.3 14.1 19.2 18 18 19.2 14.1 15.3Z' },
+    { part: 'hilt', d: 'M18.4 19.9a1.5 1.5 0 1 0 3 0 1.5 1.5 0 1 0-3 0Z' },
+  ],
+} as const satisfies Record<string, readonly { part: string; d: string }[]>;
+
+export type IconName = keyof typeof PATHS | keyof typeof LAYERED;
 
 export function icon(name: IconName): SVGSVGElement {
   const ns = 'http://www.w3.org/2000/svg';
@@ -45,8 +66,13 @@ export function icon(name: IconName): SVGSVGElement {
   svg.setAttribute('stroke-linejoin', 'round');
   svg.setAttribute('aria-hidden', 'true');
   svg.classList.add('ui-icon');
-  const path = document.createElementNS(ns, 'path');
-  path.setAttribute('d', PATHS[name]);
-  svg.append(path);
+  const parts = name in LAYERED ? LAYERED[name as keyof typeof LAYERED] : [{ part: '', d: PATHS[name as keyof typeof PATHS] }];
+  if (name in LAYERED) svg.classList.add('ui-icon--layered');
+  for (const { part, d } of parts) {
+    const path = document.createElementNS(ns, 'path');
+    path.setAttribute('d', d);
+    if (part) path.dataset.part = part;
+    svg.append(path);
+  }
   return svg;
 }

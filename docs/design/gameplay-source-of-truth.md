@@ -196,8 +196,44 @@ Measured with the real combat systems (`tests/unit/storyEncounter.test.ts`,
 - The length comes from encounter pacing, teaching moments, the Elite, the
   checkpoints and the boss flow. **Never inflate monster HP to add time.**
 - Future Lv20 repeat dungeons may be longer and more demanding.
-- Current estimate (structure pass, section below): **about 4–6 minutes**
-  for a first-time player, below the target. See Known conflicts C-13.
+- Measured (feedback pass, 2026-10-07; legitimate Lv3 runs with real controls:
+  Auto Move from Town, arrow keys, held ATK, Q/E/R, stepping out of
+  telegraphs; no teleports, HP edits or gate bypasses), game time from the
+  Crypt entrance:
+
+  | Scripted player | Section I | Brute | CP A | Elite | CP B | Boss down | Exit | Wipes | Entering boss (HP / MP) | HP after |
+  | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+  | Skilled (dodges every telegraph, all skills) | 8.8 s | 14.4 s | 16.1 s | 23.4 s | 25.1 s | 70 s | 75.5 s | 0 | 266/450, 58 MP | 31 |
+  | Newcomer (dodges ~60% after 0.3 s, Power Slash only) | 10.2 s | 15.8 s | 17.2 s | 28.1 s | 30.2 s | 97.4 s | 102.4 s | 1 (boss) | 177/450, 157 MP | 98 |
+  | Newcomer (second run) | 10.3 s | 17.2 s | 18.8 s | 29.3 s | 31.2 s | 95.5 s | 100 s | 1 (boss) | 251/450, 161 MP | 99 |
+
+  Tutorial lines never blocked or delayed play (feed only); no encounter
+  felt like filler (each fight is 1–10 s, the boss ~40–65 s). Scripts know
+  the route and decide instantly; a real first-time player adds reading
+  (8 short lines), orientation, hesitation and probably one or two more
+  wipes. **Realistic first-clear estimate: about 3–5 minutes, below the
+  8–11 minute target.** See Known conflicts C-13.
+
+### IMPLEMENTED: Story Crypt feedback
+
+- **Tutorial lines** (Story profile only): `StoryEncounterProfile.tutorial`
+  (`src/data/storyEncounters.ts`), selection in `src/dungeon/tutorial.ts`,
+  fired by `CombatWorld` (`tutorialHint` event) and shown in the HUD feed
+  (`LootFeed`, ~7 s, cleared on leaving the map). Beats: entrance objective;
+  first Skeleton (tap / Tab to target, hold ATK / Space); the pack (back away,
+  don't get surrounded); the Brute (red circles: move out; no Dodge yet);
+  Checkpoint A (retry point, no healing); Elite: Crypt Knight; Checkpoint B
+  (boss ahead, no healing); the Crypt Lord's intro. Each fires once per
+  dungeon attempt (on entry, on an encounter's first engagement, or on a
+  checkpoint); retries and re-crossing never repeat them. Never pauses play.
+- **Gate visuals:** closed Story progression gates show a faint amber rune
+  seal on the doorway floor (`src/rendering/GateBarriers.ts`, built from the
+  same gate data; visible exactly while closed; none in Lv20 runs).
+  Collision and the "Defeat … first" message are unchanged.
+- **Checkpoint feedback:** first activation shows one cool-blue pulse and
+  "Retry point updated" (`CombatEffects`), plus the existing feed line; no
+  healing, nothing persistent.
+- Basic Dodge, Potions and Party AI remain **not implemented**.
 
 ### What the Lv20 Dungeon feature controls (as implemented)
 
@@ -464,7 +500,7 @@ milestone; nothing here may be "fixed" by inventing numbers.
 | C-10 | The Captain's Dungeon Gate note mentions only the Lv20 run, not the Lv3 + Meadow entry rule (the gate itself explains refusals). | Minor copy, open. |
 | C-11 | The boss room was larger than the Crypt Lord's radius leash (corners ~430 px from the throne, leash 380). | **Resolved** (structure pass): the Boss Room is the boss's encounter arena; it fights anywhere on it and resets only outside it (both profiles). |
 | C-12 | The Crypt Knight's aggro radius reached into the corridor before the Boss Room. | **Resolved** (structure pass): the Elite Chamber is its arena; it only notices players in its chamber and gives up when they leave it (both profiles; Lv20 respawn timers unchanged). |
-| C-13 | The Story Crypt's estimated first clear (~4–6 min for a first-time Lv3 player: ~10 s of walking, ~1 min of fights, about one boss retry, ×2–3 for a newcomer) is below the 8–11 min target. The current map's encounters cannot reach it without filler or HP inflation. | Open: needs tutorial beats (prompts / short dialogue at each teaching moment, an entrance briefing) and possibly an "apply the lessons" encounter in the existing rooms; confirm with a playtest. |
+| C-13 | Story Crypt first clear is below the ~10 min (8–11) target. Measured legitimate Lv3 runs: 75 s (skilled script, 0 wipes) and ~100 s (newcomer script, 1 boss wipe) of game time; realistic first-time human estimate ~3–5 min. Tutorial lines (now implemented) add guidance, not length. | **Open.** Do not pad (no HP inflation, filler mobs, timers or slower movement). Options for a design decision: (a) accept a tighter ~4–6 min tutorial dungeon and retarget; (b) add content beats that teach something new (e.g. an "apply the lessons" mixed encounter in Section II, short NPC/companion dialogue at the entrance and before the boss); (c) re-measure after Basic Dodge / Potions, which add decisions to every fight. Confirm with a human playtest. |
 
 ### Fixed in the alignment pass
 
@@ -472,6 +508,15 @@ milestone; nothing here may be "fixed" by inventing numbers.
   gates only runs, run rewards, `dungeon_clear` objectives and the Dungeon
   menu. Added `tests/unit/storyCrypt.test.ts` so the story loop stays
   independent of the Lv20 feature.
+
+### Story Crypt feedback pass
+
+- Tutorial lines, gate rune seals and checkpoint feedback implemented
+  (section 4); combat numbers and cooldown presentation polished (HUD style
+  lock). C-13 re-measured, still open. Tests:
+  `tests/unit/storyTutorial.test.ts`, `tests/unit/damageNumbers.test.ts`,
+  `tests/unit/hudCooldown.test.ts`, `tests/browser/storyFeedback.test.mjs`
+  (SF-1–SF-6), `tests/browser/combatFeedback.test.mjs` (FX-1–FX-3).
 
 ### Story Crypt structure pass
 - Story encounter skipping fixed with Story-only progression gates (see
