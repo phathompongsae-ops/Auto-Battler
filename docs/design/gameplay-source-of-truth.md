@@ -596,8 +596,27 @@ milestone; nothing here may be "fixed" by inventing numbers.
   quest tracker and system strip); it belongs to the Visual Production HUD
   layout pass.
 - **Still not implemented:** Party AI, Online, Weight Capacity, Reward Cache,
-  non-Warrior skill trees, full visual production, Thai localization,
-  Gold/Diamond Shop.
+  non-Warrior skill trees, full visual production, full Thai localization
+  (foundation only, see Visual Production Pass 1), Gold/Diamond economy and purchases (Shop shell only).
+
+### Visual Production Pass 1 (2026-10-08)
+
+Presentation only; no gameplay rule, number or save field changed. Details are in
+`docs/art/hud-style-lock.md`.
+
+- **Camera zoom 1.55** (was 1.35). Characters, collision, monster ranges, telegraph
+  radii and map geometry are unchanged; only the view is closer.
+- **Shop shell:** a Shop window with separate Gold and Diamond sections. Its catalogue
+  (`src/data/shopCatalog.ts`) is a **temporary development placeholder**: existing
+  item ids, no prices, nothing purchasable, no payment integration. The Gold /
+  Diamond economy (prices, stock, limits, what Diamond buys) is *TBD* and must be
+  designed here before any purchase logic exists.
+- **Thai localization foundation:** interface strings (HUD, system menus, Shop,
+  Settings) come from `src/ui/i18n/strings.ts`. Quest text, item names and
+  descriptions are still English. The language choice is a device preference,
+  not part of the game save.
+- HUD: the inert Special and Pet / Summon sockets were removed (no mechanic existed).
+  The Pet feature and its data are unchanged.
 
 ### Story Crypt feedback pass
 

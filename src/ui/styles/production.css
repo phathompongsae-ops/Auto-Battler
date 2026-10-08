@@ -74,11 +74,7 @@
 }
 .hud-systems .ui-medallion { width: calc(56px * var(--ui-scale)); }
 .hud__loot { bottom: calc(252px * var(--ui-scale)); }
-.hud-menu { grid-template-columns: repeat(3, auto); gap: 4px; }
 .hud-map-group { align-items: flex-start; }
-.hud-menu .ui-button--icon { width: 40px; height: 40px; border-radius: 50% 50% 6px 6px; }
-.hud-menu .ui-icon { width: 21px; height: 21px; }
-.hud-menu { max-width: 84px; grid-template-columns: repeat(2, 40px); }
 
 .hud-actions > .ui-slot,
 .hud-actions > .ui-slot[data-slot='attack'],
@@ -166,18 +162,14 @@
 .ui-root[data-contrast='true'] .hud-player { background: #242d32f5; }
 
 @media (max-height: 420px), (max-width: 760px) {
-  .hud-actions > .ui-slot { --ax-now: var(--ax-c, var(--ax)); --ay-now: var(--ay-c, var(--ay)); }
-  /* Inert reserved sockets give their room to the minimum-size live targets. */
-  .hud-actions > .ui-slot[data-compact='hidden'] { display: none; }
   .hud-quests { max-height: 90px; }
   .hud-quests__toggle { font-size: 11px; }
   .hud-quests__body { padding: 2px 6px 5px; }
   .hud-minimap { width: calc(132px * var(--ui-scale)); height: calc(100px * var(--ui-scale)); }
-  .hud-menu { gap: 3px; }
   .hud-systems { gap: 2px; padding: 0 4px; }
   .hud-systems::before { top: 22px; }
   /* Wider than the 44px face so labels like Inventory / Character never touch. */
-  .hud-systems .ui-medallion { width: 52px; }
+  .hud-systems .ui-medallion { width: 50px; }
   .hud-systems .ui-medallion__face { width: 44px; height: 44px; }
   .hud-systems .ui-medallion__label { font-size: 9px; letter-spacing: -.01em; }
   .ui-menu-grid { gap: 6px; }
@@ -185,11 +177,6 @@
   .inv-body { flex-direction: column; }
   .inv-details { width: 100%; }
 }
-
-/* Inert reserved sockets (Special, Potion, Dodge, Auto, Pet / Summon) show their glyph only: the name stays in
- * title / aria-label, and the ring's own labels and key hints stay uncluttered. */
-.hud-actions > .ui-slot[data-slot='special'] .hud-action__label,
-.hud-actions > .ui-slot[data-slot='pet'] .hud-action__label { display: none; }
 
 /* ---------------------------------------------------------------------------
  * Readability polish (typography / ATK). Hierarchy: quest title > objective >

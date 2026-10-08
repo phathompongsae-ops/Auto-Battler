@@ -61,7 +61,7 @@ export class Hud {
 
     this.player = new PlayerFrame(world.player, options.art, world.wallet);
     this.minimap = new Minimap(world, scene.cameras.main);
-    this.menu = new MenuBar(world, this.windows, this.quests);
+    this.menu = new MenuBar(this.windows);
     this.systems = new SystemStrip(world, this.windows);
     this.tracker = new QuestTracker(this.quests);
     this.joystick = new Joystick(options.drag, this.root);
@@ -109,6 +109,7 @@ export class Hud {
   destroy(): void {
     this.lootFeed.destroy();
     this.interact.destroy();
+    this.questTracker.destroy();
     this.actions.destroy();
     this.menu.destroy();
     this.systems.destroy();

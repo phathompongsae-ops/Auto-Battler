@@ -111,6 +111,8 @@ export async function envArtSuite(b, t, shot, url) {
     return { frames: [...new Set(frames)], scale: layers.at(-1).scaleX };
   })()`);
   t.check('ENV-7. Town walls use the production atlas at half scale', wallLayer.scale === 0.5 && wallLayer.frames.length === 1 && wallLayer.frames[0] === 69, JSON.stringify(wallLayer));
+  // Landmark close-ups use the gameplay zoom (src/config.ts CAMERA_ZOOM), read before the overview changes it.
+  const ZOOM = await b.eval(`${SCENE}.cameras.main.zoom`);
   try {
     await b.eval(`${SCENE}.cameras.main.stopFollow(); ${SCENE}.cameras.main.useBounds = false; document.querySelector('[data-ui-root]').style.visibility = 'hidden'; ${SCENE}.cameras.main.setZoom(0.5).centerOn(704, 512); true`);
     await sleep(150);
@@ -121,12 +123,12 @@ export async function envArtSuite(b, t, shot, url) {
       ['town-04-hall-of-legends', 704, 190], ['town-05-forge', 1216, 205],
       ['town-06-market', 255, 495], ['town-07-gate', 1320, 515],
     ]) {
-      await b.eval(`${SCENE}.cameras.main.setZoom(1.35).centerOn(${x}, ${y}); true`);
+      await b.eval(`${SCENE}.cameras.main.setZoom(${ZOOM}).centerOn(${x}, ${y}); true`);
       await sleep(120);
       await shot(name);
     }
   } finally {
-    await b.eval(`document.querySelector('[data-ui-root]').style.visibility = ''; ${SCENE}.cameras.main.setZoom(1.35).startFollow(${SCENE}.player, true, 0.15, 0.15); true`);
+    await b.eval(`document.querySelector('[data-ui-root]').style.visibility = ''; ${SCENE}.cameras.main.setZoom(${ZOOM}).startFollow(${SCENE}.player, true, 0.15, 0.15); true`);
   }
 
   // 6. Fallback: ?envArt=off keeps every environment texture code-drawn and adds no visual ground layer.

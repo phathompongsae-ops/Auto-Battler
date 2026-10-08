@@ -59,7 +59,8 @@
   --ui-radius-round: 999px;
 
   /* Typography */
-  --ui-font: 'Nunito', 'Segoe UI', system-ui, -apple-system, Roboto, 'Helvetica Neue', Arial, sans-serif;
+  /* Thai faces follow the Latin ones so Thai glyphs never fall back to a mismatched serif (Windows, Android, iOS). */
+  --ui-font: 'Nunito', 'Segoe UI', system-ui, -apple-system, Roboto, 'Helvetica Neue', Arial, 'Leelawadee UI', 'Noto Sans Thai', 'Thonburi', Tahoma, sans-serif;
   --ui-font-display: Georgia, 'Times New Roman', serif;
   --ui-text-xs: calc(10px * var(--ui-scale));
   --ui-text-sm: calc(12px * var(--ui-scale));

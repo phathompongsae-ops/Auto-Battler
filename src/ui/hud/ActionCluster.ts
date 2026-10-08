@@ -9,6 +9,7 @@ import { SkillSlot, type SlotContent } from '../components/Slot';
 import { h, onPress } from '../dom';
 import { ACTION_CLUSTER, ACTION_SLOTS, type ActionSlotDef } from '../data/actionBar';
 import type { IconName } from '../icons';
+import { onLocaleChange, t } from '../i18n';
 
 /** Which skill an input action fires for the player right now (skill tree or demo kit). */
 function skillForAction(world: CombatWorld, action: Action): SkillId | null {
@@ -31,17 +32,25 @@ function skillContent(skillId: SkillId): SlotContent {
   return { abbr, color, title: skill.name, glyph };
 }
 
+/** Dodge / potion faces; null for a skill action (its face comes from the loadout). */
+function utilityContent(action: Action): SlotContent | null {
+  if (action === 'hp_potion') return { abbr: 'HP', color: '#86ef8f', title: t('hud.hpPotion'), glyph: 'potion' };
+  if (action === 'mp_potion') return { abbr: 'MP', color: '#7fd4ff', title: t('hud.mpPotion'), glyph: 'potion' };
+  if (action === 'dodge') return { abbr: 'DG', color: '#7fd4ff', title: t('hud.dodge'), glyph: 'dodge' };
+  return null;
+}
+
 interface LiveSlot {
   def: ActionSlotDef;
   slot: SkillSlot;
-  /** The input action this slot presses (null for reserved slots). */
-  action: Action | null;
+  /** The input action this slot presses. */
+  action: Action;
   skillId: SkillId | null;
 }
 
 /**
- * Bottom-right: ATK plus four core skills, with skill 5 and utility positions
- * outside the ring. Buttons use the existing keyboard Actions.
+ * Bottom-right: ATK, Skill 1–5 on one arc around it, and Dodge / HP / MP
+ * Potion on a quieter outer arc. Buttons use the existing keyboard Actions.
  */
 export class ActionCluster {
   readonly el: HTMLDivElement;
@@ -62,51 +71,42 @@ export class ActionCluster {
     });
 
     for (const def of ACTION_SLOTS) {
-      const binding = def.binding;
-      const skillId = binding.kind === 'action' ? skillForAction(world, binding.action) : null;
-      const content: SlotContent | null = skillId
-        ? skillContent(skillId)
-        : binding.kind === 'action' && (binding.action === 'hp_potion' || binding.action === 'mp_potion') ? { abbr: binding.action === 'hp_potion' ? 'HP' : 'MP', color: binding.action === 'hp_potion' ? '#86ef8f' : '#7fd4ff', title: binding.action === 'hp_potion' ? 'HP Potion' : 'MP Potion', glyph: 'potion' }
-        : def.id === 'dodge' ? { abbr: 'DG', color: '#7fd4ff', title: 'Dodge', glyph: 'dodge' }
-        : binding.kind === 'reserved' && binding.abbr
-          ? { abbr: binding.abbr, color: binding.color, title: binding.label, glyph: ({ special: 'skills', potion: 'potion', dodge: 'dodge', auto: 'auto', pet: 'pet' } as Record<string, IconName>)[def.id] }
-          : null;
+      const action = def.binding.action;
+      const skillId = skillForAction(world, action);
+      const content: SlotContent | null = skillId ? skillContent(skillId) : utilityContent(action);
       // ATK's swing interval is not a player-facing cooldown: no sweep or timer on it.
       const slot = new SkillSlot({ kind: 'action', size: def.size, keyHint: def.keyHint, content, showCooldown: def.id !== 'attack' });
       slot.el.dataset.slot = def.id;
       slot.el.dataset.group = def.group;
-      slot.el.append(h('span', { className: 'hud-action__label', text: def.id === 'attack' ? 'ATK' : def.id.startsWith('skill') ? `Skill ${def.id.slice(5)}` : def.id === 'potion' ? 'HP' : def.id === 'mp_potion' ? 'MP' : def.id === 'pet' ? 'Pet' : def.id[0].toUpperCase() + def.id.slice(1) }));
-      // Wide and compact positions; the stylesheet's compact media query switches --ax-now / --ay-now.
-      const compact = def.compact === undefined ? { x: def.x, y: def.y } : def.compact;
-      slot.el.style.setProperty('--ax', `${def.x}px`);
-      slot.el.style.setProperty('--ay', `${def.y}px`);
-      if (compact) {
-        slot.el.style.setProperty('--ax-c', `${compact.x}px`);
-        slot.el.style.setProperty('--ay-c', `${compact.y}px`);
-      } else slot.el.dataset.compact = 'hidden';
-      slot.el.style.left = 'calc(var(--ax-now, var(--ax)) * var(--ui-scale))';
-      slot.el.style.top = 'calc(var(--ay-now, var(--ay)) * var(--ui-scale))';
-      if (binding.kind === 'action') {
-        const action = binding.action;
-        this.cleanups.push(onPress(slot.el, () => actions.press(action), () => actions.release(action)));
-        slot.el.setAttribute('role', 'button');
-        slot.el.setAttribute('aria-label', content?.title ?? action);
-      } else {
-        slot.setDisabled(true);
-        slot.el.title = binding.label;
-        slot.el.setAttribute('role', 'button');
-        slot.el.setAttribute('aria-label', binding.label);
-      }
-      this.slots.push({ def, slot, action: binding.kind === 'action' ? binding.action : null, skillId });
+      slot.el.dataset.tier = def.tier;
+      // Only ATK carries a word; potions carry a short HP / MP tag. Skills and Dodge read from icon + key hint.
+      if (def.tier === 'primary') slot.el.append(h('span', { className: 'hud-action__label', text: t('hud.attack') }));
+      if (def.tier === 'potion') slot.el.append(h('span', { className: 'hud-action__tag', text: action === 'hp_potion' ? 'HP' : 'MP' }));
+      slot.el.style.left = `calc(${def.x}px * var(--ui-scale))`;
+      slot.el.style.top = `calc(${def.y}px * var(--ui-scale))`;
+      this.cleanups.push(onPress(slot.el, () => actions.press(action), () => actions.release(action)));
+      slot.el.setAttribute('role', 'button');
+      slot.el.setAttribute('aria-label', content?.title ?? t('hud.emptySkill'));
+      this.slots.push({ def, slot, action, skillId });
       this.el.append(slot.el);
     }
+    // Utility names follow the interface language (skill names come from game data).
+    this.cleanups.push(onLocaleChange(() => {
+      for (const live of this.slots) {
+        if (live.skillId) continue;
+        const content = utilityContent(live.action);
+        if (content) {
+          live.slot.setContent(content);
+          live.slot.el.setAttribute('aria-label', content.title ?? '');
+        } else live.slot.el.setAttribute('aria-label', t('hud.emptySkill'));
+      }
+    }));
   }
 
   update(now: number): void {
     const player = this.world.player;
     const c = player.combat;
     for (const live of this.slots) {
-      if (!live.action) continue;
       if (live.action === 'hp_potion' || live.action === 'mp_potion') {
         const resource = live.action === 'hp_potion' ? 'hp' : 'mp';
         const max = resource === 'hp' ? c.stats.maxHp : c.stats.maxMp;
@@ -124,7 +124,7 @@ export class ActionCluster {
       if (current !== live.skillId) {
         live.skillId = current;
         live.slot.setContent(current ? skillContent(current) : null);
-        live.slot.el.setAttribute('aria-label', current ? SKILLS[current].name : 'Empty skill slot');
+        live.slot.el.setAttribute('aria-label', current ? SKILLS[current].name : t('hud.emptySkill'));
       }
       const skillId = live.skillId;
       if (!skillId) {

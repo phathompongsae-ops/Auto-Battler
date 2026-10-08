@@ -1,9 +1,11 @@
 import Phaser from 'phaser';
 import { h } from './dom';
+import { locale, onLocaleChange } from './i18n';
 import './styles/tokens.css';
 import './styles/components.css';
 import './styles/hud.css';
 import './styles/production.css';
+import './styles/interface.css';
 
 /** --ui-scale is the canvas height relative to the design height, kept in this range. */
 const DESIGN_HEIGHT = 540;
@@ -23,6 +25,7 @@ export class UiRoot {
 
   private readonly observer: ResizeObserver;
   private readonly parent: HTMLElement;
+  private readonly offLocale: () => void;
 
   constructor(private readonly game: Phaser.Game) {
     const canvas = game.canvas;
@@ -30,6 +33,9 @@ export class UiRoot {
     const coarse = window.matchMedia?.('(pointer: coarse)').matches ?? false;
     this.el = h('div', { className: 'ui-root', attrs: { 'data-ui-root': '', 'data-touch': String(coarse) } });
     this.parent.append(this.el);
+    // lang drives font fallback and the Thai typography rules (production.css).
+    this.el.lang = locale();
+    this.offLocale = onLocaleChange((next) => { this.el.lang = next; });
 
     this.observer = new ResizeObserver(() => this.sync());
     this.observer.observe(canvas);
@@ -45,6 +51,7 @@ export class UiRoot {
 
   destroy(): void {
     this.observer.disconnect();
+    this.offLocale();
     window.removeEventListener('resize', this.sync);
     this.game.scale.off(Phaser.Scale.Events.RESIZE, this.sync);
     this.el.remove();

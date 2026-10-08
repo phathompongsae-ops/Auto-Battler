@@ -26,7 +26,7 @@ export async function hudSuite(b, t, shot) {
   await b.eval('debug.reset(); debug.setPeaceful(true)');
   await sleep(300);
 
-  const regions = await b.eval(`['player', 'minimap', 'menu', 'quests', 'actions', 'joystick'].filter((r) => !document.querySelector('[data-hud=' + r + ']'))`);
+  const regions = await b.eval(`['player', 'minimap', 'utilities', 'quests', 'actions', 'joystick'].filter((r) => !document.querySelector('[data-hud=' + r + ']'))`);
   t.check('H1. every HUD region renders', regions.length === 0, regions.length ? `missing: ${regions}` : '');
 
   await b.eval('(() => { const s = debug.player().stats; debug.setPlayerHp(s.maxHp / 2); debug.setPlayerMp(s.maxMp / 2); })()');

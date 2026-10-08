@@ -4,6 +4,7 @@ import { nextObjective, objectiveText, questPhase } from '../../quests/questText
 import { createButton } from '../components/Button';
 import { createPanel } from '../components/Panel';
 import { h, setText } from '../dom';
+import { onLocaleChange, t } from '../i18n';
 import { goToQuest, renderNpcDialogue } from '../screens/npcDialogue';
 import type { WindowManager } from '../screens/WindowManager';
 
@@ -17,6 +18,7 @@ export const TALK_KEY = 'KeyT';
 export class InteractPrompt {
   readonly el: HTMLButtonElement;
   private npcId: string | null = null;
+  private readonly offLocale: () => void;
 
   constructor(
     private readonly world: CombatWorld,
@@ -27,6 +29,8 @@ export class InteractPrompt {
     this.el.dataset.hud = 'interact';
     this.el.hidden = true;
     window.addEventListener('keydown', this.onKey);
+    // Re-render the prompt in the new language on the next update.
+    this.offLocale = onLocaleChange(() => { this.npcId = null; this.el.hidden = true; });
   }
 
   /** Talk to the NPC in range and open its dialogue. False when nobody is in range. */
@@ -46,13 +50,14 @@ export class InteractPrompt {
     this.npcId = id;
     this.el.hidden = !npc;
     if (npc) {
-      setText(this.el, `[T] Talk — ${npc.name}`);
+      setText(this.el, t('hud.talk', { npc: npc.name }));
       this.el.dataset.npc = npc.id;
     } else delete this.el.dataset.npc;
   }
 
   destroy(): void {
     window.removeEventListener('keydown', this.onKey);
+    this.offLocale();
   }
 
   private readonly onKey = (e: KeyboardEvent): void => {
@@ -71,16 +76,17 @@ export class QuestTrackerHud {
   private readonly body: HTMLDivElement;
   private readonly toggle: HTMLButtonElement;
   private collapsed = false;
+  private readonly offLocale: () => void;
 
   constructor(private readonly world: CombatWorld) {
     this.el = createPanel({ className: 'hud-quests' }, []);
     this.el.dataset.hud = 'quest-tracker';
     this.body = h('div', { className: 'hud-quests__body', attrs: { id: 'hud-quest-objectives' } });
-    this.toggle = createButton({ label: 'Adventure', icon: 'quest', title: 'Collapse quest tracker', onClick: () => {
+    this.toggle = createButton({ label: t('hud.adventure'), icon: 'quest', title: t('hud.questCollapse'), onClick: () => {
       this.collapsed = !this.collapsed;
       this.body.hidden = this.collapsed;
       this.toggle.setAttribute('aria-expanded', String(!this.collapsed));
-      this.toggle.title = this.collapsed ? 'Expand quest tracker' : 'Collapse quest tracker';
+      this.relabel();
       this.el.dataset.collapsed = String(this.collapsed);
     } });
     this.toggle.classList.add('hud-quests__toggle');
@@ -88,6 +94,22 @@ export class QuestTrackerHud {
     this.toggle.setAttribute('aria-expanded', 'true');
     this.toggle.setAttribute('aria-controls', 'hud-quest-objectives');
     this.el.append(this.toggle, this.body);
+    this.offLocale = onLocaleChange(() => {
+      this.relabel();
+      this.signature = '';
+    });
+  }
+
+  private relabel(): void {
+    const label = this.toggle.querySelector('span');
+    if (label) setText(label, t('hud.adventure'));
+    const title = t(this.collapsed ? 'hud.questExpand' : 'hud.questCollapse');
+    this.toggle.title = title;
+    this.toggle.setAttribute('aria-label', title);
+  }
+
+  destroy(): void {
+    this.offLocale();
   }
 
   /** Quests to show: tracked ones, else the first main quest an NPC is offering, as a hint. */
@@ -111,8 +133,8 @@ export class QuestTrackerHud {
         const def = q.defs[id];
         const phase = questPhase(q, id);
         const lines: Node[] = [];
-        if (phase === 'available') lines.push(h('div', { className: 'hud-quests__hint', text: `New quest — talk to ${NPCS[def.giverNpcId ?? '']?.name ?? 'the quest giver'}` }));
-        else if (phase === 'ready') lines.push(h('div', { className: 'hud-quests__hint', text: `Turn in to ${NPCS[def.turnInNpcId ?? def.giverNpcId ?? '']?.name ?? 'the quest giver'}` }));
+        if (phase === 'available') lines.push(h('div', { className: 'hud-quests__hint', text: t('hud.questNew', { npc: NPCS[def.giverNpcId ?? '']?.name ?? t('hud.questGiver') }) }));
+        else if (phase === 'ready') lines.push(h('div', { className: 'hud-quests__hint', text: t('hud.questTurnIn', { npc: NPCS[def.turnInNpcId ?? def.giverNpcId ?? '']?.name ?? t('hud.questGiver') }) }));
         else {
           const progress = q.progress(id);
           const next = nextObjective(q, id);
@@ -125,7 +147,7 @@ export class QuestTrackerHud {
             ),
           );
         }
-        const go = createButton({ label: 'Go', onClick: () => goToQuest(this.world, id) });
+        const go = createButton({ label: t('hud.go'), onClick: () => goToQuest(this.world, id) });
         go.dataset.action = 'quest-go';
         return h('div', { className: 'hud-quests__quest', attrs: { 'data-quest': id, 'data-phase': phase } }, [
           h('div', { className: 'hud-quests__head' }, [h('span', { className: 'ui-label', text: def.title }), go]),

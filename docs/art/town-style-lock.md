@@ -14,8 +14,8 @@ change gameplay, map data, collision, saves or texture keys.
 | Contract | Value | Where |
 |---|---|---|
 | Tile size | 32 world px | `src/config.ts` `TILE_SIZE` |
-| Camera zoom | 1.35 | `src/config.ts` `CAMERA_ZOOM` |
-| Character height | 40 world px ≈ 54 screen px (Warrior `worldHeight`) | `src/data/characterArt.ts` |
+| Camera zoom | 1.55 (Visual Production Pass 1; was 1.35 when this lock was written) | `src/config.ts` `CAMERA_ZOOM` |
+| Character height | 40 world px ≈ 62 screen px at 1.55 (Warrior `worldHeight`) | `src/data/characterArt.ts` |
 | Global filtering | `pixelArt: true`, `roundPixels: true` | `src/main.ts` |
 | Tile indices | 0–16 (`Grass` … `PlazaTrim`) keep meaning and collision | `src/world/tiles.ts` |
 | Collision | solid tiles + solid prop footprints (`mapCells`) | `src/world/mapRules.ts` |
@@ -53,7 +53,7 @@ Readability hierarchy (most → least contrast):
 **Decision: author environment art at 2× world resolution and render it
 smoothed, like the characters.**
 
-- 1 art px = 0.5 world px (= 0.675 screen px at zoom 1.35).
+- 1 art px = 0.5 world px (= 0.775 screen px at zoom 1.55; 0.675 at the original 1.35).
 - A 32×32 world tile is authored as **64×64 art px**.
 - Textures are displayed at scale 0.5 with **LINEAR** filtering (per-texture
   `setFilter(LINEAR)`, exactly how `applyCharacterArtFilter` treats the
@@ -346,7 +346,7 @@ façade), Enchant crystal, compass mosaic.
 | 8 | **Market stall** (`prop-market_stall`) | market/urban prop, awning overhang |
 | 9 | **Enchant crystal** (`prop-enchant_crystal`) | magical object, the only cyan glow |
 
-Acceptance (all must hold in a real in-game screenshot at zoom 1.35, next to
+Acceptance (Town V1 was accepted at zoom 1.35; new assets are checked at the current 1.55 — all must hold in a real in-game screenshot, next to
 the Warrior and an NPC):
 - the Warrior silhouette is the clearest element in every screenshot;
 - no visible tile grid in the ground at 1.35 (variants + transitions work);

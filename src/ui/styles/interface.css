@@ -1,0 +1,233 @@
+/* ===========================================================================
+ * Visual Production Pass 1 — one designed interface (loaded last).
+ * Hierarchy: combat cluster (strongest) > minimap > world utilities > system
+ * strip. One frame family: bronze rim over dark steel and leather, the shared
+ * medallion socket for every round control, the same corner motif on panels.
+ * No backdrop blur over the moving world and no animated filters.
+ * ========================================================================= */
+.ui-root {
+  --hud-bronze: #bf9d62;
+  --hud-bronze-light: #e3c88f;
+  --hud-bronze-dark: #6e5639;
+  --hud-corner: calc(10px * var(--ui-scale)) calc(4px * var(--ui-scale));
+  --hud-frame-shadow: 0 2px 6px #0b121a73;
+}
+
+/* Panels over the world: no backdrop blur (it re-blurs every frame the world moves under it). */
+.hud .ui-panel,
+.hud-quests { backdrop-filter: none; -webkit-backdrop-filter: none; }
+
+/* Shared frame family: the same bronze double rim on the player frame, minimap and windows. */
+.hud-minimap {
+  border: 3px double var(--hud-bronze);
+  border-top-color: var(--hud-bronze-light);
+  border-radius: var(--hud-corner);
+  box-shadow: var(--hud-frame-shadow), inset 0 0 0 2px #27343d;
+}
+.hud-player { border: 3px double var(--hud-bronze); box-shadow: var(--hud-frame-shadow), inset 0 0 0 2px #101d2555; }
+.ui-window { border: 3px double var(--hud-bronze); }
+/* The quest tracker is secondary: a hairline rim and a lighter body, never louder than the minimap. */
+.hud-quests {
+  border: 1px solid #bf9d6247;
+  border-left: 2px solid var(--hud-bronze);
+  border-radius: var(--hud-corner);
+  background: linear-gradient(100deg, #382f26d9, #1d272dbf);
+  box-shadow: 0 2px 5px #0b121a40;
+}
+
+/* ------------------------------------------------ top right: minimap + utility row */
+.hud-map-group { display: flex; align-items: flex-end; gap: calc(6px * var(--ui-scale)); }
+/* Three world utilities in one row, bottom-aligned with the minimap (below the target frame's band). */
+.hud-utilities { display: flex; gap: calc(6px * var(--ui-scale)); }
+.hud-utility {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: calc(40px * var(--ui-scale));
+  height: calc(40px * var(--ui-scale));
+  min-width: 40px;
+  min-height: 40px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: url('/assets/ui/haven/medallion.png') center / contain no-repeat;
+  box-shadow: 0 2px 4px #0b121a66;
+  color: #ead6a6;
+  cursor: pointer;
+  pointer-events: auto;
+  touch-action: none;
+  transition: transform 100ms;
+}
+.hud-utility > .ui-icon { width: 46%; height: 46%; stroke-width: 1.6; fill: #b89c6426; }
+.hud-utility:hover,
+.hud-utility[aria-expanded='true'] { box-shadow: 0 2px 4px #0b121a66, 0 0 0 2px #e3c88f59; }
+.hud-utility:active { transform: scale(.93); }
+.hud-utility:focus-visible { outline: 2px solid #ead4a0; outline-offset: 2px; }
+.hud-utility[data-menu='shop'] > .ui-icon { color: #f2d48c; }
+.hud-utility__lock {
+  position: absolute;
+  right: -2px;
+  bottom: -2px;
+  display: none;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #262b2f;
+  border: 1px solid var(--hud-bronze);
+}
+.hud-utility__lock .ui-icon { width: 10px; height: 10px; color: #e3c88f; }
+.hud-utility:disabled { cursor: default; color: #a39d8c; }
+.hud-utility:disabled > .ui-icon { opacity: .55; }
+.hud-utility[data-locked='true'] .hud-utility__lock { display: grid; }
+
+/* ------------------------------------------------ bottom system strip: centred in the free lower band */
+.hud__systems {
+  /* Strip width, and how far the combat cluster reaches in from the right edge at strip height (Skill 1). */
+  --strip-w: calc(328px * var(--ui-scale));
+  --cluster-reach: calc(12px + 244px * var(--ui-scale) + max(22px, 29px * var(--ui-scale)));
+  /* Screen centre when it fits; otherwise as central as the cluster allows; never into the joystick zone. */
+  left: max(130px, env(safe-area-inset-left), min(calc(50% - var(--strip-w) / 2), calc(100% - var(--strip-w) - var(--cluster-reach) - 8px)));
+}
+
+/* ------------------------------------------------ combat cluster hierarchy */
+/* 1 ATK (largest, warm halo) > 2 Skill 1–5 (one arc) > 3 Dodge (cool accent) > 4 HP / MP (smallest, calm). */
+.hud-actions > .ui-slot[data-tier='primary'] { width: calc(96px * var(--ui-scale)); height: calc(96px * var(--ui-scale)); }
+.hud-actions > .ui-slot[data-tier='skill'] {
+  width: calc(58px * var(--ui-scale));
+  height: calc(58px * var(--ui-scale));
+  min-width: 44px;
+  min-height: 44px;
+}
+/* A soft, static shade behind the arc groups the sockets into one control on bright ground (no filter, no input). */
+.hud-actions::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 58% 72% at 63% 76%, #0a10165c, #0a101626 55%, transparent 72%);
+  pointer-events: none;
+}
+.hud-actions > .ui-slot[data-tier='dodge'] {
+  width: calc(48px * var(--ui-scale));
+  height: calc(48px * var(--ui-scale));
+  min-width: 40px;
+  min-height: 40px;
+}
+.hud-actions > .ui-slot[data-tier='potion'] {
+  width: calc(42px * var(--ui-scale));
+  height: calc(42px * var(--ui-scale));
+  min-width: 40px;
+  min-height: 40px;
+}
+.hud-actions [data-tier='dodge'] .ui-slot__icon {
+  background: radial-gradient(circle at 30% 20%, #e6f4ff1f, transparent 70%), #24414f;
+  border-color: #8fc6e066;
+}
+.hud-actions [data-tier='dodge'] .ui-slot__icon .ui-icon { color: #cfeaff; }
+.hud-actions [data-tier='potion'] .ui-slot__icon { width: 58%; height: 58%; }
+.hud-actions [data-tier='potion'] .ui-slot__icon .ui-icon { width: 74%; height: 74%; }
+.hud-actions [data-group='utility'].is-disabled { opacity: .72; }
+/* HP / MP: a short tag on the rim (they share the potion glyph), not a caption under the button. */
+.hud-action__tag {
+  position: absolute;
+  z-index: 2;
+  left: 50%;
+  bottom: calc(-5px * var(--ui-scale));
+  transform: translateX(-50%);
+  padding: 0 4px;
+  border-radius: 3px;
+  font-size: 9px;
+  font-weight: 800;
+  line-height: 13px;
+  color: #fff4d8;
+  background: linear-gradient(#5d4c33, #232b30);
+  border: 1px solid #a98a55;
+  text-shadow: 0 1px 1px #0a0f15;
+  pointer-events: none;
+}
+.hud-actions [data-slot='potion'] .hud-action__tag { color: #c9f5cd; }
+.hud-actions [data-slot='mp_potion'] .hud-action__tag { color: #cbeaff; }
+/* Key hints sit on the outer side of the arc (top-left), away from the neighbouring socket and from ATK. */
+.hud-actions .ui-slot__key { top: calc(-6px * var(--ui-scale)); left: calc(-6px * var(--ui-scale)); right: auto; bottom: auto; }
+.hud-actions [data-slot='attack'] .ui-slot__key { top: auto; left: 50%; right: auto; bottom: calc(-9px * var(--ui-scale)); transform: translateX(-50%); }
+
+/* ------------------------------------------------ Shop */
+.shop { display: flex; flex-direction: column; gap: 12px; }
+.shop-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.shop-balance {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 4px 10px;
+  border: 1px solid #bf9d6266;
+  border-radius: 6px;
+  background: #14191dcc;
+}
+.shop-balance .ui-icon { width: 18px; height: 18px; color: #f2d48c; }
+.shop-balance[data-currency='diamond'] .ui-icon { color: #9fdcff; }
+.shop-balance strong { font-variant-numeric: tabular-nums; color: #fff1d2; }
+.shop-notice {
+  padding: 8px 10px;
+  border-left: 2px solid #d9b56a;
+  border-radius: 3px;
+  background: #6f593a26;
+  color: #e9dcc0;
+  font-size: 12px;
+  line-height: 1.45;
+}
+.shop-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px; }
+.shop-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 64px;
+  padding: 8px 10px;
+  border: 1px solid #9b82533b;
+  border-radius: var(--hud-corner);
+  background: linear-gradient(110deg, #66513a33, #28363b66);
+}
+.shop-card .ui-slot { flex: none; width: 44px; height: 44px; }
+.shop-card__text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.shop-card__name { overflow-wrap: anywhere; }
+.shop-card__price { flex: none; min-width: 88px; padding: 0 8px; font-size: 11px; }
+
+/* ------------------------------------------------ Settings: language */
+.ui-preference--language { justify-content: space-between; flex-wrap: wrap; cursor: default; }
+.ui-segmented { display: inline-flex; gap: 6px; }
+.ui-segmented .ui-button { min-width: 88px; }
+.ui-segmented .ui-button[aria-pressed='true'] { border-color: var(--hud-bronze-light); box-shadow: inset 0 0 0 1px #e3c88f88; color: #fff1d2; }
+
+/* The line under a quest title (hint or first objective) wraps before the Go button instead of running under it. */
+.hud-quests__head + * { padding-right: 44px; }
+
+@media (max-height: 420px), (max-width: 760px) {
+  .hud__systems { --strip-w: 266px; }
+  /* One card per row: names and prices stay on one or two lines instead of wrapping word by word. */
+  .shop-grid { grid-template-columns: 1fr; gap: 6px; }
+  .shop-card { min-height: 56px; padding: 6px 8px; }
+}
+
+/* ------------------------------------------------ Thai typography */
+/* Thai stacks vowels and tone marks above and below the line: labels get room, Thai is never letter-spaced,
+ * and the Thai face comes first so mixed Thai / Latin lines share one baseline. */
+.ui-root:lang(th) {
+  --ui-font: 'Leelawadee UI', 'Noto Sans Thai', 'Thonburi', Tahoma, 'Segoe UI', system-ui, sans-serif;
+  line-height: 1.4;
+}
+.ui-root:lang(th) .ui-medallion__label,
+.ui-root:lang(th) .ui-title,
+.ui-root:lang(th) .ui-tab,
+.ui-root:lang(th) .hud-quests__toggle,
+.ui-root:lang(th) .ui-label,
+.ui-root:lang(th) .ui-button { letter-spacing: normal; line-height: 1.35; }
+.ui-root:lang(th) .ui-title { font-family: var(--ui-font); }
+/* Thai glyphs read smaller than Latin at the same size: captions and crest labels get a floor of 11px. */
+.ui-root:lang(th) .ui-caption,
+.ui-root:lang(th) .shop-notice,
+.ui-root:lang(th) .shop-card__price { font-size: max(11px, var(--ui-text-xs)); }
+.ui-root:lang(th) .ui-medallion__label { font-size: max(11px, calc(12px * var(--ui-scale))); font-weight: 600; }
+.ui-root:lang(th) .ui-menu-grid .ui-medallion__label { min-height: 28px; }
+@media (max-height: 420px), (max-width: 760px) {
+  .ui-root:lang(th) .hud-systems .ui-medallion__label { font-size: 11px; line-height: 1.25; }
+}

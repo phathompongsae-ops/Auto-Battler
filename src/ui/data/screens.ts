@@ -1,6 +1,8 @@
 import type { TabDef } from '../components/Tabs';
 import type { IconName } from '../icons';
 import type { FeatureId } from '../../data/featureData';
+import { STRINGS } from '../i18n/strings';
+import { t, type StringKey } from '../i18n';
 
 /*
  * Every full-screen menu the game will have. The HUD menu, hotkeys and the
@@ -23,7 +25,8 @@ export type ScreenId =
   | 'map'
   | 'party'
   | 'dungeon'
-  | 'settings';
+  | 'settings'
+  | 'shop';
 
 export interface ScreenDef {
   id: ScreenId;
@@ -79,7 +82,7 @@ export const SCREENS: readonly ScreenDef[] = [
   {
     id: 'commissions',
     title: 'Daily & Weekly',
-    icon: 'quest',
+    icon: 'calendar',
     hotkey: 'KeyY',
     feature: 'daily_commission',
     tabs: [
@@ -97,6 +100,16 @@ export const SCREENS: readonly ScreenDef[] = [
   { id: 'party', title: 'Party', icon: 'party', hotkey: 'KeyO', implemented: false },
   { id: 'dungeon', title: 'Dungeon', icon: 'dungeon', hotkey: 'KeyU', feature: 'dungeon', implemented: false },
   {
+    id: 'shop',
+    title: 'Shop',
+    icon: 'shop',
+    hotkey: 'KeyB',
+    tabs: [
+      { id: 'gold', label: 'Gold' },
+      { id: 'diamond', label: 'Diamond' },
+    ],
+  },
+  {
     id: 'settings',
     title: 'Settings',
     icon: 'settings',
@@ -108,3 +121,16 @@ export const SCREENS: readonly ScreenDef[] = [
 ];
 
 export const SCREEN_BY_ID = Object.fromEntries(SCREENS.map((s) => [s.id, s])) as Record<ScreenId, ScreenDef>;
+
+/** Localized window / menu title (ids and `title` stay English). */
+export function screenTitle(id: ScreenId | 'menu'): string {
+  return t(`screen.${id}`);
+}
+
+/** A screen's tabs with localized labels; tab ids are unchanged. */
+export function screenTabs(id: ScreenId): readonly TabDef[] | undefined {
+  return SCREEN_BY_ID[id].tabs?.map((tab) => {
+    const key = `tab.${tab.id}`;
+    return key in STRINGS.en ? { ...tab, label: t(key as StringKey) } : tab;
+  });
+}

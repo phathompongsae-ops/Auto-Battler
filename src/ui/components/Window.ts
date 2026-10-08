@@ -1,5 +1,6 @@
 import { h, setText } from '../dom';
 import { createButton } from './Button';
+import { t } from '../i18n';
 import { Tabs, type TabDef } from './Tabs';
 
 export interface WindowOptions {
@@ -26,7 +27,7 @@ export class UiWindow {
   constructor(private readonly options: WindowOptions) {
     this.titleEl = h('span', { className: 'ui-title', text: options.title });
     this.body = h('div', { className: 'ui-window__body' });
-    const close = createButton({ icon: 'close', iconOnly: true, variant: 'ghost', title: 'Close', onClick: () => this.close() });
+    const close = createButton({ icon: 'close', iconOnly: true, variant: 'ghost', title: t('common.close'), onClick: () => this.close() });
     const header = h('div', { className: 'ui-window__header' }, [this.titleEl, close]);
 
     this.tabs = options.tabs?.length ? new Tabs(options.tabs, (id) => this.show(id)) : null;

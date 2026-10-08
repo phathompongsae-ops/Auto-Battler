@@ -415,7 +415,7 @@ export class WorldScene extends Phaser.Scene implements WorldMapView {
         .setDepth(LABEL_DEPTH);
     const marker = (x: number, y: number, value: string, color: number) => {
       const dot = this.add.circle(x, y, 4, color, 0.9).setStrokeStyle(1, 0x1d1b26).setDepth(LABEL_DEPTH - 1);
-      this.mapVisuals.push(dot, text(x, y - 8, value, '#f4ecdb', 10));
+      this.mapVisuals.push(dot, text(x, y - 8, value, '#f4ecdb', 9));
     };
     for (const t of map.navigationTargets) {
       // NPCs are drawn as figures with their own name plate (see drawNpcs).
@@ -426,7 +426,8 @@ export class WorldScene extends Phaser.Scene implements WorldMapView {
       const c = portalCenter(p);
       marker(c.x, c.y, p.label, 0xb388ff);
     }
-    for (const l of map.landmarks ?? []) this.mapVisuals.push(text(l.x, l.y, l.label.toUpperCase(), '#ffe2a0', 12, 1));
+    // Landmark names are orientation, not headlines: sized for the 1.55 zoom (~15 screen px) and slightly translucent.
+    for (const l of map.landmarks ?? []) this.mapVisuals.push(text(l.x, l.y, l.label.toUpperCase(), '#ffe2a0', 10, 1).setAlpha(0.85));
     this.drawNpcs(map, text);
   }
 

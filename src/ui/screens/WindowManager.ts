@@ -2,7 +2,8 @@ import { medallion } from '../components/Medallion';
 import { Badge } from '../components/Badge';
 import { UiWindow } from '../components/Window';
 import { h } from '../dom';
-import { SCREENS, SCREEN_BY_ID, type ScreenId } from '../data/screens';
+import { SCREENS, SCREEN_BY_ID, screenTabs, screenTitle, type ScreenId } from '../data/screens';
+import { onLocaleChange } from '../i18n';
 import { SCREEN_CONTENT, type ScreenContext } from './content';
 
 /** Open window kinds: a menu screen, the menu grid, or a dialogue (NPC talk...). */
@@ -14,12 +15,18 @@ export class WindowManager {
   private readonly listeners = new Set<(id: OpenWindowId | null) => void>();
   private readonly menuBadges = new Map<ScreenId, Badge>();
   private notices = { items: 0, questReady: false };
+  private readonly offLocale: () => void;
 
   constructor(
     private readonly host: HTMLElement,
     private readonly ctx: ScreenContext,
   ) {
     window.addEventListener('keydown', this.onKey);
+    // A language switch rebuilds the open menu screen with the new strings (dialogues keep their own text).
+    this.offLocale = onLocaleChange(() => {
+      const id = this.current?.id;
+      if (id && id !== 'dialog') this.open(id);
+    });
   }
 
   get openId(): OpenWindowId | null {
@@ -57,11 +64,11 @@ export class WindowManager {
     this.close();
     const window =
       id === 'menu'
-        ? new UiWindow({ id: 'menu', title: 'Adventurer’s Crest', render: () => this.renderMenu(), onClose: () => this.closed() })
+        ? new UiWindow({ id: 'menu', title: screenTitle('menu'), render: () => this.renderMenu(), onClose: () => this.closed() })
         : new UiWindow({
             id,
-            title: SCREEN_BY_ID[id].title,
-            tabs: SCREEN_BY_ID[id].tabs,
+            title: screenTitle(id),
+            tabs: screenTabs(id),
             render: (tab) => SCREEN_CONTENT[id](tab, this.ctx),
             onClose: () => this.closed(),
           });
@@ -90,6 +97,7 @@ export class WindowManager {
 
   destroy(): void {
     window.removeEventListener('keydown', this.onKey);
+    this.offLocale();
     this.close();
   }
 
@@ -111,8 +119,8 @@ export class WindowManager {
       { className: 'ui-menu-grid' },
       SCREENS.filter((s) => s.implemented !== false).map((s) => {
         const reason = this.lockReason(s.id);
-        const button = medallion(s.title, s.icon, () => this.open(s.id));
-        button.title = reason ? `${s.title} — ${reason}` : s.title;
+        const button = medallion(screenTitle(s.id), s.icon, () => this.open(s.id));
+        button.title = reason ? `${screenTitle(s.id)} — ${reason}` : screenTitle(s.id);
         button.dataset.screen = s.id;
         if (s.id === 'inventory' || s.id === 'quest') {
           const badge = new Badge(button);

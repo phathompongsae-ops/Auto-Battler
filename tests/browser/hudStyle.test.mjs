@@ -1,6 +1,7 @@
 // Haven's HUD style lock: geometry, input space, cooldown presentation and
 // review captures. Uses real game state/actions; screenshots are test artifacts.
 import { sleep } from './cdp.mjs';
+import { shopAndLanguageSuite } from './shopLanguage.test.mjs';
 
 export async function hudStyleSuite(b, t, shot) {
   t.section('Fantasy HUD layout / visual review');
@@ -19,37 +20,52 @@ export async function hudStyleSuite(b, t, shot) {
     const hidden = all.filter((e) => getComputedStyle(e).display === 'none').map((e) => ({ id: e.dataset.slot, inert: e.getAttribute('aria-disabled') === 'true' && e.dataset.group === 'utility' }));
     const slots = all.filter((e) => getComputedStyle(e).display !== 'none').map((e) => {
       const r = e.getBoundingClientRect();
-      return { id: e.dataset.slot, group: e.dataset.group, x: r.x, y: r.y, w: r.width, h: r.height };
+      return { id: e.dataset.slot, group: e.dataset.group, x: r.x, y: r.y, w: r.width, h: r.height, round: getComputedStyle(e).borderRadius === '50%', hit: document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2)?.closest('.ui-slot') === e };
     });
     const rect = (selector) => { const r = document.querySelector(selector).getBoundingClientRect(); return { x: r.x, y: r.y, w: r.width, h: r.height }; };
     const canvas = rect('canvas');
-    return { slots, hidden, minimap: rect('[data-hud=minimap]'), quests: rect('[data-hud=quest-tracker]'), player: rect('[data-hud=player]'), systems: rect('[data-hud=systems]'), canvas,
+    const utilities = [...document.querySelectorAll('[data-hud=utilities] > button')].map((e) => { const r = e.getBoundingClientRect(); return { id: e.dataset.menu, x: r.x, y: r.y, w: r.width, h: r.height }; });
+    return { slots, hidden, utilities, minimap: rect('[data-hud=minimap]'), quests: rect('[data-hud=quest-tracker]'), player: rect('[data-hud=player]'), systems: rect('[data-hud=systems]'), canvas,
       systemButtons: [...document.querySelectorAll('[data-hud=systems] button')].map((e) => { const r=e.getBoundingClientRect(); return { x:r.x,y:r.y,w:r.width,h:r.height }; }),
       openCentre: [[.5,.5],[.45,.6],[.35,.78],[.18,.78]].every(([x,y]) => document.elementFromPoint(canvas.x + canvas.w*x, canvas.y + canvas.h*y)?.tagName === 'CANVAS') };
   })()`);
   const checkGeometry = (g, label) => {
     const atk = g.slots.find((s) => s.id === 'attack');
     const ring = g.slots.filter((s) => s.group === 'combat' && s.id !== 'attack');
-    const clashes = g.slots.flatMap((a, i) => g.slots.slice(i + 1).filter((s) => a.x < s.x+s.w && a.x+a.w > s.x && a.y < s.y+s.h && a.y+a.h > s.y).map((s) => `${a.id}/${s.id}`));
-    t.check(label, ring.length === 4 && ring.every((s) => s.w < atk.w) && g.slots.every((s) => s.w >= 40 && s.h >= 40) && g.hidden.every((s) => s.inert) && g.slots.some((s) => s.id === 'skill5') && !clashes.length && g.openCentre && g.quests.y >= g.minimap.y+g.minimap.h,
-      JSON.stringify({ atk: atk.w, skills: ring.map((s) => s.w), clashes, hidden: g.hidden.map((s) => s.id), openCentre: g.openCentre }));
+    // Sockets are round (border-radius 50%, which pointer hit-testing follows), so separation is measured between circles:
+    // arc neighbours sit diagonally, where square boxes overlap at the corners while the targets keep a clear gap.
+    const clashes = g.slots.flatMap((a, i) => g.slots.slice(i + 1).filter((s) => !a.round || !s.round || Math.hypot(a.x + a.w / 2 - s.x - s.w / 2, a.y + a.h / 2 - s.y - s.h / 2) - a.w / 2 - s.w / 2 < 3).map((s) => `${a.id}/${s.id}`));
+    // Hierarchy: ATK > Skill 1-5 (all on the combat arc) > Dodge > HP / MP; nothing hidden, no inert sockets.
+    const size = (id) => g.slots.find((s) => s.id === id)?.w ?? 0;
+    const hierarchy = ring.every((s) => s.w < atk.w) && size('dodge') <= size('skill1') && size('potion') <= size('dodge') && size('mp_potion') <= size('dodge');
+    t.check(label, ring.length === 5 && hierarchy && g.slots.length === 9 && g.slots.every((s) => s.hit) && g.slots.every((s) => s.w >= 40 && s.h >= 40) && ring.every((s) => s.w >= 44) && !g.hidden.length && !clashes.length && g.openCentre && g.quests.y >= g.minimap.y+g.minimap.h,
+      JSON.stringify({ atk: atk.w, skills: ring.map((s) => s.w), dodge: size('dodge'), potions: [size('potion'), size('mp_potion')], clashes, hidden: g.hidden.map((s) => s.id), openCentre: g.openCentre }));
   };
   const productionGeometry = (g, label) => {
     const overlap = (a,b) => a.x < b.x+b.w && a.x+a.w > b.x && a.y < b.y+b.h && a.y+a.h > b.y;
     const clashes = g.slots.filter((s) => overlap(s,g.quests) || overlap(s,g.systems)).map(s => s.id);
     const movementBottom = g.canvas.y + g.canvas.h - (g.systems.y + g.systems.h);
     const movementReserved = movementBottom >= 110 || g.systems.x - g.canvas.x >= 130;
-    t.check(label, !clashes.length && movementReserved && g.systemButtons.length === 5 && g.systemButtons.every((s) => s.w >= 44 && s.h >= 44) && g.openCentre,
-      JSON.stringify({clashes,movementBottom,systems:g.systems,quests:g.quests}));
+    // Top right: three utilities (Shop first) in one horizontal row beside the minimap, clear of the tracker.
+    const u = g.utilities;
+    const row = u.length === 3 && u[0].id === 'shop' && u.every((s) => Math.abs(s.y - u[0].y) < 1 && s.w >= 40 && s.h >= 40) && u.every((s, i) => i === 0 || s.x >= u[i-1].x + u[i-1].w)
+      && u.every((s) => !overlap(s, g.quests) && !overlap(s, g.minimap) && s.x + s.w <= g.minimap.x && s.y + s.h <= g.minimap.y + g.minimap.h + 1);
+    // Bottom strip: centred on screen, or (when the cluster is in the way) as central as the cluster allows.
+    const stripCentre = g.systems.x + g.systems.w / 2 - g.canvas.x, mid = g.canvas.w / 2;
+    const bandLeft = Math.min(...g.slots.filter((s) => s.y + s.h > g.systems.y).map((s) => s.x));
+    const centred = Math.abs(stripCentre - mid) < 4 || (stripCentre > g.canvas.w * 0.38 && bandLeft - (g.systems.x + g.systems.w) < 16);
+    t.check(label, !clashes.length && movementReserved && row && centred && g.systemButtons.length === 5 && g.systemButtons.every((s) => s.w >= 44 && s.h >= 44) && g.openCentre,
+      JSON.stringify({clashes,movementBottom,row,centred,stripCentre,mid,systems:g.systems,quests:g.quests,utilities:u}));
   };
-  const click = async (sel) => { const r = await bounds(sel); await b.mouse('mousePressed',r.x+r.width/2,r.y+r.height/2); await b.mouse('mouseReleased',r.x+r.width/2,r.y+r.height/2); await sleep(180); };
+  // Real pointer clicks at the element's centre; scrolled into view first (the More grid scrolls on short screens).
+  const click = async (sel) => { await b.eval(`document.querySelector(${JSON.stringify(sel)})?.scrollIntoView({ block: 'nearest' })`); const r = await bounds(sel); await b.mouse('mousePressed',r.x+r.width/2,r.y+r.height/2); await b.mouse('mouseReleased',r.x+r.width/2,r.y+r.height/2); await sleep(180); };
 
   await b.eval(`debug.reset('demo_town'); debug.setPeaceful(true); debug.resetJobChange(); debug.jumpToLevel(20); debug.forceChangeJob('warrior'); debug.resetSkills(); debug.learnSkill('power_slash'); debug.learnSkill('charge'); debug.learnSkill('shield_bash');`);
   for (let i = 0; i < 5; i++) await b.eval(`debug.learnSkill('heavy_armor_mastery')`);
   await b.eval(`debug.learnSkill('provoke'); debug.setPlayerMp(debug.player().stats.maxMp); debug.setPlayerHp(debug.player().stats.maxHp)`);
   // Let the normal progression notices finish before the clean HUD capture.
   await sleep(3500);
-  checkGeometry(await geometry(), 'HUD-S1. ATK dominates four separated core skills; 40px targets; minimap/quests aligned; centre and movement area open');
+  checkGeometry(await geometry(), 'HUD-S1. ATK dominates five separated core skills, then Dodge, then HP / MP; 40px targets; minimap/quests aligned; centre and movement area open');
   productionGeometry(await geometry(), 'HUD-P1. 960x540 system strip reserves joystick space, has 44px targets and avoids combat/quest collisions');
   await shot('hud-production-01-town');
   await shot('hud-production-02-town-system-strip');
@@ -71,7 +87,7 @@ export async function hudStyleSuite(b, t, shot) {
   t.check('HUD-P4. real loot and completed quest produce count / dot badges on Inventory, Quests and More', Number(badges.inventory) > 0 && badges.quest && badges.more, JSON.stringify(badges));
   await click('[data-menu=menu]');
   const grid = await b.eval(`[...document.querySelectorAll('[data-window=menu] [data-screen]')].map(e => e.dataset.screen)`);
-  t.check('HUD-P5. More opens original medallion grid with implemented systems only', grid.length === 12 && ['character','inventory','skills','quest','craft','enhancement','enchant','settings','map'].every(id => grid.includes(id)) && ['pet','party','dungeon'].every(id => !grid.includes(id)), JSON.stringify(grid));
+  t.check('HUD-P5. More opens original medallion grid with implemented systems only', grid.length === 13 && ['character','inventory','skills','quest','craft','enhancement','enchant','settings','map','shop'].every(id => grid.includes(id)) && ['pet','party','dungeon'].every(id => !grid.includes(id)), JSON.stringify(grid));
   await shot('hud-production-03-system-grid');
   await click('[data-window=menu] [data-screen=inventory]');
   t.check('HUD-P6. menu grid opens real Inventory and clears its unread badge', await b.eval(`!!document.querySelector('[data-window=inventory] [data-role=inventory]') && document.querySelector('[data-menu=inventory] .ui-badge').hidden`));
@@ -84,7 +100,9 @@ export async function hudStyleSuite(b, t, shot) {
   await click('[data-menu=map]');
   t.check('HUD-P8. Area Map draws current terrain instead of a placeholder', await b.eval(`document.querySelector('.ui-area-map')?.width > 0 && document.querySelector('[data-window=map]').textContent.includes('Haven Town')`));
   await b.press('Escape');
-  await click('[data-menu=settings]');
+  // Settings lives in More (the top-right row holds Shop, Daily & Weekly and Area Map).
+  await click('[data-menu=menu]');
+  await click('[data-window=menu] [data-screen=settings]');
   await click('[data-preference=contrast]');
   t.check('HUD-P9. Settings applies real session-only display preference', await b.eval(`document.querySelector('[data-ui-root]').dataset.contrast === 'true'`));
   await click('[data-preference=contrast]');
@@ -98,12 +116,12 @@ export async function hudStyleSuite(b, t, shot) {
   }
   await b.setViewport({mobile:false}); await sleep(150);
 
-  // Two reserved utility slots are explicit and inert, alongside the existing
-  // special/potion/dodge positions and retained fifth skill binding.
-  const utilities = await b.eval(`['pet','special'].map((id) => {
-    const e = document.querySelector('[data-slot='+id+']'); return { id, utility: e.dataset.group === 'utility', disabled: e.getAttribute('aria-disabled') === 'true' };
-  })`);
-  t.check('HUD-S2. future utility positions are outside the combat ring and unavailable', utilities.every((s) => s.utility && s.disabled), JSON.stringify(utilities));
+  // The cluster is exactly the live controls: the inert Special / Pet placeholder sockets were removed.
+  const cluster = await b.eval(`[...document.querySelectorAll('.hud-actions > .ui-slot')].map((e) => e.dataset.slot + ':' + e.dataset.tier)`);
+  t.check('HUD-S2. combat cluster holds only live controls: ATK, Skill 1-5, Dodge, HP / MP Potion',
+    JSON.stringify(cluster) === JSON.stringify(['attack:primary', 'skill1:skill', 'skill2:skill', 'skill3:skill', 'skill4:skill', 'skill5:skill', 'dodge:dodge', 'potion:potion', 'mp_potion:potion']), JSON.stringify(cluster));
+
+  await shopAndLanguageSuite(b, t, shot, click);
 
   // Small landscape phone: no tap-target overlap and no interception of centre
   // or the movement area; restore the runner's viewport afterwards.

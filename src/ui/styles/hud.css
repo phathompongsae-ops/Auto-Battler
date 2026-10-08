@@ -119,15 +119,6 @@
   text-shadow: var(--ui-text-shadow);
 }
 
-/* ------------------------------------------------------------- menu bar */
-.hud-menu {
-  display: flex;
-  gap: var(--ui-space-2);
-}
-.hud-menu .ui-button--icon {
-  background: var(--ui-surface);
-}
-
 /* ------------------------------------------------------- quest tracker */
 .hud-quests {
   width: calc(190px * var(--ui-scale));
@@ -488,16 +479,6 @@
   text-shadow: 0 1px 2px #141c24;
   pointer-events: none;
 }
-.hud-menu { display: grid; grid-template-columns: repeat(2, auto); gap: calc(6px * var(--ui-scale)); }
-.hud-menu .ui-button--icon {
-  border-radius: calc(7px * var(--ui-scale));
-  background: linear-gradient(145deg, #726147, #333735 55%, #23282d);
-  border: 2px solid #9c8055;
-  border-top-color: #cdb98b;
-  box-shadow: inset 0 0 0 1px #e6d4a52b, 0 2px 4px #1c20224d;
-}
-.hud-menu .ui-icon { width: calc(20px * var(--ui-scale)); height: calc(20px * var(--ui-scale)); color: #eed9a5; }
-.hud-menu .ui-button:disabled { opacity: .6; filter: saturate(.3); }
 .hud-quests {
   width: calc(214px * var(--ui-scale));
   gap: calc(7px * var(--ui-scale));

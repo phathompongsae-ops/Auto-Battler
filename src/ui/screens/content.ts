@@ -8,6 +8,7 @@ import { renderCraft, renderEnchant, renderEnhancement, renderJobChange, renderW
 import type { ScreenId } from '../data/screens';
 import type { QuestProgressSource } from '../hud/QuestTracker';
 import { renderAreaMap, renderHudSettings } from './navigationView';
+import { renderShop } from './shopView';
 
 /*
  * Window bodies per screen. Each is a placeholder built from the shared
@@ -109,4 +110,5 @@ export const SCREEN_CONTENT: Record<ScreenId, ScreenRenderer> = {
   party: () => emptyState('Group up with other players.'),
   dungeon: () => emptyState('Dungeon entry, difficulty and rewards.'),
   settings: (tab, ctx) => renderHudSettings(tab, ctx.world),
+  shop: (tab, { world }) => renderShop(world, tab),
 };
