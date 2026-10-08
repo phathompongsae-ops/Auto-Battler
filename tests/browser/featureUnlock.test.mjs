@@ -58,12 +58,15 @@ export async function featureUnlockSuite(b, t) {
   await b.eval(`debug.startQuest('job_c1_02_trial')`);
   const trialNav = await b.eval(`debug.navigateToQuest('job_c1_02_trial', 0)`);
   await b.waitFor(`debug.navState().status !== 'moving' && debug.navState()`, { timeout: 8000, label: 'reach Job Trial marker' });
+  // Fixed rolls (always hit) for the three one-hit kills: a 5% random miss would otherwise stall the trial.
+  await b.eval('debug.setRng(0.5)');
   for (const id of ['slime-1', 'slime-2', 'slime-3']) {
     const p = await b.eval('debug.navState()');
     await b.eval(`debug.placeMonster('${id}', ${p.x}, ${p.y - 48}); debug.resetCooldowns(); debug.selectTarget('${id}'); debug.setMonsterHp('${id}', 5)`);
     await b.press('Space');
     await b.waitFor(`debug.monster('${id}').dead`, { timeout: 2000, label: `${id} dies in Job Trial` });
   }
+  await b.eval('debug.setRng(null)');
   const trialClaim = await b.eval(`debug.claimQuest('job_c1_02_trial')`);
   await b.eval(`debug.startQuest('job_c1_03_report'); debug.talkToNpc('demo_job_instructor')`);
   const reportClaim = await b.eval(`debug.claimQuest('job_c1_03_report')`);

@@ -343,3 +343,9 @@
   box-shadow: inset 2px 0 0 #d9b56a;
   text-shadow: var(--hud-outline);
 }
+
+@media (max-height: 420px), (max-width: 760px) {
+  /* Short screens: the feed keeps only its newest three lines so a burst (quest chain, tutorial) never climbs
+   * over the player frame's HP / MP bars. Older lines still expire on their own timers. */
+  .hud-loot__line:nth-last-child(n + 4) { display: none; }
+}

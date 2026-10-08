@@ -25,5 +25,25 @@ export async function dodgeSuite(b, t) {
     await sleep(delay); await b.press('ShiftLeft'); await sleep(400);
     t.check(`DG-5. ${monsterId} telegraph is dodged through real damage resolution`, await b.eval('debug.player().hp') === hp);
   }
+  // Holding ATK: a swing locks 444 of every 500 ms. A Shift pressed mid-swing must still dodge (once the swing ends).
+  await b.eval(`debug.reset(); debug.setPeaceful(true); (() => { const w = ${W}; const p = w.player; debug.placeMonster('slime-1', p.x + 30, p.y); debug.setMonsterHp('slime-1', 100000); debug.selectTarget('slime-1'); debug.resetCooldowns(); debug.clearLog(); })()`);
+  await sleep(150);
+  await b.keyDown('Space');
+  await b.waitFor(`debug.log.some((e) => e.type === 'skillUsed' && e.skill === 'basic_attack')`, { timeout: 2000, label: 'swing starts' }).catch(() => {});
+  await sleep(120);
+  const midSwing = await b.eval(`${W}.player.combat.actionLocked(${W}.now)`);
+  await b.press('ShiftLeft');
+  await sleep(600);
+  await b.keyUp('Space');
+  const dodged = await b.eval(`(${W}.player.combat.utilityCooldowns.get('dodge') || 0) > ${W}.now`);
+  t.check('DG-6. Shift pressed mid-swing while holding ATK still dodges once the swing ends (no lost press, swing not cancelled)', midSwing && dodged, JSON.stringify({ midSwing, dodged }));
+  // A tap whose key-down and key-up arrive in the same frame (a quick tap, or a tap during a hitch) still counts.
+  await b.eval(`debug.reset(); debug.setPeaceful(true); ${W}.player.facing = 'right'`);
+  await sleep(150);
+  const x0 = await b.eval(`${W}.player.x`);
+  await Promise.all([b.keyDown('ShiftLeft'), b.keyUp('ShiftLeft')]);
+  await sleep(350);
+  const x1 = await b.eval(`${W}.player.x`);
+  t.check('DG-7. a zero-length Shift tap (down and up in one frame) still dodges', Math.abs(x1 - x0 - 72) < 1, JSON.stringify({ x0, x1 }));
   await b.eval('debug.reset()');
 }

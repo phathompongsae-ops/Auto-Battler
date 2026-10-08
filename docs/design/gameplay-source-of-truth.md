@@ -109,10 +109,19 @@ rule (needs a target; instant reposition).
 
 - Shared `DodgeSystem` requests operate on any combat actor through world collision
   and movement adapters. Human controls: either Shift key or Dodge utility socket.
-- Every class; 5 s independent cooldown; 0.30 s reusable actor invulnerability;
-  72 px cardinal travel over 0.20 s (360 px/s), input direction then facing.
+- Every class; 5.0 s independent cooldown; 0.30 s reusable actor invulnerability;
+  72 world px travel over 0.20 s (360 px/s), **4-direction** (cardinal),
+  movement input first, facing as the fallback. Desktop: Shift. Mobile: the
+  Dodge utility button.
 - Game time only. No stamina, charges, GCD, cleanse or skill-cooldown changes.
-- Reject during an executing action. Collision sweeps every 2 px against the
+- Never cancels an executing action (a swing, a skill wind-up). A press made
+  during one is **buffered for up to 0.5 s** in `PlayerCombatController`
+  (`UTILITY_INPUT_BUFFER_MS`) and performed on the first free frame; while it
+  waits, held ATK starts no new swing. The same buffer applies to HP/MP potion
+  presses. (Found in the 2026-10-08 playtest: a basic-attack swing locks 444 of
+  every 500 ms, so unbuffered presses while holding ATK were mostly lost.)
+  `DodgeSystem` / `PotionSystem` themselves still refuse during a lock.
+- Collision sweeps every 2 px against the
   actor footprint, solid map/props/water/bounds and closed Story gates.
   Under 8 px available travel consumes nothing; partial movement consumes normally.
 - All incoming hits (normal, projectile, direct/AoE/telegraph) check actor
@@ -228,6 +237,23 @@ Measured with the real combat systems (`tests/unit/storyEncounter.test.ts`,
   wipes. **Baseline human first-clear estimate: about 3–5 minutes** (before Basic
   Dodge/Potions). The current intended human experience is 4–6 minutes;
   scripted combat time is not a human pacing measurement. See C-13.
+- Re-measured 2026-10-08 with the **actual Demo systems** (Basic Dodge with
+  Shift + direction, held ATK, real skills, the new-character starter potions
+  3 Small HP + 3 Small MP with Auto Potion at its defaults, no teleports / HP
+  edits / gate bypasses / boss manipulation):
+
+  | Scripted player | Brute engaged / down | CP A | Knight engaged / down | CP B | Boss fight | Clear (exit) | Wipes | Dodges | Potions | Boss entry → after |
+  | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+  | Skilled (dodges every telegraph) | 10.5 / 17.1 s | 18.7 s | 19.3 / 27.5 s | 29.4 s | 35 s | 71.2 s | 0 | 8 (0 telegraph hits) | 1 HP, 3 MP | 265/450 HP, 57 MP → 203/450 HP, 64 MP |
+  | Newcomer (~60% of telegraphs, 0.3 s late) | 11.5 / 22.2 s | 23.6 s | 24.2 / 33.6 s | 35.3 s | 76 s (incl. 1 retry) | 117.7 s | 1 (boss) | 11 (6 telegraph hits) | 3 HP (Auto) | 229/450 HP, 168 MP → 115/450 HP, 72 MP |
+
+  All nine tutorial lines appeared naturally (the Dodge lesson at the Brute,
+  the HP potion lesson at ≤45% HP with a potion carried). No attack was
+  unavoidable once Dodge presses were buffered (below); no encounter is filler.
+  Scripted mechanical time is 1.2–2 min; with a first-timer's reading,
+  orientation, learning to Dodge and one or two wipes, the realistic human
+  first clear is about **4–6 minutes**, matching the design target. No HP
+  inflation or filler was added.
 
 ### IMPLEMENTED: Story Crypt feedback
 
@@ -534,6 +560,44 @@ milestone; nothing here may be "fixed" by inventing numbers.
   gates only runs, run rewards, `dungeon_clear` objectives and the Dungeon
   menu. Added `tests/unit/storyCrypt.test.ts` so the story loop stays
   independent of the Lv20 feature.
+
+### Core system phase closure (2026-10-08)
+
+- **Hotbar:** 5 persistent active slots; learned actives auto-fill the first
+  empty slot; manual rearrange / replace (click, tap or drag); cooldowns
+  belong to the skill, never the slot (section 5).
+- **Basic Dodge:** all classes; 5.0 s cooldown; 0.30 s i-frame; no stamina, no
+  charges; 72 world px over 0.20 s; 4-direction, movement input first then
+  facing; Shift on desktop, utility button on mobile; collision and closed
+  Story gates respected (section 3).
+- **Potions:** HP and MP separate; HP 8 s / MP 12 s cooldowns; no GCD; instant
+  + HoT; Auto Potion toggles and thresholds saved; real inventory
+  consumption (section 6).
+- **Input reliability fixes found in closure QA:** Dodge / potion presses
+  during an executing action are buffered (0.5 s) instead of lost; keyboard
+  presses are latched from Phaser's key `down` event, so a tap whose down
+  and up land in the same frame (quick taps, taps during a frame hitch) is
+  no longer dropped. Tests: `utilityInputBuffer.test.ts`, `dodge.test.mjs`
+  DG-6 / DG-7.
+- **Story Crypt:** intended human first clear ~4–6 minutes (C-13 resolved by
+  design decision; re-measured with the real systems, section 4); no HP or
+  filler padding; Dodge and potion tutorial feedback implemented.
+- **Job Change:** 5 classes visible; Warrior is the only selectable, fully
+  implemented Demo progression class; other Class 1 trees remain future work.
+- **Save QA:** `tests/unit/saveQa.test.ts` (new save, pre-hotbar migration,
+  >5 actives, rearrange + reload, skill-owned cooldowns, runtime-only Dodge /
+  utility cooldowns, potion counts, Auto HP / MP preferences and thresholds,
+  mid-quest Story progress, no duplicates / losses, Warrior-only guard with
+  older non-Warrior saves still loading and forged ranks rejected).
+- **Mobile:** 960×540, 844×390 and 640×360 keep every combat control
+  (ATK, Skill 1–5, Dodge, HP / MP Potion) on screen, ≥40 px, unobstructed,
+  tappable; touch hotbar editing works. Short screens cap the feed to its
+  newest 3 lines. 568×320 is **not** a supported layout (the ring meets the
+  quest tracker and system strip); it belongs to the Visual Production HUD
+  layout pass.
+- **Still not implemented:** Party AI, Online, Weight Capacity, Reward Cache,
+  non-Warrior skill trees, full visual production, Thai localization,
+  Gold/Diamond Shop.
 
 ### Story Crypt feedback pass
 
