@@ -7,5 +7,5 @@ export const PLAYER_WALK_FPS = 8;
 
 export const CAMERA_LERP = 0.15;
 
-/** Gameplay camera zoom (Visual Production Pass 1): the Warrior (40 world px tall) reads at ~62 px on screen; the 960×540 view still spans ~619×348 world px for telegraphs. */
-export const CAMERA_ZOOM = 1.55;
+/** Gameplay camera zoom (camera re-evaluation after Visual Production Pass 1): the Warrior (40 world px tall) reads at ~66 px on screen; the 960×540 view still spans ~582×327 world px, room for the 84 px Grave Slam telegraph. */
+export const CAMERA_ZOOM = 1.65;

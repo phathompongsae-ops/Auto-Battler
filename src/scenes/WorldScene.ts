@@ -426,7 +426,7 @@ export class WorldScene extends Phaser.Scene implements WorldMapView {
       const c = portalCenter(p);
       marker(c.x, c.y, p.label, 0xb388ff);
     }
-    // Landmark names are orientation, not headlines: sized for the 1.55 zoom (~15 screen px) and slightly translucent.
+    // Landmark names are orientation, not headlines: sized for the 1.65 zoom (~16 screen px) and slightly translucent.
     for (const l of map.landmarks ?? []) this.mapVisuals.push(text(l.x, l.y, l.label.toUpperCase(), '#ffe2a0', 10, 1).setAlpha(0.85));
     this.drawNpcs(map, text);
   }

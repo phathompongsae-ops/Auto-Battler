@@ -9,15 +9,15 @@ their high-resolution `sources/`, contact sheets in `previews/`, and the set's
 own `manifest.csv` / `validation-summary.json`). The set's self-validation marks
 all 34 PASS. That covers mechanics only (dimensions, alpha, margins, baselines).
 This review adds the in-game checks: style next to the approved Town, runtime
-scale at the locked camera zoom 1.55, silhouette on real ground, and coverage
+scale at the locked camera zoom 1.65, silhouette on real ground, and coverage
 of what the Demo actually spawns.
 
 Verdicts: **PASS** (integrate as is) · **PASS WITH ADJUSTMENT** (usable;
 the listed change happens during integration, no new generation) ·
 **REGENERATE** (generate again) · **DUPLICATE / NOT NEEDED**.
 
-Runtime scale: candidates render at 0.5 (one art px = 0.5 world px, 0.775
-screen px at zoom 1.55), LINEAR filtering, as Town does. Monster frames get the
+Runtime scale: candidates render at 0.5 (one art px = 0.5 world px, 0.825
+screen px at zoom 1.65), LINEAR filtering, as Town does. Monster frames get the
 existing per-monster display `scale` from `src/data/monsterData.ts` (presentation
 only; hit radius and physics stay as they are).
 
@@ -27,7 +27,7 @@ only; hit radius and physics stay as they are).
 |---|---|---|---|---|---|
 | A1 | Broadleaf tree | 120×160 | yes | **PASS** | Matches the Town palette and outline weight. Visible ~58×60 world px inside a 60×80 canvas; bottom-centred for the existing footprint. First integration batch. |
 | A2 | Pine | 88×168 | yes | **PASS** | Clean silhouette, same lighting direction as Town (top-left). |
-| A3 | Cave mouth | 200×168 | yes | **PASS** | Reads as the dungeon approach; dark opening clear at 1.55. |
+| A3 | Cave mouth | 200×168 | yes | **PASS** | Reads as the dungeon approach; dark opening clear at 1.65. |
 | A4 | Water tile | 64×64 | no (tile) | **REGENERATE** | Repeats cleanly at the edges, but every tile carries the same central ripple, which forms an obvious grid across a pond (see `previews/tile-repeat-3x3.png`). Regenerate a motif-free base, and place ripples as separate decals. No shore transitions exist yet. |
 
 Missing for the Field (Pass 2 list): grass, path and dirt ground tiles, plus
@@ -43,7 +43,7 @@ adapter that keeps today's animation keys, hit radius and physics body.
 | Id | Monster | Verdict | Notes |
 |---|---|---|---|
 | D1 | Slime | **PASS** | Strong chibi read; the green holds on grass thanks to the dark outline. |
-| D2 | Wolf | **PASS WITH ADJUSTMENT** | Grey-white body is low contrast on sand and plaza stone at 32 world px; thin legs vanish at 0.775 screen px per art px. Re-fit from the source with a darker outline (or a slightly larger display scale). |
+| D2 | Wolf | **PASS WITH ADJUSTMENT** | Grey-white body is low contrast on sand and plaza stone at 32 world px; thin legs vanish at 0.825 screen px per art px. Re-fit from the source with a darker outline (or a slightly larger display scale). |
 | D3 | Mushroom | **PASS** | Distinct red cap silhouette; matches the Town's cute register. |
 | D4 | Elite Boar | **PASS** | Elite read comes from the existing ×1.6 scale; good side profile. |
 | D5 | Grove Guardian | **PASS WITH ADJUSTMENT** | Displayed at ×2.1, so a 64 px frame is upscaled. Re-fit to 128 px frames from the existing 1774×887 source (no regeneration) to keep detail. |

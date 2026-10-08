@@ -604,7 +604,7 @@ milestone; nothing here may be "fixed" by inventing numbers.
 Presentation only; no gameplay rule, number or save field changed. Details are in
 `docs/art/hud-style-lock.md`.
 
-- **Camera zoom 1.55** (was 1.35). Characters, collision, monster ranges, telegraph
+- **Camera zoom 1.65** (1.35 originally, 1.55 earlier in this pass, closer after the camera re-evaluation). Characters, collision, monster ranges, telegraph
   radii and map geometry are unchanged; only the view is closer.
 - **Shop shell:** a Shop window with separate Gold and Diamond sections. Its catalogue
   (`src/data/shopCatalog.ts`) is a **temporary development placeholder**: existing

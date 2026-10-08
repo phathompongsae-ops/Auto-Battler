@@ -29,8 +29,8 @@ export async function mapSuite(b, t, shot, reload) {
     JSON.stringify({ map: town.mapId, monsters: town.monsters.length, p: [p.x, p.y], mm }),
   );
   t.check(
-    'M-1b. gameplay camera: zoomed 1.5-1.6x (locked 1.55) so the player reads at 58-66 px; Town is dense with landmarks and props',
-    town.camera.zoom >= 1.5 && town.camera.zoom <= 1.6 && town.camera.playerScreenHeight >= 58 && town.camera.playerScreenHeight <= 66 && town.props >= 40,
+    'M-1b. gameplay camera: zoomed 1.6-1.7x (locked 1.65) so the player reads at 64-70 px; Town is dense with landmarks and props',
+    town.camera.zoom >= 1.6 && town.camera.zoom <= 1.7 && town.camera.playerScreenHeight >= 64 && town.camera.playerScreenHeight <= 70 && town.props >= 40,
     JSON.stringify({ camera: town.camera, props: town.props }),
   );
   await b.eval('debug.setPeaceful(true)');

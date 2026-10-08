@@ -6,7 +6,11 @@ Direction: **classic fantasy MMORPG world + modern mobile MMORPG UX.** Ragnarok 
 
 ## Camera (locked)
 
-Gameplay zoom **1.55** (`src/config.ts` `CAMERA_ZOOM`; was 1.35). The Warrior (40 world px) reads at ~62 screen px. A 960×540 view spans ~619×348 world px: enough for the Crypt Lord's 84 px Grave Slam telegraph with room to step out. Compared in Town, Field, Story Crypt and the boss room at 1.35 / 1.50 / 1.55 / 1.60; 1.60 gained little and cost telegraph room. Characters are not rescaled, gameplay geometry is unchanged, and camera bounds still clamp at every map edge (the smallest map dimension is 30 tiles = 960 world px, wider than the 619 px view). World landmark labels were reduced (10 world px, 85% opacity ≈ 15 screen px) and nav marker labels to 9 world px, so the larger zoom does not make signage louder than the player or HUD.
+Gameplay zoom **1.65** (`src/config.ts` `CAMERA_ZOOM`; 1.35 originally, 1.55 in Pass 1). This is the scale Visual Pass 2 assets are judged at. The Warrior (40 world px) reads at ~66 screen px, and the 960×540 view spans ~582×327 world px.
+
+How it was chosen: the camera re-evaluation (2026-10-08) compared 1.55 / 1.60 / 1.65 in Green Meadow combat, a Story Crypt skeleton fight and the Crypt Lord's Grave Slam wind-up, at 960×540, 844×390 and 640×360. The rule was "the closest zoom that keeps combat and telegraph readability", aiming for a modern chibi MMORPG camera rather than a tactical map view. At 1.65 the 84 px Slam circle still fits entirely on screen at every size: at 640×360 it sits under the boss target frame, clear of the quest tracker and system strip, and its right edge just reaches the MP Potion socket (as it already did at 1.55). It leaves 129 world px above and 199 below the boss inside the view. That is only ~6% tighter than 1.55, while the player and monsters read noticeably larger.
+
+Characters are not rescaled and gameplay geometry is unchanged. Camera bounds clamp at every map edge: the smallest map dimension is 30 tiles = 960 world px, wider than the 582 px view, and the clamp was verified in every capture. World landmark labels stay at 10 world px with 85% opacity (≈ 16 screen px) and nav markers at 9 world px, so signage stays quieter than the player and the HUD.
 
 ## Structure
 
