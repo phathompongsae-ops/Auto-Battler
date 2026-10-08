@@ -65,8 +65,13 @@ Tree `warrior_c1`, `src/data/skillTrees/warriorTree.ts`; skill shells in
 Covered by `tests/unit/warriorSkillTree.test.ts`. Any change here needs an
 explicit design decision.
 
-### LOCKED, NOT IMPLEMENTED
+### Temporary Demo job-selection limitation
 
+- Production Job Change keeps all five classes visible but only Warrior is
+  selectable while it has the only completed Class 1 tree. Other buttons are
+  disabled and labelled Not yet implemented; the authoritative selection
+  service also refuses them. Existing saves are preserved, and explicit dev
+  force tools can still preview every class and its art. No trees invented.
 - Archer / Mage / Cleric / Ninja exist as jobs (`src/data/jobData.ts`) with
   `skillTreeId`s that have **no tree yet**. They (and the Novice) use the
   TEMPORARY DEMO KIT (`DEMO_KIT_LOADOUT`, `src/data/playerData.ts`). Their
@@ -174,8 +179,10 @@ numbers. The repeat (base) data in `src/data/monsterData.ts` is unchanged.
 
 Reference player: Lv3–5 Novice, no gear (all early drops are equipment
 level 10), 2–4 free points split STR / VIT, demo kit (Power Slash, Fire
-Bolt, Guard); 425–525 HP; **no HP recovery in the Crypt** (no regen, no
-potions yet, dungeon kills give no EXP); after a party wipe the party
+Bolt, Guard); 425–525 HP. The measurements below are the original **baseline
+without Dodge or potions** (dungeon kills give no EXP). The current Demo adds
+Basic Dodge and real potion recovery without changing these monster stats.
+After a party wipe the party
 retries from its latest checkpoint at HP 100% / MP 50% (see Dungeon 1 run).
 
 Measured with the real combat systems (`tests/unit/storyEncounter.test.ts`,
@@ -198,8 +205,8 @@ Measured with the real combat systems (`tests/unit/storyEncounter.test.ts`,
 ### LOCKED: Story Crypt length
 
 - The Story Crypt is a Tutorial/Story Dungeon. **Target first clear: about
-  10 minutes; acceptable range roughly 8–11 minutes.** (Replaces the earlier
-  12–15 minute target.)
+  4–6 minutes for a human first clear.** The longer target is retired by
+  the 2026-10-08 design decision. Do not add filler to stretch this tutorial.
 - The length comes from encounter pacing, teaching moments, the Elite, the
   checkpoints and the boss flow. **Never inflate monster HP to add time.**
 - Future Lv20 repeat dungeons may be longer and more demanding.
@@ -217,9 +224,10 @@ Measured with the real combat systems (`tests/unit/storyEncounter.test.ts`,
   Tutorial lines never blocked or delayed play (feed only); no encounter
   felt like filler (each fight is 1–10 s, the boss ~40–65 s). Scripts know
   the route and decide instantly; a real first-time player adds reading
-  (8 short lines), orientation, hesitation and probably one or two more
-  wipes. **Realistic first-clear estimate: about 3–5 minutes, below the
-  8–11 minute target.** See Known conflicts C-13.
+  (the original 8 short lines), orientation, hesitation and probably one or two more
+  wipes. **Baseline human first-clear estimate: about 3–5 minutes** (before Basic
+  Dodge/Potions). The current intended human experience is 4–6 minutes;
+  scripted combat time is not a human pacing measurement. See C-13.
 
 ### IMPLEMENTED: Story Crypt feedback
 
@@ -228,11 +236,11 @@ Measured with the real combat systems (`tests/unit/storyEncounter.test.ts`,
   fired by `CombatWorld` (`tutorialHint` event) and shown in the HUD feed
   (`LootFeed`, ~7 s, cleared on leaving the map). Beats: entrance objective;
   first Skeleton (tap / Tab to target, hold ATK / Space); the pack (back away,
-  don't get surrounded); the Brute (red circles: move out; no Dodge yet);
+  don't get surrounded); the Brute (red circles: Dodge/Shift out);
   Checkpoint A (retry point, no healing); Elite: Crypt Knight; Checkpoint B
   (boss ahead, no healing); the Crypt Lord's intro. Each fires once per
-  dungeon attempt (on entry, on an encounter's first engagement, or on a
-  checkpoint); retries and re-crossing never repeat them. Never pauses play.
+  dungeon attempt (on entry, first engagement, checkpoint, or first HP ≤45%
+  while carrying an HP potion); retries and re-crossing never repeat them. Never pauses play.
 - **Gate visuals:** closed Story progression gates show a faint amber rune
   seal on the doorway floor (`src/rendering/GateBarriers.ts`, built from the
   same gate data; visible exactly while closed; none in Lv20 runs).
@@ -240,7 +248,9 @@ Measured with the real combat systems (`tests/unit/storyEncounter.test.ts`,
 - **Checkpoint feedback:** first activation shows one cool-blue pulse and
   "Retry point updated" (`CombatEffects`), plus the existing feed line; no
   healing, nothing persistent.
-- Basic Dodge, Potions and Party AI remain **not implemented**.
+- Basic Dodge and HP/MP Potions are implemented. A short conditional HP
+  potion lesson appears once per attempt on damage at ≤45% HP only with an
+  HP potion in inventory. Party AI remains **not implemented**.
 
 ### What the Lv20 Dungeon feature controls (as implemented)
 
@@ -504,7 +514,7 @@ milestone; nothing here may be "fixed" by inventing numbers.
 
 | # | Conflict | Status |
 | --- | --- | --- |
-| C-1 | **Story Crypt is tuned as Lv20 content.** Crypt mobs, the Crypt Knight and the Crypt Lord are level 20 (`crypt_lord`: 3,000 HP, ATK 26, DEF 16; `src/data/monsterData.ts`) and damage has no level term. Estimated solo Novice at Lv3 (all stat points spent, basic attacks only, no gear, no potions): about 46-52 s to kill the boss vs about 23-27 s survival against its basic attack alone (slam, enrage, adds ignored). The Lv3 loop is **mechanically open but not realistically winnable solo**. | **Resolved (stats)** by the Story profile (section 4); the Lv20 data is unchanged. The length target (now ~10 min, 8–11) is tracked as C-13. |
+| C-1 | **Story Crypt is tuned as Lv20 content.** Crypt mobs, the Crypt Knight and the Crypt Lord are level 20 (`crypt_lord`: 3,000 HP, ATK 26, DEF 16; `src/data/monsterData.ts`) and damage has no level term. Estimated solo Novice at Lv3 (all stat points spent, basic attacks only, no gear, no potions): about 46-52 s to kill the boss vs about 23-27 s survival against its basic attack alone (slam, enrage, adds ignored). The Lv3 loop is **mechanically open but not realistically winnable solo**. | **Resolved (stats)** by the Story profile (section 4); the Lv20 data is unchanged. The former duration mismatch is resolved by the short-dungeon design decision in C-13. |
 | C-2 | No checkpoint / wipe system. | **Resolved** (structure pass): checkpoints, party-wipe limits, HP 100% / MP 50% retries, failure flow (section 4). |
 | C-3 | Skill loadout is derived (learned actives in tree order fill 5 slots). A Warrior can learn up to 8 actives; the 6th onward is silently unslotted; a new skill can shift existing slots; no manual arrangement. | **Resolved:** persistent assignment, safe edits, migration and Skills editor (section 5). |
 | C-4 | Basic Dodge and potions do not exist (reserved HUD sockets only). | **Resolved:** shared Basic Dodge and real HP/MP/Auto Potion systems (sections 3/6). |
@@ -512,11 +522,11 @@ milestone; nothing here may be "fixed" by inventing numbers.
 | C-6 | Guaranteed rewards (quest claim, dungeon claim, crafting) go straight into the bag even past 48 slots instead of a Reward Cache. Satisfies "never lost", but not the Cache design. | Open: inventory/weight + Reward Cache milestone. |
 | C-7 | The Lv20 run Full Reward also grants EXP and equipment, beyond the "Fragment / Material / upgrade resources" focus for repeat clears. | Open, needs a decision; reward data unchanged. |
 | C-8 | Single-character world (see section 9). Party and AI members are impossible without per-character ownership of inventory / wallet / quests and multi-target aggro. | Open: plan before any party work. |
-| C-9 | Daily pool lists `daily_dungeon_adventurer` with `minLevel: 1`, while Dailies unlock at Lv16 and dungeon clears need the Lv20 run, so a Lv16-19 player can roll a Daily they cannot complete. | Open (not part of the Story loop); fix with a data `minLevel` once confirmed. |
-| C-10 | The Captain's Dungeon Gate note mentions only the Lv20 run, not the Lv3 + Meadow entry rule (the gate itself explains refusals). | Minor copy, open. |
+| C-9 | Lv16–19 Daily pool could assign a dungeon clear that requires Lv20 repeat runs. | **Resolved:** `daily_dungeon_adventurer` pool entry now has `minLevel: 20`. |
+| C-10 | Captain Dungeon Gate copy omitted the Lv3 + Meadow Story entry rule. | **Resolved:** copy explains Story entry and separates Lv20 repeat runs. |
 | C-11 | The boss room was larger than the Crypt Lord's radius leash (corners ~430 px from the throne, leash 380). | **Resolved** (structure pass): the Boss Room is the boss's encounter arena; it fights anywhere on it and resets only outside it (both profiles). |
 | C-12 | The Crypt Knight's aggro radius reached into the corridor before the Boss Room. | **Resolved** (structure pass): the Elite Chamber is its arena; it only notices players in its chamber and gives up when they leave it (both profiles; Lv20 respawn timers unchanged). |
-| C-13 | Story Crypt first clear is below the ~10 min (8–11) target. Measured legitimate Lv3 runs: 75 s (skilled script, 0 wipes) and ~100 s (newcomer script, 1 boss wipe) of game time; realistic first-time human estimate ~3–5 min. Tutorial lines (now implemented) add guidance, not length. | **Open.** Do not pad (no HP inflation, filler mobs, timers or slower movement). Options for a design decision: (a) accept a tighter ~4–6 min tutorial dungeon and retarget; (b) add content beats that teach something new (e.g. an "apply the lessons" mixed encounter in Section II, short NPC/companion dialogue at the entrance and before the boss); (c) re-measure after Basic Dodge / Potions, which add decisions to every fight. Confirm with a human playtest. |
+| C-13 | Previous Story Crypt duration mismatch. Baseline legitimate Lv3 scripts take 75–102 s game time; the human estimate was 3–5 min. | **Resolved by design decision (2026-10-08):** short tutorial/story dungeon, intended human first clear 4–6 minutes. Teach targeting, packs, telegraphs, checkpoints, Elite/boss, Dodge and potion recovery. No HP inflation, filler waves/rooms/walking, delays or camera changes. Human playtesting can identify separate pacing issues; being below the retired longer target is not one. |
 
 ### Fixed in the alignment pass
 
@@ -529,10 +539,10 @@ milestone; nothing here may be "fixed" by inventing numbers.
 
 - Tutorial lines, gate rune seals and checkpoint feedback implemented
   (section 4); combat numbers and cooldown presentation polished (HUD style
-  lock). C-13 re-measured, still open. Tests:
+  lock). C-13 baseline was re-measured in that pass; the later short-dungeon decision resolves the former mismatch. Tests:
   `tests/unit/storyTutorial.test.ts`, `tests/unit/damageNumbers.test.ts`,
   `tests/unit/hudCooldown.test.ts`, `tests/browser/storyFeedback.test.mjs`
-  (SF-1–SF-6), `tests/browser/combatFeedback.test.mjs` (FX-1–FX-3).
+  (SF-1–SF-9), `tests/browser/combatFeedback.test.mjs` (FX-1–FX-3).
 
 ### Story Crypt structure pass
 - Story encounter skipping fixed with Story-only progression gates (see

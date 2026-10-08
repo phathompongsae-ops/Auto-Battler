@@ -96,5 +96,10 @@ export async function recurringSuite(b, t) {
     JSON.stringify({ loaded, milestones: restored.milestones }),
   );
 
+  await b.eval('debug.reset(); debug.jumpToLevel(19)');
+  const below20 = await b.eval(`Array.from({length: 200}, (_, i) => debug.previewDailySet(i + 1)).some(set => set.includes('daily_dungeon_adventurer'))`);
+  await b.eval('debug.jumpToLevel(20)');
+  const at20 = await b.eval(`Array.from({length: 200}, (_, i) => debug.previewDailySet(i + 1)).some(set => set.includes('daily_dungeon_adventurer'))`);
+  t.check('R-6. dungeon-clear Daily cannot roll at Lv19 and becomes eligible at Lv20', !below20 && at20, JSON.stringify({below20, at20}));
   await b.eval('debug.reset()');
 }

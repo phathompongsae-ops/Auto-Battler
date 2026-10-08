@@ -20,7 +20,7 @@ const SERVICE: Record<NpcService, { label: string; screen?: ScreenId; note?: str
   craft: { label: 'Craft equipment', screen: 'craft' },
   job: { label: 'Job Change', screen: 'job' },
   pet: { label: 'Pet Stable', note: 'Coming later: the Pet Stable opens in a future update.' },
-  dungeon: { label: 'Go to the Dungeon Gate', note: 'The Sunken Crypt lies beyond the Dungeon Gate north of the plaza. A Normal run starts on entry once the Dungeon is unlocked (Lv20).' },
+  dungeon: { label: 'Go to the Dungeon Gate', note: 'The Sunken Crypt gate north of the plaza opens at Lv3 after Trouble in the Meadow is turned in. Repeat Normal runs unlock at Lv20.' },
 };
 
 /** Navigate to where a quest needs the player next (or to its turn-in NPC when it's ready). */

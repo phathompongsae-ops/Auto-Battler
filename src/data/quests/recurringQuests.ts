@@ -110,7 +110,7 @@ export const DAILY_POOL: readonly { questId: string; weight: number; minLevel: n
   // Weight 0 until real field Elites / Mini Bosses exist (definitions kept for later).
   { questId: 'daily_elite_hunter', weight: 0, minLevel: 1 },
   { questId: 'daily_material_collector', weight: 3, minLevel: 1 },
-  { questId: 'daily_dungeon_adventurer', weight: 2, minLevel: 1 },
+  { questId: 'daily_dungeon_adventurer', weight: 2, minLevel: 20 },
   { questId: 'daily_enhancement_practice', weight: 2, minLevel: 1 },
   { questId: 'daily_explorer', weight: 2, minLevel: 1 },
   { questId: 'daily_helping_hand', weight: 1, minLevel: 1 },

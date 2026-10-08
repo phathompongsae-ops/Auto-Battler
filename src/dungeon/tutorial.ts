@@ -14,6 +14,8 @@ export interface TutorialMoment {
   engaged?: (zoneId: string) => boolean;
   /** A checkpoint just activated. */
   checkpointId?: string;
+  hpFraction?: number;
+  hasHpPotion?: boolean;
 }
 
 export function dueTutorialBeats(beats: readonly TutorialBeat[], seen: ReadonlySet<string>, now: TutorialMoment): TutorialBeat[] {
@@ -22,6 +24,7 @@ export function dueTutorialBeats(beats: readonly TutorialBeat[], seen: ReadonlyS
     const t = b.trigger;
     if (t.on === 'enter') return !!now.entered;
     if (t.on === 'engage') return !!now.engaged?.(t.zone);
+    if (t.on === 'low_hp') return !!now.hasHpPotion && now.hpFraction !== undefined && now.hpFraction > 0 && now.hpFraction <= t.threshold;
     return now.checkpointId === t.checkpointId;
   });
 }

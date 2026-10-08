@@ -9,6 +9,7 @@ import type { GameEvents } from '../game/GameEvents';
 import type { QuestSystem } from '../quests/QuestSystem';
 import { classGrowthMaxLevel } from '../stats/classBaseStats';
 import type { StatOwner } from './statActions';
+import { treeForJob } from '../skills/skillTreeRules';
 
 /**
  * novice: no Class 1 job yet (Job Trial not finished).
@@ -23,7 +24,8 @@ export type SelectJobError =
   | 'already_changed'
   | 'trial_incomplete'
   | 'level_too_low'
-  | 'level_too_high';
+  | 'level_too_high'
+  | 'tree_unavailable';
 
 /** One job's full definition, assembled from the existing data tables (one class system). */
 export interface JobDefinitionView {
@@ -115,6 +117,7 @@ export class JobChange {
     if (!skipTrial && !this.trialComplete()) return { ok: false, reason: 'trial_incomplete' };
     const check = this.owner.progress.canChangeJob(jobId, this.owner.combat.level);
     if (!check.ok) return { ok: false, reason: check.reason === 'level_too_high' ? 'level_too_high' : 'level_too_low' };
+    if (!skipTrial && !treeForJob(jobId as JobId)) return { ok: false, reason: 'tree_unavailable' };
     return { ok: true };
   }
 
@@ -124,7 +127,8 @@ export class JobChange {
    * unlocks the Class 1 skill feature and reports `jobChanged` (quests
    * re-check class prerequisites). A second call is refused: 'already_changed'.
    *
-   * `skipTrial` exists only for explicitly named dev force tools.
+   * `skipTrial` exists only for explicitly named dev force tools and also
+   * permits art/legacy previews of classes whose skill tree is unfinished.
    */
   select(jobId: string, { skipTrial = false } = {}): { ok: true; jobId: JobId } | { ok: false; reason: SelectJobError } {
     const check = this.canSelect(jobId, { skipTrial });

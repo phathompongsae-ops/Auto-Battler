@@ -49,6 +49,11 @@ export async function jobChangeSuite(b, t) {
   );
 
   // Choose Warrior in the window (the real selection path).
+  const choices = await b.eval(`[...document.querySelectorAll('[data-window="job-select"] [data-job]')].map(el => ({ id: el.dataset.job, disabled: el.disabled, text: el.textContent }))`);
+  const refused = await b.eval(`debug.chooseJob('mage')`);
+  t.check('J-4b. five classes remain visible; only Warrior is selectable, and the authoritative path refuses an unfinished tree',
+    choices.length === 5 && choices.every(c => c.id === 'warrior' ? !c.disabled : c.disabled && c.text.includes('Not yet implemented')) &&
+    !refused.ok && refused.reason === 'tree_unavailable' && (await state()).classId === 'novice', JSON.stringify({ choices, refused }));
   const hpBefore = (await b.eval('debug.player().stats')).maxHp;
   await b.eval(`document.querySelector('[data-window="job-select"] [data-job="warrior"]').click()`);
   await b.eval(`document.querySelector('[data-window="job-select"] [data-action="confirm"]').click()`);

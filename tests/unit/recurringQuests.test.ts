@@ -15,9 +15,9 @@ import { deserializePlayerSave, serializePlayerSave } from '../../src/save/playe
 import { makeSaveTarget } from './fixtures';
 
 /** A Lv15 character on a settable server day, with every real event path the recurring quests listen to. */
-function rig(day = 1, { unlock = true } = {}) {
+function rig(day = 1, { unlock = true, level = 15 } = {}) {
   const serverDay = new FixedServerDay(day);
-  const t = makeSaveTarget(15, undefined, serverDay);
+  const t = makeSaveTarget(level, undefined, serverDay);
   const r = t.recurring;
   if (unlock) {
     for (const id of ['daily_commission', 'weekly_quests'] as const) {
@@ -120,6 +120,13 @@ describe('Daily selection', () => {
     for (let d = 1; d <= 50; d++) assert.equal(selectDailyQuests(d, 15, pool).includes('daily_late'), false);
   });
 
+  test('Dungeon Adventurer cannot roll at Lv16–19; it becomes eligible at Lv20', () => {
+    for (let level = 16; level < 20; level++) {
+      for (let day = 1; day <= 200; day++) assert.equal(selectDailyQuests(day, level).includes('daily_dungeon_adventurer'), false);
+    }
+    assert.ok(selectDailyQuests(dayWith('daily_dungeon_adventurer', 1, 20), 20).includes('daily_dungeon_adventurer'));
+  });
+
   test('the same day keeps the same set, also across reloads; quests are assigned (active)', () => {
     const s = rig(5);
     const set = s.r.dailyQuestIds();
@@ -194,7 +201,7 @@ describe('Daily objectives through real events', () => {
   });
 
   test('Dungeon Adventurer: a real dungeon clear (Full Reward)', () => {
-    const s = rig(dayWith('daily_dungeon_adventurer'));
+    const s = rig(dayWith('daily_dungeon_adventurer', 1, 20), { level: 20 });
     assert.equal(s.clear().ok, true);
     assert.equal(s.status('daily_dungeon_adventurer'), 'completed');
   });

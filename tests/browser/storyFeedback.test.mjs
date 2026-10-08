@@ -83,5 +83,29 @@ export async function storyFeedbackSuite(b, t, shot) {
     JSON.stringify({ barriers: await barriers(), hints: await hints() }),
   );
   await api(`takePortal('demo_dungeon_to_town')`);
+  // Isolated incoming-damage fixture: the lesson requires a real carried HP item.
+  await b.eval(`debug.reset('demo_town'); debug.setPeaceful(true); debug.setRng(0.5); debug.meetDungeonAccess(); debug.startQuest('mvp_03_crypt')`);
+  await api(`takePortal('demo_town_to_dungeon')`);
+  const hit = () => b.eval(`(() => {
+    const w = game.scene.getScene('World').world;
+    debug.setPlayerHp(Math.floor(w.player.combat.stats.maxHp * 0.4));
+    return w.combat.dealDamage(w.monsterById('crypt_skeleton-1'), w.player, 'basic_attack', 0.1);
+  })()`);
+  await hit();
+  t.check('SF-7. low HP without a carried HP potion shows no potion lesson', !(await hints()).includes('potion'));
+  await api(`grantItem('small_hp_potion', 1)`);
+  await hit();
+  await hit();
+  t.check('SF-8. incoming damage at low HP with a real potion shows a short recovery lesson once per attempt',
+    (await hints()).filter((x) => x === 'potion').length === 1 &&
+    (await feed('tutorial')).some((line) => line.includes('HP Potion (1)')),
+    JSON.stringify(await hints()));
+  await b.eval(`debug.reset('demo_town'); debug.goToNpc('npc_captain_rowan')`);
+  await sleep(150);
+  await b.press('KeyT');
+  const captain = await b.eval(`document.querySelector('[data-role="npc-dialog"]')?.textContent ?? ''`);
+  t.check('SF-9. Captain explains Lv3 plus Meadow Story access separately from Lv20 repeat runs',
+    captain.includes('Lv3 after Trouble in the Meadow is turned in') && captain.includes('Repeat Normal runs unlock at Lv20'), captain);
+  await b.press('Escape');
   await b.eval('debug.reset(); debug.setRng(null); debug.setPeaceful(true)');
 }

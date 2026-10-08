@@ -34,6 +34,7 @@ import { potionSuite } from './potions.test.mjs';
 const ENVIRONMENT_REVIEW = process.argv.includes('--environment-review');
 const HUD_REVIEW = process.argv.includes('--hud-review');
 const CORE_REVIEW = process.argv.includes('--core-review');
+const CLOSURE_REVIEW = process.argv.includes('--closure-review');
 const PORT = ENVIRONMENT_REVIEW ? 5201 : HUD_REVIEW ? 5202 : 5199;
 const URL = `http://127.0.0.1:${PORT}/`;
 const OUT = ensureDir(join(process.cwd(), 'test-results'));
@@ -69,7 +70,11 @@ try {
       demoQuests.find((q) => q.questId === 'mvp_01_welcome')?.status === 'available' && demoLevel === 11 &&
       (await b.eval(`debug.questProgress('job_c1_01_instructor').status`)) === 'available' &&
       !(await b.eval(`!!document.querySelector('[data-hud="quests"]')`)));
-  if (CORE_REVIEW) {
+  if (CLOSURE_REVIEW) {
+    await storyFeedbackSuite(b, t, shot);
+    await jobChangeSuite(b, t);
+    await recurringSuite(b, t);
+  } else if (CORE_REVIEW) {
     await hotbarSuite(b, t);
     await dodgeSuite(b, t);
     await potionSuite(b, t);

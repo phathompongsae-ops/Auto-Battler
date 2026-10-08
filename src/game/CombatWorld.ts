@@ -274,6 +274,10 @@ export class CombatWorld implements MonsterWorld {
     }, resource => this.usePreferredPotion(resource));
 
     this.events.on('damage', ({ sourceId, targetId }) => {
+      if (targetId === player.id && !player.combat.dead) this.tutorial({
+        hpFraction: player.combat.hp / player.combat.stats.maxHp,
+        hasHpPotion: !!preferredPotion(this.inventory, 'hp'),
+      });
       const monster = this.monsterById(targetId);
       const source = this.getEntity(sourceId);
       if (monster && source && !this.peaceful) monster.brain.provoke(source, this.now);

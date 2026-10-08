@@ -1,3 +1,4 @@
+import { treeForJob } from '../../skills/skillTreeRules';
 import { CLASS_1_JOB_CHANGE } from '../../data/jobChangeData';
 import type { JobId } from '../../data/jobData';
 import type { CombatWorld } from '../../game/CombatWorld';
@@ -61,17 +62,19 @@ export class JobSelectWindow {
 
   private renderBody(rerender: () => void): Node[] {
     const choices = this.world.jobChange.choices().map((job) => {
+      const implemented = !!treeForJob(job.jobId);
       const bonus = PRIMARY_STATS.filter((s) => job.jobBonus[s])
         .map((s) => `${s.toUpperCase()} +${job.jobBonus[s]}`)
         .join('  ');
       const button = createButton({
-        label: `${job.displayName} — ${bonus}`,
+        label: `${job.displayName} — ${implemented ? bonus : 'Not yet implemented'}`,
         variant: this.chosen === job.jobId ? 'primary' : 'default',
         onClick: () => {
           this.chosen = job.jobId;
           rerender();
         },
       });
+      button.disabled = !implemented;
       button.dataset.job = job.jobId;
       return button;
     });

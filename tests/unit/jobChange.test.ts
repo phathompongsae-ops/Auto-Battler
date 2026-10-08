@@ -173,13 +173,14 @@ describe('Job Trial', () => {
 
 describe('job selection', () => {
   for (const job of CLASS_1_CHOICES) {
-    test(`${job}: selected through the real path, Job Bonus as job stats, allocated untouched`, () => {
+      test(`${job}: ${job === 'warrior' ? 'production selection' : 'production guard and explicit dev preview'}, Job Bonus as job stats, allocated untouched`, () => {
       const r = rig(15);
       allocateStat(r.t, 'str', 2);
       allocateStat(r.t, 'luk', 1);
       const allocated = { ...r.t.progress.allocated };
       r.completeTrial();
-      const result = r.jc.select(job);
+      if (job !== 'warrior') assert.deepEqual(r.jc.select(job), { ok: false, reason: 'tree_unavailable' });
+      const result = r.jc.select(job, { skipTrial: job !== 'warrior' });
       assert.deepEqual(result, { ok: true, jobId: job });
       assert.equal(r.t.progress.classId, job);
       assert.deepEqual(r.t.progress.jobBonuses, { [job]: BONUSES[job as keyof typeof BONUSES] });
@@ -199,7 +200,7 @@ describe('job selection', () => {
   test('a second selection (same or other job) is refused and changes nothing', () => {
     const r = rig();
     r.completeTrial();
-    r.jc.select('mage');
+    r.jc.select('mage', { skipTrial: true });
     const after = JSON.stringify([r.t.progress.toData(), r.t.combat.stats, [...r.t.features.unlocked]]);
     assert.deepEqual(r.jc.select('mage'), { ok: false, reason: 'already_changed' });
     assert.deepEqual(r.jc.select('warrior'), { ok: false, reason: 'already_changed' });
@@ -249,7 +250,7 @@ describe('Class 1 base growth', () => {
   test('after selection the character uses its job growth', () => {
     const r = rig(20);
     r.completeTrial();
-    r.jc.select('cleric');
+    r.jc.select('cleric', { skipTrial: true });
     const expected = playerCombatStats(r.t.progress, 20, r.t.stack.list(), []);
     assert.equal(r.t.combat.stats.maxHp, expected.maxHp);
     assert.equal(r.t.combat.stats.maxMp, expected.maxMp);
@@ -276,10 +277,10 @@ describe('Class 1 Skill Points (derived from job + level)', () => {
     const r = rig(15);
     assert.equal(r.t.progress.earnedSkillPoints(15), 0, 'Novice earns none');
     r.completeTrial();
-    r.jc.select('ninja');
+    r.jc.select('ninja', { skipTrial: true });
     assert.equal(r.t.progress.remainingSkillPoints(15), 5);
-    r.jc.select('ninja');
-    r.jc.select('archer');
+    r.jc.select('ninja', { skipTrial: true });
+    r.jc.select('archer', { skipTrial: true });
     assert.equal(r.t.progress.remainingSkillPoints(15), 5);
   });
 
@@ -310,7 +311,7 @@ describe('quests, features and replay', () => {
   test('the Job Quest cannot be replayed to change job again', () => {
     const r = rig();
     r.completeTrial();
-    r.jc.select('archer');
+    r.jc.select('archer', { skipTrial: true });
     for (const id of Object.keys(JOB_QUESTS)) {
       assert.deepEqual(r.q.start(id), { ok: false, reason: 'already_started' });
       assert.deepEqual(r.q.claim(id), { ok: false, reason: 'already_claimed' });
@@ -383,7 +384,7 @@ describe('save / load', () => {
     test(`a selected ${job} persists with one Job Bonus, its feature and Skill Points`, () => {
       const r = rig(14);
       r.completeTrial();
-      r.jc.select(job);
+      r.jc.select(job, { skipTrial: job !== 'warrior' });
       const l = reload(r);
       assert.equal(l.t.progress.classId, job);
       assert.equal(l.jc.stage(), 'class_1');
