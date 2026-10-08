@@ -1,0 +1,456 @@
+[
+ {
+  "id": "field_tree",
+  "src": "art-source/candidates/demo-v1-20261007/accepted/A1-tree.png",
+  "out": "public/assets/environment/field/props/tree.png",
+  "tile": true,
+  "frame": [
+   120,
+   160
+  ]
+ },
+ {
+  "id": "field_pine",
+  "src": "art-source/candidates/demo-v1-20261007/accepted/A2-pine.png",
+  "out": "public/assets/environment/field/props/pine.png",
+  "tile": true,
+  "frame": [
+   88,
+   168
+  ]
+ },
+ {
+  "id": "field_cave",
+  "src": "art-source/candidates/demo-v1-20261007/accepted/A3-cave.png",
+  "out": "public/assets/environment/field/props/cave.png",
+  "tile": true,
+  "frame": [
+   200,
+   168
+  ]
+ },
+ {
+  "id": "crypt_pillar",
+  "src": "art-source/candidates/demo-v1-20261007/accepted/B3-pillar.png",
+  "out": "public/assets/environment/dungeon/props/pillar.png",
+  "tile": true,
+  "frame": [
+   64,
+   152
+  ],
+  "grade": {
+   "brightness": 0.84,
+   "saturation": 0.6,
+   "tint": [
+    92,
+    100,
+    122,
+    0.16
+   ]
+  }
+ },
+ {
+  "id": "crypt_throne",
+  "src": "art-source/candidates/demo-v1-20261007/accepted/B6-throne.png",
+  "out": "public/assets/environment/dungeon/props/throne.png",
+  "tile": true,
+  "frame": [
+   200,
+   224
+  ],
+  "grade": {
+   "brightness": 0.9,
+   "saturation": 0.85,
+   "tint": [
+    92,
+    100,
+    122,
+    0.08
+   ]
+  }
+ },
+ {
+  "id": "crypt_torch",
+  "src": "art-source/candidates/demo-v1-20261007/accepted/B4-torch.png",
+  "out": "public/assets/environment/dungeon/props/torch.png",
+  "tile": true,
+  "frame": [
+   64,
+   64
+  ]
+ },
+ {
+  "id": "crypt_brazier",
+  "src": "art-source/candidates/demo-v1-20261007/accepted/B5-brazier.png",
+  "out": "public/assets/environment/dungeon/props/brazier.png",
+  "tile": true,
+  "frame": [
+   64,
+   88
+  ]
+ },
+ {
+  "id": "crypt_floor",
+  "src": "art-source/candidates/demo-v1-20261007/sources/B1-crypt_floor_0.png",
+  "out": "tmp/env-art/crypt_floor.png",
+  "tile": true,
+  "frame": [
+   64,
+   64
+  ],
+  "grade": {
+   "brightness": 0.64,
+   "saturation": 0.38,
+   "contrast": 1.06,
+   "tint": [
+    74,
+    82,
+    104,
+    0.22
+   ]
+  }
+ },
+ {
+  "id": "crypt_wall",
+  "src": "art-source/candidates/demo-v1-20261007/sources/B2-crypt_wall_0.png",
+  "out": "tmp/env-art/crypt_wall.png",
+  "tile": true,
+  "frame": [
+   64,
+   64
+  ],
+  "grade": {
+   "brightness": 0.5,
+   "saturation": 0.3,
+   "contrast": 1.1,
+   "tint": [
+    40,
+    42,
+    56,
+    0.3
+   ]
+  }
+ },
+ {
+  "id": "monster_slime",
+  "src": "art-source/candidates/demo-v1-20261007/sources/D1-slime_idle.png",
+  "out": "public/assets/monsters/slime.png",
+  "cells": 2,
+  "frame": [
+   56,
+   48
+  ],
+  "fit": [
+   52,
+   44
+  ],
+  "pad": 2
+ },
+ {
+  "id": "monster_wolf",
+  "src": "art-source/candidates/demo-v1-20261007/sources/D2-wolf_idle.png",
+  "out": "public/assets/monsters/wolf.png",
+  "cells": 2,
+  "frame": [
+   86,
+   60
+  ],
+  "fit": [
+   78,
+   52
+  ],
+  "pad": 4,
+  "grade": {
+   "contrast": 1.1,
+   "brightness": 0.96
+  },
+  "outline": {
+   "px": 2,
+   "color": [
+    38,
+    32,
+    30
+   ]
+  }
+ },
+ {
+  "id": "monster_mushroom",
+  "src": "art-source/candidates/demo-v1-20261007/sources/D3-mushroom_idle.png",
+  "out": "public/assets/monsters/mushroom.png",
+  "cells": 2,
+  "frame": [
+   68,
+   60
+  ],
+  "fit": [
+   64,
+   56
+  ],
+  "pad": 2
+ },
+ {
+  "id": "monster_elite_boar",
+  "src": "art-source/candidates/demo-v1-20261007/sources/D4-elite_boar_idle.png",
+  "out": "public/assets/monsters/elite_boar.png",
+  "cells": 2,
+  "frame": [
+   110,
+   80
+  ],
+  "fit": [
+   106,
+   76
+  ],
+  "pad": 2
+ },
+ {
+  "id": "monster_grove_guardian",
+  "src": "art-source/candidates/demo-v1-20261007/sources/D5-grove_guardian_idle.png",
+  "out": "public/assets/monsters/grove_guardian.png",
+  "cells": 2,
+  "frame": [
+   142,
+   136
+  ],
+  "fit": [
+   138,
+   132
+  ],
+  "pad": 2
+ },
+ {
+  "id": "monster_crypt_skeleton",
+  "src": "art-source/candidates/demo-v1-20261007/sources/D6-crypt_skeleton_idle.png",
+  "out": "public/assets/monsters/crypt_skeleton.png",
+  "cells": 2,
+  "frame": [
+   70,
+   84
+  ],
+  "fit": [
+   66,
+   80
+  ],
+  "pad": 2
+ },
+ {
+  "id": "monster_crypt_knight",
+  "src": "art-source/candidates/demo-v1-20261007/sources/D7-crypt_knight_idle.png",
+  "out": "public/assets/monsters/crypt_knight.png",
+  "cells": 2,
+  "frame": [
+   120,
+   108
+  ],
+  "fit": [
+   116,
+   104
+  ],
+  "pad": 2
+ },
+ {
+  "id": "monster_crypt_lord",
+  "src": "art-source/candidates/demo-v1-20261007/sources/D8-crypt_lord_idle.png",
+  "out": "public/assets/monsters/crypt_lord.png",
+  "cells": 2,
+  "frame": [
+   146,
+   164
+  ],
+  "fit": [
+   142,
+   160
+  ],
+  "pad": 2
+ },
+ {
+  "id": "vfx_melee_slash",
+  "src": "art-source/candidates/demo-v1-20261007/accepted/E1-melee_slash.png",
+  "out": "public/assets/vfx/combat/melee_slash.png",
+  "tile": true,
+  "frame": [
+   768,
+   128
+  ]
+ },
+ {
+  "id": "vfx_power_slash",
+  "src": "art-source/candidates/demo-v1-20261007/accepted/E1b-power_slash.png",
+  "out": "public/assets/vfx/combat/power_slash.png",
+  "tile": true,
+  "frame": [
+   768,
+   128
+  ]
+ },
+ {
+  "id": "vfx_hit_impact",
+  "src": "art-source/candidates/demo-v1-20261007/accepted/E2-hit_impact.png",
+  "out": "public/assets/vfx/combat/hit_impact.png",
+  "tile": true,
+  "frame": [
+   576,
+   96
+  ]
+ },
+ {
+  "id": "vfx_heavy_impact",
+  "src": "art-source/candidates/demo-v1-20261007/accepted/E2b-heavy_impact.png",
+  "out": "public/assets/vfx/combat/heavy_impact.png",
+  "tile": true,
+  "frame": [
+   576,
+   96
+  ]
+ },
+ {
+  "id": "vfx_fire_bolt",
+  "src": "art-source/candidates/demo-v1-20261007/accepted/E3-fire_bolt.png",
+  "out": "public/assets/vfx/combat/fire_bolt.png",
+  "tile": true,
+  "frame": [
+   256,
+   64
+  ]
+ },
+ {
+  "id": "vfx_fire_bolt_impact",
+  "src": "art-source/candidates/demo-v1-20261007/accepted/E3b-fire_bolt_impact.png",
+  "out": "public/assets/vfx/combat/fire_bolt_impact.png",
+  "tile": true,
+  "frame": [
+   576,
+   96
+  ]
+ },
+ {
+  "id": "icon_power_strike",
+  "src": "art-source/candidates/demo-v1-20261007/accepted/G1-power_strike-power_strike.png",
+  "out": "public/assets/ui/skills/power_strike.png",
+  "tile": true,
+  "frame": [
+   96,
+   96
+  ],
+  "glowCut": {
+   "below": 64
+  }
+ },
+ {
+  "id": "icon_fire_bolt",
+  "src": "art-source/candidates/demo-v1-20261007/accepted/G1-fire_bolt-fire_bolt.png",
+  "out": "public/assets/ui/skills/fire_bolt.png",
+  "tile": true,
+  "frame": [
+   96,
+   96
+  ],
+  "glowCut": {
+   "below": 64
+  }
+ },
+ {
+  "id": "icon_guard",
+  "src": "art-source/candidates/demo-v1-20261007/accepted/G1-guard-guard.png",
+  "out": "public/assets/ui/skills/guard.png",
+  "tile": true,
+  "frame": [
+   96,
+   96
+  ],
+  "glowCut": {
+   "below": 64
+  }
+ },
+ {
+  "id": "icon_charge",
+  "src": "art-source/candidates/demo-v1-20261007/accepted/G1-charge-charge.png",
+  "out": "public/assets/ui/skills/charge.png",
+  "tile": true,
+  "frame": [
+   96,
+   96
+  ],
+  "glowCut": {
+   "below": 64
+  }
+ },
+ {
+  "id": "icon_shield_bash",
+  "src": "art-source/candidates/demo-v1-20261007/accepted/G1-shield_bash-shield_bash.png",
+  "out": "public/assets/ui/skills/shield_bash.png",
+  "tile": true,
+  "frame": [
+   96,
+   96
+  ],
+  "glowCut": {
+   "below": 64
+  }
+ },
+ {
+  "id": "icon_provoke",
+  "src": "art-source/candidates/demo-v1-20261007/accepted/G1-provoke-provoke.png",
+  "out": "public/assets/ui/skills/provoke.png",
+  "tile": true,
+  "frame": [
+   96,
+   96
+  ],
+  "glowCut": {
+   "below": 64
+  }
+ },
+ {
+  "id": "icon_iron_guard",
+  "src": "art-source/candidates/demo-v1-20261007/accepted/G1-iron_guard-iron_guard.png",
+  "out": "public/assets/ui/skills/iron_guard.png",
+  "tile": true,
+  "frame": [
+   96,
+   96
+  ],
+  "glowCut": {
+   "below": 64
+  }
+ },
+ {
+  "id": "icon_whirlwind",
+  "src": "art-source/candidates/demo-v1-20261007/accepted/G1-whirlwind-whirlwind.png",
+  "out": "public/assets/ui/skills/whirlwind.png",
+  "tile": true,
+  "frame": [
+   96,
+   96
+  ],
+  "glowCut": {
+   "below": 64
+  }
+ },
+ {
+  "id": "icon_heavy_strike",
+  "src": "art-source/candidates/demo-v1-20261007/accepted/G1-heavy_strike-heavy_strike.png",
+  "out": "public/assets/ui/skills/heavy_strike.png",
+  "tile": true,
+  "frame": [
+   96,
+   96
+  ],
+  "glowCut": {
+   "below": 64
+  }
+ },
+ {
+  "id": "icon_berserk",
+  "src": "art-source/candidates/demo-v1-20261007/accepted/G1-berserk-berserk.png",
+  "out": "public/assets/ui/skills/berserk.png",
+  "tile": true,
+  "frame": [
+   96,
+   96
+  ],
+  "glowCut": {
+   "below": 64
+  }
+ }
+]

@@ -231,3 +231,12 @@
 @media (max-height: 420px), (max-width: 760px) {
   .ui-root:lang(th) .hud-systems .ui-medallion__label { font-size: 11px; line-height: 1.25; }
 }
+
+/* Illustrated skill icons (Visual Pass 2): the motif fills the medallion face over dark steel. Rim, key hint,
+ * cooldown sweep and disabled treatment are unchanged and draw above / around it. */
+.hud-actions .ui-slot__icon.has-art {
+  background-color: #1b2429;
+  background-size: 96% 96%;
+  background-position: center;
+  background-repeat: no-repeat;
+}

@@ -9,6 +9,8 @@ import type { Monster } from '../entities/Monster';
 import type { GameEvents } from '../game/GameEvents';
 import { LOOT_KEY } from '../graphics/placeholderTextures';
 import { auraEllipse, barOffsetY } from './characterLayout';
+import { VFX_ART } from '../data/vfxArt';
+import { hasVfxArt } from '../graphics/vfxArt';
 
 const BAR_WIDTH = 26;
 /** Monsters still use the placeholder-era fixed offset. */
@@ -32,6 +34,9 @@ export class WorldOverlays {
   private readonly aura: ReturnType<typeof auraEllipse>;
   private readonly projectileViews = new Map<number, Phaser.GameObjects.Arc>();
   private readonly projectilePool: Phaser.GameObjects.Arc[] = [];
+  /** Projectiles with a production strip (Fire Bolt): a looping sprite turned along its flight. */
+  private readonly projectileSprites = new Map<number, { sprite: Phaser.GameObjects.Sprite; x: number; y: number }>();
+  private readonly projectileSpritePool: Phaser.GameObjects.Sprite[] = [];
   private readonly lootViews = new Map<number, Phaser.GameObjects.Image>();
 
   constructor(
@@ -54,6 +59,8 @@ export class WorldOverlays {
     scene.tweens.add({ targets: this.guardAura, alpha: 0.5, yoyo: true, repeat: -1, duration: 300 });
 
     const ev = world.events;
+    // Fire Bolt views are created once, up front: combat never adds display objects (a burst beyond them reuses circles).
+    if (hasVfxArt(scene, 'fire_bolt')) for (let i = 0; i < 6; i++) this.projectileSpritePool.push(scene.add.sprite(0, 0, VFX_ART.fire_bolt.key).setVisible(false));
     ev.on('projectileSpawned', (e) => this.addProjectile(e));
     ev.on('projectileRemoved', ({ projectileId }) => this.removeProjectile(projectileId));
     // Ground views come from world.loot.drops (see update): auto-looted items never touch the ground.
@@ -77,6 +84,12 @@ export class WorldOverlays {
 
     for (const p of this.world.projectiles.active) {
       this.projectileViews.get(p.id)?.setPosition(p.x, p.y);
+      const art = this.projectileSprites.get(p.id);
+      if (art && (p.x !== art.x || p.y !== art.y)) {
+        art.sprite.setPosition(p.x, p.y).setRotation(Math.atan2(p.y - art.y, p.x - art.x));
+        art.x = p.x;
+        art.y = p.y;
+      }
     }
 
     for (const drop of this.world.loot.drops) {
@@ -120,6 +133,13 @@ export class WorldOverlays {
   }
 
   private addProjectile(p: GameEvents['projectileSpawned']): void {
+    if (p.skillId === 'fire_bolt' && this.projectileSpritePool.length) {
+      const def = VFX_ART.fire_bolt;
+      const sprite = this.projectileSpritePool.pop()!;
+      sprite.setPosition(p.x, p.y).setRotation(0).setScale(def.scale).setDepth(BAR_DEPTH - 1).setVisible(true).play(def.key);
+      this.projectileSprites.set(p.projectileId, { sprite, x: p.x, y: p.y });
+      return;
+    }
     const view = this.projectilePool.pop() ?? this.scene.add.circle(0, 0, 1);
     view
       .setRadius(p.radius)
@@ -132,6 +152,13 @@ export class WorldOverlays {
   }
 
   private removeProjectile(id: number): void {
+    const art = this.projectileSprites.get(id);
+    if (art) {
+      this.projectileSprites.delete(id);
+      art.sprite.stop();
+      this.projectileSpritePool.push(art.sprite.setVisible(false));
+      return;
+    }
     const view = this.projectileViews.get(id);
     if (!view) return;
     this.projectileViews.delete(id);

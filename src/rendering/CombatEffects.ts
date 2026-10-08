@@ -8,6 +8,7 @@ import type { CombatWorld } from '../game/CombatWorld';
 import { bodyCenterY, textAnchorY } from './characterLayout';
 import { COMBAT_NUMBER_STYLES, damageKind, NumberSlots, type CombatNumberKind } from './damageNumbers';
 import { FloatingText } from './FloatingText';
+import { sharedVfxPool, type VfxPool } from './VfxPool';
 
 /** A view that can flash when hit. Player and Monster both implement it. */
 interface FlashableView {
@@ -51,12 +52,15 @@ export class CombatEffects {
   private readonly text: FloatingText;
   /** Target-local start offsets so rapid hits on one target fan out instead of stacking on one point. */
   private readonly slots = new NumberSlots();
+  /** Pooled production strips (slash, impacts); missing art falls back to the code-drawn effects. */
+  private readonly vfx: VfxPool;
 
   constructor(
     private readonly scene: Phaser.Scene,
     world: CombatWorld,
   ) {
     this.text = new FloatingText(scene);
+    this.vfx = sharedVfxPool(scene);
     const ev = world.events;
     const isPlayer = (id: string | null) => id === world.player.id;
     // The player's art sets where its text and body-centred effects go; monsters keep fixed offsets.
@@ -80,8 +84,15 @@ export class CombatEffects {
       const source = world.getEntity(sourceId);
       const skill = SKILLS[skillId];
       // Player skills with their own action VFX (e.g. Power Slash) draw their arc on the hit frame instead.
-      const ownArc = source === world.player && !!world.player.skillVfx(skillId)?.arc;
-      if (source && skill.effect.kind === 'damage' && !ownArc) this.slash(source, target, skill.color ?? 0xffffff, heavy);
+      const ownVfx = source === world.player ? world.player.skillVfx(skillId) : undefined;
+      const ownArc = !!ownVfx?.arc;
+      if (source && skill.effect.kind === 'damage' && !ownArc) this.slash(source, target, skill.color ?? 0xffffff, heavy, source === world.player);
+      // Production impact strips for the player's hits (skills with their own impact keep it; see ActionEffects).
+      if (source === world.player && !ownVfx?.impact) {
+        const projectile = skill.effect.kind === 'projectile';
+        const id = skillId === 'fire_bolt' ? 'fire_bolt_impact' : heavy ? 'heavy_hit' : 'hit';
+        if (!projectile || skillId === 'fire_bolt') this.vfx.play(id, { x: target.x, y: target.y - 2 });
+      }
       if (heavy) {
         this.scene.cameras.main.shake(SHAKE.duration, SHAKE.intensity);
         world.requestHitStop(HIT_STOP_MS);
@@ -224,9 +235,21 @@ export class CombatEffects {
     this.scene.time.delayedCall(FLASH_MS, () => view.resetTint());
   }
 
-  /** Short arc from the attacker toward the target. */
-  private slash(source: CombatEntity, target: CombatEntity, color: number, heavy: boolean): void {
+  /** Short arc from the attacker toward the target: the production slash strip for the player, a code arc for monsters. */
+  private slash(source: CombatEntity, target: CombatEntity, color: number, heavy: boolean, byPlayer = false): void {
     const angle = Math.atan2(target.y - source.y, target.x - source.x);
+    if (byPlayer) {
+      // Mirrored when swinging left so the crescent always opens away from the hero, never upside down.
+      const left = Math.abs(angle) > Math.PI / 2;
+      const placed = this.vfx.play('slash', {
+        x: source.x + Math.cos(angle) * 14,
+        y: source.y + Math.sin(angle) * 14 - 4,
+        rotation: angle,
+        flipY: left,
+        scale: heavy ? 1.25 : 1,
+      });
+      if (placed) return;
+    }
     const radius = heavy ? 22 : 16;
     const g = this.scene.add.graphics().setDepth(EFFECT_DEPTH);
     g.lineStyle(heavy ? 4 : 3, color, 1);

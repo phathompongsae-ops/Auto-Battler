@@ -1,6 +1,7 @@
 import { POTION_COOLDOWNS, preferredPotion, potionKey } from '../../items/PotionSystem';
 import { PLAYER_BASIC_ATTACK, SKILL_SLOTS, type SkillSlot as LoadoutSlot } from '../../data/playerData';
 import { SKILLS, type SkillId } from '../../data/skillData';
+import { SKILL_ICONS } from '../../data/skillIcons';
 import { BASIC_DODGE } from '../../combat/DodgeSystem';
 import type { CombatWorld } from '../../game/CombatWorld';
 import type { Action } from '../../input/Action';
@@ -29,7 +30,9 @@ function skillContent(skillId: SkillId): SlotContent {
     : /guard|shield|provoke/.test(skillId) ? 'shield'
     : /fire/.test(skillId) ? 'flame' : /heal/.test(skillId) ? 'heal'
     : /arrow|shot/.test(skillId) ? 'bow' : /whirl|berserk/.test(skillId) ? 'whirl' : 'slash';
-  return { abbr, color, title: skill.name, glyph };
+  // Illustrated icons where they exist (served from public/, relative to the page).
+  const iconUrl = SKILL_ICONS[skillId];
+  return { abbr, color, title: skill.name, glyph, ...(iconUrl ? { iconUrl } : {}) };
 }
 
 /** Dodge / potion faces; null for a skill action (its face comes from the loadout). */

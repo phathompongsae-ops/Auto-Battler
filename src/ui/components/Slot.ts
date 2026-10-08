@@ -43,7 +43,9 @@ abstract class SlotBase {
       return;
     }
     setText(this.icon, content.iconUrl ? '' : content.abbr);
-    if (content.glyph) this.icon.replaceChildren(icon(content.glyph));
+    // An illustrated icon replaces the vector glyph; the art is the element's background.
+    if (content.glyph && !content.iconUrl) this.icon.replaceChildren(icon(content.glyph));
+    toggleClass(this.icon, 'has-art', !!content.iconUrl);
     setVar(this.icon, '--slot-color', content.color ?? '#5b6478');
     setVar(this.el, '--slot-color', content.color ?? '#5b6478');
     this.icon.style.backgroundImage = content.iconUrl ? `url("${content.iconUrl}")` : '';

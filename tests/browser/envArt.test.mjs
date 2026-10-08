@@ -17,8 +17,8 @@ export async function envArtSuite(b, t, shot, url) {
 
   // 1. PNG wins over the placeholder (same key), linear filtering; other keys keep the code-drawn fallback.
   const monument = await b.eval(tex('prop-monument'));
-  // Field trees keep the fallback; Town lawn decals now have matching 2x PNGs.
-  const placeholder = await b.eval(tex('prop-tree'));
+  // Field bushes still have no production art (trees, pines and the cave do since Visual Pass 2): they keep the code-drawn fallback.
+  const placeholder = await b.eval(tex('prop-bush'));
   const ground = await b.eval(tex('env-ground-town'));
   t.check(
     'ENV-1. a 2x PNG replaces the placeholder under the same texture key with linear filtering; keys without a PNG keep the code-drawn placeholder',

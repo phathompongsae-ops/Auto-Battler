@@ -4,6 +4,7 @@ import { PLAYER_ACTION_HIT, type PlayerActionHit } from '../entities/Player';
 import type { CombatWorld } from '../game/CombatWorld';
 import type { Direction } from '../input/Direction';
 import { bodyCenterY } from './characterLayout';
+import { sharedVfxPool, type VfxPool } from './VfxPool';
 
 const EFFECT_DEPTH = 900_000;
 
@@ -20,15 +21,24 @@ const FACING_ANGLE: Record<Direction, number> = {
  * when the hit's damage lands. Hit stop and shake stay with CombatEffects.
  */
 export class ActionEffects {
+  private readonly vfx: VfxPool;
+
   constructor(
     private readonly scene: Phaser.Scene,
     world: CombatWorld,
   ) {
+    this.vfx = sharedVfxPool(scene);
     const player = world.player;
     player.on(PLAYER_ACTION_HIT, ({ action, direction }: PlayerActionHit) => {
       const vfx = player.actionVfx(action, direction);
       if (!vfx) return;
-      if (vfx.arc) this.arc(player.x, player.y + bodyCenterY(player.layout), direction, vfx.arc);
+      if (vfx.arc) {
+        // The gold Power Slash strip sweeps across the facing on the hit frame (code crescent as fallback).
+        const centreY = player.y + bodyCenterY(player.layout);
+        const angle = FACING_ANGLE[direction];
+        const at = { x: player.x + Math.cos(angle) * vfx.arc.reach, y: centreY + Math.sin(angle) * vfx.arc.reach, rotation: angle, flipY: direction === 'left' };
+        if (!this.vfx.play('power_slash', at)) this.arc(player.x, centreY, direction, vfx.arc);
+      }
       if (vfx.afterimage) this.afterimage(player, vfx.afterimage);
     });
 
@@ -36,7 +46,8 @@ export class ActionEffects {
       if (sourceId !== player.id) return;
       const impact = player.skillVfx(skillId)?.impact;
       const target = world.getEntity(targetId);
-      if (impact && target) this.impact(target.x, target.y, impact);
+      // Production heavy-impact strip on the target; the code burst stays the fallback.
+      if (impact && target && !this.vfx.play('heavy_hit', { x: target.x, y: target.y - 2 })) this.impact(target.x, target.y, impact);
     });
   }
 

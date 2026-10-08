@@ -618,6 +618,14 @@ Presentation only; no gameplay rule, number or save field changed. Details are i
 - HUD: the inert Special and Pet / Summon sockets were removed (no mechanic existed).
   The Pet feature and its data are unchanged.
 
+### Visual Production Pass 2 (2026-10-08)
+
+Presentation only. Production art replaced Field / Crypt props, Crypt ground,
+monster sprites, core combat VFX and active skill icons
+(`docs/art/visual-pass-2-candidate-review.md`). Monster physics bodies, hit
+radii, stats, AI, spawns, telegraph radii, projectile speed and every timing are
+unchanged; the art adapter keeps each body's world-space rectangle identical.
+
 ### Story Crypt feedback pass
 
 - Tutorial lines, gate rune seals and checkpoint feedback implemented

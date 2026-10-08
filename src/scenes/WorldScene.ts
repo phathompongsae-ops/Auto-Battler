@@ -16,7 +16,7 @@ import { NPCS } from '../data/npcData';
 import { npcMarker } from '../quests/questText';
 import { propTextureKey } from '../graphics/propTextures';
 import { envDrawScale } from '../graphics/environmentArt';
-import { ENV_BUILDINGS, ENV_GROUND_MAP_IDS, ENV_GROUND_TILESET, ENV_GROUND_WANG } from '../data/environmentArt';
+import { ENV_BUILDINGS, ENV_GROUND_TILESET, ENV_GROUND_WANG, ENV_MAP_GROUND, type EnvTileSkin } from '../data/environmentArt';
 import { TOWN_GROUND_WALL, TOWN_GROUND_WANG, TOWN_GROUND_WANG_PLAIN } from '../data/environment/townGroundWang';
 import { groundVisuals, wangGroundVisuals, wallCells, wangOverlayCells } from '../world/groundVisuals';
 import { InputController } from '../input/InputController';
@@ -223,7 +223,12 @@ export class WorldScene extends Phaser.Scene implements WorldMapView {
    * wherever a cell has no visual tile. Unavailable (no PNG): nothing is added.
    */
   private drawGroundVisuals(map: MapDef): void {
-    if (!ENV_GROUND_MAP_IDS.includes(map.id)) return;
+    const ground = ENV_MAP_GROUND[map.id];
+    if (!ground) return;
+    if (ground.kind === 'tiles') {
+      this.drawTileSkin(map, ground);
+      return;
+    }
     if (this.drawWangGround(map)) return;
     const ts = ENV_GROUND_TILESET;
     if (!this.textures.exists(ts.key)) return;
@@ -243,6 +248,24 @@ export class WorldScene extends Phaser.Scene implements WorldMapView {
       this.visualTilemaps.push(tm);
       this.groundVisualLayers.push(layer);
     });
+  }
+
+  /**
+   * A map's tile skin (e.g. the Crypt's graded stone): listed tile kinds get a
+   * frame variant chosen by a stable cell hash; other cells (carpet, portals...)
+   * keep showing the code-drawn layer underneath, which stays the collision source.
+   */
+  private drawTileSkin(map: MapDef, skin: EnvTileSkin): void {
+    if (!this.textures.exists(skin.key)) return;
+    const data = map.tiles.map((row, y) =>
+      row.map((tile, x) => {
+        const frames = skin.tiles[tile];
+        return frames?.length ? frames[((Math.imul(x, 73856093) ^ Math.imul(y, 19349663)) >>> 0) % frames.length] : -1;
+      }),
+    );
+    this.visualLayer(data, skin.key, skin.frameSize, skin.margin, skin.spacing)
+      ?.setScale(envDrawScale(this, skin.key))
+      .setDepth(GROUND_DEPTH + 0.05);
   }
 
   /** One visual-only tilemap layer from a frame grid (-1 = empty); null if nothing to draw or the tileset is missing. */
