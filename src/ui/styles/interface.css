@@ -36,9 +36,14 @@
 }
 
 /* ------------------------------------------------ top right: minimap + utility row */
-.hud-map-group { display: flex; align-items: flex-end; gap: calc(6px * var(--ui-scale)); }
-/* Three world utilities in one row, bottom-aligned with the minimap (below the target frame's band). */
-.hud-utilities { display: flex; gap: calc(6px * var(--ui-scale)); }
+.hud__top-right { top: max(12px, var(--ui-space-4), env(safe-area-inset-top)); }
+/* Narrow screens: the target frame sits in the gap between player frame and utility row (Hud.fitTarget);
+ * its combat state (Winding up! / Enraged) wraps to its own line rather than running under the utilities. */
+.hud__top-center.is-fitted .hud-target__head { flex-wrap: wrap; row-gap: 0; }
+.hud__top-center.is-fitted .hud-target__name { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.hud-map-group { display: flex; align-items: flex-start; gap: clamp(6px, calc(6px * var(--ui-scale)), 8px); }
+/* Three world utilities share the minimap's top safe inset in one horizontal row. */
+.hud-utilities { display: flex; gap: clamp(6px, calc(6px * var(--ui-scale)), 8px); }
 .hud-utility {
   position: relative;
   display: grid;

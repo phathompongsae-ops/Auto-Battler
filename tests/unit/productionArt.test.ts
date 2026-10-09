@@ -32,7 +32,7 @@ describe('Visual Pass 2 production art contracts', () => {
       assert.ok(used.has(Number(tile)), `tile ${tile} appears in the Crypt`);
       for (const f of frames!) assert.ok(f >= 0 && f < count, `frame ${f} < ${count}`);
     }
-    assert.equal(ENV_MAP_GROUND.demo_field, undefined, 'the Field keeps code-drawn ground until approved ground art exists');
+    assert.equal(ENV_MAP_GROUND.demo_field?.kind, 'wang', 'the Field uses corner ground (Visual Pass 3)');
   });
 
   test('every monster texture has a production sheet: two whole frames, feet inside the frame, fitted for its home scale', () => {
@@ -54,7 +54,7 @@ describe('Visual Pass 2 production art contracts', () => {
     const height = (id: keyof typeof MONSTERS) => {
       const def = MONSTERS[id];
       const art = MONSTER_ART[def.texture];
-      return art.feetRow * MONSTER_ART_DRAW_SCALE * ((def.scale ?? 1) / art.homeScale);
+      return art.feetRow * MONSTER_ART_DRAW_SCALE * ((def.scale ?? 1) / art.homeScale) * (art.displayScale ?? 1);
     };
     assert.ok(height('slime') < height('wolf') && height('slime') < height('mushroom'));
     assert.ok(height('mushroom') < height('elite_boar') && height('elite_boar') < height('grove_guardian'));

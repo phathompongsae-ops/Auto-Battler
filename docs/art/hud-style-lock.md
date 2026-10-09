@@ -17,9 +17,10 @@ Characters are not rescaled and gameplay geometry is unchanged. Camera bounds cl
 | Region | Locked contents |
 |---|---|
 | Top-left | Compact portrait, current job/name, level, labelled HP/MP bars, EXP and Gold |
-| Top-right | Bronze-framed minimap; **one horizontal row of three world utilities — Shop, Daily & Weekly, Area Map —** to its left, bottom-aligned with the minimap (below the target frame's band); collapsible quest tracker underneath |
+| Top-right | Bronze-framed minimap; **one horizontal row of three world utilities — Shop, Daily & Weekly, Area Map —** to its left, top-aligned with the minimap; 12px minimum top safe inset and 6–8px gaps; collapsible quest tracker underneath |
 | Bottom-right | One combat cluster: ATK; Skill 1–5 on one arc; Dodge; HP / MP Potion |
 | Lower-middle | Character, Inventory, Skills, Quests and More crest strip, **centred on screen** when the cluster allows it (960×540 and up), otherwise as central as the cluster's reach allows; never left of 130px, so the left thumb area stays clear for the floating joystick |
+| Top-centre | Target frame: centred while it fits between the player frame and the utility row; on narrow screens (844×390, 640×360) centred in that gap with its combat state (Winding up! / Enraged) wrapped, never under the utilities (Visual Pass 3) |
 | Centre | Open gameplay; existing target and contextual interaction/respawn notices |
 
 ### HUD information architecture (Pass 1 audit)

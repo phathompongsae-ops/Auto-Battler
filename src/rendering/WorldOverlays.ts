@@ -107,6 +107,7 @@ export class WorldOverlays {
     for (const m of this.world.monsters) {
       if (m.combat.dead || !m.visible) continue;
       const k = m.def.scale ?? 1;
+      g.fillStyle(0x000000, m.def.id === 'wolf' ? 0.36 : 0.3);
       g.fillEllipse(m.x, m.y + MONSTER_FEET_Y * k, 22 * k, 7 * k);
     }
   }

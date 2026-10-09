@@ -51,6 +51,10 @@ export class Hud {
   private readonly lootFeed: LootFeed;
   private readonly interact: InteractPrompt;
   private readonly questTracker: QuestTrackerHud;
+  /** Top-centre region (target frame); its fit against the top corners is re-measured only after a resize. */
+  private readonly topCenter: HTMLDivElement;
+  private readonly bandObserver: ResizeObserver;
+  private fittedTier: string | null = null;
 
   constructor(scene: Phaser.Scene, options: HudOptions) {
     const { world } = options;
@@ -75,10 +79,11 @@ export class Hud {
     const region = (name: string, children: Node[]) =>
       h('div', { className: `hud__region hud__${name}`, attrs: { 'data-region': name } }, children);
 
+    this.topCenter = region('top-center', [this.target.el]);
     const hud = h('div', { className: 'hud', attrs: { 'data-hud': 'root' } }, [
       this.joystick.el,
       region('top-left', [this.player.el]),
-      region('top-center', [this.target.el]),
+      this.topCenter,
       region('center', [this.respawn.el]),
       region('loot', [this.lootFeed.el]),
       region('interact', [this.interact.el]),
@@ -90,6 +95,30 @@ export class Hud {
     // Only buttons and slots take pointer events (see components.css); gaps between
     // them and every panel let clicks and drags through to the game.
     this.root.el.append(hud);
+    // Re-fit the target frame only when the screen or a top corner changes size, never per frame.
+    this.bandObserver = new ResizeObserver(() => (this.fittedTier = null));
+    for (const el of [this.root.el, this.player.el, this.menu.el]) this.bandObserver.observe(el);
+  }
+
+  /**
+   * The target frame stays centred on screen while it fits between the player frame and the utility row.
+   * On narrow screens (844x390, 640x360) it centres in the free gap instead and may wrap its state line,
+   * so a boss's "Winding up!" warning is never under the Shop / Daily buttons.
+   */
+  private fitTarget(): void {
+    const frame = this.target.el;
+    const tier = frame.dataset.tier ?? '';
+    if (frame.hidden || this.fittedTier === tier) return;
+    this.fittedTier = tier;
+    const GAP = 6;
+    const root = this.root.el.getBoundingClientRect();
+    const left = this.player.el.getBoundingClientRect().right - root.left + GAP;
+    const right = this.menu.el.getBoundingClientRect().left - root.left - GAP;
+    const half = parseFloat(getComputedStyle(frame).width) / 2;
+    const centred = root.width / 2 - half >= left && root.width / 2 + half <= right;
+    this.topCenter.style.left = centred ? '' : `${(left + right) / 2}px`;
+    frame.style.maxWidth = centred ? '' : `${Math.max(120, right - left)}px`;
+    this.topCenter.classList.toggle('is-fitted', !centred);
   }
 
   update(now: number): void {
@@ -101,12 +130,14 @@ export class Hud {
     this.joystick.update();
     this.actions.update(now);
     this.target.update();
+    this.fitTarget();
     this.respawn.update(now);
     this.interact.update();
     this.questTracker.update();
   }
 
   destroy(): void {
+    this.bandObserver.disconnect();
     this.lootFeed.destroy();
     this.interact.destroy();
     this.questTracker.destroy();

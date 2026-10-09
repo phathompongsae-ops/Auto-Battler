@@ -18,7 +18,7 @@ the fallbacks for comparison.
 | Area | Integrated (runtime path) | Treatment | Status |
 |---|---|---|---|
 | Field props | tree, pine, cave (`public/assets/environment/field/props/`) | As approved; 2x art at 0.5 | **Production** |
-| Field ground | — | — | **Placeholder (code-drawn)**: no approved grass / path / dirt art; water candidate rejected (visible repeat) |
+| Field ground | `field/ground/field_ground_wang.png` | Pass 3 reuses approved Town grass/dirt and adds derived terrain/shoreline transitions | **Production-integrated in Pass 3**; see [Pass 3 handoff](visual-pass-3-handoff.md). The rejected water candidate remains unused. |
 | Crypt ground | floor ×4 mirror variants, wall top ×2 (`public/assets/environment/dungeon/ground/crypt_ground.png`) | Floor graded cool blue-grey (≈64% brightness, 38% saturation); wall darker so it separates from the floor | **Production** (tile skin, per-map descriptor `ENV_MAP_GROUND`) |
 | Crypt props | pillar, torch, brazier, throne (`.../dungeon/props/`) | Pillar and throne stone cooled toward the floor; flames left warm | **Production** |
 | Monsters | all 8 sheets (`public/assets/monsters/`) | Refit from high-res sources at 2 source px per world px; wolf +2 px dark outline and slight contrast | **Production idle only** (see below) |

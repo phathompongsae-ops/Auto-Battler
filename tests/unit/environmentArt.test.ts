@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, test } from 'node:test';
-import { ENV_BUILDINGS, ENV_DRAW_SCALE, ENV_GROUND_MAP_IDS, ENV_GROUND_TILESET, ENV_GROUND_WANG, ENV_PROP_ART, ENV_SOURCE_SCALE, environmentTextureFiles, GROUND_FRAMES } from '../../src/data/environmentArt';
+import { ENV_BUILDINGS, ENV_DRAW_SCALE, ENV_GROUND_MAP_IDS, ENV_GROUND_TILESET, ENV_GROUND_WANG, ENV_MAP_GROUND, ENV_PROP_ART, ENV_SOURCE_SCALE, environmentTextureFiles, GROUND_FRAMES } from '../../src/data/environmentArt';
 import { MAPS, PROP_KINDS, TOWN_MAP_ID } from '../../src/data/maps';
 import { mapCells } from '../../src/world/mapRules';
 import { TOWN_GROUND_WALL, TOWN_GROUND_WANG, TOWN_GROUND_WANG_FRAMES, TOWN_GROUND_WANG_PLAIN } from '../../src/data/environment/townGroundWang';
@@ -65,8 +65,24 @@ describe('environment art manifest', () => {
 describe('visual ground layer (derived, never collision)', () => {
   const town = MAPS[TOWN_MAP_ID];
 
-  test('only the Town uses it for now', () => {
-    assert.deepEqual([...ENV_GROUND_MAP_IDS], [TOWN_MAP_ID]);
+  test('Field transitions cover the entire real map deterministically with valid atlas frames, without mutating water or geometry', () => {
+    const map=MAPS.demo_field, ground=ENV_MAP_GROUND.demo_field;
+    assert.equal(ground.kind,'wang'); if(ground.kind!=='wang')return;
+    const before=JSON.stringify(map.tiles);
+    const visual=wangGroundVisuals(map.tiles,ground.lookup,ground.plain,ground.connector);
+    assert.deepEqual(visual,wangGroundVisuals(map.tiles,ground.lookup,ground.plain,ground.connector));
+    assert.equal(JSON.stringify(map.tiles),before);
+    const {w,h}=pngSize(ground.url);
+    const frames=Math.floor((w-2*ground.margin+ground.spacing)/(ground.frameSize+ground.spacing))*Math.floor((h-2*ground.margin+ground.spacing)/(ground.frameSize+ground.spacing));
+    for(const row of visual)for(const frame of row)assert.ok(frame===-1 || frame>=0 && frame<frames);
+    for(const [pair,lookup] of Object.entries(ground.lookup)) {assert.equal(lookup.length,16,pair); for(const frame of lookup)assert.ok(frame>=0 && frame<frames);}
+    for(const terrain of ['grass','dirt','darkgrass','moss','water'] as const)assert.ok(ground.plain[terrain]?.length,terrain);
+    assert.ok(SOLID_TILES.includes(Tile.Water));
+    assert.equal(ENV_PROP_ART.cobweb,undefined,'rejected cobweb keeps its code fallback');
+  });
+
+  test('Town and Field use corner ground (the Crypt uses a tile skin)', () => {
+    assert.deepEqual([...ENV_GROUND_MAP_IDS], [TOWN_MAP_ID, 'demo_field']);
   });
 
   test('every walkable ground family gets a base frame; solid / special tiles get none (the code-drawn tile shows)', () => {
@@ -211,6 +227,9 @@ describe('corner (Wang) ground on the dual grid (derived, never collision)', () 
       }),
     );
     assert.ok(wallCells(town.tiles, []).flat().every((f) => f === -1), 'no wall art: nothing drawn, the code-drawn walls stay');
-    for (const tile of SOLID_TILES) assert.equal(wangTerrain(tile), null, `solid tile ${tile} is never corner ground`);
+    // Solid tiles stay out of corner ground, except Field water (Visual Pass 3: drawn with shorelines). Its collision still comes
+    // from map.tiles: Water stays a solid tile.
+    for (const tile of SOLID_TILES) assert.equal(wangTerrain(tile), tile === Tile.Water ? 'water' : null, `solid tile ${tile}`);
+    assert.ok(SOLID_TILES.includes(Tile.Water), 'water still blocks movement');
   });
 });

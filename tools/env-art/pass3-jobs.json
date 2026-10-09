@@ -1,0 +1,110 @@
+[
+ {
+  "id": "field_bush",
+  "src": "tmp/env-art/pixellab/bush.png",
+  "out": "public/assets/environment/field/props/bush.png",
+  "frame": [
+   64,
+   64
+  ],
+  "pad": 1,
+  "padBottom": 2,
+  "maxScale": 1
+ },
+ {
+  "id": "field_rock",
+  "src": "tmp/env-art/pixellab/rock.png",
+  "out": "public/assets/environment/field/props/rock.png",
+  "frame": [
+   64,
+   64
+  ],
+  "pad": 1,
+  "padBottom": 2,
+  "maxScale": 1
+ },
+ {
+  "id": "field_big_rock",
+  "src": "tmp/env-art/pixellab/big_rock.png",
+  "out": "public/assets/environment/field/props/big_rock.png",
+  "frame": [
+   128,
+   128
+  ],
+  "pad": 1,
+  "padBottom": 2,
+  "maxScale": 1
+ },
+ {
+  "id": "field_signpost",
+  "src": "tmp/env-art/pixellab/signpost.png",
+  "out": "public/assets/environment/field/props/signpost.png",
+  "frame": [
+   64,
+   64
+  ],
+  "pad": 1,
+  "padBottom": 2,
+  "maxScale": 1
+ },
+ {
+  "id": "field_tent",
+  "src": "tmp/env-art/pixellab/tent.png",
+  "out": "public/assets/environment/field/props/tent.png",
+  "frame": [
+   128,
+   128
+  ],
+  "pad": 1,
+  "padBottom": 2,
+  "maxScale": 1
+ },
+ {
+  "id": "field_campfire",
+  "src": "tmp/env-art/pixellab/campfire.png",
+  "out": "public/assets/environment/field/props/campfire.png",
+  "frame": [
+   64,
+   64
+  ],
+  "pad": 1,
+  "padBottom": 2,
+  "maxScale": 1
+ },
+ {
+  "id": "field_stump",
+  "src": "tmp/env-art/pixellab/stump.png",
+  "out": "public/assets/environment/field/props/stump.png",
+  "frame": [
+   64,
+   64
+  ],
+  "pad": 1,
+  "padBottom": 2,
+  "maxScale": 1
+ },
+ {
+  "id": "crypt_bones",
+  "src": "tmp/env-art/pixellab/bones.png",
+  "out": "public/assets/environment/dungeon/props/bones.png",
+  "frame": [
+   64,
+   64
+  ],
+  "pad": 1,
+  "padBottom": 2,
+  "maxScale": 1
+ },
+ {
+  "id": "crypt_rubble",
+  "src": "tmp/env-art/pixellab/rubble.png",
+  "out": "public/assets/environment/dungeon/props/rubble.png",
+  "frame": [
+   64,
+   64
+  ],
+  "pad": 1,
+  "padBottom": 2,
+  "maxScale": 1
+ }
+]

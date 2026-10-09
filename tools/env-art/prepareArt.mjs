@@ -2,6 +2,7 @@
 //   node tools/env-art/prepareArt.mjs <jobs.json> [jobId ...]
 // Each job reads one image (usually a high-resolution candidate source), and can:
 //   cells     split it into N equal horizontal cells (animation strips); one shared crop keeps feet stable
+//   maxScale  cap on that fit scale (1 = never upscale; pixel-art props stay crisp)
 //   frame     [w, h] output cell size; the shared content box is scaled to fit `fit` (default the frame minus
 //             padding) and bottom-centred (`align: "bottom"`) or centred (`"center"`); never squashed
 //   tile      resize the whole image to `frame` without cropping (ground tiles)
@@ -49,7 +50,7 @@ const PAGE = String(async (png, job) => {
     const bw = x1 - x0 + 1, bh = y1 - y0 + 1;
     const pad = job.pad ?? 2, padBottom = job.padBottom ?? pad;
     const [mw, mh] = job.fit ?? [fw - pad * 2, fh - pad - padBottom];
-    const scale = Math.min(mw / bw, mh / bh);
+    const scale = Math.min(mw / bw, mh / bh, job.maxScale ?? Infinity);
     const dw = Math.max(1, Math.round(bw * scale)), dh = Math.max(1, Math.round(bh * scale));
     const ox = Math.round((fw - dw) / 2);
     const oy = job.align === 'center' ? Math.round((fh - dh) / 2) : fh - padBottom - dh;

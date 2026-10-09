@@ -30,11 +30,17 @@ import { hudStyleSuite } from './hudStyle.test.mjs';
 import { hotbarSuite } from './hotbar.test.mjs';
 import { dodgeSuite } from './dodge.test.mjs';
 import { potionSuite } from './potions.test.mjs';
+import { monsterMotionSuite } from './monsterMotion.test.mjs';
+import { pass3Suite } from './pass3.test.mjs';
 
 const ENVIRONMENT_REVIEW = process.argv.includes('--environment-review');
 const HUD_REVIEW = process.argv.includes('--hud-review');
 const CORE_REVIEW = process.argv.includes('--core-review');
 const CLOSURE_REVIEW = process.argv.includes('--closure-review');
+const PASS3_REVIEW = process.argv.includes('--pass3-review');
+const PERF_REVIEW = process.argv.includes('--perf-review');
+const WARRIOR_REVIEW = process.argv.includes('--warrior-review');
+const STORY_REVIEW = process.argv.includes('--story-review');
 const PORT = ENVIRONMENT_REVIEW ? 5201 : HUD_REVIEW ? 5202 : 5199;
 const URL = `http://127.0.0.1:${PORT}/`;
 const OUT = ensureDir(join(process.cwd(), 'test-results'));
@@ -70,7 +76,25 @@ try {
       demoQuests.find((q) => q.questId === 'mvp_01_welcome')?.status === 'available' && demoLevel === 11 &&
       (await b.eval(`debug.questProgress('job_c1_01_instructor').status`)) === 'available' &&
       !(await b.eval(`!!document.querySelector('[data-hud="quests"]')`)));
-  if (CLOSURE_REVIEW) {
+  if (WARRIOR_REVIEW) {
+    for (let i = 0; i < 3; i++) await warriorSkillSuite(b, t);
+  } else if (STORY_REVIEW) {
+    for (let i = 0; i < 3; i++) { await b.goto(URL); await boot(); await storyCryptSuite(b, t, shot); }
+  } else if (PERF_REVIEW) {
+    for (let i = 0; i < 3; i++) await combatPerformance(b, t);
+  } else if (PASS3_REVIEW) {
+    await envArtSuite(b, t, shot, URL);
+    await b.goto(URL); await boot();
+    await pass3Suite(b, t, shot, URL, boot);
+    await monsterMotionSuite(b, t, shot);
+    await hudStyleSuite(b, t, shot);
+    await storyCryptSuite(b, t, shot);
+    await dungeonStructureSuite(b, t, shot);
+    await combatFeedbackSuite(b, t, shot);
+    await storyFeedbackSuite(b, t, shot);
+    await dodgeSuite(b, t);
+    await combatPerformance(b, t);
+  } else if (CLOSURE_REVIEW) {
     await storyFeedbackSuite(b, t, shot);
     await jobChangeSuite(b, t);
     await recurringSuite(b, t);
@@ -92,6 +116,8 @@ try {
     await b.goto(URL);
     await boot();
     await hudStyleSuite(b, t, shot);
+    await pass3Suite(b, t, shot, URL, boot);
+    await monsterMotionSuite(b, t, shot);
     await b.goto(`${URL}?questFixtures=1`);
     await boot();
 
@@ -120,6 +146,8 @@ try {
     await combatSliceSuite(b, t, shot);
     await inventorySuite(b, t, shot);
     await questFlowSuite(b, t, shot);
+    // Quest-flow deliberately leaves its turn-in UI/state; Story's isolated Lv3 fixture starts fresh.
+    await b.goto(`${URL}?questFixtures=1`); await boot();
     await storyCryptSuite(b, t, shot);
     await dungeonStructureSuite(b, t, shot);
     await combatFeedbackSuite(b, t, shot);

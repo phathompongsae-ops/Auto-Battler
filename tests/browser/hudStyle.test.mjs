@@ -49,7 +49,7 @@ export async function hudStyleSuite(b, t, shot) {
     // Top right: three utilities (Shop first) in one horizontal row beside the minimap, clear of the tracker.
     const u = g.utilities;
     const row = u.length === 3 && u[0].id === 'shop' && u.every((s) => Math.abs(s.y - u[0].y) < 1 && s.w >= 40 && s.h >= 40) && u.every((s, i) => i === 0 || s.x >= u[i-1].x + u[i-1].w)
-      && u.every((s) => !overlap(s, g.quests) && !overlap(s, g.minimap) && s.x + s.w <= g.minimap.x && s.y + s.h <= g.minimap.y + g.minimap.h + 1);
+      && u.every((s) => !overlap(s, g.quests) && !overlap(s, g.minimap) && s.x + s.w <= g.minimap.x && Math.abs(s.y - g.minimap.y) < 1 && s.y - g.canvas.y >= 10 && s.y - g.canvas.y <= 20);
     // Bottom strip: centred on screen, or (when the cluster is in the way) as central as the cluster allows.
     const stripCentre = g.systems.x + g.systems.w / 2 - g.canvas.x, mid = g.canvas.w / 2;
     const bandLeft = Math.min(...g.slots.filter((s) => s.y + s.h > g.systems.y).map((s) => s.x));

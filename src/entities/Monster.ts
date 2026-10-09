@@ -32,6 +32,8 @@ export class Monster extends Phaser.Physics.Arcade.Sprite implements MonsterAgen
   private deathTween: Phaser.Tweens.Tween | null = null;
   /** Sprite scale at rest (art draw scale, or the placeholder tier scale); death squashes from it. */
   private baseScale = 1;
+  /** Display origin and body offset at rest (production art only); a pose shifts both together. */
+  private restPose: { originX: number; originY: number; offsetX: number; offsetY: number } | null = null;
   /** Multiply tint a variant keeps between hit flashes (see MONSTER_ART_TINT); null = none. */
   private restTint: number | null = null;
   /** Velocity the brain asked for (separation is added on top). */
@@ -63,12 +65,13 @@ export class Monster extends Phaser.Physics.Arcade.Sprite implements MonsterAgen
     const k = def.scale ?? 1;
     if (art) {
       // Production sheet: 2x art drawn at 0.5 (relative to the monster it was fitted for), feet on the shadow.
-      const s = MONSTER_ART_DRAW_SCALE * (k / art.homeScale);
+      const s = MONSTER_ART_DRAW_SCALE * (k / art.homeScale) * (art.displayScale ?? 1);
       const originY = (art.feetRow - (MONSTER_FEET_OFFSET * k) / s) / art.frameHeight;
       this.baseScale = s;
       this.setScale(s).setOrigin(0.5, originY);
       this.body.setSize((BODY.w * k) / s, (BODY.h * k) / s, false);
       this.body.setOffset(art.frameWidth / 2 + (BODY.x * k) / s, originY * art.frameHeight + (BODY.y * k) / s);
+      this.restPose = { originX: this.displayOriginX, originY: this.displayOriginY, offsetX: this.body.offset.x, offsetY: this.body.offset.y };
     } else {
       // Placeholder 32 px blob: the body is (6, 18) 20x12 in frame pixels, scaled with the sprite.
       this.baseScale = k;
@@ -127,8 +130,25 @@ export class Monster extends Phaser.Physics.Arcade.Sprite implements MonsterAgen
     this.body.reset(this.spawnX, this.spawnY);
   }
 
+  /**
+   * Presentation pose (rendering/MonsterMotion.ts): the art moves by (dx, dy) world px and leans by
+   * the rotation (radians) about its feet. The physics body never moves: the display origin and the body
+   * offset shift by the same amount (Arcade bodies ignore rotation). No-op on placeholder art.
+   */
+  setPose(dx: number, dy: number, rotation: number): void {
+    const rest = this.restPose;
+    if (!rest || !this.body.enable) return;
+    const sx = dx / this.baseScale, sy = dy / this.baseScale;
+    if (this.displayOriginX !== rest.originX - sx || this.displayOriginY !== rest.originY - sy) {
+      this.setDisplayOrigin(rest.originX - sx, rest.originY - sy);
+      this.body.setOffset(rest.offsetX - sx, rest.offsetY - sy);
+    }
+    if (this.rotation !== rotation) this.setRotation(rotation);
+  }
+
   /** Called when the combat system reports this monster died. */
   onDeath(): void {
+    this.setPose(0, 0, 0);
     this.halt();
     this.body.enable = false;
     this.disableInteractive();
@@ -155,6 +175,7 @@ export class Monster extends Phaser.Physics.Arcade.Sprite implements MonsterAgen
     this.deathTween = null;
     this.combat.reset();
     this.body.enable = true;
+    this.setPose(0, 0, 0);
     this.snapToSpawn();
     this.setVisible(true).setAlpha(1).setScale(this.baseScale);
     this.resetTint();

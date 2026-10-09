@@ -1,5 +1,8 @@
 import type { PropKind } from './maps/props';
 import { Tile } from '../world/tiles';
+import type { WangTerrain } from '../world/groundVisuals';
+import { TOWN_GROUND_WALL, TOWN_GROUND_WANG, TOWN_GROUND_WANG_PLAIN } from './environment/townGroundWang';
+import { FIELD_GROUND_WANG, FIELD_GROUND_WANG_PLAIN } from './environment/fieldGroundWang';
 
 /*
  * High-resolution environment art (docs/art/town-style-lock.md). PNGs are
@@ -33,11 +36,21 @@ export const ENV_PROP_ART: Partial<Record<PropKind, string>> = {
   tree: `${FIELD}/props/tree.png`,
   pine: `${FIELD}/props/pine.png`,
   cave: `${FIELD}/props/cave.png`,
+  // Visual Pass 3 (PixelLab objects, tools/env-art/pass3-jobs.json)
+  bush: `${FIELD}/props/bush.png`,
+  rock: `${FIELD}/props/rock.png`,
+  big_rock: `${FIELD}/props/big_rock.png`,
+  signpost: `${FIELD}/props/signpost.png`,
+  tent: `${FIELD}/props/tent.png`,
+  campfire: `${FIELD}/props/campfire.png`,
+  stump: `${FIELD}/props/stump.png`,
   // Crypt
   pillar: `${DUNGEON}/props/pillar.png`,
   torch: `${DUNGEON}/props/torch.png`,
   brazier: `${DUNGEON}/props/brazier.png`,
   throne: `${DUNGEON}/props/throne.png`,
+  bones: `${DUNGEON}/props/bones.png`,
+  rubble: `${DUNGEON}/props/rubble.png`,
   // Town
   monument: `${DIR}/props/monument.png`,
   anvil: `${DIR}/props/anvil.png`,
@@ -116,16 +129,59 @@ export interface EnvTileSkin {
   tiles: Readonly<Partial<Record<number, readonly number[]>>>;
 }
 
-/** How each map's ground is drawn: the Town corner-tileset layer, a tile skin, or (unlisted) code-drawn only. */
-export type EnvMapGround = { kind: 'town' } | EnvTileSkin;
+/**
+ * Corner (Wang) ground on a dual grid: an atlas of 64 px frames (margin 2,
+ * spacing 4), the frame per terrain pair and corner mask, plain-tile variants,
+ * optional wall-top frames, and the connector terrain that bridges two terrains
+ * without a shared corner set. Visual only; map.tiles stays the collision source.
+ */
+export interface EnvWangGround {
+  kind: 'wang';
+  key: string;
+  url: string;
+  frameSize: number;
+  margin: number;
+  spacing: number;
+  lookup: Readonly<Record<string, readonly number[]>>;
+  plain: Readonly<Partial<Record<WangTerrain, readonly number[]>>>;
+  /** Self-tiling wall-top frames for Wall cells (empty: code-drawn walls). */
+  wall: readonly number[];
+  connector: WangTerrain;
+  /** Town only: fall back to the older stand-in tile layer when this atlas is unavailable. */
+  standIn?: boolean;
+}
+
+/** How each map's ground is drawn: corner ground, a tile skin, or (unlisted) code-drawn only. */
+export type EnvMapGround = EnvWangGround | EnvTileSkin;
 
 /**
- * Per-map ground art. The Field is not listed yet: no approved grass / path /
- * dirt / water art exists (the water candidate was rejected for visible
- * repetition), so it keeps the code-drawn ground with production props on top.
+ * Per-map ground art. Town: the PixelLab corner tilesets. Field (Visual Pass 3):
+ * the same approved grass / dirt art plus derived dark-grass, moss and water
+ * sets (tools/env-art/buildFieldGround.mjs). Crypt: a stone tile skin.
  */
 export const ENV_MAP_GROUND: Readonly<Record<string, EnvMapGround>> = {
-  demo_town: { kind: 'town' },
+  demo_town: {
+    kind: 'wang',
+    ...ENV_GROUND_WANG,
+    lookup: TOWN_GROUND_WANG,
+    plain: TOWN_GROUND_WANG_PLAIN as EnvWangGround['plain'],
+    wall: TOWN_GROUND_WALL,
+    connector: 'cobble',
+    standIn: true,
+  },
+  demo_field: {
+    kind: 'wang',
+    key: 'env-ground-field-wang',
+    url: 'assets/environment/field/ground/field_ground_wang.png',
+    frameSize: 64,
+    margin: 2,
+    spacing: 4,
+    lookup: FIELD_GROUND_WANG,
+    plain: FIELD_GROUND_WANG_PLAIN as EnvWangGround['plain'],
+    wall: [],
+    // Every Field terrain has a corner set with grass.
+    connector: 'grass',
+  },
   demo_crypt: {
     kind: 'tiles',
     key: 'env-ground-crypt',
@@ -138,10 +194,11 @@ export const ENV_MAP_GROUND: Readonly<Record<string, EnvMapGround>> = {
   },
 };
 
-/** Maps whose ground uses the Town visual layer (others use a tile skin or the code-drawn tiles only). */
-export const ENV_GROUND_MAP_IDS: readonly string[] = Object.keys(ENV_MAP_GROUND).filter((id) => ENV_MAP_GROUND[id].kind === 'town');
+/** Maps whose ground uses corner (Wang) ground (others use a tile skin or the code-drawn tiles only). */
+export const ENV_GROUND_MAP_IDS: readonly string[] = Object.keys(ENV_MAP_GROUND).filter((id) => ENV_MAP_GROUND[id].kind === 'wang');
 
 const tileSkins = () => Object.values(ENV_MAP_GROUND).filter((g): g is EnvTileSkin => g.kind === 'tiles');
+const extraWangAtlases = () => Object.values(ENV_MAP_GROUND).filter((g): g is EnvWangGround => g.kind === 'wang' && g.key !== ENV_GROUND_WANG.key);
 
 /**
  * Building façades drawn over a map's `Roof`-tile footprint (visual only:
@@ -172,6 +229,7 @@ export function environmentTextureFiles(): { key: string; url: string; kind: 'pr
     ...Object.entries(ENV_PROP_ART).map(([kind, url]) => ({ key: `prop-${kind}`, url: url!, kind: 'prop' as const })),
     { key: ENV_GROUND_TILESET.key, url: ENV_GROUND_TILESET.url, kind: 'ground' as const },
     { key: ENV_GROUND_WANG.key, url: ENV_GROUND_WANG.url, kind: 'ground' as const },
+    ...extraWangAtlases().map((g) => ({ key: g.key, url: g.url, kind: 'ground' as const })),
     ...tileSkins().map((s) => ({ key: s.key, url: s.url, kind: 'ground' as const })),
     ...ENV_BUILDINGS.map((b) => ({ key: b.key, url: b.url, kind: 'building' as const })),
   ];

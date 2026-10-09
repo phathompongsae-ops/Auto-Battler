@@ -49,12 +49,17 @@ export function neighbourMask(tiles: readonly (readonly number[])[], x: number, 
 // on top by their own layer. Plain tiles (all four corners one terrain) pick a
 // deterministic variant by position so large areas do not stamp one tile.
 
-export type WangTerrain = 'cobble' | 'dirt' | 'grass' | 'plaza';
+export type WangTerrain = 'cobble' | 'dirt' | 'grass' | 'plaza' | 'darkgrass' | 'moss' | 'water';
 
 const WANG_TERRAIN: Partial<Record<number, WangTerrain>> = {
   [Tile.Grass]: 'grass',
   [Tile.Flowers]: 'grass',
   [Tile.Path]: 'dirt',
+  [Tile.Dirt]: 'dirt',
+  // Field-only terrains (Visual Pass 3): grass-family zones and the pond. Water stays solid in map.tiles.
+  [Tile.DarkGrass]: 'darkgrass',
+  [Tile.Moss]: 'moss',
+  [Tile.Water]: 'water',
   [Tile.Cobble]: 'cobble',
   // The trim ring belongs to the plaza; the plaza / cobble transition draws its kerb border.
   [Tile.Plaza]: 'plaza',
@@ -64,10 +69,10 @@ const WANG_TERRAIN: Partial<Record<number, WangTerrain>> = {
 export const wangTerrain = (tile: number | undefined): WangTerrain | null => (tile === undefined ? null : (WANG_TERRAIN[tile] ?? null));
 
 /** Tie-break order when terrains are equally common. */
-const TERRAIN_ORDER: readonly WangTerrain[] = ['cobble', 'dirt', 'grass', 'plaza'];
+const TERRAIN_ORDER: readonly WangTerrain[] = ['cobble', 'dirt', 'grass', 'plaza', 'darkgrass', 'moss', 'water'];
 
-/** Terrain every other one has a tileset with; bridges two terrains without a shared tileset. */
-const CONNECTOR: WangTerrain = 'cobble';
+/** Town default: the terrain every other Town terrain has a tileset with; bridges two terrains without a shared tileset. */
+const DEFAULT_CONNECTOR: WangTerrain = 'cobble';
 
 /** Frame per corner mask (bit 8 NW, 4 NE, 2 SW, 1 SE; set = upper) for each "lower|upper" pair. */
 export type WangLookup = Readonly<Record<string, readonly number[]>>;
@@ -79,7 +84,7 @@ export type WangPlain = Readonly<Partial<Record<WangTerrain, readonly number[]>>
  * The dual-grid frame grid ((H+1) x (W+1)); -1 where nothing is drawn.
  * A tile mixing three terrains folds its rarest one into the majority.
  */
-export function wangGroundVisuals(tiles: readonly (readonly number[])[], lookup: WangLookup, plain: WangPlain = {}): number[][] {
+export function wangGroundVisuals(tiles: readonly (readonly number[])[], lookup: WangLookup, plain: WangPlain = {}, connector: WangTerrain = DEFAULT_CONNECTOR): number[][] {
   const h = tiles.length;
   const w = tiles[0]?.length ?? 0;
   const pairs = Object.keys(lookup).map((k) => k.split('|') as [WangTerrain, WangTerrain]);
@@ -102,7 +107,7 @@ export function wangGroundVisuals(tiles: readonly (readonly number[])[], lookup:
       const two = [...new Set(resolved)];
       if (two.length === 2 && !pairs.some(([l, u]) => two.includes(l) && two.includes(u))) {
         const minority = two[0] === majority ? two[1] : two[0];
-        const into = two.includes(CONNECTOR) ? majority : CONNECTOR;
+        const into = two.includes(connector) ? majority : connector;
         resolved = resolved.map((c) => (c === minority ? into : c));
       }
       row.push(wangFrame(resolved, lookup, pairs, plain, vx, vy));

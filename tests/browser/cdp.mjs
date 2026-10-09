@@ -1,7 +1,6 @@
 // Minimal Chrome DevTools Protocol driver for browser tests (no dependencies).
-import { spawn, execSync } from 'node:child_process';
+import { spawn, execSync, execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 export const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -38,8 +37,9 @@ const keyName = (code) =>
 
 export class Browser {
   static async launch({ port = 9333, width = 960, height = 540 } = {}) {
-    const profile = join(tmpdir(), `phaser-test-profile-${process.pid}`);
+    const profile = join(process.cwd(), 'test-results', `phaser-test-profile-${process.pid}`);
     rmSync(profile, { recursive: true, force: true });
+    mkdirSync(profile, { recursive: true });
     const proc = spawn(findChrome(), [
       '--headless=new',
       `--remote-debugging-port=${port}`,
@@ -188,12 +188,34 @@ export class Browser {
   }
 
   async close() {
+    // Windows must terminate the test's entire process tree, including profile-file holders.
+    if (process.platform === 'win32' && this.proc.exitCode === null) {
+      try { execSync(`taskkill /PID ${this.proc.pid} /T /F`, { stdio: 'ignore' }); } catch {}
+    } else await this.send('Browser.close').catch(() => {});
     try {
       this.ws?.close();
     } catch {}
     this.proc.kill();
-    await sleep(300);
-    rmSync(this.profile, { recursive: true, force: true, maxRetries: 3 });
+    await sleep(600);
+    if (process.platform === 'win32') {
+      // Native Windows removal handles Chrome-created profile entries which Node rm reports as EPERM.
+      // Validate the resolved absolute directory in the same shell before recursive removal.
+      const quote = value => "'" + value.replaceAll("'", "''") + "'";
+      const allowed = join(process.cwd(), 'test-results', 'phaser-test-profile-');
+      // Chrome helpers can hold profile files for a moment after taskkill: retry, and never let cleanup
+      // of this git-ignored directory fail a run whose checks have already been reported.
+      for (let attempt = 1; ; attempt++) {
+        try {
+          execFileSync('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command',
+            `$profileTarget=[IO.Path]::GetFullPath(${quote(this.profile)}); if (-not $profileTarget.StartsWith(${quote(allowed)}, [StringComparison]::OrdinalIgnoreCase) -or (Split-Path -Leaf $profileTarget) -notmatch '^phaser-test-profile-[0-9]+$') { throw 'Unexpected test profile path' }; if (Test-Path -LiteralPath $profileTarget) { Remove-Item -LiteralPath $profileTarget -Recurse -Force -ErrorAction Stop }`],
+            { stdio: 'ignore', windowsHide: true });
+          break;
+        } catch {
+          if (attempt >= 5) { console.warn(`Warning: could not remove test profile ${this.profile}`); break; }
+          await sleep(500 * attempt);
+        }
+      }
+    } else rmSync(this.profile, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 });
   }
 }
 

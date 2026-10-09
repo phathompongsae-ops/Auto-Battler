@@ -8,7 +8,8 @@
  * placeholder of the same monster. `?monsterArt=off` forces the placeholders.
  *
  * There are no walk / attack / hit / death frames yet: movement reuses the
- * idle strip and death keeps the code-driven squash and fade.
+ * idle strip with Pass 3's temporary procedural poses. Death keeps the
+ * code-driven squash and fade; these poses are not final sprite animation.
  */
 
 export interface MonsterArtDef {
@@ -25,6 +26,8 @@ export interface MonsterArtDef {
    * Skeleton's) draws at its own scale relative to this one.
    */
   homeScale: number;
+  /** Presentation-only multiplier; world-space bodies retain their tier dimensions. */
+  displayScale?: number;
 }
 
 /** World px per source px of the monster sheets. */
@@ -42,7 +45,7 @@ const art = (id: string, frameWidth: number, frameHeight: number, feetRow: numbe
 /** By monster texture id (`MonsterDef.texture`). Visual heights: about 2x the frame's content rows at draw scale 0.5. */
 export const MONSTER_ART: Readonly<Record<string, MonsterArtDef>> = {
   slime: art('slime', 56, 48, 46, 1),
-  wolf: art('wolf', 86, 60, 58, 1.15),
+  wolf: { ...art('wolf', 86, 60, 58, 1.15), displayScale: 1.08 },
   mushroom: art('mushroom', 68, 60, 58, 1.15),
   elite_boar: art('elite_boar', 110, 80, 78, 1.6),
   grove_guardian: art('grove_guardian', 142, 136, 134, 2.1),

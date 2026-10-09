@@ -16,8 +16,8 @@ import { NPCS } from '../data/npcData';
 import { npcMarker } from '../quests/questText';
 import { propTextureKey } from '../graphics/propTextures';
 import { envDrawScale } from '../graphics/environmentArt';
-import { ENV_BUILDINGS, ENV_GROUND_TILESET, ENV_GROUND_WANG, ENV_MAP_GROUND, type EnvTileSkin } from '../data/environmentArt';
-import { TOWN_GROUND_WALL, TOWN_GROUND_WANG, TOWN_GROUND_WANG_PLAIN } from '../data/environment/townGroundWang';
+import { ENV_BUILDINGS, ENV_GROUND_TILESET, ENV_MAP_GROUND, type EnvTileSkin, type EnvWangGround } from '../data/environmentArt';
+
 import { groundVisuals, wangGroundVisuals, wallCells, wangOverlayCells } from '../world/groundVisuals';
 import { InputController } from '../input/InputController';
 import { KeyboardActionSource } from '../input/KeyboardActionSource';
@@ -31,6 +31,7 @@ import { GateBarriers } from '../rendering/GateBarriers';
 import { activeGates, gateOpen } from '../dungeon/gates';
 import { prewarmShaders } from '../rendering/prewarm';
 import { WorldOverlays } from '../rendering/WorldOverlays';
+import { MonsterMotion } from '../rendering/MonsterMotion';
 import { Hud } from '../ui/hud/Hud';
 import type { MonsterSpawn } from '../world/mapRules';
 import { SOLID_TILES, Tile } from '../world/tiles';
@@ -71,6 +72,8 @@ export class WorldScene extends Phaser.Scene implements WorldMapView {
   virtualActions!: VirtualActionSource;
   world!: CombatWorld;
   private overlays!: WorldOverlays;
+  /** Walk / wind-up / lunge / recoil poses for production monster art (presentation only). */
+  private monsterMotion!: MonsterMotion;
   hud!: Hud;
 
   private tilemap: Phaser.Tilemaps.Tilemap | null = null;
@@ -130,6 +133,7 @@ export class WorldScene extends Phaser.Scene implements WorldMapView {
     new CombatEffects(this, this.world);
     new ActionEffects(this, this.world);
     this.overlays = new WorldOverlays(this, this.world);
+    this.monsterMotion = new MonsterMotion(this.world);
     this.hud = new Hud(this, {
       world: this.world,
       art: playerArt,
@@ -229,7 +233,8 @@ export class WorldScene extends Phaser.Scene implements WorldMapView {
       this.drawTileSkin(map, ground);
       return;
     }
-    if (this.drawWangGround(map)) return;
+    if (this.drawWangGround(map, ground) || !ground.standIn) return;
+    // Town only: the older stand-in ground when the corner atlas is unavailable.
     const ts = ENV_GROUND_TILESET;
     if (!this.textures.exists(ts.key)) return;
     const layers = groundVisuals(map.tiles);
@@ -284,15 +289,14 @@ export class WorldScene extends Phaser.Scene implements WorldMapView {
   }
 
   /**
-   * Production ground (corner tilesets on a dual grid, offset half a tile:
-   * grass, dirt, cobble and the plaza with its kerb), then every non-ground
-   * tile (walls, water, building bases, portals) in its own tile art. The code-drawn layer is hidden but stays the collision source.
+   * Corner (Wang) ground on a dual grid, offset half a tile (Town: grass, dirt, cobble and the plaza with its kerb;
+   * Field: grass, dirt, dark grass, moss and the pond), then every non-ground
+   * tile not covered by that descriptor in its own tile art. The code-drawn layer is hidden but stays the collision source.
    * False when the production atlas is unavailable.
    */
-  private drawWangGround(map: MapDef): boolean {
-    const ts = ENV_GROUND_WANG;
-    if (!this.textures.exists(ts.key) || !Object.keys(TOWN_GROUND_WANG).length) return false;
-    const scale = envDrawScale(this, ts.key);
+  private drawWangGround(map: MapDef, ground: EnvWangGround): boolean {
+    if (!this.textures.exists(ground.key) || !Object.keys(ground.lookup).length) return false;
+    const scale = envDrawScale(this, ground.key);
     // Under a facade the ground (cobble) shows through its transparent edges, not the code-drawn roof tiles.
     // A visual-only copy: map.tiles and the hidden code-drawn layer stay the collision source.
     const tiles = map.tiles.map((row) => [...row]);
@@ -305,12 +309,12 @@ export class WorldScene extends Phaser.Scene implements WorldMapView {
       const f = b.footprint;
       for (let y = f.y; y < f.y + f.h; y++) for (let x = f.x; x < f.x + f.w; x++) tiles[y][x] = Tile.Cobble;
     }
-    const dual = this.visualLayer(wangGroundVisuals(tiles, TOWN_GROUND_WANG, TOWN_GROUND_WANG_PLAIN), ts.key, ts.frameSize, ts.margin, ts.spacing);
+    const dual = this.visualLayer(wangGroundVisuals(tiles, ground.lookup, ground.plain, ground.connector), ground.key, ground.frameSize, ground.margin, ground.spacing);
     if (!dual) return false;
     dual.setScale(scale).setPosition(-TILE_SIZE / 2, -TILE_SIZE / 2).setDepth(GROUND_DEPTH + 0.05);
-    const wallArt = TOWN_GROUND_WALL.length > 0;
+    const wallArt = ground.wall.length > 0;
     this.visualLayer(wangOverlayCells(tiles, wallArt), TILESET_KEY, TILE_SIZE, 0, 0)?.setDepth(GROUND_DEPTH + 0.15);
-    if (wallArt) this.visualLayer(wallCells(tiles, TOWN_GROUND_WALL), ts.key, ts.frameSize, ts.margin, ts.spacing)?.setScale(scale).setDepth(GROUND_DEPTH + 0.15);
+    if (wallArt) this.visualLayer(wallCells(tiles, ground.wall), ground.key, ground.frameSize, ground.margin, ground.spacing)?.setScale(scale).setDepth(GROUND_DEPTH + 0.15);
     this.groundLayer?.setVisible(false);
     return true;
   }
@@ -494,6 +498,7 @@ export class WorldScene extends Phaser.Scene implements WorldMapView {
     else if (!this.world.frozen && physics.isPaused) physics.resume();
 
     this.overlays.update(this.world.now);
+    this.monsterMotion.update(delta);
     this.gateBarriers.update((gate) => gateOpen(gate, (zone) => this.world.zoneCleared(zone)));
     this.updateNpcMarkers();
     this.updateOccluders();
