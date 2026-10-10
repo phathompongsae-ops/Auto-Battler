@@ -4,8 +4,8 @@ import { CombatantState } from '../combat/CombatantState';
 import { applyStatusModifiers } from '../combat/stats';
 import { monsterCombatStats, type MonsterDef } from '../data/monsterData';
 import type { PxRect } from '../world/encounters';
-import { MONSTER_ART_DRAW_SCALE, MONSTER_ART_TINT } from '../data/monsterArt';
-import { loadedMonsterArt } from '../graphics/monsterArt';
+import { MONSTER_ART_DRAW_SCALE, type MonsterAnimState } from '../data/monsterArt';
+import { resolveMonsterArt, type MonsterStripKeys } from '../graphics/monsterArt';
 
 const ARRIVE_EPSILON = 2; // px
 
@@ -28,6 +28,11 @@ export class Monster extends Phaser.Physics.Arcade.Sprite implements MonsterAgen
   arena?: readonly PxRect[];
 
   declare body: Phaser.Physics.Arcade.Body;
+  /**
+   * Real animation strips (Visual Pass 4), driven frame by frame by rendering/MonsterAnimator.ts; null = the
+   * 2-frame idle sheet (or placeholder) with procedural motion (rendering/MonsterMotion.ts).
+   */
+  readonly strips: MonsterStripKeys | null;
 
   private deathTween: Phaser.Tweens.Tween | null = null;
   /** Sprite scale at rest (art draw scale, or the placeholder tier scale); death squashes from it. */
@@ -47,8 +52,10 @@ export class Monster extends Phaser.Physics.Arcade.Sprite implements MonsterAgen
     public spawnX: number,
     public spawnY: number,
   ) {
-    const art = loadedMonsterArt(scene, def.texture);
-    super(scene, spawnX, spawnY, art ? art.key : def.texture, art ? 0 : `${def.texture}-0`);
+    const resolved = resolveMonsterArt(scene, def);
+    const art = resolved?.art ?? null;
+    super(scene, spawnX, spawnY, resolved ? resolved.key : def.texture, resolved ? 0 : `${def.texture}-0`);
+    this.strips = resolved?.strips ?? null;
     scene.add.existing(this);
     scene.physics.add.existing(this);
 
@@ -84,8 +91,9 @@ export class Monster extends Phaser.Physics.Arcade.Sprite implements MonsterAgen
     this.setCollideWorldBounds(true);
     this.setInteractive({ useHandCursor: true });
 
+    // Real strips: MonsterAnimator sets every frame (idle included). Otherwise a looping idle animation.
     const idleKey = art ? `${art.key}-idle` : `${def.texture}-idle`;
-    if (!scene.anims.exists(idleKey)) {
+    if (!this.strips && !scene.anims.exists(idleKey)) {
       scene.anims.create({
         key: idleKey,
         frames: art ? [0, 1].map((i) => ({ key: art.key, frame: i })) : [0, 1].map((i) => ({ key: def.texture, frame: `${def.texture}-${i}` })),
@@ -94,8 +102,8 @@ export class Monster extends Phaser.Physics.Arcade.Sprite implements MonsterAgen
         repeat: -1,
       });
     }
-    this.play({ key: idleKey, startFrame: Math.floor(Math.random() * 2) });
-    if (art) this.restTint = MONSTER_ART_TINT[def.id] ?? null;
+    if (!this.strips) this.play({ key: idleKey, startFrame: Math.floor(Math.random() * 2) });
+    this.restTint = resolved?.tint ?? null;
     this.resetTint();
     this.setDepth(this.y);
   }
@@ -113,6 +121,19 @@ export class Monster extends Phaser.Physics.Arcade.Sprite implements MonsterAgen
     this.moveY = (dy / len) * speed;
     this.body.setVelocity(this.moveX, this.moveY);
     if (Math.abs(dx) > 1) this.setFlipX(dx < 0);
+  }
+
+  /** Face a point by mirroring (source art faces right); no rotation. Same rule as moving. */
+  faceToward(x: number): void {
+    if (Math.abs(x - this.x) > 1) this.setFlipX(x < this.x);
+  }
+
+  /** Show one frame of a real animation strip (no-op without strips). Same cell size: origin and body stay put. */
+  showFrame(state: MonsterAnimState, frame: number): void {
+    const key = this.strips?.[state];
+    if (!key) return;
+    if (this.texture.key !== key) this.setTexture(key, frame);
+    else if (String(this.frame.name) !== String(frame)) this.setFrame(frame);
   }
 
   halt(): void {

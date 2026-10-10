@@ -31,6 +31,7 @@ import { hotbarSuite } from './hotbar.test.mjs';
 import { dodgeSuite } from './dodge.test.mjs';
 import { potionSuite } from './potions.test.mjs';
 import { monsterMotionSuite } from './monsterMotion.test.mjs';
+import { monsterAnimSuite } from './monsterAnim.test.mjs';
 import { pass3Suite } from './pass3.test.mjs';
 
 const ENVIRONMENT_REVIEW = process.argv.includes('--environment-review');
@@ -41,6 +42,7 @@ const PASS3_REVIEW = process.argv.includes('--pass3-review');
 const PERF_REVIEW = process.argv.includes('--perf-review');
 const WARRIOR_REVIEW = process.argv.includes('--warrior-review');
 const STORY_REVIEW = process.argv.includes('--story-review');
+const ANIM_REVIEW = process.argv.includes('--anim-review');
 const PORT = ENVIRONMENT_REVIEW ? 5201 : HUD_REVIEW ? 5202 : 5199;
 const URL = `http://127.0.0.1:${PORT}/`;
 const OUT = ensureDir(join(process.cwd(), 'test-results'));
@@ -76,7 +78,10 @@ try {
       demoQuests.find((q) => q.questId === 'mvp_01_welcome')?.status === 'available' && demoLevel === 11 &&
       (await b.eval(`debug.questProgress('job_c1_01_instructor').status`)) === 'available' &&
       !(await b.eval(`!!document.querySelector('[data-hud="quests"]')`)));
-  if (WARRIOR_REVIEW) {
+  if (ANIM_REVIEW) {
+    await monsterMotionSuite(b, t, shot);
+    await monsterAnimSuite(b, t, shot);
+  } else if (WARRIOR_REVIEW) {
     for (let i = 0; i < 3; i++) await warriorSkillSuite(b, t);
   } else if (STORY_REVIEW) {
     for (let i = 0; i < 3; i++) { await b.goto(URL); await boot(); await storyCryptSuite(b, t, shot); }
@@ -87,6 +92,7 @@ try {
     await b.goto(URL); await boot();
     await pass3Suite(b, t, shot, URL, boot);
     await monsterMotionSuite(b, t, shot);
+    await monsterAnimSuite(b, t, shot);
     await hudStyleSuite(b, t, shot);
     await storyCryptSuite(b, t, shot);
     await dungeonStructureSuite(b, t, shot);
@@ -118,6 +124,7 @@ try {
     await hudStyleSuite(b, t, shot);
     await pass3Suite(b, t, shot, URL, boot);
     await monsterMotionSuite(b, t, shot);
+    await monsterAnimSuite(b, t, shot);
     await b.goto(`${URL}?questFixtures=1`);
     await boot();
 

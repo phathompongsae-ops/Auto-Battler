@@ -32,6 +32,7 @@ import { activeGates, gateOpen } from '../dungeon/gates';
 import { prewarmShaders } from '../rendering/prewarm';
 import { WorldOverlays } from '../rendering/WorldOverlays';
 import { MonsterMotion } from '../rendering/MonsterMotion';
+import { MonsterAnimator } from '../rendering/MonsterAnimator';
 import { Hud } from '../ui/hud/Hud';
 import type { MonsterSpawn } from '../world/mapRules';
 import { SOLID_TILES, Tile } from '../world/tiles';
@@ -74,6 +75,8 @@ export class WorldScene extends Phaser.Scene implements WorldMapView {
   private overlays!: WorldOverlays;
   /** Walk / wind-up / lunge / recoil poses for production monster art (presentation only). */
   private monsterMotion!: MonsterMotion;
+  /** Real animation strips and combat facing (presentation only; MonsterMotion stays the fallback). */
+  monsterAnimator!: MonsterAnimator;
   hud!: Hud;
 
   private tilemap: Phaser.Tilemaps.Tilemap | null = null;
@@ -134,6 +137,7 @@ export class WorldScene extends Phaser.Scene implements WorldMapView {
     new ActionEffects(this, this.world);
     this.overlays = new WorldOverlays(this, this.world);
     this.monsterMotion = new MonsterMotion(this.world);
+    this.monsterAnimator = new MonsterAnimator(this.world);
     this.hud = new Hud(this, {
       world: this.world,
       art: playerArt,
@@ -499,6 +503,7 @@ export class WorldScene extends Phaser.Scene implements WorldMapView {
 
     this.overlays.update(this.world.now);
     this.monsterMotion.update(delta);
+    this.monsterAnimator.update();
     this.gateBarriers.update((gate) => gateOpen(gate, (zone) => this.world.zoneCleared(zone)));
     this.updateNpcMarkers();
     this.updateOccluders();

@@ -24,6 +24,7 @@ import { expToNext } from '../progression/expCurve';
 import { defaultUnlocks, locationKind, useDungeonWarp, useTownWarp } from '../warp/warp';
 import { FIELD_MAP_ID, MAPS, mapSize } from '../data/maps';
 import { spawnPlan } from '../world/mapRules';
+import { installMonsterAnimFixture, removeMonsterAnimFixture } from './monsterAnimFixture';
 import { NPCS } from '../data/npcData';
 import { npcMarker, questPhase } from '../quests/questText';
 import { CLASS_1_JOB_CHANGE } from '../data/jobChangeData';
@@ -710,6 +711,9 @@ export function createDevApi(world: CombatWorld, overlays: WorldOverlays) {
     }),
     hitStop: (ms: number) => world.requestHitStop(ms),
     monsterIds: () => world.monsters.map((m) => m.id),
+    /** TEST ONLY: code-drawn Visual Pass 4 strips for a pending art contract (used by monsters created afterwards, e.g. on reset). */
+    installMonsterAnimFixture: (artId: string) => installMonsterAnimFixture(world.player.scene, artId),
+    removeMonsterAnimFixture: (artId: string) => removeMonsterAnimFixture(world.player.scene, artId),
     /**
      * Back to a clean slate on a freshly loaded map (default: the Field, the
      * combat test ground; a new game itself starts in Town): player at the

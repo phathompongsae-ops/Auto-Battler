@@ -14,6 +14,10 @@ import type { Monster } from '../entities/Monster';
  *   attack  a short lunge toward the target on the hit's own damage event
  *   hit     a small recoil away from the attacker (with the existing hit flash)
  *   death   unchanged: the code squash and fade (Monster.onDeath)
+ *
+ * Fallback only (Visual Pass 4): monsters drawn with real animation strips
+ * (Monster.strips, rendering/MonsterAnimator.ts) get no procedural pose, so the
+ * drawn walk / attack / hit is never doubled. Hit flash and shadow are unaffected.
  */
 
 /** Below this speed (world px / s) a monster is standing. */
@@ -64,7 +68,7 @@ export class MonsterMotion {
       const len = Math.hypot(ux, uy) || 1;
       this.attack(sourceId, targetId);
       const victim = world.monsterById(targetId);
-      if (victim) {
+      if (victim && !victim.strips) {
         // Heavier tiers barely budge.
         const push = 3 / Math.sqrt(victim.def.scale ?? 1);
         this.state(victim).recoil = { start: this.clock, dx: (ux / len) * push, dy: (uy / len) * push, ...RECOIL_MS };
@@ -75,7 +79,7 @@ export class MonsterMotion {
   private attack(sourceId: string, targetId: string): void {
     const attacker = this.world.monsterById(sourceId);
     const target = this.world.getEntity(targetId);
-    if (!attacker || !target) return;
+    if (!attacker || !target || attacker.strips) return;
     const dx = target.x - attacker.x, dy = target.y - attacker.y;
     const length = Math.hypot(dx, dy) || 1;
     const distance = Math.min(7, 5 * Math.sqrt(attacker.def.scale ?? 1));
@@ -92,7 +96,7 @@ export class MonsterMotion {
     this.clock += deltaMs;
     const dt = Math.min(deltaMs, 50) / 1000;
     for (const m of this.world.monsters) {
-      if (m.combat.dead || !m.visible) { this.states.delete(m.id); continue; }
+      if (m.combat.dead || !m.visible || m.strips) { this.states.delete(m.id); continue; }
       this.pose(m, this.state(m), dt);
     }
   }

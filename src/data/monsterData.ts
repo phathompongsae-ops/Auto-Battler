@@ -18,6 +18,11 @@ export interface MonsterDef {
   id: string;
   name: string;
   texture: string;
+  /**
+   * Dedicated production art slot (data/monsterArt.ts, data/monsterAnimArt.ts), used when loaded; until then
+   * `texture` supplies the art (with its MONSTER_ART_TINT) and the placeholder. Default: `texture`.
+   */
+  artId?: string;
   level: number;
   /** Balance tier; also sets the Field Energy cost of its rewards. */
   tier: MonsterTier;
@@ -135,6 +140,8 @@ const MONSTER_DEFS = {
     id: 'crypt_brute',
     name: 'Skeleton Brute',
     texture: 'crypt_skeleton',
+    // Dedicated Brute art (Visual Pass 4 contract); the tinted Skeleton sheet until it is integrated.
+    artId: 'crypt_brute',
     tier: 'normal',
     level: 4,
     stats: { maxHp: 380, attack: 9, defense: 4, moveSpeed: 70 },
@@ -151,6 +158,8 @@ interface PlaceholderSpec {
   name: string;
   /** Art to reuse (default: the id). */
   texture?: string;
+  /** Dedicated art slot preferred over `texture` once loaded. */
+  artId?: string;
   tier: MonsterTier;
   level: number;
   stats: Pick<MonsterStats, 'maxHp' | 'attack' | 'defense' | 'moveSpeed'>;
@@ -173,6 +182,7 @@ function placeholder(spec: PlaceholderSpec): MonsterDef {
     id: spec.id,
     name: spec.name,
     texture: spec.texture ?? spec.id,
+    ...(spec.artId ? { artId: spec.artId } : {}),
     level: spec.level,
     tier,
     stats: { maxMp: 0, magicDefense: stats.defense, critChance: 0.05, critMultiplier: 1.5, mpRegen: 0, ...stats },
