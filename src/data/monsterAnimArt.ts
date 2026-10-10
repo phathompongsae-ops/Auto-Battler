@@ -5,8 +5,9 @@ import type { MonsterAnimSet, MonsterArtDef, MonsterSpecialStrip, MonsterStrip }
  * and timings the runtime (graphics/monsterArt.ts, rendering/MonsterAnimator.ts)
  * expects for the three priority monsters. A contract stays `pending` until its
  * five strips exist; only `integrated` contracts are loaded. Until then each
- * monster keeps its Pass 2 idle sheet (or the borrowed, tinted Skeleton sheet
- * for the Brute) with procedural motion.
+ * monster keeps its Pass 2 idle sheet with procedural motion. The Skeleton Brute
+ * is integrated (Pass 4B); the borrowed, tinted Skeleton sheet stays its fallback
+ * if a strip fails to load.
  *
  * Shared rules for every strip:
  *   - one horizontal transparent PNG per state, `frames` cells of frameWidth x frameHeight
@@ -42,6 +43,7 @@ function contract(
   standHeight: readonly [number, number],
   walk: { frames: number; fps: number },
   special: Omit<MonsterSpecialStrip, 'url' | 'frames' | 'fps'>,
+  status: AnimContractStatus = 'pending',
 ): MonsterAnimContract {
   const strip = (state: string, frames: number, fps: number): MonsterStrip => ({ url: `${DIR}/${id}/${state}.png`, frames, fps });
   const specialFrames = special.raise + special.hold + special.impact + special.recovery;
@@ -52,7 +54,7 @@ function contract(
     frameHeight: cell.h,
     feetRow: cell.feetRow,
     homeScale,
-    status: 'pending',
+    status,
     standHeight,
     anims: {
       idle: strip('idle', 2, 3),
@@ -81,7 +83,7 @@ export const MONSTER_ANIM_ART: Readonly<Record<string, MonsterAnimContract>> = {
   // height stays 88-100 source px (idle fitted at ~94), and rows 142-143 stay clear below the feet.
   crypt_brute: contract('crypt_brute', { w: 176, h: 144, feetRow: 142 }, 1.45, [88, 100], { frames: 6, fps: 9 }, {
     raise: 3, hold: 2, impact: 2, recovery: 3, skills: ['brute_smash_story'], windupMs: 1400,
-  }),
+  }, 'integrated'),
 };
 
 /** Texture key of one state's strip. */

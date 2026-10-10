@@ -1,0 +1,9 @@
+IMAGE GENERATION ONLY. Do not edit, create or delete any repository file except copying the generated PNG as instructed. Do not run tests, do not fit, resize or post-process.
+
+Use your built-in image generation tool (image_gen) exactly once to generate ONE image, then copy the generated PNG file to:
+  art-source/candidates/pass-4b-skeleton-brute/raw/__OUT__
+Then print the original generated file path and stop.
+
+Attached image = LOCKED identity and style reference: "Skeleton Brute", shown in two near-identical idle poses facing right. Draw THIS EXACT character. Do not redesign anything: same large rounded ivory skull, same angry dark eye sockets with small amber pupils, same jaw and teeth, same broad shoulders and muscular bone-sinew arms, same ribcage, same brown cloth arm wraps, same torn brown loincloth, same short bowed legs and big bony feet, same stone hammer (grey cracked stone head bound with brown leather straps in an X, short wooden handle) with identical shape and size in every figure, same palette, same thick dark outline, same smooth illustrated chibi fantasy MMORPG rendering (not pixel art, not 3D, not photo). Same body size in every figure: never taller, never bigger. No armour, horns, extra bones, glow, motion lines, dust, shockwave, impact effects, text, ground, background, or shadow.
+
+Image content: a clean animation pose sheet on a fully TRANSPARENT background (real alpha; no white, black, grey or checkerboard backdrop), landscape 1536x1024, __LAYOUT__, evenly spaced slots with generous empty space between figures so nothing touches or overlaps. Every figure faces RIGHT, is drawn at exactly the same scale as every other figure, with its feet on its row's common flat ground line. No grid lines, frames, labels or numbers.

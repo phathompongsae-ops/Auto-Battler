@@ -1,0 +1,2 @@
+{ "sheet": "art-source/monsters/crypt_brute/pass-4b/source/special-b-sheet-v2.png", "out": "art-source/monsters/crypt_brute/pass-4b/fit/special-recovery.png", "anchor": 0, "idleBackFoot": 54, "x": "backfoot",
+  "frames": [{ "fig": 3, "y": 946 }, { "fig": 4, "y": 947 }, { "fig": 5, "y": 947 }] }

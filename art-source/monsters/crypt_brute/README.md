@@ -1,11 +1,13 @@
-# Skeleton Brute (`crypt_brute`) production art: staging
+# Skeleton Brute (`crypt_brute`) production art: sources
 
-The contract is `pending` (`src/data/monsterAnimArt.ts`). Nothing here is loaded by the game.
+The contract is **integrated** (Pass 4B, 2026-10-10): the game loads all five strips from
+`public/assets/monsters/crypt_brute/`. This folder holds their sources. Nothing here is loaded by the game.
+`idle.png` is the shipped idle, and `pass-4b/` holds the walk / attack / special / hit provenance.
 
 | File | What |
 |---|---|
 | `source/reference-idle-pair.png` | **Locked identity / style reference**, user-supplied and approved 2026-10-10. Do not redesign: the skull, proportions, stone hammer, wraps and loincloth, palette and silhouette are fixed for every state. Its two poses are the idle. |
-| `idle.png` | Staged production idle: 2 × 176×144, feet row 142. |
+| `idle.png` | Production idle (shipped as `public/assets/monsters/crypt_brute/idle.png`): 2 × 176×144, feet row 142. |
 | `fit-idle.mjs` | Reproduces `idle.png` byte for byte from the reference (the command is in its header). |
 
 ## Contract (176×144, feet row 142, standing 88–100)

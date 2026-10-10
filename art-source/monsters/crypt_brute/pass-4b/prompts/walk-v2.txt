@@ -1,0 +1,19 @@
+IMAGE GENERATION ONLY. Do not edit, create or delete any repository file except copying the generated PNG as instructed. Do not run tests, do not fit, resize or post-process.
+
+Use your built-in image generation tool (image_gen) exactly once to generate ONE image, then copy the generated PNG file to:
+  art-source/candidates/pass-4b-skeleton-brute/raw/walk-sheet-v2.png
+Then print the original generated file path and stop.
+
+Attached image = LOCKED identity and style reference: "Skeleton Brute", shown in two near-identical idle poses facing right. Draw THIS EXACT character. Do not redesign anything: same large rounded ivory skull, same angry dark eye sockets with small amber pupils, same jaw and teeth, same broad shoulders and muscular bone-sinew arms, same ribcage, same brown cloth arm wraps, same torn brown loincloth, same short bowed legs and big bony feet, same stone hammer (grey cracked stone head bound with brown leather straps in an X, short wooden handle) with identical shape and size in every figure, same palette, same thick dark outline, same smooth illustrated chibi fantasy MMORPG rendering (not pixel art, not 3D, not photo). Same body size in every figure: never taller, never bigger. No armour, horns, extra bones, glow, motion lines, dust, shockwave, impact effects, text, ground, background, or shadow.
+
+Image content: a clean animation pose sheet on a fully TRANSPARENT background (real alpha; no white, black, grey or checkerboard backdrop), landscape 1536x1024, two rows of four slots, evenly spaced slots with generous empty space between figures so nothing touches or overlaps. Every figure faces RIGHT, is drawn at exactly the same scale as every other figure, with its feet on its row's common flat ground line. No grid lines, frames, labels or numbers.
+  Row 1, slot 1: an exact copy of the reference idle pose (unchanged), the scale anchor.
+  Row 1, slots 2-4 and Row 2, slots 1-3: a 6-frame heavy walk cycle in place, in order:
+    W1 contact: right foot planted forward, left foot back, both feet flat on the ground.
+    W2 down: weight sinks onto the front foot, knees bend; the whole body is LOWER by a small amount (about 3 % of its height).
+    W3 passing: the back foot lifts a little and passes under the body; body height back to normal.
+    W4 contact: mirror of W1 with the legs swapped: left foot planted forward, right foot back.
+    W5 down: mirror of W2 with the legs swapped; exactly the same small dip as W2.
+    W6 passing: mirror of W3 with the legs swapped.
+  Row 2, slot 4: empty.
+Rules: the two halves of the cycle must match (W2 and W5 dip the same; W3 and W6 rise the same; neither is taller than the idle). The head and torso stay above the same spot and keep the same forward lean as the idle; only a mild shoulder weight shift. The hammer stays held in both hands across the body at hip height exactly as in the idle, with only a slight bob. Slow, heavy, deliberate short steps. Not comedic, not fast, not agile.

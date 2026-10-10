@@ -1,0 +1,19 @@
+IMAGE GENERATION ONLY. Do not edit, create or delete any repository file except copying the generated PNG as instructed. Do not run tests, do not fit, resize or post-process.
+
+Use your built-in image generation tool (image_gen) exactly once to generate ONE image, then copy the generated PNG file to:
+  art-source/candidates/pass-4b-skeleton-brute/raw/special-b-sheet-v2.png
+Then print the original generated file path and stop.
+
+Attached image = LOCKED identity and style reference: "Skeleton Brute", shown in two near-identical idle poses facing right. Draw THIS EXACT character. Do not redesign anything: same large rounded ivory skull, same angry dark eye sockets with small amber pupils, same jaw and teeth, same broad shoulders and muscular bone-sinew arms, same ribcage, same brown cloth arm wraps, same torn brown loincloth, same short bowed legs and big bony feet, same stone hammer (grey cracked stone head bound with brown leather straps in an X, short wooden handle) with identical shape and size in every figure, same palette, same thick dark outline, same smooth illustrated chibi fantasy MMORPG rendering (not pixel art, not 3D, not photo). Same body size in every figure: never taller, never bigger. No armour, horns, extra bones, glow, motion lines, dust, shockwave, impact effects, text, ground, background, or shadow.
+
+Image content: a clean animation pose sheet on a fully TRANSPARENT background (real alpha; no white, black, grey or checkerboard backdrop), landscape 1536x1024, two rows of three slots, evenly spaced slots with generous empty space between figures so nothing touches or overlaps. Every figure faces RIGHT, is drawn at exactly the same scale as every other figure, with its feet on its row's common flat ground line. No grid lines, frames, labels or numbers.
+  Row 1, slot 1: an exact copy of the reference idle pose (unchanged), the scale anchor.
+  Row 1, slots 2-3: "Bone Smash" IMPACT, 2 frames:
+    I1: the moment of the slam: the hammer has been brought down hard from overhead in a big arc and the stone head is RESTING ON THE GROUND LINE (its bottom touching the same ground the feet stand on) just in front of the front foot; arms fully extended forward and down, torso bent deeply forward, skull low, knees bent deep, feet wide and planted.
+    I2: a fraction later: same slam pose with the stone head still resting on the ground; the body sinks very slightly lower.
+  Row 2, slots 1-3: "Bone Smash" RECOVERY, 3 frames:
+    V1: the stone head just lifted off the ground, torso still bent low.
+    V2: torso rising, hammer coming back up toward hip height.
+    V3: almost back to the idle ready stance (hammer across the body at hip height).
+Rules: feet stay planted in the same place in every frame; no dust, cracks, shockwave or effects of any kind; the hammer is identical in shape and size.
+Leave at least 120 px of fully empty space between the right edge of the image and the hammer of the rightmost figure, and at least 80 px between neighbouring figures; nothing may touch or cross the image border.

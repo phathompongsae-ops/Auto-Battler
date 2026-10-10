@@ -1,0 +1,18 @@
+IMAGE GENERATION ONLY. Do not edit, create or delete any repository file except copying the generated PNG as instructed. Do not run tests, do not fit, resize or post-process.
+
+Use your built-in image generation tool (image_gen) exactly once to generate ONE image, then copy the generated PNG file to:
+  art-source/candidates/pass-4b-skeleton-brute/raw/special-a-sheet.png
+Then print the original generated file path and stop.
+
+Attached image = LOCKED identity and style reference: "Skeleton Brute", shown in two near-identical idle poses facing right. Draw THIS EXACT character. Do not redesign anything: same large rounded ivory skull, same angry dark eye sockets with small amber pupils, same jaw and teeth, same broad shoulders and muscular bone-sinew arms, same ribcage, same brown cloth arm wraps, same torn brown loincloth, same short bowed legs and big bony feet, same stone hammer (grey cracked stone head bound with brown leather straps in an X, short wooden handle) with identical shape and size in every figure, same palette, same thick dark outline, same smooth illustrated chibi fantasy MMORPG rendering (not pixel art, not 3D, not photo). Same body size in every figure: never taller, never bigger. No armour, horns, extra bones, glow, motion lines, dust, shockwave, impact effects, text, ground, background, or shadow.
+
+Image content: a clean animation pose sheet on a fully TRANSPARENT background (real alpha; no white, black, grey or checkerboard backdrop), landscape 1536x1024, two rows of three slots, each row tall enough for a hammer raised high overhead, evenly spaced slots with generous empty space between figures so nothing touches or overlaps. Every figure faces RIGHT, is drawn at exactly the same scale as every other figure, with its feet on its row's common flat ground line. No grid lines, frames, labels or numbers.
+  Row 1, slot 1: an exact copy of the reference idle pose (unchanged), the scale anchor.
+  Row 1, slots 2-3 and Row 2, slot 1: "Bone Smash" RAISE, 3 frames:
+    R1: starting to lift: the hammer rises from hip height up to chest height, knees bending.
+    R2: hammer at head height, arms lifting, torso straightening and leaning back slightly.
+    R3: hammer fully raised high overhead in both hands, stone head above and slightly behind the skull, arms up, torso leaning back, feet wide and planted.
+  Row 2, slots 2-3: "Bone Smash" HOLD, 2 frames:
+    H1: the menacing overhead hold: same as R3, tense, dangerous.
+    H2: almost identical to H1 with a tiny tremble (the hammer a few pixels higher), so the two can loop.
+Rules: feet stay planted in the same place in every frame; the body is never bigger or taller, only the raised arms and hammer go above the head; the hammer is identical in shape and size.

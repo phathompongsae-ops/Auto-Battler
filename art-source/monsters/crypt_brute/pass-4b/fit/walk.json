@@ -1,0 +1,2 @@
+{ "sheet": "art-source/monsters/crypt_brute/pass-4b/source/walk-sheet-v2.png", "out": "art-source/monsters/crypt_brute/pass-4b/fit/walk.png", "anchor": 0, "anchorHeight": 94.5, "idleUpper": 87.5, "x": "upper",
+  "frames": [{ "fig": 1 }, { "fig": 2 }, { "fig": 3 }, { "fig": 4 }, { "fig": 5 }, { "fig": 6 }] }

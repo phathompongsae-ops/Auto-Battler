@@ -41,11 +41,11 @@ The facing fix applies to fallback monsters too.
 procedural bob, lean, lunge or recoil. Hit flash and shadow are unchanged.
 
 **Skeleton Brute:** `MonsterDef.artId = 'crypt_brute'` is the dedicated slot.
-While it is pending, the Brute keeps the Skeleton sheet with its `#c8b2a4`
+It is integrated (Pass 4B). If a strip fails to load, the Brute keeps the Skeleton sheet with its `#c8b2a4`
 tint and the Skeleton placeholder. Once dedicated art loads, it draws untinted.
 Its body, hit radius and speed come from its tier scale either way.
 
-## Art contracts (all `pending`)
+## Art contracts (Lord and Guardian `pending`; Skeleton Brute `integrated` in Pass 4B)
 
 Shared rules:
 

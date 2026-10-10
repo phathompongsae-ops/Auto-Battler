@@ -1,0 +1,2 @@
+{ "sheet": "art-source/monsters/crypt_brute/pass-4b/source/attack-sheet-v4.png", "out": "art-source/monsters/crypt_brute/pass-4b/fit/attack.png", "anchor": 0, "idleBackFoot": 54, "x": "backfoot",
+  "frames": [{ "fig": 1, "y": 482 }, { "fig": 2, "y": 478 }, { "fig": 3, "y": 943, "dx": -2 }, { "fig": 4, "y": 943 }, { "fig": 5, "y": 943 }] }

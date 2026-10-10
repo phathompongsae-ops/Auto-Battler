@@ -1,0 +1,2 @@
+{ "sheet": "art-source/monsters/crypt_brute/pass-4b/source/special-impact-sheet.png", "out": "art-source/monsters/crypt_brute/pass-4b/fit/special-impact.png", "anchor": 0, "idleBackFoot": 54, "idleHips": 93.5, "x": "backfoot",
+  "frames": [{ "fig": 1, "y": 685 }, { "fig": 2, "y": 685 }] }

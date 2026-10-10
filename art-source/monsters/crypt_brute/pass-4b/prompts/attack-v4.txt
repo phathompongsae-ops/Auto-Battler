@@ -1,0 +1,19 @@
+IMAGE GENERATION ONLY. Do not edit, create or delete any repository file except copying the generated PNG as instructed. Do not run tests, do not fit, resize or post-process.
+
+Use your built-in image generation tool (image_gen) exactly once to generate ONE image, then copy the generated PNG file to:
+  art-source/candidates/pass-4b-skeleton-brute/raw/attack-sheet-v4.png
+Then print the original generated file path and stop.
+
+Attached image = LOCKED identity and style reference: "Skeleton Brute", shown in two near-identical idle poses facing right. Draw THIS EXACT character. Do not redesign anything: same large rounded ivory skull, same angry dark eye sockets with small amber pupils, same jaw and teeth, same broad shoulders and muscular bone-sinew arms, same ribcage, same brown cloth arm wraps, same torn brown loincloth, same short bowed legs and big bony feet, same stone hammer (grey cracked stone head bound with brown leather straps in an X, short wooden handle) with identical shape and size in every figure, same palette, same thick dark outline, same smooth illustrated chibi fantasy MMORPG rendering (not pixel art, not 3D, not photo). Same body size in every figure: never taller, never bigger. No armour, horns, extra bones, glow, motion lines, dust, shockwave, impact effects, text, ground, background, or shadow.
+
+Image content: a clean animation pose sheet on a fully TRANSPARENT background (real alpha; no white, black, grey or checkerboard backdrop), landscape 1536x1024, two rows of three slots, evenly spaced slots with generous empty space between figures so nothing touches or overlaps. Every figure faces RIGHT, is drawn at exactly the same scale as every other figure, with its feet on its row's common flat ground line. No grid lines, frames, labels or numbers.
+  Row 1, slot 1: an exact copy of the reference idle pose (unchanged), the scale anchor.
+  Row 1, slots 2-3 and Row 2, slots 1-3: a 5-frame short, heavy, blunt basic hammer attack that STARTS AT THE MOMENT OF CONTACT:
+    A1 contact: the hammer has just struck forward: both arms swung the hammer forward and slightly down so the stone head is out in front of the body at HIP-to-KNEE height, hitting an (invisible) target; torso leaning forward, feet planted.
+    A2 follow-through: the hammer continues forward past the target at KNEE height (no lower than A1 by more than a little), body weight fully forward.
+    A3 follow-through end: hammer head at its lowest, at knee height in front, shoulders hunched.
+    A4 recovery: pulling the hammer back up toward the body, torso rising.
+    A5 recovery end: almost back to the idle ready stance (hammer across the body at hip height).
+Rules: feet stay planted in the same place in every frame (no stepping, no sliding); a modest, grounded swing, not a huge boss swing; no wind-up frame.
+Leave at least 120 px of fully empty space between the right edge of the image and the hammer of the rightmost figure, and at least 80 px between neighbouring figures; nothing may touch or cross the image border.
+CRITICAL: the hammer head must NEVER go lower on the image than the soles of the feet. At its lowest point the bottom of the stone head is at ANKLE height, clearly above the ground line the feet stand on (the feet are always the lowest thing in every figure).

@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { MONSTER_ANIM_STATES, MONSTER_ART, MONSTER_ART_TINT, type MonsterAnimState, type MonsterArtDef } from '../data/monsterArt';
-import { animStripKey, MONSTER_ANIM_ART } from '../data/monsterAnimArt';
+import { animStripKey, MONSTER_ANIM_ART, type MonsterAnimContract } from '../data/monsterAnimArt';
 import type { MonsterDef } from '../data/monsterData';
 
 /*
@@ -20,11 +20,32 @@ const integrated = () => Object.values(MONSTER_ANIM_ART).filter((a) => a.status 
 export function preloadMonsterArt(scene: Phaser.Scene): void {
   if (monsterArtDisabled()) return;
   for (const art of Object.values(MONSTER_ART)) scene.load.spritesheet(art.key, art.url, { frameWidth: art.frameWidth, frameHeight: art.frameHeight });
-  for (const art of integrated()) {
-    for (const state of MONSTER_ANIM_STATES) {
-      scene.load.spritesheet(animStripKey(art, state), art.anims[state].url, { frameWidth: art.frameWidth, frameHeight: art.frameHeight });
-    }
+  for (const art of integrated()) queueAnimStrips(scene, art);
+}
+
+function queueAnimStrips(scene: Phaser.Scene, art: MonsterAnimContract): void {
+  for (const state of MONSTER_ANIM_STATES) {
+    scene.load.spritesheet(animStripKey(art, state), art.anims[state].url, { frameWidth: art.frameWidth, frameHeight: art.frameHeight });
   }
+}
+
+/**
+ * (Re)load an integrated contract's strips after the scene has started (tests restore real art with it
+ * after removing a strip or a fixture). Resolves true when all five are present; used by monsters created afterwards.
+ */
+export function reloadMonsterAnimStrips(scene: Phaser.Scene, artId: string): Promise<boolean> {
+  const art = MONSTER_ANIM_ART[artId];
+  if (!art || art.status !== 'integrated' || monsterArtDisabled()) return Promise.resolve(false);
+  const present = () => MONSTER_ANIM_STATES.every((s) => scene.textures.exists(animStripKey(art, s)));
+  if (present()) return Promise.resolve(true);
+  return new Promise((done) => {
+    queueAnimStrips(scene, art);
+    scene.load.once(Phaser.Loader.Events.COMPLETE, () => {
+      applyMonsterArtFilter(scene);
+      done(present());
+    });
+    scene.load.start();
+  });
 }
 
 /** Painted 2x art drawn at half scale: smooth (linear) filtering, not the global pixel-art nearest filter. */

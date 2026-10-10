@@ -26,6 +26,8 @@ import { FIELD_MAP_ID, MAPS, mapSize } from '../data/maps';
 import { spawnPlan } from '../world/mapRules';
 import { installMonsterAnimFixture, removeMonsterAnimFixture } from './monsterAnimFixture';
 import type { MonsterAnimState } from '../data/monsterArt';
+import { animStripKey, MONSTER_ANIM_ART } from '../data/monsterAnimArt';
+import { reloadMonsterAnimStrips } from '../graphics/monsterArt';
 import { NPCS } from '../data/npcData';
 import { npcMarker, questPhase } from '../quests/questText';
 import { CLASS_1_JOB_CHANGE } from '../data/jobChangeData';
@@ -715,15 +717,17 @@ export function createDevApi(world: CombatWorld, overlays: WorldOverlays) {
     /** TEST ONLY: code-drawn Visual Pass 4 strips for a pending art contract (used by monsters created afterwards, e.g. on reset). */
     installMonsterAnimFixture: (artId: string) => installMonsterAnimFixture(world.player.scene, artId),
     removeMonsterAnimFixture: (artId: string) => removeMonsterAnimFixture(world.player.scene, artId),
-    /** TEST ONLY: the fixture with staged real strips (state -> image URL) in place of those states' stand-ins; false on a size mismatch. */
-    installMonsterAnimReview: async (artId: string, urls: Partial<Record<MonsterAnimState, string>>) => {
-      const entries = await Promise.all(Object.entries(urls).map(([state, url]) => new Promise<[string, HTMLImageElement]>((done, fail) => {
-        const img = new Image();
-        img.onload = () => done([state, img]);
-        img.onerror = () => fail(new Error(`could not load the ${state} strip`));
-        img.src = url!;
-      })));
-      return installMonsterAnimFixture(world.player.scene, artId, Object.fromEntries(entries));
+    /** TEST ONLY: drop one loaded strip of an animation set (as if its file failed to load); monsters created afterwards fall back. */
+    dropMonsterAnimStrip: (artId: string, state: MonsterAnimState) => {
+      const art = MONSTER_ANIM_ART[artId], tex = world.player.scene.textures, key = art && animStripKey(art, state);
+      if (!key || !tex.exists(key)) return false;
+      tex.remove(key);
+      return true;
+    },
+    /** TEST ONLY: clear fixture / partial strips of an integrated set and load its real files again (resolves true when all five are back). */
+    restoreMonsterAnimStrips: (artId: string) => {
+      removeMonsterAnimFixture(world.player.scene, artId);
+      return reloadMonsterAnimStrips(world.player.scene, artId);
     },
     /**
      * Back to a clean slate on a freshly loaded map (default: the Field, the

@@ -50,7 +50,7 @@ To integrate later: place the five strips at
 Run `node tools/monster-art/stripMetrics.mjs <strip> <w> <h> <feetRow> <min> <max>`
 per strip, then the unit and browser suites.
 
-## Skeleton Brute: canvas change and staged idle (2026-10-10)
+## Skeleton Brute: canvas change and staged idle (2026-10-10; superseded by the integration below)
 
 - The `crypt_brute` contract is now **176×144, feet row 142** (lowest pixel on
   row 141, rows 142–143 clear). The standing band is still 88–100. The canvas is
@@ -69,3 +69,26 @@ per strip, then the unit and browser suites.
 - Still needed before integration: walk (6), attack (5, contact first), special
   (Bone Smash: raise 3, hold 2, impact 2, recovery 3) and hit (3) strips. Each
   must be drawn from the locked reference at the same scale.
+
+## Skeleton Brute: production integration (2026-10-10)
+
+- **Integrated.** `MONSTER_ANIM_ART.crypt_brute.status = 'integrated'`, and all five strips are in
+  `public/assets/monsters/crypt_brute/`: idle 2, walk 6 @ 9, attack 5 @ 12 (contact on frame 0),
+  special 10 @ 12 (raise 3, hold 2, impact 2, recovery 3), hit 3 @ 15.
+- The generic runtime picks them up with no Brute-specific code. The borrowed, tinted Skeleton sheet
+  is used only if a strip fails to load: the resolver never uses a half-loaded set.
+- Generated with Codex `image_gen` (approved for this pass) from the locked reference. Provenance and
+  byte-identical reproduction are in `art-source/monsters/crypt_brute/pass-4b/`.
+- Browser suite `tests/browser/bruteAnim.test.mjs` (BP-1…16; `--brute-review`, also in the default
+  and `--anim-review` runs) covers:
+  - real fights facing both ways and circling;
+  - body, shadow and Bone Smash timing against the fallback;
+  - Dodge through real damage, and death;
+  - the test-only missing-strip fallback (`debug.dropMonsterAnimStrip`) and restore
+    (`debug.restoreMonsterAnimStrips`);
+  - no repeated loading;
+  - performance against the fallback;
+  - viewport captures.
+- **Performance.** The first Crypt fight of a session hitches once (about 120 ms) with the fallback
+  art too, so it is not caused by the strips. Measured from the same warm state, real strips match
+  the fallback (p95 7.2 against 7.1 ms).
