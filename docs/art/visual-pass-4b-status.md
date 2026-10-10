@@ -49,3 +49,23 @@ To integrate later: place the five strips at
 `public/assets/monsters/<id>/<state>.png` and set `status: 'integrated'`.
 Run `node tools/monster-art/stripMetrics.mjs <strip> <w> <h> <feetRow> <min> <max>`
 per strip, then the unit and browser suites.
+
+## Skeleton Brute: canvas change and staged idle (2026-10-10)
+
+- The `crypt_brute` contract is now **176×144, feet row 142** (lowest pixel on
+  row 141, rows 142–143 clear). The standing band is still 88–100. The canvas is
+  room for the hammer and the animation, not a bigger body (see Pass 4A).
+- Locked identity reference: `art-source/monsters/crypt_brute/source/reference-idle-pair.png`,
+  user-supplied. Its two poses are the idle source.
+- Staged production idle: `art-source/monsters/crypt_brute/idle.png`
+  (2 × 176×144, standing 94 / 95, feet centred within 0.5 px). It passes the
+  validator, and `tests/unit/stripMetrics.test.ts` checks it. It is **not** in
+  `public/assets`. The contract stays `pending` because the resolver uses
+  strips only when all five exist.
+- Runtime review: `npm run test:browser -- --brute-idle-review` (also in the
+  default and `--anim-review` runs). The real idle is loaded through the
+  test-only `debug.installMonsterAnimReview`. The four states without art keep
+  the code-drawn fixture boxes, and nothing ships.
+- Still needed before integration: walk (6), attack (5, contact first), special
+  (Bone Smash: raise 3, hold 2, impact 2, recovery 3) and hit (3) strips. Each
+  must be drawn from the locked reference at the same scale.

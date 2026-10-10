@@ -65,7 +65,7 @@ Shared rules:
 
 | | Crypt Lord | Grove Guardian | Skeleton Brute |
 |---|---|---|---|
-| Cell / feet row | 224×192 / 190 | 208×160 / 158 | 112×108 / 106 |
+| Cell / feet row | 224×192 / 190 | 208×160 / 158 | 176×144 / 142 (was 112×108 / 106; see below) |
 | Standing height (source px) | 150–168 | 124–140 | 88–100 (shorter than the Knight's 106) |
 | Idle | 2 @ 3 fps | 2 @ 3 fps | 2 @ 3 fps |
 | Walk | 8 @ 8 fps | 8 @ 8 fps | 6 @ 9 fps |
@@ -73,6 +73,18 @@ Shared rules:
 | Special | Grave Slam (both profiles), 1100 ms: raise 3, hold 2, impact 2, recovery 3 @ 12 fps | Stomp, 1000 ms: same segments | Bone Smash (Story), 1400 ms: same segments |
 | Hit | 3 @ 15 fps | 3 @ 15 fps | 3 @ 15 fps |
 | World body | 50×30 from (−25, +5); hit radius 24 | 42×25.2 from (−21, +4.2); hit radius 22 | 29×17.4 from (−14.5, +2.9); hit radius 16 |
+
+**Skeleton Brute canvas (2026-10-10).** The Brute's cell grew from 112×108 / 106
+to **176×144, feet row 142**. The lowest visible body or weapon pixel normally
+ends on row 141, and rows 142–143 stay transparent. The growth is only room for
+animation excursion: the hammer reaches 1.64× further forward than the body
+reaches back, plus the walk, the swing and the overhead Bone Smash. It is **not**
+a bigger Brute. The standing height stays 88–100 source px (idle fitted at
+94 / 95), the draw scale stays 0.5, and the world body, hit radius, speed and
+shadow come from the tier scale, unchanged. The old cell could not hold the
+approved design: centring the feet shrank it to 75–77 px, and a full-figure fit
+put the feet 13 px off centre, which made mirroring jump. The validator keeps
+the 88–100 band, so a Brute scaled up to fill the canvas fails.
 
 Integration later: drop in the five PNGs, set `status: 'integrated'`. The unit
 contract tests then check every file's exact size.

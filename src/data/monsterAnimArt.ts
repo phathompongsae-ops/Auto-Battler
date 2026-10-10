@@ -76,7 +76,10 @@ export const MONSTER_ANIM_ART: Readonly<Record<string, MonsterAnimContract>> = {
   }),
   // Story Brute: dedicated art replacing the tinted Skeleton. Taller than the Skeleton (40.5 world px),
   // shorter than the Knight (53 world px = 106 source px). Bone Smash winds up 1400 ms.
-  crypt_brute: contract('crypt_brute', { w: 112, h: 108, feetRow: 106 }, 1.45, [88, 100], { frames: 6, fps: 9 }, {
+  // The 176x144 cell is room for the hammer's reach (1.64x the body's back reach), the walk, the swing
+  // and the overhead Bone Smash, with the feet centred: the figure is NOT drawn bigger. Its standing
+  // height stays 88-100 source px (idle fitted at ~94), and rows 142-143 stay clear below the feet.
+  crypt_brute: contract('crypt_brute', { w: 176, h: 144, feetRow: 142 }, 1.45, [88, 100], { frames: 6, fps: 9 }, {
     raise: 3, hold: 2, impact: 2, recovery: 3, skills: ['brute_smash_story'], windupMs: 1400,
   }),
 };

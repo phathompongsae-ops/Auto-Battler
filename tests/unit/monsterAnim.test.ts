@@ -18,7 +18,7 @@ const pub = (url: string) => join(process.cwd(), 'public', url);
 
 describe('Visual Pass 4 animation contracts', () => {
   test('the three priority monsters: shared cell, feet row 2 px above the bottom, drawn at exactly 0.5', () => {
-    const cells = { crypt_lord: [224, 192, 190], grove_guardian: [208, 160, 158], crypt_brute: [112, 108, 106] };
+    const cells = { crypt_lord: [224, 192, 190], grove_guardian: [208, 160, 158], crypt_brute: [176, 144, 142] };
     assert.deepEqual(Object.keys(MONSTER_ANIM_ART).sort(), Object.keys(OWNERS).sort());
     for (const [id, owner] of Object.entries(OWNERS)) {
       const art = MONSTER_ANIM_ART[id];

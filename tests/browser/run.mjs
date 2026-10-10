@@ -32,6 +32,7 @@ import { dodgeSuite } from './dodge.test.mjs';
 import { potionSuite } from './potions.test.mjs';
 import { monsterMotionSuite } from './monsterMotion.test.mjs';
 import { monsterAnimSuite } from './monsterAnim.test.mjs';
+import { bruteIdleSuite } from './bruteIdle.test.mjs';
 import { pass3Suite } from './pass3.test.mjs';
 
 const ENVIRONMENT_REVIEW = process.argv.includes('--environment-review');
@@ -43,6 +44,7 @@ const PERF_REVIEW = process.argv.includes('--perf-review');
 const WARRIOR_REVIEW = process.argv.includes('--warrior-review');
 const STORY_REVIEW = process.argv.includes('--story-review');
 const ANIM_REVIEW = process.argv.includes('--anim-review');
+const BRUTE_IDLE_REVIEW = process.argv.includes('--brute-idle-review');
 const PORT = ENVIRONMENT_REVIEW ? 5201 : HUD_REVIEW ? 5202 : 5199;
 const URL = `http://127.0.0.1:${PORT}/`;
 const OUT = ensureDir(join(process.cwd(), 'test-results'));
@@ -81,6 +83,9 @@ try {
   if (ANIM_REVIEW) {
     await monsterMotionSuite(b, t, shot);
     await monsterAnimSuite(b, t, shot);
+    await bruteIdleSuite(b, t, shot);
+  } else if (BRUTE_IDLE_REVIEW) {
+    await bruteIdleSuite(b, t, shot);
   } else if (WARRIOR_REVIEW) {
     for (let i = 0; i < 3; i++) await warriorSkillSuite(b, t);
   } else if (STORY_REVIEW) {
@@ -125,6 +130,7 @@ try {
     await pass3Suite(b, t, shot, URL, boot);
     await monsterMotionSuite(b, t, shot);
     await monsterAnimSuite(b, t, shot);
+    await bruteIdleSuite(b, t, shot);
     await b.goto(`${URL}?questFixtures=1`);
     await boot();
 

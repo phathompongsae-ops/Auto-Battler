@@ -19,24 +19,34 @@ function strip(cellWidth: number, cellHeight: number, boxes: [number, number, nu
 }
 
 describe('monster strip alpha / height validator', () => {
-  const spec = { cellWidth: 112, cellHeight: 108, feetRow: 106, frames: 2, stand: [88, 100] as [number, number] };
+  // The live Skeleton Brute contract (176x144, feet row 142, standing 88-100): a wide cell for weapon excursion, same body height.
+  const brute = MONSTER_ANIM_ART.crypt_brute;
+  const spec = { cellWidth: brute.frameWidth, cellHeight: brute.frameHeight, feetRow: brute.feetRow, frames: 2, stand: brute.standHeight };
+
+  test('the Brute contract: 176x144 cell, feet row 142 (lowest pixel 141, rows 142-143 clear), standing band still 88-100', () => {
+    assert.deepEqual([spec.cellWidth, spec.cellHeight, spec.feetRow], [176, 144, 142]);
+    assert.deepEqual(spec.stand, [88, 100]);
+  });
 
   test('a well-formed strip passes and reports its bounds (PNG encode / decode round-trips)', () => {
-    const png = strip(112, 108, [[40, 12, 70, 105], [41, 14, 71, 104]]);
+    const png = strip(176, 144, [[70, 48, 100, 141], [71, 50, 101, 140]]);
     const { problems, metrics } = checkStrip(png, spec);
     assert.deepEqual(problems, []);
-    assert.deepEqual([metrics.cells[0].top, metrics.cells[0].bottom, metrics.cells[0].height], [12, 105, 94]);
+    assert.deepEqual([metrics.cells[0].top, metrics.cells[0].bottom, metrics.cells[0].height], [48, 141, 94]);
     assert.equal(metrics.cells[1].height, 92);
   });
 
   test('catches wrong size, crops, feet below the row, floating feet and out-of-band heights', () => {
-    const fails = (boxes: [number, number, number, number][], frames = 2) => checkStrip(strip(112, 108, boxes), { ...spec, frames }).problems.join(' | ');
-    assert.match(fails([[40, 12, 70, 105], [40, 12, 70, 105]], 3), /width/);
-    assert.match(fails([[0, 12, 70, 105], [40, 12, 70, 105]]), /touches the cell edge/);
-    assert.match(fails([[40, 12, 70, 106], [40, 12, 70, 105]]), /on \/ below the feet row/);
-    assert.match(fails([[40, 12, 70, 95], [40, 12, 70, 105]]), /float 10 px/);
-    assert.match(fails([[40, 2, 70, 105], [40, 12, 70, 105]]), /standing height 104 outside 88-100/);
-    assert.match(fails([[40, 30, 70, 105], [40, 12, 70, 105]]), /standing height 76/);
+    const fails = (boxes: [number, number, number, number][], frames = 2) => checkStrip(strip(176, 144, boxes), { ...spec, frames }).problems.join(' | ');
+    assert.match(fails([[70, 48, 100, 141], [70, 48, 100, 141]], 3), /width/);
+    assert.match(fails([[0, 48, 100, 141], [70, 48, 100, 141]]), /touches the cell edge/);
+    assert.match(fails([[70, 48, 175, 141], [70, 48, 100, 141]]), /touches the cell edge/);
+    assert.match(fails([[70, 48, 100, 142], [70, 48, 100, 141]]), /on \/ below the feet row/);
+    assert.match(fails([[70, 48, 100, 131], [70, 48, 100, 141]]), /float 10 px/);
+    assert.match(fails([[70, 38, 100, 141], [70, 48, 100, 141]]), /standing height 104 outside 88-100/);
+    assert.match(fails([[70, 66, 100, 141], [70, 48, 100, 141]]), /standing height 76/);
+    // Room in the cell is not room in the band: a Brute scaled up to fill the canvas still fails.
+    assert.match(fails([[20, 2, 155, 141], [20, 2, 155, 141]]), /standing height 140 outside 88-100/);
     assert.throws(() => decodePng(Buffer.from('nope')), /not a PNG/);
   });
 
@@ -54,6 +64,20 @@ describe('monster strip alpha / height validator', () => {
     assert.ok(lord.every((h: number) => h >= band('crypt_lord')[0] && h <= band('crypt_lord')[1]), `lord ${lord}`);
     assert.ok(guardian.every((h: number) => h >= band('grove_guardian')[0] && h <= band('grove_guardian')[1]), `guardian ${guardian}`);
     assert.ok(knight.every((h: number) => h > band('crypt_brute')[1]), `knight ${knight} stays taller than the Brute band`);
+  });
+
+  test('staged Brute production idle (art-source, contract still pending) passes the 176x144 contract, feet centred', () => {
+    const png = decodePng(readFileSync(join(process.cwd(), 'art-source/monsters/crypt_brute/idle.png')));
+    const { problems, metrics } = checkStrip(png, { ...spec, frames: brute.anims.idle.frames });
+    assert.deepEqual(problems, []);
+    assert.deepEqual(metrics.cells.map((c: { height: number }) => c.height), [94, 95]);
+    // The lowest band also holds the hammer head, so the feet are measured on row 138, which only the feet cross.
+    for (let f = 0; f < 2; f++) {
+      const xs: number[] = [];
+      for (let x = 0; x < spec.cellWidth; x++) if (png.data[(138 * png.width + f * spec.cellWidth + x) * 4 + 3] >= 128) xs.push(x);
+      const centre = (xs[0] + xs[xs.length - 1]) / 2;
+      assert.ok(Math.abs(centre - (spec.cellWidth - 1) / 2) <= 1, `frame ${f} feet centre ${centre}`);
+    }
   });
 
   test('every integrated contract strip passes: exact size, no crop, feet on the row, idle / walk inside the standing band', () => {
