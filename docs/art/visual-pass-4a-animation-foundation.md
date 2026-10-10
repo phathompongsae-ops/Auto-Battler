@@ -55,7 +55,9 @@ Shared rules:
 - All five strips of one monster share one cell size and feet row.
 - Sources face right (east); the runtime mirrors them for left.
 - Drawn at 0.5 (2 source px per world px).
-- Feet centred horizontally on the feet row, with at least 2 px clear below.
+- Feet centred horizontally, standing **on** the feet row: the lowest visible
+  pixel is `feetRow − 1` (as in every approved sheet), so the last 2 rows stay
+  clear. Standing height = `feetRow −` top visible row.
 - No baked shadow, text, UI or background.
 - Basic attack is contact-first.
 - Special segments run raise → hold (looped until the wind-up ends) → impact →

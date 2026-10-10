@@ -13,7 +13,9 @@ import type { MonsterAnimSet, MonsterArtDef, MonsterSpecialStrip, MonsterStrip }
  *     (all five strips of one monster share the cell size and feetRow);
  *   - source faces right (east); the runtime mirrors it for left-facing;
  *   - 2 source px per world px (drawn at 0.5); feet centred horizontally on the
- *     cell, on `feetRow`, with at least 2 px clear below;
+ *     cell and standing ON `feetRow`: the lowest visible pixel is feetRow - 1, as in
+ *     every approved sheet, leaving the last 2 rows clear (checked by
+ *     tools/monster-art/stripMetrics.mjs; standing height = feetRow - top row);
  *   - no baked ground shadow (WorldOverlays draws it), no text, no UI, no background;
  *   - basic attack is contact-first (frame 0 = contact, drawn on the damage tick);
  *   - special: raise -> held loop until the wind-up ends -> impact (drawn on the
