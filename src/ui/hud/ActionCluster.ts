@@ -109,6 +109,9 @@ export class ActionCluster {
   update(now: number): void {
     const player = this.world.player;
     const c = player.combat;
+    // While a monster winds up a telegraph, compact screens let its ring show through the outer potion sockets (CSS).
+    const danger = String(this.world.monsters.some((m) => !m.combat.dead && this.world.skills.windingUp(m)));
+    if (this.el.dataset.danger !== danger) this.el.dataset.danger = danger;
     for (const live of this.slots) {
       if (live.action === 'hp_potion' || live.action === 'mp_potion') {
         const resource = live.action === 'hp_potion' ? 'hp' : 'mp';

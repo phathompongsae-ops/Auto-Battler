@@ -62,6 +62,10 @@ const en = {
   'hud.hpPotion': 'HP Potion',
   'hud.mpPotion': 'MP Potion',
   'hud.emptySkill': 'Empty skill slot',
+  'hud.playerStatuses': 'Your status effects',
+  'hud.targetStatuses': 'Target status effects',
+  'hud.enraged': 'Enraged',
+  'hud.windingUp': 'Winding up!',
 
   'currency.gold': 'Gold',
   'currency.diamond': 'Diamond',
@@ -145,6 +149,10 @@ const th: StringTable = {
   'hud.hpPotion': 'ยาฟื้น HP',
   'hud.mpPotion': 'ยาฟื้น MP',
   'hud.emptySkill': 'ช่องสกิลว่าง',
+  'hud.playerStatuses': 'สถานะของคุณ',
+  'hud.targetStatuses': 'สถานะของเป้าหมาย',
+  'hud.enraged': 'บ้าคลั่ง',
+  'hud.windingUp': 'เตรียมโจมตี!',
 
   'currency.gold': 'โกลด์',
   'currency.diamond': 'เพชร',

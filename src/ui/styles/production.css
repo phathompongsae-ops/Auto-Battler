@@ -336,3 +336,93 @@
    * over the player frame's HP / MP bars. Older lines still expire on their own timers. */
   .hud-loot__line:nth-last-child(n + 4) { display: none; }
 }
+
+/* ---------------------------------------------------------------------------
+ * Combat readability pass. Weight order: combat cluster > utilities / status >
+ * system strip. Status cells are static DOM reused by StatusRow: per frame only
+ * --cd and a seconds number change; no filters on anything that updates.
+ * ------------------------------------------------------------------------- */
+.hud__top-left { flex-direction: column; align-items: flex-start; gap: calc(4px * var(--ui-scale)); }
+
+/* Status rows: small square bronze-rimmed cells; buffs on steel, debuffs on a red warning rim. */
+.hud-status { display: flex; align-items: center; gap: calc(3px * var(--ui-scale)); pointer-events: none; }
+.hud-status[hidden], .hud-status__cell[hidden], .hud-status__more[hidden] { display: none !important; }
+.hud__top-left .hud-status { padding-left: calc(8px * var(--ui-scale)); }
+.hud-status__cell {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: max(20px, calc(24px * var(--ui-scale)));
+  height: max(20px, calc(24px * var(--ui-scale)));
+  border: 1px solid #b7975c;
+  border-radius: 4px;
+  background: linear-gradient(#34403f, #182126);
+  box-shadow: 0 1px 3px #0a0f15aa, inset 0 0 0 1px #0c1217;
+  color: var(--status-color, #e9d7ab);
+}
+.hud-status__cell[data-kind='debuff'] { border-color: #e0524a; background: linear-gradient(#4b2425, #211416); box-shadow: 0 1px 3px #0a0f15aa, inset 0 0 0 1px #0c1217, 0 0 0 1px #e0524a40; }
+.hud-status__cell .ui-icon { width: 72%; height: 72%; stroke-width: 2; fill: color-mix(in srgb, var(--status-color, #e9d7ab) 28%, transparent); }
+/* Elapsed time darkens the cell clockwise from 12 o'clock; what stays bright is what is left. */
+.hud-status__sweep { position: absolute; inset: 0; z-index: 1; border-radius: 3px; background: conic-gradient(#0a0f15b8 calc(var(--cd, 0) * 360deg), transparent 0); }
+.hud-status__cell.is-untimed .hud-status__sweep { display: none; }
+.hud-status__time {
+  position: absolute;
+  right: -2px;
+  bottom: -3px;
+  z-index: 2;
+  font-size: max(9px, calc(10px * var(--ui-scale)));
+  font-weight: 800;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: #fff6dc;
+  text-shadow: var(--hud-outline);
+}
+.hud-status__more { padding: 0 2px; font-size: max(10px, calc(11px * var(--ui-scale))); font-weight: 800; color: #ead2a0; text-shadow: var(--hud-outline); }
+.hud-status__cell.is-new { animation: hud-status-in 900ms ease-out 1; }
+@keyframes hud-status-in {
+  0% { transform: scale(1.35); box-shadow: 0 0 0 2px #ff6b5ecc, 0 0 12px 3px #ff4d42aa; }
+  100% { transform: scale(1); }
+}
+
+/* Boss / target row under the HP bar: slightly smaller cells; Enrage is a labelled red chip that stays while it lasts. */
+.hud-target .hud-status { margin-top: calc(1px * var(--ui-scale)); }
+.hud-target .hud-status__cell { width: max(18px, calc(20px * var(--ui-scale))); height: max(18px, calc(20px * var(--ui-scale))); }
+.hud-status__cell.has-label { width: auto; gap: calc(3px * var(--ui-scale)); padding: 0 calc(6px * var(--ui-scale)) 0 calc(2px * var(--ui-scale)); }
+.hud-status__cell.has-label .ui-icon { width: max(14px, calc(15px * var(--ui-scale))); height: max(14px, calc(15px * var(--ui-scale))); }
+.hud-status__label { font-size: var(--ui-text-xs); font-weight: 800; letter-spacing: .03em; line-height: 1.2; color: #ffe3dc; text-shadow: var(--hud-outline); white-space: nowrap; }
+.hud-status__cell[data-status='enraged'] { border-color: #ff6b5e; background: linear-gradient(#7a2320, #3a1212); box-shadow: 0 1px 3px #0a0f15aa, 0 0 6px #ff4d4266; color: #ffb199; }
+.hud-target--enraged { border-color: #c4574b; border-top-color: #e48a72; }
+.hud-target__state { color: #ffb08f; text-shadow: var(--hud-outline); }
+
+/* Combat cluster: one bronze rail through the five skill sockets ties them to ATK as a single control. */
+.hud-actions::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(circle at calc(206px * var(--ui-scale)) calc(162px * var(--ui-scale)),
+    transparent calc(110px * var(--ui-scale)), #0b111840 calc(111px * var(--ui-scale)),
+    #0b111840 calc(115.5px * var(--ui-scale)), #d4b26f66 calc(116.5px * var(--ui-scale)), #d4b26f66 calc(118px * var(--ui-scale)),
+    #0b111840 calc(119px * var(--ui-scale)), #0b111840 calc(123px * var(--ui-scale)), transparent calc(124px * var(--ui-scale)));
+}
+/* Utilities step back: a touch dimmer at rest, full strength while pressed. */
+.hud-actions > .ui-slot[data-group='utility']:not(.is-pressed):not(.is-disabled) { opacity: .92; }
+.hud-actions [data-group='utility'] .ui-slot__key { opacity: .85; }
+
+/* System strip: the quietest layer. Thinner band, softer crests and labels; hover / open restores them. */
+.hud-systems::before { border-color: #8a714899; border-top-color: #b79c66aa; background: linear-gradient(#3a2f23b8, #1d1914d1); box-shadow: 0 1px 4px #0c121a55; }
+.hud-systems .ui-medallion__face { filter: saturate(.72) brightness(.86) drop-shadow(0 1px 1px #10182188); }
+.hud-systems .ui-medallion__label { color: #e2d4b4; font-weight: 600; }
+.hud-systems .ui-medallion:hover .ui-medallion__face,
+.hud-systems .ui-medallion[aria-expanded='true'] .ui-medallion__face { filter: drop-shadow(0 0 4px #efc77766); }
+
+@media (max-height: 420px), (max-width: 760px) {
+  /* Compact screens: the outer potion sockets sit over the play area. During a monster's wind-up they fade so
+   * the danger ring underneath stays readable; they keep their full hit area and return the moment you press. */
+  .hud-actions[data-danger='true'] > .ui-slot[data-tier='potion']:not(.is-pressed) { opacity: .5; transition: opacity 120ms; }
+  /* The status row needs the band under the player frame: the feed starts a row lower and keeps its newest two lines. */
+  .hud__loot { bottom: calc(218px * var(--ui-scale)); }
+  .hud-loot__line:nth-last-child(n + 3) { display: none; }
+}

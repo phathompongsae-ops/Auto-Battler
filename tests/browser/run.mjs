@@ -27,6 +27,7 @@ import { dungeonStructureSuite } from './dungeonStructure.test.mjs';
 import { combatFeedbackSuite } from './combatFeedback.test.mjs';
 import { storyFeedbackSuite } from './storyFeedback.test.mjs';
 import { hudStyleSuite } from './hudStyle.test.mjs';
+import { hudStatusSuite } from './hudStatus.test.mjs';
 import { hotbarSuite } from './hotbar.test.mjs';
 import { dodgeSuite } from './dodge.test.mjs';
 import { potionSuite } from './potions.test.mjs';
@@ -47,6 +48,7 @@ const STORY_REVIEW = process.argv.includes('--story-review');
 const ANIM_REVIEW = process.argv.includes('--anim-review');
 const BRUTE_REVIEW = process.argv.includes('--brute-review');
 const LORD_REVIEW = process.argv.includes('--lord-review');
+const HUD_STATUS_REVIEW = process.argv.includes('--hud-status-review');
 const PORT = ENVIRONMENT_REVIEW ? 5201 : HUD_REVIEW ? 5202 : 5199;
 const URL = `http://127.0.0.1:${PORT}/`;
 const OUT = ensureDir(join(process.cwd(), 'test-results'));
@@ -82,7 +84,9 @@ try {
       demoQuests.find((q) => q.questId === 'mvp_01_welcome')?.status === 'available' && demoLevel === 11 &&
       (await b.eval(`debug.questProgress('job_c1_01_instructor').status`)) === 'available' &&
       !(await b.eval(`!!document.querySelector('[data-hud="quests"]')`)));
-  if (LORD_REVIEW) {
+  if (HUD_STATUS_REVIEW) {
+    await hudStatusSuite(b, t, shot);
+  } else if (LORD_REVIEW) {
     await lordAnimSuite(b, t, shot);
   } else if (ANIM_REVIEW) {
     await monsterMotionSuite(b, t, shot);
@@ -120,6 +124,7 @@ try {
     await potionSuite(b, t);
   } else if (HUD_REVIEW) {
     await hudStyleSuite(b, t, shot);
+    await hudStatusSuite(b, t, shot);
   } else if (ENVIRONMENT_REVIEW) {
     await envArtSuite(b, t, shot, URL);
   } else {
@@ -132,6 +137,7 @@ try {
     await b.goto(URL);
     await boot();
     await hudStyleSuite(b, t, shot);
+    await hudStatusSuite(b, t, shot);
     await pass3Suite(b, t, shot, URL, boot);
     await monsterMotionSuite(b, t, shot);
     await monsterAnimSuite(b, t, shot);

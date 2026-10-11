@@ -7,6 +7,7 @@ import { h } from '../dom';
 import { DEMO_QUESTS } from '../data/quests';
 import { JobSelectWindow } from '../screens/JobSelectWindow';
 import { WindowManager } from '../screens/WindowManager';
+import { onLocaleChange, t } from '../i18n';
 import { UiRoot } from '../UiRoot';
 import { ActionCluster } from './ActionCluster';
 import { Joystick } from './Joystick';
@@ -17,6 +18,7 @@ import { PlayerFrame } from './PlayerFrame';
 import { QuestProgressSource, QuestTracker } from './QuestTracker';
 import { RespawnNotice, TargetFrame } from './TargetFrame';
 import { LootFeed } from './LootFeed';
+import { StatusRow } from './StatusRow';
 import { InteractPrompt, QuestTrackerHud } from './QuestHud';
 
 export interface HudOptions {
@@ -40,6 +42,10 @@ export class Hud {
   readonly jobSelect: JobSelectWindow;
   private readonly quests: QuestProgressSource;
   private readonly player: PlayerFrame;
+  /** Player buffs / debuffs / potion recoveries, directly under the player frame. */
+  private readonly playerStatus = new StatusRow('player-status', 6);
+  private readonly offLocale: () => void;
+  private readonly world: CombatWorld;
   private readonly minimap: Minimap;
   private readonly menu: MenuBar;
   private readonly systems: SystemStrip;
@@ -58,6 +64,7 @@ export class Hud {
 
   constructor(scene: Phaser.Scene, options: HudOptions) {
     const { world } = options;
+    this.world = world;
     this.root = new UiRoot(scene.game);
     this.quests = new QuestProgressSource(world, options.fixtureQuests ? DEMO_QUESTS : []);
     this.windows = new WindowManager(this.root.el, { world, quests: this.quests, openJobSelect: () => this.jobSelect.open() });
@@ -82,7 +89,7 @@ export class Hud {
     this.topCenter = region('top-center', [this.target.el]);
     const hud = h('div', { className: 'hud', attrs: { 'data-hud': 'root' } }, [
       this.joystick.el,
-      region('top-left', [this.player.el]),
+      region('top-left', [this.player.el, this.playerStatus.el]),
       this.topCenter,
       region('center', [this.respawn.el]),
       region('loot', [this.lootFeed.el]),
@@ -95,6 +102,8 @@ export class Hud {
     // Only buttons and slots take pointer events (see components.css); gaps between
     // them and every panel let clicks and drags through to the game.
     this.root.el.append(hud);
+    this.playerStatus.setLabel(t('hud.playerStatuses'));
+    this.offLocale = onLocaleChange(() => this.playerStatus.setLabel(t('hud.playerStatuses')));
     // Re-fit the target frame only when the screen or a top corner changes size, never per frame.
     this.bandObserver = new ResizeObserver(() => (this.fittedTier = null));
     for (const el of [this.root.el, this.player.el, this.menu.el]) this.bandObserver.observe(el);
@@ -123,13 +132,14 @@ export class Hud {
 
   update(now: number): void {
     this.player.update();
+    this.playerStatus.update(this.world.player.combat, now);
     this.minimap.update(now);
     this.menu.update();
     this.systems.update();
     this.tracker.update();
     this.joystick.update();
     this.actions.update(now);
-    this.target.update();
+    this.target.update(now);
     this.fitTarget();
     this.respawn.update(now);
     this.interact.update();
@@ -138,6 +148,8 @@ export class Hud {
 
   destroy(): void {
     this.bandObserver.disconnect();
+    this.offLocale();
+    this.target.destroy();
     this.lootFeed.destroy();
     this.interact.destroy();
     this.questTracker.destroy();

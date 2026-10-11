@@ -212,16 +212,22 @@ export class CombatEffects {
     });
   }
 
-  /** A danger zone around a winding-up monster: an outline plus a fill growing until the hit lands. */
+  /**
+   * A danger zone around a winding-up monster: a strong edge on the real radius plus a light fill growing
+   * until the hit lands. The edge carries the radius (bright red over a dark under-stroke, so it reads on
+   * the red Crypt carpet and between HUD sockets); the fill stays faint so it never competes with the HUD.
+   */
   private telegraph(caster: CombatEntity, radius: number, ms: number): void {
     const depth = caster.y - 1;
-    const outline = this.scene.add.circle(caster.x, caster.y, radius, 0xff3b30, 0.12).setStrokeStyle(2, 0xff3b30, 0.9).setDepth(depth);
-    const fill = this.scene.add.circle(caster.x, caster.y, radius, 0xff3b30, 0.35).setScale(0.05).setDepth(depth);
+    const shade = this.scene.add.circle(caster.x, caster.y, radius, 0x1a0505, 0).setStrokeStyle(5, 0x1a0505, 0.5).setDepth(depth);
+    const outline = this.scene.add.circle(caster.x, caster.y, radius, 0xff3b30, 0.06).setStrokeStyle(2.5, 0xff4d42, 1).setDepth(depth);
+    const fill = this.scene.add.circle(caster.x, caster.y, radius, 0xff3b30, 0.2).setScale(0.05).setDepth(depth);
     this.scene.tweens.add({
       targets: fill,
       scale: 1,
       duration: ms,
       onComplete: () => {
+        shade.destroy();
         outline.destroy();
         fill.destroy();
       },

@@ -90,6 +90,39 @@ Area Map displays the current minimap terrain/player/monster/loot chart and posi
 
 Inventory counts new item acquisitions/equipment pickups since the last Inventory opening. Quests has a dot only for a completed quest awaiting turn-in. More aggregates either notice. Grid badges mirror the strip; opening Inventory clears its unread count. Notifications do not create fake mail/social systems.
 
+## Combat readability pass (2026-10-11)
+
+Presentation only: no new buff, debuff or boss mechanic, and no gameplay, balance, timing, radius or camera change.
+The layout and key mappings are unchanged.
+
+- **Player status row** (`src/ui/hud/StatusRow.ts`): small square cells directly under the player frame. They show
+  the existing statuses (`data/statusData.ts`: Guard, the Warrior buffs, Stunned, Taunted) and the potion HoTs
+  (`periodicResources`). Buffs have a steel rim and debuffs a red warning rim. Each cell has a seconds counter and
+  a clockwise sweep for the time used. States longer than 99 s show neither. More than six states collapse into
+  `+N`. Cells are pooled: per frame only `--cd` and the number change.
+- **Boss / target row** under the HP bar: Enrage is a labelled red chip. It pulses once per application (never
+  again on re-target) and stays while Enrage lasts. It shows together with the wind-up warning, which used to
+  replace it. Stun and Taunt applied by the player also show. Labels come from the string table
+  (`hud.enraged`, `hud.windingUp`, `hud.playerStatuses`, `hud.targetStatuses`; Thai `บ้าคลั่ง`, `เตรียมโจมตี!`).
+- **Telegraph** (`CombatEffects.telegraph`): light fills (0.06 base, 0.20 growing, down from 0.12 / 0.35), plus a
+  full-strength 2.5 px edge over a dark 5 px under-stroke on the unchanged radius. The edge reads on the red Crypt
+  carpet and in the gaps between HUD sockets.
+- **640×360**: the world sign of a monster zone ("Crypt Lord") hides while its monster is targeted or winding up;
+  the target frame names it instead. On compact screens the outer potion sockets fade to 50% during any monster
+  wind-up, so the ring shows through. They keep their full hit area. The feed starts one row lower and keeps its
+  newest two lines, so it clears the status row.
+- **Weight order**: combat cluster > utilities / status > system strip. A thin bronze rail runs through the five
+  skill sockets, utilities rest slightly dimmer, and the system strip's band, crests and labels are quieter
+  (full strength on hover / open).
+- **Quest tracker**: the existing one-tap collapse is kept (HUD-P2 / P3).
+
+Coverage: `tests/browser/hudStatus.test.mjs` (`--hud-status-review`, also in `--hud-review` and the full suite) uses
+real potions, real Enrage through damage and real Grave Slam wind-ups. It checks pooled DOM, overflow, the telegraph
+radius and edge, the zone sign, the 640×360 fade and hit-testing, feed clearance and Thai fit.
+
+Deferred: at 844×390 the expanded quest tracker reaches its existing ~90 px cap and its text scrolls or clips;
+collapsing it works around this.
+
 ## Verification / review
 
 The full browser suite includes real attack/skill/menu/quest/drag/touch checks, plus layout checks at 960×540, 640×360, 844×390 and 1366×768. The review suite verifies: ATK > Skill 1–5 > Dodge > potions; nine live sockets only; round-socket separation and per-socket hit-testing; centre/movement visibility; the three-utility row (Shop first, one row, clear of the tracker and minimap); a centred (or reach-limited) strip; quest/strip separation; unavailable sockets; real badges; live screen routing; collapse/expand; map/settings functions; and cooldowns produced by real casts. `tests/browser/shopLanguage.test.mjs` covers the Shop (separate Gold / Diamond sections, real balances, nothing purchasable, Esc / B close, no state change) and Thai (relabel in place, real glyphs, labels fit at 960×540 and 640×360, the Shop fits at 640×360, English restores). Unit: `tests/unit/interface.test.ts` (string-table completeness and placeholders, locale switching, catalogue placeholders, cluster gaps at scales 0.8 / 1 / 1.5).

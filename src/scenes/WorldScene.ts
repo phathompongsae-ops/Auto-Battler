@@ -98,6 +98,8 @@ export class WorldScene extends Phaser.Scene implements WorldMapView {
   private opaqueMasks = new Map<string, OpaqueMask | null>();
   /** Quest markers over the current map's NPCs. */
   private npcMarkers: { npcId: string; mark: Phaser.GameObjects.Text }[] = [];
+  /** Monster-zone signs ("Crypt Lord"): hidden while their own monster is engaged (the target frame names it then). */
+  private zoneMarkers: { monsterIds: readonly string[]; parts: (Phaser.GameObjects.Arc | Phaser.GameObjects.Text)[] }[] = [];
 
   constructor() {
     super('World');
@@ -446,12 +448,17 @@ export class WorldScene extends Phaser.Scene implements WorldMapView {
         .setDepth(LABEL_DEPTH);
     const marker = (x: number, y: number, value: string, color: number) => {
       const dot = this.add.circle(x, y, 4, color, 0.9).setStrokeStyle(1, 0x1d1b26).setDepth(LABEL_DEPTH - 1);
-      this.mapVisuals.push(dot, text(x, y - 8, value, '#f4ecdb', 9));
+      const label = text(x, y - 8, value, '#f4ecdb', 9);
+      this.mapVisuals.push(dot, label);
+      return [dot, label];
     };
+    this.zoneMarkers = [];
     for (const t of map.navigationTargets) {
       // NPCs are drawn as figures with their own name plate (see drawNpcs).
       if (t.npcId && Object.values(NPCS).some((n) => n.navTargetId === t.id)) continue;
-      if (t.meta?.label) marker(t.x, t.y, t.meta.label, t.type === 'monster_zone' ? 0xff8a65 : t.type === 'station' ? 0x7fd4ff : 0xf3d898);
+      if (!t.meta?.label) continue;
+      const parts = marker(t.x, t.y, t.meta.label, t.type === 'monster_zone' ? 0xff8a65 : t.type === 'station' ? 0x7fd4ff : 0xf3d898);
+      if (t.type === 'monster_zone' && t.monsterIds?.length) this.zoneMarkers.push({ monsterIds: t.monsterIds, parts });
     }
     for (const p of map.portals) {
       const c = portalCenter(p);
@@ -492,6 +499,17 @@ export class WorldScene extends Phaser.Scene implements WorldMapView {
     }
   }
 
+  /** A zone sign steps aside while the player is fighting its monster: targeted, or winding up a telegraph. */
+  private updateZoneMarkers(): void {
+    if (!this.zoneMarkers.length) return;
+    const target = this.world.targeting.current as Monster | null;
+    for (const { monsterIds, parts } of this.zoneMarkers) {
+      const engaged = (!!target && !target.combat.dead && monsterIds.includes(target.def.id)) ||
+        this.world.monsters.some((m) => !m.combat.dead && monsterIds.includes(m.def.id) && this.world.skills.windingUp(m));
+      if (parts[0].visible === engaged) for (const part of parts) part.setVisible(!engaged);
+    }
+  }
+
   update(_time: number, delta: number): void {
     this.syncClassArt();
     this.world.update(delta, this.controls.getMove());
@@ -506,6 +524,7 @@ export class WorldScene extends Phaser.Scene implements WorldMapView {
     this.monsterAnimator.update();
     this.gateBarriers.update((gate) => gateOpen(gate, (zone) => this.world.zoneCleared(zone)));
     this.updateNpcMarkers();
+    this.updateZoneMarkers();
     this.updateOccluders();
     this.hud.update(this.world.now);
   }
