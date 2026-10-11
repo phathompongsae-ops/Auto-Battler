@@ -10,6 +10,7 @@ import { COMBAT_NUMBER_STYLES, damageKind, NumberSlots, type CombatNumberKind } 
 import { FloatingText } from './FloatingText';
 import { t, type StringKey } from '../ui/i18n';
 import { sharedVfxPool, type VfxPool } from './VfxPool';
+import { Telegraphs } from './Telegraphs';
 
 /** A view that can flash when hit. Player and Monster both implement it. */
 interface FlashableView {
@@ -56,6 +57,7 @@ export class CombatEffects {
   private readonly slots = new NumberSlots();
   /** Pooled production strips (slash, impacts); missing art falls back to the code-drawn effects. */
   private readonly vfx: VfxPool;
+  private readonly telegraphs: Telegraphs;
 
   constructor(
     private readonly scene: Phaser.Scene,
@@ -63,6 +65,7 @@ export class CombatEffects {
   ) {
     this.text = new FloatingText(scene);
     this.vfx = sharedVfxPool(scene);
+    this.telegraphs = new Telegraphs(scene, world);
     const ev = world.events;
     const isPlayer = (id: string | null) => id === world.player.id;
     // The player's art sets where its text and body-centred effects go; monsters keep fixed offsets.
@@ -214,26 +217,14 @@ export class CombatEffects {
     });
   }
 
-  /**
-   * A danger zone around a winding-up monster: a strong edge on the real radius plus a light fill growing
-   * until the hit lands. The edge carries the radius (bright red over a dark under-stroke, so it reads on
-   * the red Crypt carpet and between HUD sockets); the fill stays faint so it never competes with the HUD.
-   */
+  /** A danger zone around a winding-up monster: the shared progressive telegraph (rendering/Telegraphs.ts). */
   private telegraph(caster: CombatEntity, radius: number, ms: number): void {
-    const depth = caster.y - 1;
-    const shade = this.scene.add.circle(caster.x, caster.y, radius, 0x1a0505, 0).setStrokeStyle(5, 0x1a0505, 0.5).setDepth(depth);
-    const outline = this.scene.add.circle(caster.x, caster.y, radius, 0xff3b30, 0.06).setStrokeStyle(2.5, 0xff4d42, 1).setDepth(depth);
-    const fill = this.scene.add.circle(caster.x, caster.y, radius, 0xff3b30, 0.2).setScale(0.05).setDepth(depth);
-    this.scene.tweens.add({
-      targets: fill,
-      scale: 1,
-      duration: ms,
-      onComplete: () => {
-        shade.destroy();
-        outline.destroy();
-        fill.destroy();
-      },
-    });
+    this.telegraphs.start(caster, radius, ms);
+  }
+
+  /** Active danger zones (tests / debug). */
+  telegraphStates() {
+    return this.telegraphs.states();
   }
 
   private flash(target: CombatEntity): void {

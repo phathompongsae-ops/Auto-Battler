@@ -380,6 +380,10 @@
   bottom: calc(110px * var(--ui-scale));
   transform: translateX(-50%);
 }
+/* Narrow screens: the centred prompt would run into the HP potion slot; nudge it left, still clear of the chat preview. */
+@media (max-width: 760px) {
+  .hud__interact { left: calc(50% - 64px); }
+}
 .hud-interact[hidden] {
   display: none !important;
 }

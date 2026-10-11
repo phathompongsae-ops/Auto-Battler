@@ -718,6 +718,8 @@ export function createDevApi(world: CombatWorld, overlays: WorldOverlays) {
     /** TEST ONLY: code-drawn Visual Pass 4 strips for a pending art contract (used by monsters created afterwards, e.g. on reset). */
     installMonsterAnimFixture: (artId: string) => installMonsterAnimFixture(world.player.scene, artId),
     removeMonsterAnimFixture: (artId: string) => removeMonsterAnimFixture(world.player.scene, artId),
+    /** Active monster danger zones: game-clock progress and the intensity / style it drives. */
+    telegraphs: () => (world.player.scene as unknown as { combatEffects?: { telegraphStates(): unknown[] } | null }).combatEffects?.telegraphStates() ?? [],
     /** TEST-ONLY: a contract-shaped NPC master stand-in (takes effect when the map is next drawn). */
     installNpcArtFixture: (npcId: string) => installNpcArtFixture(world.player.scene, npcId),
     removeNpcArtFixture: (npcId: string) => removeNpcArtFixture(world.player.scene, npcId),

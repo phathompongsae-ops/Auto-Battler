@@ -84,6 +84,8 @@ export class WorldScene extends Phaser.Scene implements WorldMapView {
   private tilemap: Phaser.Tilemaps.Tilemap | null = null;
   private colliders: Phaser.Physics.Arcade.Collider[] = [];
   /** Everything drawn for the current map besides tiles: props, markers, signs. */
+  /** Combat feedback (numbers, slashes, telegraphs); read by the debug API for telegraph checks. */
+  combatEffects: CombatEffects | null = null;
   private mapVisuals: Phaser.GameObjects.GameObject[] = [];
   /** Closed Story progression gates drawn as rune seals (rebuilt per map, shown while closed). */
   private gateBarriers!: GateBarriers;
@@ -137,7 +139,7 @@ export class WorldScene extends Phaser.Scene implements WorldMapView {
     // A new game starts in Town.
     this.world.enterMap(DEFAULT_MAP_ID);
 
-    new CombatEffects(this, this.world);
+    this.combatEffects = new CombatEffects(this, this.world);
     new ActionEffects(this, this.world);
     this.overlays = new WorldOverlays(this, this.world);
     this.monsterMotion = new MonsterMotion(this.world);

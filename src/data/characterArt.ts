@@ -31,6 +31,11 @@ export interface CharacterAnimArt {
   /** Optional nudge in source pixels after scaling, for pivot fine-tuning. */
   readonly offsetX?: number;
   readonly offsetY?: number;
+  /**
+   * Optional playback order and per-frame time (ms, absolute): replaces the even `frameRate` timing. Used to
+   * give an idle strip a calm, uneven breathing rhythm without redrawing it.
+   */
+  readonly timing?: readonly { readonly frame: number; readonly ms: number }[];
 }
 
 /**
@@ -118,6 +123,17 @@ const WARRIOR_FEET_Y = 157;
 
 /** Shared loop speeds of the Class 1 animation set (attack speeds are per class). */
 const IDLE_FPS = 5;
+/**
+ * Warrior idle rhythm (same four frames, uneven holds): rest on the neutral pose, a quick in-between, hold
+ * the weight-shift pose (frame 2 settles ~1 px down and across), a quick return. One calm ~1.8 s breath
+ * instead of an even 0.8 s flicker; feet stay planted (every frame shares the strip's feet row).
+ */
+export const WARRIOR_IDLE_TIMING = [
+  { frame: 0, ms: 700 },
+  { frame: 1, ms: 240 },
+  { frame: 2, ms: 620 },
+  { frame: 3, ms: 260 },
+] as const;
 const WALK_FPS = 10;
 
 /**
@@ -164,10 +180,10 @@ export const WARRIOR_ART: CharacterArt = {
   smooth: true,
   anims: {
     idle: {
-      down: strip('idle_south', 4, IDLE_FPS, 120, 153),
+      down: { ...strip('idle_south', 4, IDLE_FPS, 120, 153), timing: WARRIOR_IDLE_TIMING },
       // 4-frame back idle (Class 1 animation set); feet on the same row as walk_north.
-      up: strip('idle_v2_north', 4, IDLE_FPS, 124, 156),
-      right: strip('idle_east', 4, IDLE_FPS, 128),
+      up: { ...strip('idle_v2_north', 4, IDLE_FPS, 124, 156), timing: WARRIOR_IDLE_TIMING },
+      right: { ...strip('idle_east', 4, IDLE_FPS, 128), timing: WARRIOR_IDLE_TIMING },
     },
     walk: {
       down: strip('walk_south', 8, 10, 121, 154),

@@ -42,6 +42,7 @@ import { pass3Suite } from './pass3.test.mjs';
 import { iconPolishSuite } from './iconPolish.test.mjs';
 import { skillUiSuite } from './skillUi.test.mjs';
 import { npcFiguresSuite } from './npcFigures.test.mjs';
+import { combatPresentationSuite } from './combatPresentation.test.mjs';
 
 const ENVIRONMENT_REVIEW = process.argv.includes('--environment-review');
 const HUD_REVIEW = process.argv.includes('--hud-review');
@@ -61,6 +62,7 @@ const CHAT_REVIEW = process.argv.includes('--chat-review');
 const ICON_REVIEW = process.argv.includes('--icon-review');
 const SKILL_REVIEW = process.argv.includes('--skill-review');
 const NPC_REVIEW = process.argv.includes('--npc-review');
+const PRESENTATION_REVIEW = process.argv.includes('--presentation-review');
 const PORT = ENVIRONMENT_REVIEW ? 5201 : HUD_REVIEW ? 5202 : 5199;
 const URL = `http://127.0.0.1:${PORT}/`;
 const OUT = ensureDir(join(process.cwd(), 'test-results'));
@@ -96,7 +98,9 @@ try {
       demoQuests.find((q) => q.questId === 'mvp_01_welcome')?.status === 'available' && demoLevel === 11 &&
       (await b.eval(`debug.questProgress('job_c1_01_instructor').status`)) === 'available' &&
       !(await b.eval(`!!document.querySelector('[data-hud="quests"]')`)));
-  if (NPC_REVIEW) {
+  if (PRESENTATION_REVIEW) {
+    await combatPresentationSuite(b, t, shot);
+  } else if (NPC_REVIEW) {
     await npcFiguresSuite(b, t, shot);
   } else if (SKILL_REVIEW) {
     await skillUiSuite(b, t, shot);
@@ -168,6 +172,7 @@ try {
     await iconPolishSuite(b, t, shot, URL, boot);
     await skillUiSuite(b, t, shot);
     await npcFiguresSuite(b, t, shot);
+    await combatPresentationSuite(b, t, shot);
     await pass3Suite(b, t, shot, URL, boot);
     await monsterMotionSuite(b, t, shot);
     await monsterAnimSuite(b, t, shot);

@@ -377,7 +377,10 @@ export class Player extends Phaser.Physics.Arcade.Sprite implements CombatEntity
           const anim = art.anims[state][artDirection(dir)];
           scene.anims.create({
             key: animKey(state, dir),
-            frames: scene.anims.generateFrameNumbers(anim.key, { start: 0, end: anim.frames - 1 }),
+            // A timed strip plays its own order and per-frame holds (Phaser: a frame duration replaces the frame rate).
+            frames: anim.timing
+              ? anim.timing.map((f) => ({ key: anim.key, frame: f.frame, duration: f.ms }))
+              : scene.anims.generateFrameNumbers(anim.key, { start: 0, end: anim.frames - 1 }),
             frameRate: anim.frameRate,
             repeat: -1,
           });
