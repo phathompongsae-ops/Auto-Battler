@@ -1,0 +1,797 @@
+{
+  "auditedAt": "2026-10-11",
+  "baseline": "037b89b173c7bbdbfd11997c801d15c506ba247f",
+  "notes": [
+    "Counts include Unity metadata and source files; not loaded texture counts.",
+    "PNG dimensions from IHDR; alphaCapable means channel type, not guaranteed transparent pixels.",
+    "Classification and runtime status are in visual-asset-audit-2026-10-11.md.",
+    "Protected remote attachments were not scanned."
+  ],
+  "groups": [
+    {
+      "path": "public/assets/characters/archer",
+      "files": 14,
+      "formats": {
+        ".png": 14
+      },
+      "pngAlphaCapable": 14,
+      "pngDimensions": {
+        "1536x192": 6,
+        "192x192": 5,
+        "768x192": 3
+      }
+    },
+    {
+      "path": "public/assets/characters/cleric",
+      "files": 14,
+      "formats": {
+        ".png": 14
+      },
+      "pngAlphaCapable": 14,
+      "pngDimensions": {
+        "1536x192": 6,
+        "192x192": 5,
+        "768x192": 3
+      }
+    },
+    {
+      "path": "public/assets/characters/mage",
+      "files": 14,
+      "formats": {
+        ".png": 14
+      },
+      "pngAlphaCapable": 14,
+      "pngDimensions": {
+        "1536x192": 6,
+        "192x192": 5,
+        "768x192": 3
+      }
+    },
+    {
+      "path": "public/assets/characters/ninja",
+      "files": 14,
+      "formats": {
+        ".png": 14
+      },
+      "pngAlphaCapable": 14,
+      "pngDimensions": {
+        "1536x192": 6,
+        "192x192": 5,
+        "768x192": 3
+      }
+    },
+    {
+      "path": "public/assets/characters/warrior",
+      "files": 24,
+      "formats": {
+        ".png": 24
+      },
+      "pngAlphaCapable": 24,
+      "pngDimensions": {
+        "128x128": 2,
+        "1344x192": 1,
+        "1536x192": 5,
+        "160x160": 1,
+        "1920x192": 1,
+        "192x192": 11,
+        "768x192": 3
+      }
+    },
+    {
+      "path": "public/assets/environment/dungeon",
+      "files": 7,
+      "formats": {
+        ".png": 7
+      },
+      "pngAlphaCapable": 7,
+      "pngDimensions": {
+        "200x224": 1,
+        "408x68": 1,
+        "64x152": 1,
+        "64x64": 3,
+        "64x88": 1
+      }
+    },
+    {
+      "path": "public/assets/environment/field",
+      "files": 11,
+      "formats": {
+        ".png": 11
+      },
+      "pngAlphaCapable": 11,
+      "pngDimensions": {
+        "120x160": 1,
+        "128x128": 2,
+        "200x168": 1,
+        "544x680": 1,
+        "64x64": 5,
+        "88x168": 1
+      }
+    },
+    {
+      "path": "public/assets/environment/town",
+      "files": 27,
+      "formats": {
+        ".png": 27
+      },
+      "pngAlphaCapable": 27,
+      "pngDimensions": {
+        "128x112": 1,
+        "128x120": 1,
+        "128x192": 1,
+        "128x64": 2,
+        "128x80": 1,
+        "144x176": 1,
+        "200x180": 1,
+        "256x224": 1,
+        "256x320": 1,
+        "320x192": 1,
+        "448x384": 1,
+        "48x144": 1,
+        "512x384": 1,
+        "512x416": 1,
+        "512x448": 1,
+        "52x64": 1,
+        "544x612": 1,
+        "576x336": 1,
+        "612x340": 1,
+        "64x128": 1,
+        "64x64": 3,
+        "64x72": 1,
+        "72x160": 1,
+        "832x256": 1
+      }
+    },
+    {
+      "path": "public/assets/monsters",
+      "files": 8,
+      "formats": {
+        ".png": 8
+      },
+      "pngAlphaCapable": 8,
+      "pngDimensions": {
+        "112x48": 1,
+        "136x60": 1,
+        "140x84": 1,
+        "172x60": 1,
+        "220x80": 1,
+        "240x108": 1,
+        "284x136": 1,
+        "292x164": 1
+      }
+    },
+    {
+      "path": "public/assets/monsters/crypt_brute",
+      "files": 5,
+      "formats": {
+        ".png": 5
+      },
+      "pngAlphaCapable": 5,
+      "pngDimensions": {
+        "1056x144": 1,
+        "1760x144": 1,
+        "352x144": 1,
+        "528x144": 1,
+        "880x144": 1
+      }
+    },
+    {
+      "path": "public/assets/ui/haven",
+      "files": 1,
+      "formats": {
+        ".png": 1
+      },
+      "pngAlphaCapable": 1,
+      "pngDimensions": {
+        "256x256": 1
+      }
+    },
+    {
+      "path": "public/assets/ui/skills",
+      "files": 10,
+      "formats": {
+        ".png": 10
+      },
+      "pngAlphaCapable": 10,
+      "pngDimensions": {
+        "96x96": 10
+      }
+    },
+    {
+      "path": "public/assets/vfx/combat",
+      "files": 6,
+      "formats": {
+        ".png": 6
+      },
+      "pngAlphaCapable": 6,
+      "pngDimensions": {
+        "256x64": 1,
+        "576x96": 3,
+        "768x128": 2
+      }
+    },
+    {
+      "path": "art-source/candidates/CasualStrategyUI",
+      "files": 859,
+      "formats": {
+        ".anim": 1,
+        ".asset": 26,
+        ".controller": 1,
+        ".cs": 19,
+        ".lnk": 1,
+        ".mat": 6,
+        ".meta": 446,
+        ".png": 316,
+        ".prefab": 35,
+        ".shader": 4,
+        ".ttf": 1,
+        ".txt": 2,
+        ".unity": 1
+      },
+      "pngAlphaCapable": 277,
+      "pngDimensions": {
+        "100x100": 4,
+        "101x307": 1,
+        "103x54": 1,
+        "105x107": 1,
+        "1080x1920": 31,
+        "1080x419": 1,
+        "1080x529": 1,
+        "114x114": 9,
+        "115x79": 1,
+        "116x167": 1,
+        "116x77": 2,
+        "119x117": 2,
+        "120x120": 1,
+        "120x44": 3,
+        "120x89": 1,
+        "121x134": 3,
+        "124x118": 16,
+        "124x50": 1,
+        "132x99": 1,
+        "136x124": 1,
+        "136x153": 1,
+        "138x74": 1,
+        "140x140": 8,
+        "151x145": 1,
+        "152x167": 1,
+        "157x157": 8,
+        "165x44": 1,
+        "174x177": 4,
+        "179x84": 3,
+        "181x74": 1,
+        "182x136": 7,
+        "188x145": 2,
+        "191x54": 2,
+        "196x195": 1,
+        "197x126": 2,
+        "201x206": 12,
+        "216x280": 4,
+        "217x235": 4,
+        "218x168": 10,
+        "221x280": 5,
+        "236x24": 4,
+        "24x25": 1,
+        "256x256": 5,
+        "263x32": 8,
+        "265x116": 2,
+        "265x117": 1,
+        "272x510": 1,
+        "296x145": 1,
+        "30x30": 1,
+        "332x354": 5,
+        "344x344": 4,
+        "363x474": 1,
+        "377x377": 2,
+        "388x91": 8,
+        "40x45": 2,
+        "415x94": 2,
+        "46x44": 3,
+        "4x4": 1,
+        "51x50": 3,
+        "58x61": 6,
+        "593x591": 2,
+        "60x46": 2,
+        "60x60": 1,
+        "615x239": 1,
+        "61x64": 2,
+        "62x32": 7,
+        "64x57": 2,
+        "660x679": 1,
+        "689x583": 1,
+        "68x51": 7,
+        "70x70": 1,
+        "71x73": 12,
+        "76x52": 1,
+        "81x73": 2,
+        "81x91": 1,
+        "82x82": 33,
+        "83x84": 3,
+        "84x84": 8,
+        "878x320": 1,
+        "88x78": 2,
+        "92x92": 4,
+        "96x101": 1
+      }
+    },
+    {
+      "path": "art-source/candidates/crypt_brute-ref-20261010",
+      "files": 6,
+      "formats": {
+        ".md": 1,
+        ".png": 5
+      },
+      "pngAlphaCapable": 5,
+      "pngDimensions": {
+        "1722x360": 1,
+        "1804x872": 1,
+        "2208x462": 1,
+        "224x108": 2
+      }
+    },
+    {
+      "path": "art-source/candidates/Customizable Stylized Lava Shader",
+      "files": 40,
+      "formats": {
+        ".asset": 1,
+        ".mat": 3,
+        ".meta": 22,
+        ".obj": 1,
+        ".pdf": 1,
+        ".png": 1,
+        ".prefab": 3,
+        ".shadergraph": 1,
+        ".shadersubgraph": 5,
+        ".tif": 1,
+        ".unity": 1
+      },
+      "pngAlphaCapable": 1,
+      "pngDimensions": {
+        "3000x3000": 1
+      }
+    },
+    {
+      "path": "art-source/candidates/demo-v1-20261007",
+      "files": 136,
+      "formats": {
+        ".csv": 1,
+        ".gif": 14,
+        ".jpg": 34,
+        ".json": 5,
+        ".png": 78,
+        ".py": 2,
+        ".pyc": 1,
+        ".txt": 1
+      },
+      "pngAlphaCapable": 62,
+      "pngDimensions": {
+        "1000x320": 1,
+        "1023x1538": 1,
+        "1070x1470": 1,
+        "1080x1200": 1,
+        "1086x1448": 1,
+        "1152x576": 1,
+        "1185x1327": 1,
+        "120x160": 1,
+        "1254x1254": 14,
+        "128x128": 10,
+        "128x64": 8,
+        "1368x1149": 1,
+        "1536x1024": 1,
+        "1728x576": 1,
+        "1774x887": 9,
+        "1983x793": 1,
+        "200x168": 1,
+        "200x224": 1,
+        "2172x724": 3,
+        "256x64": 1,
+        "576x576": 1,
+        "576x96": 3,
+        "64x152": 1,
+        "64x64": 4,
+        "64x88": 1,
+        "720x300": 1,
+        "768x128": 2,
+        "800x200": 1,
+        "800x900": 1,
+        "850x340": 1,
+        "88x168": 1,
+        "907x1734": 1,
+        "960x520": 1
+      }
+    },
+    {
+      "path": "art-source/candidates/Eric VFX Studio",
+      "files": 4204,
+      "formats": {
+        ".anim": 9,
+        ".asset": 12,
+        ".bmp": 1,
+        ".controller": 9,
+        ".fbx": 75,
+        ".mat": 1090,
+        ".meta": 2128,
+        ".png": 453,
+        ".prefab": 353,
+        ".psd": 1,
+        ".shader": 4,
+        ".tga": 43,
+        ".tif": 8,
+        ".txt": 6,
+        ".unity": 12
+      },
+      "pngAlphaCapable": 404,
+      "pngDimensions": {
+        "1024x1024": 18,
+        "1024x2048": 1,
+        "1024x256": 1,
+        "1024x512": 2,
+        "1024x64": 1,
+        "1024x728": 1,
+        "128x128": 127,
+        "128x256": 4,
+        "128x64": 2,
+        "128x96": 1,
+        "1536x1536": 1,
+        "172x690": 2,
+        "180x180": 1,
+        "188x196": 1,
+        "2048x2048": 1,
+        "256x128": 5,
+        "256x256": 159,
+        "256x384": 1,
+        "256x512": 4,
+        "256x64": 15,
+        "299x299": 1,
+        "32x32": 4,
+        "384x256": 1,
+        "400x400": 1,
+        "4096x1024": 1,
+        "4096x4096": 2,
+        "512x1024": 1,
+        "512x128": 4,
+        "512x256": 8,
+        "512x32": 1,
+        "512x384": 1,
+        "512x512": 55,
+        "64x128": 3,
+        "64x256": 8,
+        "64x64": 11,
+        "654x475": 1,
+        "684x1024": 2
+      }
+    },
+    {
+      "path": "art-source/candidates/pass-4b-skeleton-brute",
+      "files": 76,
+      "formats": {
+        ".done": 1,
+        ".json": 7,
+        ".log": 12,
+        ".md": 1,
+        ".mjs": 10,
+        ".png": 32,
+        ".txt": 13
+      },
+      "pngAlphaCapable": 32,
+      "pngDimensions": {
+        "1056x144": 2,
+        "1536x1024": 11,
+        "1760x144": 2,
+        "1804x872": 1,
+        "1881x836": 1,
+        "2172x900": 1,
+        "3252x900": 2,
+        "352x144": 1,
+        "3608x1488": 1,
+        "3792x900": 1,
+        "3864x462": 1,
+        "528x144": 3,
+        "5952x900": 1,
+        "880x144": 4
+      }
+    },
+    {
+      "path": "art-source/candidates/Polyart",
+      "files": 1821,
+      "formats": {
+        ".asset": 36,
+        ".compute": 1,
+        ".cs": 32,
+        ".exr": 2,
+        ".fbx": 112,
+        ".hlsl": 1,
+        ".lighting": 4,
+        ".mat": 133,
+        ".meta": 966,
+        ".physicmaterial": 2,
+        ".png": 264,
+        ".prefab": 145,
+        ".preset": 2,
+        ".shader": 31,
+        ".shadergraph": 36,
+        ".shadersubgraph": 23,
+        ".terrainlayer": 5,
+        ".tga": 20,
+        ".txt": 2,
+        ".unity": 3,
+        ".unitypackage": 1
+      },
+      "pngAlphaCapable": 71,
+      "pngDimensions": {
+        "1024x1024": 79,
+        "128x128": 2,
+        "16x16": 1,
+        "2048x2048": 137,
+        "256x256": 8,
+        "3033x1532": 2,
+        "32x32": 2,
+        "4096x4096": 8,
+        "4x4": 1,
+        "512x1024": 1,
+        "512x512": 19,
+        "6144x2048": 1
+      }
+    },
+    {
+      "path": "art-source/candidates/Stylized3DMonster",
+      "files": 5524,
+      "formats": {
+        ".anim": 1068,
+        ".asset": 32,
+        ".controller": 93,
+        ".cs": 2,
+        ".fbx": 36,
+        ".mat": 460,
+        ".meta": 2903,
+        ".png": 438,
+        ".prefab": 456,
+        ".shader": 4,
+        ".unity": 32
+      },
+      "pngAlphaCapable": 29,
+      "pngDimensions": {
+        "1024x1024": 6,
+        "2048x2048": 432
+      }
+    },
+    {
+      "path": "art-source/characters",
+      "files": 2,
+      "formats": {
+        ".json": 2
+      },
+      "pngAlphaCapable": 0,
+      "pngDimensions": {}
+    },
+    {
+      "path": "art-source/characters/cleanup",
+      "files": 12,
+      "formats": {
+        ".png": 11,
+        ".txt": 1
+      },
+      "pngAlphaCapable": 11,
+      "pngDimensions": {
+        "192x192": 11
+      }
+    },
+    {
+      "path": "art-source/characters/deprecated",
+      "files": 9,
+      "formats": {
+        ".png": 9
+      },
+      "pngAlphaCapable": 9,
+      "pngDimensions": {
+        "186x248": 1,
+        "186x62": 1,
+        "192x192": 4,
+        "576x210": 1,
+        "744x248": 1,
+        "744x992": 1
+      }
+    },
+    {
+      "path": "art-source/characters/design",
+      "files": 9,
+      "formats": {
+        ".png": 9
+      },
+      "pngAlphaCapable": 9,
+      "pngDimensions": {
+        "150x180": 1,
+        "152x180": 1,
+        "1536x1024": 1,
+        "165x180": 1,
+        "180x180": 1,
+        "286x190": 2,
+        "290x190": 2
+      }
+    },
+    {
+      "path": "art-source/characters/qa",
+      "files": 14,
+      "formats": {
+        ".html": 1,
+        ".png": 13
+      },
+      "pngAlphaCapable": 13,
+      "pngDimensions": {
+        "1126x2064": 5,
+        "1240x248": 1,
+        "1240x992": 1,
+        "248x310": 1,
+        "310x248": 1,
+        "310x62": 1,
+        "828x980": 1,
+        "960x210": 1,
+        "992x1240": 1
+      }
+    },
+    {
+      "path": "art-source/characters/raw",
+      "files": 280,
+      "formats": {
+        ".png": 280
+      },
+      "pngAlphaCapable": 280,
+      "pngDimensions": {
+        "192x192": 259,
+        "204x204": 21
+      }
+    },
+    {
+      "path": "art-source/characters/warrior",
+      "files": 38,
+      "formats": {
+        ".png": 38
+      },
+      "pngAlphaCapable": 38,
+      "pngDimensions": {
+        "192x192": 38
+      }
+    },
+    {
+      "path": "art-source/environment/town",
+      "files": 5,
+      "formats": {
+        ".json": 1,
+        ".png": 4
+      },
+      "pngAlphaCapable": 3,
+      "pngDimensions": {
+        "1254x1254": 1,
+        "1774x887": 2,
+        "64x64": 1
+      }
+    },
+    {
+      "path": "art-source/monsters/crypt_brute",
+      "files": 29,
+      "formats": {
+        ".json": 6,
+        ".md": 2,
+        ".mjs": 6,
+        ".png": 8,
+        ".txt": 7
+      },
+      "pngAlphaCapable": 8,
+      "pngDimensions": {
+        "1536x1024": 5,
+        "1804x872": 1,
+        "1881x836": 1,
+        "352x144": 1
+      }
+    },
+    {
+      "path": "art-source/ui/haven",
+      "files": 2,
+      "formats": {
+        ".json": 1,
+        ".png": 1
+      },
+      "pngAlphaCapable": 1,
+      "pngDimensions": {
+        "1269x1240": 1
+      }
+    },
+    {
+      "path": "legacy/assets",
+      "files": 29,
+      "formats": {
+        ".png": 23,
+        ".svg": 6
+      },
+      "pngAlphaCapable": 23,
+      "pngDimensions": {
+        "1148x452": 1,
+        "1392x1808": 1,
+        "144x192": 16,
+        "144x204": 1,
+        "1608x382": 1,
+        "240x192": 1,
+        "240x336": 2
+      }
+    },
+    {
+      "path": "legacy/assets/heroes",
+      "files": 8,
+      "formats": {
+        ".png": 8
+      },
+      "pngAlphaCapable": 8,
+      "pngDimensions": {
+        "1344x204": 8
+      }
+    },
+    {
+      "path": "legacy/assets/icons",
+      "files": 5,
+      "formats": {
+        ".png": 5
+      },
+      "pngAlphaCapable": 5,
+      "pngDimensions": {
+        "128x128": 5
+      }
+    },
+    {
+      "path": "legacy/assets/licenses",
+      "files": 2,
+      "formats": {
+        ".json": 1,
+        ".md": 1
+      },
+      "pngAlphaCapable": 0,
+      "pngDimensions": {}
+    },
+    {
+      "path": "legacy/assets/monsters",
+      "files": 212,
+      "formats": {
+        ".png": 212
+      },
+      "pngAlphaCapable": 212,
+      "pngDimensions": {
+        "640x960": 212
+      }
+    },
+    {
+      "path": "legacy/assets/portraits",
+      "files": 9,
+      "formats": {
+        ".png": 9
+      },
+      "pngAlphaCapable": 0,
+      "pngDimensions": {
+        "1080x820": 1,
+        "480x720": 8
+      }
+    },
+    {
+      "path": "legacy/assets/v5",
+      "files": 21,
+      "formats": {
+        ".jpg": 1,
+        ".png": 20
+      },
+      "pngAlphaCapable": 20,
+      "pngDimensions": {
+        "487x512": 1,
+        "495x512": 1,
+        "512x512": 8,
+        "512x535": 1,
+        "512x558": 1,
+        "512x578": 1,
+        "512x583": 1,
+        "512x638": 1,
+        "512x646": 1,
+        "512x648": 1,
+        "512x668": 1,
+        "512x684": 1,
+        "599x768": 1
+      }
+    }
+  ]
+}
