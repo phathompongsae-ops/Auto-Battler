@@ -1,6 +1,6 @@
 import type { CombatWorld } from '../../game/CombatWorld';
 import { h } from '../dom';
-import { renderEquipment, renderInventory } from './inventoryView';
+import { renderHero } from './inventoryView';
 import { objectiveText, PHASE_LABEL, questPhase, rewardText } from '../../quests/questText';
 import { renderSkillTree } from './skillTreeView';
 import { renderRecurring } from './recurringView';
@@ -33,31 +33,9 @@ function emptyState(message: string): HTMLElement {
   ]);
 }
 
-function statRows(rows: [string, string][]): HTMLElement {
-  return h(
-    'dl',
-    { className: 'ui-stats' },
-    rows.flatMap(([k, v]) => [h('dt', { text: k }), h('dd', { text: v })]),
-  );
-}
-
-/** Bag with sorting, details, comparison and Equip (see inventoryView.ts). */
-const inventory: ScreenRenderer = (tab, { world }) => renderInventory(world, tab);
-
-const character: ScreenRenderer = (tab, { world }) => {
-  if (tab === 'equipment') return renderEquipment(world);
-  const c = world.player.combat;
-  const s = c.stats;
-  return statRows([
-    ['Level', String(c.level)],
-    ['HP', `${Math.ceil(c.hp)} / ${s.maxHp}`],
-    ['MP', `${Math.floor(c.mp)} / ${s.maxMp}`],
-    ['Attack', String(s.attack)],
-    ['Defense', String(s.defense)],
-    ['Move speed', String(s.moveSpeed)],
-    ['Critical', `${Math.round(s.critChance * 100)}%`],
-  ]);
-};
+/** Character and Inventory share one view: hero, equipment, stats, bag and actions (see inventoryView.ts). */
+const inventory: ScreenRenderer = (_tab, { world }) => renderHero(world, 'inventory');
+const character: ScreenRenderer = (_tab, { world }) => renderHero(world, 'character');
 
 /** The job's skill tree (temporary UI; see skillTreeView.ts). */
 const skills: ScreenRenderer = (_tab, { world }) => renderSkillTree(world);

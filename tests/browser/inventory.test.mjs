@@ -95,13 +95,16 @@ export async function inventorySuite(b, t, shot) {
   await sleep(80);
   await clickTab('character', 'Equipment');
   await sleep(80);
-  const row = await b.eval(`document.querySelector('[data-window="character"] [data-slot="head"]').textContent`);
-  await click('[data-window="character"] [data-slot="head"] [data-action="unequip"]');
+  const row = await b.eval(`document.querySelector('[data-window="character"] [data-slot="head"]').getAttribute('aria-label')`);
+  // Select the head slot on the paper doll; its details offer Unequip.
+  await click('[data-window="character"] [data-slot="head"]');
+  await sleep(60);
+  await click('[data-window="character"] [data-role="details"] [data-action="unequip"]');
   await sleep(80);
   const unworn = await stats();
   const bag3 = await api('bag()');
   t.check(
-    'I-5. Character > Equipment shows the cap in the head slot; Unequip returns every stat and puts it back in the bag',
+    'I-5. Character shows the cap in the paper doll head slot; selecting it and Unequip returns every stat and puts it back in the bag',
     row.includes("Traveler's Cap") && unworn.maxHp === bare.maxHp && unworn.defense === bare.defense && (await api('equipment()')).equipped.head === null &&
       bag3.entries.some((e) => e.kind === 'equipment' && e.instanceId === 'drop-1'),
     JSON.stringify({ row, unworn: [unworn.maxHp, unworn.defense] }),

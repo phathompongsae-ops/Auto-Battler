@@ -50,10 +50,6 @@ export const SCREENS: readonly ScreenDef[] = [
     icon: 'character',
     hotkey: 'KeyC',
     pinned: true,
-    tabs: [
-      { id: 'stats', label: 'Stats' },
-      { id: 'equipment', label: 'Equipment' },
-    ],
   },
   {
     id: 'inventory',
@@ -62,11 +58,6 @@ export const SCREENS: readonly ScreenDef[] = [
     hotkey: 'KeyI',
     pinned: true,
     feature: 'equipment',
-    tabs: [
-      { id: 'all', label: 'All' },
-      { id: 'equipment', label: 'Equipment' },
-      { id: 'materials', label: 'Materials' },
-    ],
   },
   { id: 'skills', title: 'Skills', icon: 'skills', hotkey: 'KeyK', pinned: true, feature: 'class_1_skills' },
   {
