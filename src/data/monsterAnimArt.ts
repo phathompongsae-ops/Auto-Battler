@@ -5,9 +5,10 @@ import type { MonsterAnimSet, MonsterArtDef, MonsterSpecialStrip, MonsterStrip }
  * and timings the runtime (graphics/monsterArt.ts, rendering/MonsterAnimator.ts)
  * expects for the three priority monsters. A contract stays `pending` until its
  * five strips exist; only `integrated` contracts are loaded. Until then each
- * monster keeps its Pass 2 idle sheet with procedural motion. Crypt Lord and
- * Skeleton Brute are integrated (Pass 4B); Lord's approved idle and Brute's
- * borrowed, tinted Skeleton sheet stay their fallbacks if a strip fails to load.
+ * monster keeps its Pass 2 idle sheet with procedural motion. Crypt Lord, Grove
+ * Guardian and Skeleton Brute are integrated (Pass 4B); the Lord's and Guardian's
+ * approved idle sheets and the Brute's borrowed, tinted Skeleton sheet stay their
+ * fallbacks if a strip fails to load.
  *
  * Shared rules for every strip:
  *   - one horizontal transparent PNG per state, `frames` cells of frameWidth x frameHeight
@@ -75,7 +76,7 @@ export const MONSTER_ANIM_ART: Readonly<Record<string, MonsterAnimContract>> = {
   // Mini boss. Stomp winds up 1000 ms.
   grove_guardian: contract('grove_guardian', { w: 208, h: 160, feetRow: 158 }, 2.1, [124, 140], { frames: 8, fps: 8 }, {
     raise: 3, hold: 2, impact: 2, recovery: 3, skills: ['guardian_stomp'], windupMs: 1000,
-  }),
+  }, 'integrated'),
   // Story Brute: dedicated art replacing the tinted Skeleton. Taller than the Skeleton (40.5 world px),
   // shorter than the Knight (53 world px = 106 source px). Bone Smash winds up 1400 ms.
   // The 176x144 cell is room for the hammer's reach (1.64x the body's back reach), the walk, the swing

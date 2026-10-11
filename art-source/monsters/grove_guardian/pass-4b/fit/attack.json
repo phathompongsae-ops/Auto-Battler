@@ -1,0 +1,73 @@
+{
+  "source": "art-source/monsters/grove_guardian/pass-4b/source/attack-sheet.png",
+  "out": "art-source/monsters/grove_guardian/pass-4b/fit/attack.png",
+  "scale": 0.30787037037037035,
+  "root": "backfoot",
+  "frames": [
+    {
+      "componentIds": [
+        3
+      ],
+      "box": [
+        483,
+        84,
+        952,
+        504
+      ],
+      "rootX": 641,
+      "ground": 504
+    },
+    {
+      "componentIds": [
+        2
+      ],
+      "box": [
+        983,
+        79,
+        1413,
+        507
+      ],
+      "rootX": 1123,
+      "ground": 507
+    },
+    {
+      "componentIds": [
+        13
+      ],
+      "box": [
+        44,
+        585,
+        487,
+        1024
+      ],
+      "rootX": 228,
+      "ground": 1024
+    },
+    {
+      "componentIds": [
+        14
+      ],
+      "box": [
+        550,
+        586,
+        937,
+        1024
+      ],
+      "rootX": 688,
+      "ground": 1024
+    },
+    {
+      "componentIds": [
+        15
+      ],
+      "box": [
+        956,
+        586,
+        1392,
+        1024
+      ],
+      "rootX": 1184,
+      "ground": 1024
+    }
+  ]
+}

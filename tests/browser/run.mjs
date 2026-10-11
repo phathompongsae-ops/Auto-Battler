@@ -37,6 +37,7 @@ import { monsterMotionSuite } from './monsterMotion.test.mjs';
 import { monsterAnimSuite } from './monsterAnim.test.mjs';
 import { bruteAnimSuite } from './bruteAnim.test.mjs';
 import { lordAnimSuite } from './lordAnim.test.mjs';
+import { guardianAnimSuite } from './guardianAnim.test.mjs';
 import { pass3Suite } from './pass3.test.mjs';
 
 const ENVIRONMENT_REVIEW = process.argv.includes('--environment-review');
@@ -50,6 +51,7 @@ const STORY_REVIEW = process.argv.includes('--story-review');
 const ANIM_REVIEW = process.argv.includes('--anim-review');
 const BRUTE_REVIEW = process.argv.includes('--brute-review');
 const LORD_REVIEW = process.argv.includes('--lord-review');
+const GUARDIAN_REVIEW = process.argv.includes('--guardian-review');
 const HUD_STATUS_REVIEW = process.argv.includes('--hud-status-review');
 const CHARACTER_REVIEW = process.argv.includes('--character-review');
 const CHAT_REVIEW = process.argv.includes('--chat-review');
@@ -88,7 +90,9 @@ try {
       demoQuests.find((q) => q.questId === 'mvp_01_welcome')?.status === 'available' && demoLevel === 11 &&
       (await b.eval(`debug.questProgress('job_c1_01_instructor').status`)) === 'available' &&
       !(await b.eval(`!!document.querySelector('[data-hud="quests"]')`)));
-  if (CHAT_REVIEW) {
+  if (GUARDIAN_REVIEW) {
+    await guardianAnimSuite(b, t, shot);
+  } else if (CHAT_REVIEW) {
     await chatSuite(b, t, shot);
   } else if (CHARACTER_REVIEW) {
     await characterInventorySuite(b, t, shot);
@@ -102,6 +106,7 @@ try {
     await monsterAnimSuite(b, t, shot);
     await bruteAnimSuite(b, t, shot);
     await lordAnimSuite(b, t, shot);
+    await guardianAnimSuite(b, t, shot);
   } else if (BRUTE_REVIEW) {
     await bruteAnimSuite(b, t, shot);
   } else if (WARRIOR_REVIEW) {
@@ -153,6 +158,7 @@ try {
     await monsterAnimSuite(b, t, shot);
     await bruteAnimSuite(b, t, shot);
     await lordAnimSuite(b, t, shot);
+    await guardianAnimSuite(b, t, shot);
     await b.goto(`${URL}?questFixtures=1`);
     await boot();
 

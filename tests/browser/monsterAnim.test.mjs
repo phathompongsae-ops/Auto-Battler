@@ -1,8 +1,8 @@
-// Visual Pass 4A/4B: real monster animation strips. The three priority monsters are driven through real
-// fights: Grove Guardian with code-drawn fixture strips at its pending contract size,
-// Crypt Lord and Skeleton Brute with their integrated production strips:
+// Visual Pass 4A/4B: real monster animation strips. The three priority monsters (Crypt Lord, Grove Guardian,
+// Skeleton Brute) are all integrated and are driven through real fights on their production strips:
 // state priority, contact-first attacks, specials aligned to the gameplay impact tick, combat facing,
-// no procedural pose on top, unchanged bodies, and the fallback path before and after.
+// no procedural pose on top, unchanged bodies, and the same art after every reset. (The code-drawn
+// fixture in debug/monsterAnimFixture.ts remains for future pending contracts.)
 import { sleep } from './cdp.mjs';
 
 const S = `game.scene.getScene('World')`;
@@ -70,26 +70,27 @@ function judge(t, name, { samples, log }, specials, windupMs) {
 }
 
 export async function monsterAnimSuite(b, t, shot) {
-  t.section('Monster animation strips (Guardian fixtures, Lord / Brute production strips)');
+  t.section('Monster animation strips (Lord / Guardian / Brute production strips)');
+  /** The three monsters as created by a fresh map: Lord and Brute in the Crypt, Guardian in the Field. */
+  const snapshot = async () => {
+    await b.eval(`debug.reset('demo_crypt'); debug.setPeaceful(true); true`);
+    await sleep(200);
+    const lord = await look(b, IDS.crypt_lord), brute = await look(b, IDS.crypt_brute);
+    await b.eval(`debug.reset('demo_field'); debug.setPeaceful(true); true`);
+    await sleep(200);
+    return { lord, brute, guardian: await look(b, IDS.grove_guardian) };
+  };
+  const production = (x, id) => x.strips && x.tex === `monster-anim-${id}-idle` && x.tint === 0xffffff && !x.playing;
 
-  // 1. Integrated Lord and Brute load their real strips.
-  await b.eval(`debug.reset('demo_crypt'); debug.setPeaceful(true); true`);
-  await sleep(200);
-  const before = { lord: await look(b, IDS.crypt_lord), brute: await look(b, IDS.crypt_brute) };
-  t.check('MA-1. Lord and Brute use their integrated strips, untinted, with frames set by the animator',
-    before.lord.strips && before.lord.tex === 'monster-anim-crypt_lord-idle' && before.lord.tint === 0xffffff && !before.lord.playing &&
-    before.brute.strips && before.brute.tex === 'monster-anim-crypt_brute-idle' && before.brute.tint === 0xffffff && !before.brute.playing, JSON.stringify(before));
+  // 1. All three contracts are integrated: each monster draws its own real strips.
+  const before = await snapshot();
+  t.check('MA-1. Lord, Guardian and Brute use their integrated strips, untinted, with frames set by the animator',
+    production(before.lord, 'crypt_lord') && production(before.guardian, 'grove_guardian') && production(before.brute, 'crypt_brute'), JSON.stringify(before));
 
-  // 2. Install only the pending Guardian fixture; Lord and Brute keep their production strips.
-  const installed = await b.eval(`['grove_guardian'].map((id) => debug.installMonsterAnimFixture(id))`);
-  await b.eval(`debug.reset('demo_crypt'); debug.setPeaceful(true); true`);
-  await sleep(200);
-  const withStrips = { lord: await look(b, IDS.crypt_lord), brute: await look(b, IDS.crypt_brute) };
-  t.check('MA-2. with strips: dedicated keys are used (Brute: its production strips, untinted), bodies and hit radii identical to before',
-    installed.every(Boolean) && withStrips.lord.strips && withStrips.lord.tex === 'monster-anim-crypt_lord-idle' &&
-    withStrips.brute.strips && withStrips.brute.tex === 'monster-anim-crypt_brute-idle' && withStrips.brute.tint === 0xffffff &&
-    near(withStrips.lord.body, before.lord.body) && near(withStrips.brute.body, before.brute.body) &&
-    withStrips.lord.hitRadius === before.lord.hitRadius && withStrips.brute.hitRadius === before.brute.hitRadius, JSON.stringify(withStrips));
+  // 2. Recreated monsters (another reset) pick up the same strips with identical bodies and hit radii.
+  const again = await snapshot();
+  t.check('MA-2. after another reset the same production strips are used; bodies and hit radii identical',
+    ['lord', 'guardian', 'brute'].every((k) => again[k].tex === before[k].tex && near(again[k].body, before[k].body) && again[k].hitRadius === before[k].hitRadius), JSON.stringify(again));
 
   // 3. Crypt Lord: Grave Slam (1100 ms) plus basic attacks.
   const lord = await fight(b, 'demo_crypt', IDS.crypt_lord, 2600);
@@ -110,11 +111,9 @@ export async function monsterAnimSuite(b, t, shot) {
   t.check('MA-6. hit flinches play between attacks, never during a wind-up or impact',
     all.some((s) => s.state === 'hit') && !all.some((s) => s.state === 'hit' && s.phase), JSON.stringify([...bruteStates]));
 
-  // 6. Remove the Guardian fixture; integrated Lord / Brute strips are left intact.
-  await b.eval(`['grove_guardian'].forEach((id) => debug.removeMonsterAnimFixture(id)); debug.reset('demo_crypt'); debug.setPeaceful(true); true`);
-  await sleep(200);
-  const after = { lord: await look(b, IDS.crypt_lord), brute: await look(b, IDS.crypt_brute) };
-  t.check('MA-7. Guardian fixtures removed: Lord and Brute production art remain unchanged',
+  // 6. After the fights, fresh monsters show exactly the production art they started with.
+  const after = await snapshot();
+  t.check('MA-7. after the fights, Lord, Guardian and Brute production art is unchanged',
     JSON.stringify(after) === JSON.stringify(before), JSON.stringify(after));
   const zoom = await b.eval(`${S}.cameras.main.zoom`);
   t.check('MA-8. camera zoom stays 1.65', zoom === 1.65, String(zoom));

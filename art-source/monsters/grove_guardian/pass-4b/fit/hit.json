@@ -1,0 +1,47 @@
+{
+  "source": "art-source/monsters/grove_guardian/pass-4b/source/hit-sheet.png",
+  "out": "art-source/monsters/grove_guardian/pass-4b/fit/hit.png",
+  "scale": 0.25775193798449614,
+  "root": "backfoot",
+  "frames": [
+    {
+      "componentIds": [
+        2
+      ],
+      "box": [
+        838,
+        33,
+        1310,
+        535
+      ],
+      "rootX": 1075,
+      "ground": 535
+    },
+    {
+      "componentIds": [
+        7
+      ],
+      "box": [
+        151,
+        588,
+        624,
+        1066
+      ],
+      "rootX": 404,
+      "ground": 1066
+    },
+    {
+      "componentIds": [
+        6
+      ],
+      "box": [
+        813,
+        567,
+        1342,
+        1066
+      ],
+      "rootX": 1089,
+      "ground": 1066
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "source": "art-source/monsters/grove_guardian/pass-4b/source/approved-idle.png",
+  "out": "art-source/monsters/grove_guardian/pass-4b/fit/idle.png",
+  "scale": 0.196455,
+  "frames": [
+    { "box": [127, 105, 807, 781], "rootX": 485, "ground": 781 },
+    { "box": [1006, 105, 1690, 781], "rootX": 1372, "ground": 781 }
+  ]
+}

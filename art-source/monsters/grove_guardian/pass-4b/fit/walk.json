@@ -1,0 +1,112 @@
+{
+  "source": "art-source/monsters/grove_guardian/pass-4b/source/walk-sheet.png",
+  "out": "art-source/monsters/grove_guardian/pass-4b/fit/walk.png",
+  "scale": 0.39002932551319647,
+  "root": "heart",
+  "frames": [
+    {
+      "componentIds": [
+        3
+      ],
+      "box": [
+        535,
+        18,
+        917,
+        358
+      ],
+      "rootX": 736,
+      "ground": 358
+    },
+    {
+      "componentIds": [
+        1
+      ],
+      "box": [
+        1017,
+        17,
+        1389,
+        358
+      ],
+      "rootX": 1199,
+      "ground": 358
+    },
+    {
+      "componentIds": [
+        10
+      ],
+      "box": [
+        75,
+        369,
+        462,
+        706
+      ],
+      "rootX": 274,
+      "ground": 706
+    },
+    {
+      "componentIds": [
+        11
+      ],
+      "box": [
+        538,
+        370,
+        941,
+        707
+      ],
+      "rootX": 749,
+      "ground": 707
+    },
+    {
+      "componentIds": [
+        9
+      ],
+      "box": [
+        1013,
+        368,
+        1400,
+        709
+      ],
+      "rootX": 1209,
+      "ground": 709
+    },
+    {
+      "componentIds": [
+        20
+      ],
+      "box": [
+        61,
+        720,
+        472,
+        1057
+      ],
+      "rootX": 276,
+      "ground": 1057
+    },
+    {
+      "componentIds": [
+        21
+      ],
+      "box": [
+        544,
+        721,
+        932,
+        1066
+      ],
+      "rootX": 746,
+      "ground": 1066
+    },
+    {
+      "componentIds": [
+        22
+      ],
+      "box": [
+        1011,
+        725,
+        1379,
+        1067
+      ],
+      "rootX": 1208,
+      "ground": 1067
+    }
+  ]
+}

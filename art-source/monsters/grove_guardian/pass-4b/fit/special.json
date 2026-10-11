@@ -1,0 +1,138 @@
+{
+  "source": "art-source/monsters/grove_guardian/pass-4b/source/special-sheet.png",
+  "out": "art-source/monsters/grove_guardian/pass-4b/fit/special.png",
+  "scale": 0.4195583596214511,
+  "root": "backfoot",
+  "frames": [
+    {
+      "componentIds": [
+        3
+      ],
+      "box": [
+        347,
+        33,
+        672,
+        348
+      ],
+      "rootX": 519,
+      "ground": 348
+    },
+    {
+      "componentIds": [
+        1
+      ],
+      "box": [
+        698,
+        23,
+        1002,
+        348
+      ],
+      "rootX": 880,
+      "ground": 348
+    },
+    {
+      "componentIds": [
+        7
+      ],
+      "box": [
+        28,
+        388,
+        326,
+        739
+      ],
+      "rootX": 237,
+      "ground": 739
+    },
+    {
+      "componentIds": [
+        5
+      ],
+      "box": [
+        365,
+        387,
+        664,
+        739
+      ],
+      "rootX": 576,
+      "ground": 739
+    },
+    {
+      "componentIds": [
+        6
+      ],
+      "box": [
+        702,
+        387,
+        995,
+        740
+      ],
+      "rootX": 912,
+      "ground": 740
+    },
+    {
+      "componentIds": [
+        10
+      ],
+      "box": [
+        19,
+        798,
+        357,
+        1085
+      ],
+      "rootX": 165,
+      "ground": 1085
+    },
+    {
+      "componentIds": [
+        11
+      ],
+      "box": [
+        378,
+        829,
+        687,
+        1091
+      ],
+      "rootX": 502,
+      "ground": 1091
+    },
+    {
+      "componentIds": [
+        9
+      ],
+      "box": [
+        693,
+        791,
+        1010,
+        1090
+      ],
+      "rootX": 840,
+      "ground": 1090
+    },
+    {
+      "componentIds": [
+        13
+      ],
+      "box": [
+        14,
+        1131,
+        342,
+        1469
+      ],
+      "rootX": 187,
+      "ground": 1469
+    },
+    {
+      "componentIds": [
+        14
+      ],
+      "box": [
+        342,
+        1133,
+        679,
+        1470
+      ],
+      "rootX": 517,
+      "ground": 1470
+    }
+  ]
+}
