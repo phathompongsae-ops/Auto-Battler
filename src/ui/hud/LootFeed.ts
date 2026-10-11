@@ -5,6 +5,7 @@ import { ITEMS } from '../../data/itemData';
 import type { CombatWorld } from '../../game/CombatWorld';
 import { rewardText } from '../../quests/questText';
 import { h } from '../dom';
+import type { ChatLog } from './chatLog';
 
 /** How long a line stays on screen (real time, ms). */
 const LINE_MS = 4500;
@@ -17,15 +18,18 @@ export type LootFeedKind = 'gold' | 'item' | 'equipment' | 'rare' | 'full' | 'qu
 /**
  * Left side: a short feed of what the player just received or what dropped
  * for them: Gold, materials (auto-looted), equipment and rare drops waiting
- * on the ground, and "bag full" warnings. Newest at the bottom.
+ * on the ground, and "bag full" warnings. Newest at the bottom. Every line is
+ * also archived in the System chat channel; while a line is on screen the chat
+ * preview skips it, so nothing shows twice.
  */
 export class LootFeed {
   readonly el: HTMLDivElement;
   private readonly unsubscribe: (() => void)[] = [];
   /** Merges repeated pickups of the same item within a short window ("+3 Wolf Fang"). */
   private readonly recent = new Map<string, { line: HTMLDivElement; amount: number; at: number }>();
+  private readonly chatIds = new WeakMap<HTMLDivElement, number>();
 
-  constructor(world: CombatWorld) {
+  constructor(world: CombatWorld, private readonly chat: ChatLog) {
     this.el = h('div', { className: 'hud-loot', attrs: { 'data-hud': 'loot-feed', 'aria-live': 'polite' } });
     const ev = world.events;
     this.unsubscribe.push(
@@ -53,7 +57,7 @@ export class LootFeed {
       ev.on('tutorialHint', ({ message }) => this.push('tutorial', message, '#fbe7b8', TUTORIAL_LINE_MS)),
       // Story guidance belongs to its dungeon: leaving the map clears it from the feed.
       ev.on('mapChanged', () => {
-        for (const line of this.el.querySelectorAll('[data-loot-kind=tutorial]')) line.remove();
+        for (const line of this.el.querySelectorAll<HTMLDivElement>('[data-loot-kind=tutorial]')) this.drop(line);
       }),
       ev.on('progressBlocked', ({ message }) => this.push('locked', message, '#ffb86b')),
       ev.on('checkpointReached', ({ label }) => this.push('dungeon', `Checkpoint: ${label}`, '#9fd8ff')),
@@ -87,6 +91,8 @@ export class LootFeed {
       prev.amount += amount;
       prev.at = now;
       prev.line.textContent = text(prev.amount);
+      const id = this.chatIds.get(prev.line);
+      if (id !== undefined) this.chat.update(id, text(prev.amount));
       return;
     }
     const line = this.push(kind, text(amount), color);
@@ -96,9 +102,19 @@ export class LootFeed {
   private push(kind: LootFeedKind, text: string, color: string, ms = LINE_MS): HTMLDivElement {
     const line = h('div', { className: `hud-loot__line hud-loot__line--${kind}`, text, attrs: { 'data-loot-kind': kind }, style: { color } });
     this.el.append(line);
-    while (this.el.childElementCount > MAX_LINES) this.el.firstElementChild?.remove();
-    setTimeout(() => line.remove(), ms);
+    const message = this.chat.add('system', kind, text, color);
+    this.chatIds.set(line, message.id);
+    this.chat.setLive(message.id, true);
+    while (this.el.childElementCount > MAX_LINES) this.drop(this.el.firstElementChild as HTMLDivElement);
+    setTimeout(() => this.drop(line), ms);
     return line;
+  }
+
+  /** Remove a line from the feed; its archived chat message becomes previewable. */
+  private drop(line: HTMLDivElement): void {
+    line.remove();
+    const id = this.chatIds.get(line);
+    if (id !== undefined) this.chat.setLive(id, false);
   }
 
   destroy(): void {

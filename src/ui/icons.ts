@@ -30,6 +30,7 @@ const PATHS = {
   settings: 'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm7.4-3a7.4 7.4 0 0 0-.1-1.2l2-1.6-2-3.4-2.4 1a7 7 0 0 0-2-1.2L14.5 3h-5l-.4 2.6a7 7 0 0 0-2 1.2l-2.4-1-2 3.4 2 1.6a7.4 7.4 0 0 0 0 2.4l-2 1.6 2 3.4 2.4-1a7 7 0 0 0 2 1.2l.4 2.6h5l.4-2.6a7 7 0 0 0 2-1.2l2.4 1 2-3.4-2-1.6c.1-.4.1-.8.1-1.2Z',
   menu: 'M12 2 3 6v8l9 8 9-8V6l-9-4ZM7 7h4v4H7V7Zm6 0h4v4h-4V7Zm-6 6h4v4H7v-4Zm6 0h4v4h-4v-4',
   close: 'M6 6l12 12M18 6 6 18',
+  chat: 'M4 4h16v11H11l-5 4v-4H4V4Zm4 5h8m-8 3h5',
   // Market stall: scalloped awning over a counter with a doorway.
   shop: 'M3 9 5 4h14l2 5M3 9h18M3 9a3 3 0 0 0 6 0 3 3 0 0 0 6 0 3 3 0 0 0 6 0M5 12v8h14v-8M10 20v-5h4v5',
   // Daily / Weekly commissions: a calendar page with a tick.

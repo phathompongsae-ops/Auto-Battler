@@ -18,6 +18,8 @@ import { PlayerFrame } from './PlayerFrame';
 import { QuestProgressSource, QuestTracker } from './QuestTracker';
 import { RespawnNotice, TargetFrame } from './TargetFrame';
 import { LootFeed } from './LootFeed';
+import { ChatPanel } from './ChatPanel';
+import { ChatLog } from './chatLog';
 import { StatusRow } from './StatusRow';
 import { InteractPrompt, QuestTrackerHud } from './QuestHud';
 
@@ -55,6 +57,9 @@ export class Hud {
   private readonly target: TargetFrame;
   private readonly respawn: RespawnNotice;
   private readonly lootFeed: LootFeed;
+  /** Local message history shared by the loot feed (archive) and the chat panel. */
+  readonly chatLog = new ChatLog();
+  private readonly chat: ChatPanel;
   private readonly interact: InteractPrompt;
   private readonly questTracker: QuestTrackerHud;
   /** Top-centre region (target frame); its fit against the top corners is re-measured only after a resize. */
@@ -79,7 +84,9 @@ export class Hud {
     this.actions = new ActionCluster(world, options.actions);
     this.target = new TargetFrame(world);
     this.respawn = new RespawnNotice(world);
-    this.lootFeed = new LootFeed(world);
+    this.lootFeed = new LootFeed(world, this.chatLog);
+    // Expanded chat covers the feed's corner: the feed hides meanwhile (its lines are in the log).
+    this.chat = new ChatPanel(world, this.chatLog, (expanded) => hud.toggleAttribute('data-chat-expanded', expanded));
     this.interact = new InteractPrompt(world, this.windows);
     this.questTracker = new QuestTrackerHud(world);
 
@@ -93,6 +100,7 @@ export class Hud {
       this.topCenter,
       region('center', [this.respawn.el]),
       region('loot', [this.lootFeed.el]),
+      region('chat', [this.chat.el]),
       region('interact', [this.interact.el]),
       region('top-right', [h('div', { className: 'hud-map-group' }, [this.menu.el, this.minimap.el]), this.questTracker.el]),
       region('left-middle', options.fixtureQuests ? [this.tracker.el] : []),
@@ -151,6 +159,7 @@ export class Hud {
     this.offLocale();
     this.target.destroy();
     this.lootFeed.destroy();
+    this.chat.destroy();
     this.interact.destroy();
     this.questTracker.destroy();
     this.actions.destroy();

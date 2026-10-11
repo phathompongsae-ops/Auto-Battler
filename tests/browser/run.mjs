@@ -29,6 +29,7 @@ import { storyFeedbackSuite } from './storyFeedback.test.mjs';
 import { hudStyleSuite } from './hudStyle.test.mjs';
 import { hudStatusSuite } from './hudStatus.test.mjs';
 import { characterInventorySuite } from './characterInventory.test.mjs';
+import { chatSuite } from './chat.test.mjs';
 import { hotbarSuite } from './hotbar.test.mjs';
 import { dodgeSuite } from './dodge.test.mjs';
 import { potionSuite } from './potions.test.mjs';
@@ -51,6 +52,7 @@ const BRUTE_REVIEW = process.argv.includes('--brute-review');
 const LORD_REVIEW = process.argv.includes('--lord-review');
 const HUD_STATUS_REVIEW = process.argv.includes('--hud-status-review');
 const CHARACTER_REVIEW = process.argv.includes('--character-review');
+const CHAT_REVIEW = process.argv.includes('--chat-review');
 const PORT = ENVIRONMENT_REVIEW ? 5201 : HUD_REVIEW ? 5202 : 5199;
 const URL = `http://127.0.0.1:${PORT}/`;
 const OUT = ensureDir(join(process.cwd(), 'test-results'));
@@ -86,7 +88,9 @@ try {
       demoQuests.find((q) => q.questId === 'mvp_01_welcome')?.status === 'available' && demoLevel === 11 &&
       (await b.eval(`debug.questProgress('job_c1_01_instructor').status`)) === 'available' &&
       !(await b.eval(`!!document.querySelector('[data-hud="quests"]')`)));
-  if (CHARACTER_REVIEW) {
+  if (CHAT_REVIEW) {
+    await chatSuite(b, t, shot);
+  } else if (CHARACTER_REVIEW) {
     await characterInventorySuite(b, t, shot);
     await inventorySuite(b, t, shot);
   } else if (HUD_STATUS_REVIEW) {
@@ -143,6 +147,7 @@ try {
     await boot();
     await hudStyleSuite(b, t, shot);
     await hudStatusSuite(b, t, shot);
+    await chatSuite(b, t, shot);
     await pass3Suite(b, t, shot, URL, boot);
     await monsterMotionSuite(b, t, shot);
     await monsterAnimSuite(b, t, shot);
