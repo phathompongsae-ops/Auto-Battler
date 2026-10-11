@@ -33,6 +33,7 @@ import { potionSuite } from './potions.test.mjs';
 import { monsterMotionSuite } from './monsterMotion.test.mjs';
 import { monsterAnimSuite } from './monsterAnim.test.mjs';
 import { bruteAnimSuite } from './bruteAnim.test.mjs';
+import { lordAnimSuite } from './lordAnim.test.mjs';
 import { pass3Suite } from './pass3.test.mjs';
 
 const ENVIRONMENT_REVIEW = process.argv.includes('--environment-review');
@@ -45,6 +46,7 @@ const WARRIOR_REVIEW = process.argv.includes('--warrior-review');
 const STORY_REVIEW = process.argv.includes('--story-review');
 const ANIM_REVIEW = process.argv.includes('--anim-review');
 const BRUTE_REVIEW = process.argv.includes('--brute-review');
+const LORD_REVIEW = process.argv.includes('--lord-review');
 const PORT = ENVIRONMENT_REVIEW ? 5201 : HUD_REVIEW ? 5202 : 5199;
 const URL = `http://127.0.0.1:${PORT}/`;
 const OUT = ensureDir(join(process.cwd(), 'test-results'));
@@ -80,10 +82,13 @@ try {
       demoQuests.find((q) => q.questId === 'mvp_01_welcome')?.status === 'available' && demoLevel === 11 &&
       (await b.eval(`debug.questProgress('job_c1_01_instructor').status`)) === 'available' &&
       !(await b.eval(`!!document.querySelector('[data-hud="quests"]')`)));
-  if (ANIM_REVIEW) {
+  if (LORD_REVIEW) {
+    await lordAnimSuite(b, t, shot);
+  } else if (ANIM_REVIEW) {
     await monsterMotionSuite(b, t, shot);
     await monsterAnimSuite(b, t, shot);
     await bruteAnimSuite(b, t, shot);
+    await lordAnimSuite(b, t, shot);
   } else if (BRUTE_REVIEW) {
     await bruteAnimSuite(b, t, shot);
   } else if (WARRIOR_REVIEW) {
@@ -131,6 +136,7 @@ try {
     await monsterMotionSuite(b, t, shot);
     await monsterAnimSuite(b, t, shot);
     await bruteAnimSuite(b, t, shot);
+    await lordAnimSuite(b, t, shot);
     await b.goto(`${URL}?questFixtures=1`);
     await boot();
 

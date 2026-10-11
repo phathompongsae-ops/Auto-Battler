@@ -3,6 +3,11 @@
 Read-only technical brief, audited2026-10-11 at `037b89b1`.
 Generation is NOT authorized by this document alone. Brute remains locked.
 
+Production follow-up (2026-10-11): the explicitly authorized Lord generation task
+is documented in [Crypt Lord production animation](crypt-lord-production-animation.md).
+The five-state set now replaces the procedural Lord presentation; this brief remains
+the original contract reference.
+
 ## Why Lord next
 
 Lord is the tutorial's final boss and the Lv20 Crypt focal encounter. Its idle
@@ -15,7 +20,7 @@ Guardian follows; Knight/common Skeleton occur often but need new contracts firs
 ## Identity lock and references
 
 - Keep the approved `public/assets/monsters/crypt_lord.png` character: large pale
-  chibi skull, swept pale hair, dark blue steel and bronze/gold armour, pointed
+  chibi face with red eyes (not a bare skull), swept pale hair, dark blue steel and bronze/gold armour, pointed
   crown/helmet, skull ornament, purple cloak, same broad sword and proportions.
 - Boss hierarchy: above Crypt Knight/Brute; do not replace it with a generic
   realistic Death Knight. Elevated oblique east-facing view; mirror west at runtime.

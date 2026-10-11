@@ -1,0 +1,137 @@
+{
+  "source": "art-source/monsters/crypt_lord/pass-4b/source/special-sheet.png",
+  "out": "art-source/monsters/crypt_lord/pass-4b/fit/special.png",
+  "scale": 0.45821325648414984,
+  "frames": [
+    {
+      "componentIds": [
+        2
+      ],
+      "box": [
+        371,
+        25,
+        731,
+        359
+      ],
+      "rootX": 565,
+      "ground": 359
+    },
+    {
+      "componentIds": [
+        3
+      ],
+      "box": [
+        735,
+        30,
+        1056,
+        359
+      ],
+      "rootX": 905,
+      "ground": 359
+    },
+    {
+      "componentIds": [
+        21
+      ],
+      "box": [
+        26,
+        380,
+        340,
+        737
+      ],
+      "rootX": 204,
+      "ground": 737
+    },
+    {
+      "componentIds": [
+        23
+      ],
+      "box": [
+        377,
+        383,
+        688,
+        744
+      ],
+      "rootX": 553,
+      "ground": 744
+    },
+    {
+      "componentIds": [
+        22
+      ],
+      "box": [
+        739,
+        382,
+        1050,
+        744
+      ],
+      "rootX": 909,
+      "ground": 744
+    },
+    {
+      "componentIds": [
+        32
+      ],
+      "box": [
+        8,
+        756,
+        388,
+        1045
+      ],
+      "rootX": 232,
+      "ground": 1045
+    },
+    {
+      "componentIds": [
+        35
+      ],
+      "box": [
+        374,
+        793,
+        777,
+        1050
+      ],
+      "rootX": 589,
+      "ground": 1050
+    },
+    {
+      "componentIds": [
+        33
+      ],
+      "box": [
+        721,
+        756,
+        1078,
+        1046
+      ],
+      "rootX": 925,
+      "ground": 1046
+    },
+    {
+      "componentIds": [
+        53
+      ],
+      "box": [
+        22,
+        1059,
+        329,
+        1416
+      ],
+      "rootX": 200,
+      "ground": 1416
+    },
+    {
+      "componentIds": [
+        54
+      ],
+      "box": [
+        375,
+        1074,
+        664,
+        1418
+      ],
+      "rootX": 562,
+      "ground": 1418
+    }
+  ]
+}

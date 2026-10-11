@@ -90,6 +90,10 @@ describe('monster strip alpha / height validator', () => {
           stand: state === 'idle' || state === 'walk' ? art.standHeight : null,
         });
         assert.deepEqual(problems, [], `${id} ${state}`);
+        // Even faint matte/antialias pixels must not leak into the two reserved bottom rows.
+        for (let y = art.feetRow; y < art.frameHeight; y++) {
+          for (let x = 0; x < png.width; x++) assert.equal(png.data[(y * png.width + x) * 4 + 3], 0, `${id} ${state}: bottom alpha at ${x},${y}`);
+        }
       }
     }
   });

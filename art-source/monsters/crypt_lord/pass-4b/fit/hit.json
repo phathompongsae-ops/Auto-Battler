@@ -1,0 +1,46 @@
+{
+  "source": "art-source/monsters/crypt_lord/pass-4b/source/hit-sheet.png",
+  "out": "art-source/monsters/crypt_lord/pass-4b/fit/hit.png",
+  "scale": 0.310546875,
+  "frames": [
+    {
+      "componentIds": [
+        2
+      ],
+      "box": [
+        839,
+        13,
+        1278,
+        507
+      ],
+      "rootX": 1127,
+      "ground": 507
+    },
+    {
+      "componentIds": [
+        7
+      ],
+      "box": [
+        173,
+        522,
+        712,
+        983
+      ],
+      "rootX": 528,
+      "ground": 983
+    },
+    {
+      "componentIds": [
+        6
+      ],
+      "box": [
+        828,
+        515,
+        1300,
+        1012
+      ],
+      "rootX": 1124,
+      "ground": 1012
+    }
+  ]
+}

@@ -5,9 +5,9 @@ import type { MonsterAnimSet, MonsterArtDef, MonsterSpecialStrip, MonsterStrip }
  * and timings the runtime (graphics/monsterArt.ts, rendering/MonsterAnimator.ts)
  * expects for the three priority monsters. A contract stays `pending` until its
  * five strips exist; only `integrated` contracts are loaded. Until then each
- * monster keeps its Pass 2 idle sheet with procedural motion. The Skeleton Brute
- * is integrated (Pass 4B); the borrowed, tinted Skeleton sheet stays its fallback
- * if a strip fails to load.
+ * monster keeps its Pass 2 idle sheet with procedural motion. Crypt Lord and
+ * Skeleton Brute are integrated (Pass 4B); Lord's approved idle and Brute's
+ * borrowed, tinted Skeleton sheet stay their fallbacks if a strip fails to load.
  *
  * Shared rules for every strip:
  *   - one horizontal transparent PNG per state, `frames` cells of frameWidth x frameHeight
@@ -71,7 +71,7 @@ export const MONSTER_ANIM_ART: Readonly<Record<string, MonsterAnimContract>> = {
   // Boss. Grave Slam (Lv20 and Story) winds up 1100 ms; the raised weapon may use the headroom above the head.
   crypt_lord: contract('crypt_lord', { w: 224, h: 192, feetRow: 190 }, 2.5, [150, 168], { frames: 8, fps: 8 }, {
     raise: 3, hold: 2, impact: 2, recovery: 3, skills: ['crypt_slam', 'crypt_slam_story'], windupMs: 1100,
-  }),
+  }, 'integrated'),
   // Mini boss. Stomp winds up 1000 ms.
   grove_guardian: contract('grove_guardian', { w: 208, h: 160, feetRow: 158 }, 2.1, [124, 140], { frames: 8, fps: 8 }, {
     raise: 3, hold: 2, impact: 2, recovery: 3, skills: ['guardian_stomp'], windupMs: 1000,

@@ -1,0 +1,72 @@
+{
+  "source": "art-source/monsters/crypt_lord/pass-4b/source/attack-sheet.png",
+  "out": "art-source/monsters/crypt_lord/pass-4b/fit/attack.png",
+  "scale": 0.3509933774834437,
+  "frames": [
+    {
+      "componentIds": [
+        2
+      ],
+      "box": [
+        512,
+        78,
+        1071,
+        496
+      ],
+      "rootX": 760,
+      "ground": 496
+    },
+    {
+      "componentIds": [
+        3
+      ],
+      "box": [
+        1004,
+        81,
+        1522,
+        466
+      ],
+      "rootX": 1256,
+      "ground": 466
+    },
+    {
+      "componentIds": [
+        12
+      ],
+      "box": [
+        21,
+        535,
+        640,
+        970
+      ],
+      "rootX": 327,
+      "ground": 970
+    },
+    {
+      "componentIds": [
+        13
+      ],
+      "box": [
+        569,
+        543,
+        976,
+        965
+      ],
+      "rootX": 809,
+      "ground": 965
+    },
+    {
+      "componentIds": [
+        11
+      ],
+      "box": [
+        1031,
+        530,
+        1425,
+        981
+      ],
+      "rootX": 1295,
+      "ground": 981
+    }
+  ]
+}

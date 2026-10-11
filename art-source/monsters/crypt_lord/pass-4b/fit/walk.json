@@ -1,0 +1,15 @@
+{
+  "source": "art-source/monsters/crypt_lord/pass-4b/source/walk-sheet.png",
+  "out": "art-source/monsters/crypt_lord/pass-4b/fit/walk.png",
+  "scale": 0.4293333333,
+  "frames": [
+    {"box":[481,14,822,382],"rootX":725,"ground":382},
+    {"box":[924,14,1270,382],"rootX":1168,"ground":382},
+    {"box":[38,400,389,754],"rootX":248,"ground":754},
+    {"box":[500,398,837,755],"rootX":724,"ground":755},
+    {"box":[937,398,1266,763],"rootX":1158,"ground":763},
+    {"box":[48,776,363,1127],"rootX":226,"ground":1127},
+    {"box":[503,775,827,1130],"rootX":731,"ground":1130},
+    {"box":[941,777,1282,1142],"rootX":1164,"ground":1142}
+  ]
+}

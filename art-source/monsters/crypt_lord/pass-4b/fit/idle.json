@@ -1,0 +1,9 @@
+{
+  "source": "art-source/monsters/crypt_lord/pass-4b/source/approved-idle.png",
+  "out": "art-source/monsters/crypt_lord/pass-4b/fit/idle.png",
+  "scale": 0.2073011734,
+  "frames": [
+    { "box": [129,81,781,847], "rootX": 534, "ground": 847 },
+    { "box": [946,90,1575,837], "rootX": 1357.5, "ground": 837 }
+  ]
+}
