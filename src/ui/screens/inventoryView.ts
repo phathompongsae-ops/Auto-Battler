@@ -338,7 +338,8 @@ export function renderHero(world: CombatWorld, focus: 'character' | 'inventory')
       preview(world),
       h('div', { className: 'hero-doll__column' }, RIGHT_SLOTS.map(dollSlot)),
     ]);
-    const left = h('div', { className: 'hero-left' }, [doll]);
+    // Stats sit under the paper doll as one character sheet (a 2-column block at every size, never a footer strip).
+    const left = h('div', { className: 'hero-left' }, [doll, h('section', { className: 'hero-sheet', attrs: { 'aria-label': t('hero.stats') } }, [h('div', { className: 'hero-sheet__title', text: t('hero.stats') }), statBlock(world)])]);
 
     let right: HTMLElement;
     if (bagOpen) {
@@ -361,7 +362,7 @@ export function renderHero(world: CombatWorld, focus: 'character' | 'inventory')
       right = h('div', { className: 'hero-right' }, [tabs.el, grid, details]);
     } else right = h('div', { className: 'hero-right' }, [caption(t('hero.locked'), 'bag-locked'), details]);
 
-    root.replaceChildren(bar, left, right, statBlock(world));
+    root.replaceChildren(bar, left, right);
     select(selection);
   }
 

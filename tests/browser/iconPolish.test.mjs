@@ -89,7 +89,7 @@ export async function iconPolishSuite(b, t, shot, url, boot) {
   await sleep(300);
   const thai = await b.eval(`(() => { const w = document.querySelector('${W('skills')}'), fits = (e) => e.scrollWidth <= e.clientWidth + 1;
     const buttons = [...w.querySelectorAll('.ui-button')];
-    return { points: w.querySelector('[data-role=points]').textContent, reset: w.querySelector('[data-action=reset]').textContent, slot: w.querySelector('[data-assign-slot]').textContent,
+    return { points: w.querySelector('[data-role=points]').textContent, reset: w.querySelector('[data-action=reset]').textContent, slot: w.querySelector('[data-assign-slot]').getAttribute('aria-label'),
       buttonsFit: buttons.every(fits), english: /Skill Points|Active slots|Clear a slot|Empty|Reset/.test(w.textContent) }; })()`);
   await shot('icon-04-thai-640-skills');
   await closeAll();

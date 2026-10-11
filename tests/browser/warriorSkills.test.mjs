@@ -31,14 +31,14 @@ export async function warriorSkillSuite(b, t) {
   await b.eval(`${dom('[data-learn="power_slash"]')}.click()`);
   const ui = await b.eval(`({
     rank: ${dom('[data-node="power_slash"]')}.dataset.rank,
-    points: ${dom('[data-role="points"]')}.textContent,
+    points: ${dom('[data-role="points"]')}.dataset.available,
     learnDisabled: ${dom('[data-learn="power_slash"]')}.disabled,
     provokeDisabled: ${dom('[data-learn="provoke"]')}.disabled,
   })`);
   st = await tree();
   t.check(
     'W-2. the Skills window learns Power Slash rank 1 through the real path and updates at once',
-    ui.rank === '1' && ui.points.startsWith('Skill Points: 0 available') && ui.learnDisabled && ui.provokeDisabled && st.loadout.skill1 === 'power_strike',
+    ui.rank === '1' && ui.points === '0' && ui.learnDisabled && ui.provokeDisabled && st.loadout.skill1 === 'power_strike',
     JSON.stringify(ui),
   );
   await b.press('Escape');
