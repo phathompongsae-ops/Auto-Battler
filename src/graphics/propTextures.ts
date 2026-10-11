@@ -1,5 +1,7 @@
 import Phaser from 'phaser';
 import type { PropKind } from '../data/maps/props';
+import { environmentArtDisabled } from './environmentArt';
+import { drawCryptWallFace, HD_ART_SCALE, HD_PROP_ART } from './hdPropArt';
 
 /*
  * PLACEHOLDER prop art drawn to canvas at boot (one texture per prop kind,
@@ -9,6 +11,9 @@ import type { PropKind } from '../data/maps/props';
  */
 
 export const propTextureKey = (kind: PropKind) => `prop-${kind}`;
+
+/** Code-drawn 2x Crypt wall faces (two brick variants); absent with `?envArt=off`. */
+export const CRYPT_WALL_FACE_KEYS = ['crypt-wall-face-0', 'crypt-wall-face-1'] as const;
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -596,6 +601,24 @@ const ART: Record<PropKind, PropArt> = {
       circle(c, 12, 18, 4, '#c9a64a');
     },
   },
+  cobweb_right: {
+    w: 32,
+    h: 32,
+    draw: (c) => {
+      c.translate(32, 0);
+      c.scale(-1, 1);
+      ART.cobweb.draw(c, 32, 32);
+    },
+  },
+  carpet_runner: {
+    w: 128,
+    h: 480,
+    draw: (c) => {
+      rect(c, 0, 0, 128, 480, '#6a1c2a', false);
+      rect(c, 6, 0, 8, 480, '#c9a64a', false);
+      rect(c, 114, 0, 8, 480, '#c9a64a', false);
+    },
+  },
   rune_circle: {
     w: 96,
     h: 96,
@@ -621,13 +644,34 @@ export function propArtSize(kind: PropKind): { w: number; h: number } {
   return { w: ART[kind].w, h: ART[kind].h };
 }
 
-/** Code-drawn props for every kind without a loaded PNG (a PNG under the same key wins). */
+/**
+ * Code-drawn props for every kind without a loaded PNG (a PNG under the same key wins).
+ * Kinds with an HD drawing (hdPropArt.ts) get it at 2x, drawn at half scale with
+ * linear filtering like the PNGs; `?envArt=off` keeps the 1x placeholders.
+ */
 export function createPropTextures(scene: Phaser.Scene): void {
+  const hdAllowed = !environmentArtDisabled();
+  if (hdAllowed) {
+    CRYPT_WALL_FACE_KEYS.forEach((key, variant) => {
+      if (scene.textures.exists(key)) return;
+      const texture = scene.textures.createCanvas(key, 64, 64);
+      if (!texture) throw new Error('Could not create the Crypt wall face texture');
+      drawCryptWallFace(texture.getContext(), variant);
+      texture.refresh();
+      texture.setFilter(Phaser.Textures.FilterMode.LINEAR);
+      (texture.customData as Record<string, unknown>).envDrawScale = 1 / HD_ART_SCALE;
+    });
+  }
   for (const [kind, art] of Object.entries(ART) as [PropKind, PropArt][]) {
     if (scene.textures.exists(propTextureKey(kind))) continue;
-    const texture = scene.textures.createCanvas(propTextureKey(kind), art.w, art.h);
+    const hd = hdAllowed ? HD_PROP_ART[kind] : undefined;
+    const k = hd ? HD_ART_SCALE : 1;
+    const texture = scene.textures.createCanvas(propTextureKey(kind), art.w * k, art.h * k);
     if (!texture) throw new Error(`Could not create ${kind} prop texture`);
-    art.draw(texture.getContext(), art.w, art.h);
+    (hd ?? art.draw)(texture.getContext(), art.w * k, art.h * k);
     texture.refresh();
+    if (!hd) continue;
+    texture.setFilter(Phaser.Textures.FilterMode.LINEAR);
+    (texture.customData as Record<string, unknown>).envDrawScale = 1 / HD_ART_SCALE;
   }
 }

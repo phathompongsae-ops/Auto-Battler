@@ -25,18 +25,23 @@ export const CRYPT_MAP_ID = 'demo_crypt';
 const W = 32;
 const H = 64;
 
+/** Room floors (x, y, w, h): entrance hall, Section 1, Section 2, Elite section, Boss room. */
+const ROOMS = [
+  [10, 53, 12, 9],
+  [5, 42, 22, 8],
+  [5, 31, 22, 8],
+  [8, 21, 16, 7],
+  [6, 3, 20, 15],
+] as const;
+
 function tiles() {
   const g = new TileGrid(W, H, Tile.DungeonWall);
   const floor = Tile.DungeonFloor;
-  g.rect(10, 53, 12, 9, floor); // Entrance hall
+  for (const [x, y, w, h] of ROOMS) g.rect(x, y, w, h, floor);
   g.rect(14, 50, 4, 3, floor);
-  g.rect(5, 42, 22, 8, floor); // Section 1
   g.rect(14, 39, 4, 3, floor);
-  g.rect(5, 31, 22, 8, floor); // Section 2
   g.rect(14, 28, 4, 3, floor);
-  g.rect(8, 21, 16, 7, floor); // Elite section
   g.rect(14, 18, 4, 3, floor);
-  g.rect(6, 3, 20, 15, floor); // Boss room
   g.rect(14, 3, 4, 15, Tile.Carpet); // Carpet runner to the throne
   g.rect(15, 62, 2, 1, Tile.Portal); // Exit → Town
   g.rect(23, 2, 2, 1, Tile.Portal); // Boss room exit → Town
@@ -84,8 +89,14 @@ const PROPS: PropPlacement[] = [
   { kind: 'crypt_banner', x: 9, y: 2 },
   { kind: 'crypt_banner', x: 20, y: 2 },
   ...torches(2, [7, 12, 18]),
+  { kind: 'carpet_runner', x: 14, y: 3 },
+  // Webs only in the rooms' north corners, never across a fight's floor.
+  ...ROOMS.flatMap(([x, y, w]) => [
+    { kind: 'cobweb' as const, x, y },
+    { kind: 'cobweb_right' as const, x: x + w - 1, y },
+  ]),
   // Debris everywhere except the central walkway.
-  ...scatterDecor(TILES, [Tile.DungeonFloor], ['bones', 'rubble', 'cobweb', 'rubble'], 0.12, (x) => x >= 14 && x <= 17, 5),
+  ...scatterDecor(TILES, [Tile.DungeonFloor], ['bones', 'rubble', 'rubble'], 0.12, (x) => x >= 14 && x <= 17, 5),
 ];
 
 export const CRYPT_MAP: MapDef = {

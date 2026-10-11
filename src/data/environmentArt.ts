@@ -127,6 +127,8 @@ export interface EnvTileSkin {
   spacing: number;
   /** Tile index -> atlas frames (variants). */
   tiles: Readonly<Partial<Record<number, readonly number[]>>>;
+  /** Show a (code-drawn) wall face on every wall cell directly above a walkable cell. Visual only. */
+  wallFaces?: boolean;
 }
 
 /**
@@ -178,7 +180,8 @@ export const ENV_MAP_GROUND: Readonly<Record<string, EnvMapGround>> = {
     spacing: 4,
     lookup: FIELD_GROUND_WANG,
     plain: FIELD_GROUND_WANG_PLAIN as EnvWangGround['plain'],
-    wall: [],
+    // The border wall is woodland, not masonry: shaded forest floor (the dark-grass frames) under the edge trees.
+    wall: FIELD_GROUND_WANG_PLAIN.darkgrass,
     // Every Field terrain has a corner set with grass.
     connector: 'grass',
   },
@@ -191,6 +194,8 @@ export const ENV_MAP_GROUND: Readonly<Record<string, EnvMapGround>> = {
     spacing: 4,
     // Floor: the graded stone in four mirror variants; wall top: two.
     tiles: { [Tile.DungeonFloor]: [0, 1, 2, 3], [Tile.DungeonWall]: [4, 5] },
+    // Rooms read as walled chambers: a stone face along each room's north edge.
+    wallFaces: true,
   },
 };
 

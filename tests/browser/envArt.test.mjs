@@ -18,12 +18,13 @@ export async function envArtSuite(b, t, shot, url) {
 
   // 1. PNG wins over the placeholder (same key), linear filtering; other keys keep the code-drawn fallback.
   const monument = await b.eval(tex('prop-monument'));
-  // Giant mushrooms still have no production art (most Field props do since Visual Passes 2-3): they keep the code-drawn fallback.
+  // Giant mushrooms still have no production art (most Field props do since Visual Passes 2-3): they keep
+  // code-drawn art, drawn at 2x (graphics/hdPropArt.ts) and shown at half scale like the PNGs.
   const placeholder = await b.eval(tex('prop-giant_mushroom'));
   const ground = await b.eval(tex('env-ground-town'));
   t.check(
-    'ENV-1. a 2x PNG replaces the placeholder under the same texture key with linear filtering; keys without a PNG keep the code-drawn placeholder',
-    !monument.canvas && monument.w === 256 && monument.filter === LINEAR && !ground.canvas && ground.filter === LINEAR && placeholder.canvas && placeholder.filter === NEAREST,
+    'ENV-1. a 2x PNG replaces the placeholder under the same texture key with linear filtering; keys without a PNG keep code-drawn art (2x, linear)',
+    !monument.canvas && monument.w === 256 && monument.filter === LINEAR && !ground.canvas && ground.filter === LINEAR && placeholder.canvas && placeholder.w === 88 && placeholder.filter === LINEAR,
     JSON.stringify({ monument, placeholder, ground }),
   );
 
@@ -137,11 +138,11 @@ export async function envArtSuite(b, t, shot, url) {
   await b.goto(`${url}?envArt=off`);
   await b.waitFor(`!window.__stale && !!(window.debug && window.game && window.game.scene.getScene('World').player)`, { timeout: 15000, label: 'boot (envArt=off)' });
   await sleep(300);
-  const off = { monument: await b.eval(tex('prop-monument')), layers: await b.eval(`${SCENE}.groundVisualLayers.length`), baseVisible: await b.eval(`${SCENE}.groundLayer.visible`), forge: await b.eval(`game.textures.exists('building-forge')`) };
+  const off = { monument: await b.eval(tex('prop-monument')), mushroom: await b.eval(tex('prop-giant_mushroom')), layers: await b.eval(`${SCENE}.groundVisualLayers.length`), baseVisible: await b.eval(`${SCENE}.groundLayer.visible`), forge: await b.eval(`game.textures.exists('building-forge')`) };
   const offScale = await b.eval(`${SCENE}.children.list.find((o) => o.texture?.key === 'prop-monument').scaleX`);
   t.check(
     'ENV-6. without the PNGs (?envArt=off) the code-drawn placeholders render at 1x and no visual ground layer or facade is added',
-    off.monument.canvas && off.monument.filter === NEAREST && offScale === 1 && off.layers === 0 && off.baseVisible && !off.forge,
+    off.monument.canvas && off.monument.filter === NEAREST && off.mushroom.w === 44 && off.mushroom.filter === NEAREST && offScale === 1 && off.layers === 0 && off.baseVisible && !off.forge,
     JSON.stringify({ off, offScale }),
   );
 }

@@ -43,18 +43,18 @@ The generic MonsterAnimator path is used, with only the contract status changed 
   - assets loaded once, and 960 / 844 / 640 captures at zoom 1.65
   - performance in a warmed 4 s fight: real p95 7.1 ms, max 14 ms, no frames over 20 ms; fallback p95 7.1 ms; 14
     texture swaps, on state changes only
-- **Test geometry:** from 75 px due west, a collider at the Guardian Stones stops the Guardian's approach at
-  −27 px, out of reach. This is the map, the same for the fallback, so the west fight starts 60 px away.
+- **Test geometry:** the west fight starts 60 px from the spawn. (Before the Environment / Encounter polish pass a
+  standing-stone collider 75 px west stopped the approach; the clearing is now open on every side.)
 - **Generic suite:** `monsterAnim.test.mjs` now drives all three integrated monsters on production art. The
   debug fixture remains for future pending contracts.
 - **Final QA:** typecheck and build pass; unit tests 613/613; `--anim-review` 88/88, `--brute-review` 24/24 and
   `--lord-review` 24/24; the full default browser suite (`npm run test:browser`) passes 476/476 with no console
   errors.
 
-## Known issue (not caused by this pass)
+## Resolved: HUD overlap at the map edge
 
-The Guardian Stones spawn sits in the Green Meadow's north-east corner. With the camera clamped at the map edge,
-the fight renders at the top-right of the screen. At 960×540 the quest tracker clips only the top of the Stomp ring.
-At 844×390 and 640×360 the tracker and the combat cluster cover much of the Guardian. The fallback art sits in the
-same place. Fixing it means moving the spawn or changing camera / HUD behaviour, so it is deferred to the
-environment / encounter pass. Collapsing the quest tracker helps meanwhile.
+The Guardian Stones used to sit in the Green Meadow's north-east corner, where the camera clamped to the map edge
+and the quest tracker and combat cluster covered much of the fight at 844×390 and 640×360. The Environment /
+Encounter polish pass (`docs/art/environment-encounter-polish.md`) moved the clearing inland, swapping it with the
+pond. GP-17 now checks that the camera follows the fight unclamped at all three viewports and that no HUD element
+covers the Guardian.

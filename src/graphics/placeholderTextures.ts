@@ -3,6 +3,8 @@ import { TILE_SIZE } from '../config';
 import type { CharacterVisualLayout } from '../data/characterArt';
 import { DIRECTIONS, type Direction } from '../input/Direction';
 import { Tile, TILE_COUNT } from '../world/tiles';
+import { environmentArtDisabled } from './environmentArt';
+import { drawNpcBase, drawNpcRobe, HD_ART_SCALE } from './hdPropArt';
 import { createPropTextures } from './propTextures';
 
 /*
@@ -53,6 +55,18 @@ export const NPC_ROBE_KEY = 'npc-robe';
  * at the bottom.
  */
 function createNpcFigure(scene: Phaser.Scene): void {
+  // The 2x chibi drawing (hdPropArt.ts) unless environment art is off; same 32×44 world size either way.
+  if (!environmentArtDisabled()) {
+    for (const [key, draw] of [[NPC_BASE_KEY, drawNpcBase], [NPC_ROBE_KEY, drawNpcRobe]] as const) {
+      const hd = scene.textures.createCanvas(key, 32 * HD_ART_SCALE, 44 * HD_ART_SCALE);
+      if (!hd) throw new Error('Could not create NPC textures');
+      draw(hd.getContext());
+      hd.refresh();
+      hd.setFilter(Phaser.Textures.FilterMode.LINEAR);
+      (hd.customData as Record<string, unknown>).envDrawScale = 1 / HD_ART_SCALE;
+    }
+    return;
+  }
   const base = scene.textures.createCanvas(NPC_BASE_KEY, 32, 44);
   const robe = scene.textures.createCanvas(NPC_ROBE_KEY, 32, 44);
   if (!base || !robe) throw new Error('Could not create NPC textures');

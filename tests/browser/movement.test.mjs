@@ -81,10 +81,11 @@ export async function movementSuite(b, t, shot) {
   const sy = (s.y - s.camY) * s.zoom;
   t.check('camera follows player (player near screen centre)', Math.abs(sx - 480) < 40 && Math.abs(sy - 270) < 40, `screen=(${sx.toFixed(0)}, ${sy.toFixed(0)})`);
 
-  await b.eval('debug.teleportPlayer(30 * 32 + 16, 12 * 32 + 16)');
+  await b.eval('debug.teleportPlayer(35 * 32 + 16, 12 * 32 + 16)'); // south of the pond (north-east corner)
   await sleep(100);
   s = await hold('ArrowUp', 2000);
-  t.check('water tiles block movement', s.y > 320, `y=${s.y.toFixed(1)}`);
+  // The pond's south shore is at y = 320 (row 9 is its last water row); unblocked, 2 s of walking would reach y ≈ 80.
+  t.check('water tiles block movement', s.y > 288, `y=${s.y.toFixed(1)}`);
 
   await b.eval('debug.reset()');
   await sleep(300);

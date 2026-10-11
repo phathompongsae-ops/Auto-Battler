@@ -14,7 +14,7 @@ import { isCharacterArtReady } from '../graphics/characterArt';
 import { NPC_BASE_KEY, NPC_ROBE_KEY, TILESET_KEY } from '../graphics/placeholderTextures';
 import { NPCS } from '../data/npcData';
 import { npcMarker } from '../quests/questText';
-import { propTextureKey } from '../graphics/propTextures';
+import { CRYPT_WALL_FACE_KEYS, propTextureKey } from '../graphics/propTextures';
 import { envDrawScale } from '../graphics/environmentArt';
 import { ENV_BUILDINGS, ENV_GROUND_TILESET, ENV_MAP_GROUND, type EnvTileSkin, type EnvWangGround } from '../data/environmentArt';
 
@@ -277,6 +277,21 @@ export class WorldScene extends Phaser.Scene implements WorldMapView {
     this.visualLayer(data, skin.key, skin.frameSize, skin.margin, skin.spacing)
       ?.setScale(envDrawScale(this, skin.key))
       .setDepth(GROUND_DEPTH + 0.05);
+    if (skin.wallFaces) this.drawWallFaces(map);
+  }
+
+  /** A stone face on each solid wall cell whose south neighbour is walkable (visual only; props such as torches draw over it). */
+  private drawWallFaces(map: MapDef): void {
+    if (!CRYPT_WALL_FACE_KEYS.every((key) => this.textures.exists(key))) return;
+    map.tiles.forEach((row, y) =>
+      row.forEach((tile, x) => {
+        const below = map.tiles[y + 1]?.[x];
+        if (!SOLID_TILES.includes(tile) || below === undefined || SOLID_TILES.includes(below)) return;
+        const key = CRYPT_WALL_FACE_KEYS[(x * 7 + y * 3) % CRYPT_WALL_FACE_KEYS.length];
+        const face = this.add.image(x * TILE_SIZE, y * TILE_SIZE, key).setOrigin(0, 0).setScale(envDrawScale(this, key)).setDepth(GROUND_DEPTH + 0.1);
+        this.mapVisuals.push(face);
+      }),
+    );
   }
 
   /** One visual-only tilemap layer from a frame grid (-1 = empty); null if nothing to draw or the tileset is missing. */
@@ -476,8 +491,9 @@ export class WorldScene extends Phaser.Scene implements WorldMapView {
       const at = this.world.npcPosition(npc.id);
       if (!at || at.mapId !== map.id) continue;
       const feet = at.y + 6;
-      const base = this.add.image(at.x, feet, NPC_BASE_KEY).setOrigin(0.5, 1).setDepth(feet);
-      const robe = this.add.image(at.x, feet, NPC_ROBE_KEY).setOrigin(0.5, 1).setDepth(feet + 0.1).setTint(npc.color);
+      const npcScale = envDrawScale(this, NPC_BASE_KEY);
+      const base = this.add.image(at.x, feet, NPC_BASE_KEY).setOrigin(0.5, 1).setScale(npcScale).setDepth(feet);
+      const robe = this.add.image(at.x, feet, NPC_ROBE_KEY).setOrigin(0.5, 1).setScale(npcScale).setDepth(feet + 0.1).setTint(npc.color);
       const name = text(at.x, feet - 46, npc.name, '#ffe9a8', 9);
       const role = text(at.x, feet - 36, npc.title, '#c9d1e3', 8);
       const mark = text(at.x, feet - 56, '', '#ffd23f', 18).setVisible(false);

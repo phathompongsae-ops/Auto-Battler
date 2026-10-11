@@ -63,9 +63,13 @@ const PROP_KIND_DEFS = {
   throne: { w: 3, h: 2, solid: true, tall: true },
   bones: { w: 1, h: 1, solid: false, ground: true },
   rubble: { w: 1, h: 1, solid: false, ground: true },
+  /** Corner webs: anchored in a room's north-west / north-east corner tile. */
   cobweb: { w: 1, h: 1, solid: false },
+  cobweb_right: { w: 1, h: 1, solid: false },
   crypt_banner: { w: 1, h: 1, solid: false },
   rune_circle: { w: 3, h: 3, solid: false, ground: true },
+  /** The throne-room runner laid over the Carpet tiles (visual only; the tiles stay the floor). */
+  carpet_runner: { w: 4, h: 15, solid: false, ground: true },
 } satisfies Record<string, PropKindDef>;
 
 export type PropKind = keyof typeof PROP_KIND_DEFS;

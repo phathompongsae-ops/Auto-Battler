@@ -197,7 +197,7 @@ export async function guardianAnimSuite(b, t, shot) {
   const clip = (c) => ({ x: Math.max(0, Math.round(c.x - 120)), y: Math.max(0, Math.round(c.y - 170)), width: 240, height: 210 });
   const where = () => b.eval(`(() => { const c = ${S}.cameras.main, mm = ${S}.world.monsterById('${ID}'), r = game.canvas.getBoundingClientRect(), k = r.width / game.scale.width;
     return { x: r.x + (mm.x - c.worldView.x) * c.zoom * k, y: r.y + (mm.y - c.worldView.y) * c.zoom * k, zoom: c.zoom }; })()`);
-  const zooms = [];
+  const zooms = [], framing = [];
   for (const [w, h] of [[960, 540], [844, 390], [640, 360]]) {
     await b.send('Emulation.setDeviceMetricsOverride', { width: w, height: h, deviceScaleFactor: 1, mobile: false });
     await sleep(200);
@@ -207,6 +207,11 @@ export async function guardianAnimSuite(b, t, shot) {
     await b.eval(`debug.teleport(${mm.spawnX - 55}, ${mm.spawnY + 6}); debug.setPlayerHp(999999); debug.clearLog(); true`);
     await sleep(400);
     let c = await where(); zooms.push(c.zoom);
+    framing.push(await b.eval(`(() => { const cam = ${S}.cameras.main, wb = ${S}.physics.world.bounds;
+      const hud = [...document.querySelectorAll('[data-hud="quest-tracker"], .hud-actions button, .hud-map-group, .hud-utilities button')]
+        .map((e) => e.getBoundingClientRect()).filter((r) => r.width > 0);
+      const covered = hud.some((r) => ${c.x} >= r.left && ${c.x} <= r.right && ${c.y} >= r.top && ${c.y} <= r.bottom);
+      return { size: '${w}x${h}', at: [${Math.round(c.x)}, ${Math.round(c.y)}], clamped: cam.worldView.right >= wb.right - 0.5 || cam.worldView.x <= 0.5 || cam.worldView.y <= 0.5, covered }; })()`));
     await shot(`guardian-prod-${w}x${h}-1-idle`, clip(c));
     await shot(`guardian-prod-${w}x${h}-full-idle`);
     await b.eval(`debug.setPeaceful(false); (() => { const w = ${S}.world, m2 = w.monsterById('${ID}'); w.skills.use(m2, 'guardian_stomp', w.now); })(); true`);
@@ -222,6 +227,8 @@ export async function guardianAnimSuite(b, t, shot) {
   await b.setViewport({ mobile: false });
   await sleep(150);
   t.check('GP-14. viewport captures at 960x540, 844x390, 640x360 taken at camera zoom 1.65 (review in test-results/guardian-prod-*)', zooms.every((z) => z === 1.65), JSON.stringify(zooms));
+  t.check('GP-17. the Guardian fights inland: at every viewport the camera follows the fight unclamped and no tracker / minimap / action button covers the Guardian',
+    framing.length === 3 && framing.every((f) => !f.clamped && !f.covered), JSON.stringify(framing));
   await b.send('Network.disable');
   b.onMessage = onMessage;
   // The deliberate restore (GP-5) reloads the whole set once; the dozen-plus map resets request nothing.

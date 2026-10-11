@@ -16,7 +16,7 @@ import { deserializePlayerSave, newPlayerSave, serializePlayerSave } from '../..
 import { locationKind } from '../../src/warp/warp';
 import { MapSession } from '../../src/world/MapSession';
 import { blocksProjectile, isSafePosition, mapCollision, portalAt, resolveMapEntry, spawnPlan, tileAt, type MonsterSpawn } from '../../src/world/mapRules';
-import { SOLID_TILES } from '../../src/world/tiles';
+import { SOLID_TILES, Tile } from '../../src/world/tiles';
 import { makeSaveTarget } from './fixtures';
 
 const ALL = Object.values(MAPS);
@@ -283,7 +283,7 @@ describe('save: current map and position', () => {
       { x: 16, y: 16 }, // inside the wall
       { x: -50, y: 300 }, // off the map
       { x: 99999, y: 300 },
-      { x: 30 * 32 + 16, y: 7 * 32 + 16 }, // in the pond
+      { x: 35 * 32 + 16, y: 6 * 32 + 16 }, // in the pond
       { x: 16, y: 15 * 32 + 16 }, // on a portal trigger
     ];
     for (const p of bad) assert.deepEqual(resolveMapEntry({ mapId: FIELD_MAP_ID, ...p }), { mapId: FIELD_MAP_ID, at: field.spawnPoint, fallback: 'invalid_position' }, JSON.stringify(p));
@@ -334,5 +334,67 @@ describe('rules on the new maps', () => {
     const empty = kill('field', 'mushroom', 0);
     assert.equal(empty.expGained, 0);
     assert.equal(empty.energy, 0);
+  });
+});
+
+describe('environment / encounter polish (Demo final visual prep)', () => {
+  const field = MAPS[FIELD_MAP_ID];
+  const crypt = MAPS[CRYPT_MAP_ID];
+  const tile = (n: number) => n * 32 + 16;
+
+  test('the Guardian fights inland: with the player beside it, the 960x540 view at zoom 1.65 is never clamped to the map edge', () => {
+    const [p] = field.monsterSpawnZones.find((z) => z.monsterId === 'grove_guardian')!.points;
+    const halfW = 960 / 1.65 / 2;
+    const halfH = 540 / 1.65 / 2;
+    const { width, height } = mapSize(field);
+    for (const [dx, dy] of [[-60, 0], [60, 0], [0, -50], [0, 50]]) {
+      const px = tile(p.tileX) + dx;
+      const py = tile(p.tileY) + dy;
+      assert.ok(px - halfW >= 0 && px + halfW <= width * 32, `x ${px} clamps the view horizontally`);
+      assert.ok(py - halfH >= 0 && py + halfH <= height * 32, `y ${py} clamps the view vertically`);
+    }
+  });
+
+  test('the Guardian clearing is open: every cell within 3 tiles of its spawn is walkable, and its stones stand outside that', () => {
+    const [p] = field.monsterSpawnZones.find((z) => z.monsterId === 'grove_guardian')!.points;
+    const grid = mapCollision(FIELD_MAP_ID)!;
+    for (let y = p.tileY - 3; y <= p.tileY + 3; y++)
+      for (let x = p.tileX - 3; x <= p.tileX + 3; x++)
+        if (Math.hypot(x - p.tileX, y - p.tileY) <= 3) assert.ok(!grid.isBlocked(tile(x), tile(y)), `(${x}, ${y}) blocked`);
+    const stones = field.props.filter((s) => s.kind === 'standing_stone');
+    assert.ok(stones.length >= 4);
+    for (const s of stones) assert.ok(Math.hypot(s.x - p.tileX, s.y - p.tileY) > 4, `stone (${s.x}, ${s.y}) inside the fight`);
+  });
+
+  test('the Field\'s outer walkway (the ring of cells just inside the border) stays open', () => {
+    const grid = mapCollision(FIELD_MAP_ID)!;
+    const { width, height } = mapSize(field);
+    for (let x = 1; x < width - 1; x++) for (const y of [1, height - 2]) assert.ok(!grid.isBlocked(tile(x), tile(y)), `(${x}, ${y}) blocked`);
+    for (let y = 1; y < height - 1; y++) for (const x of [1, width - 2]) assert.ok(!grid.isBlocked(tile(x), tile(y)), `(${x}, ${y}) blocked`);
+  });
+
+  test('no solid Field prop stands on water or on the roads', () => {
+    for (const s of field.props) {
+      const k = PROP_KINDS[s.kind];
+      if (!k.solid) continue;
+      for (let y = s.y; y < s.y + k.h; y++)
+        for (let x = s.x; x < s.x + k.w; x++) assert.ok(![Tile.Water, Tile.Path].includes(field.tiles[y][x]), `${s.kind} at (${x}, ${y})`);
+    }
+  });
+
+  test('Crypt: webs only in the rooms\' north corners; the runner covers exactly the Carpet tiles', () => {
+    const webs = crypt.props.filter((p) => p.kind === 'cobweb' || p.kind === 'cobweb_right');
+    assert.ok(webs.length >= 8);
+    for (const w of webs) {
+      assert.equal(crypt.tiles[w.y][w.x], Tile.DungeonFloor, `web (${w.x}, ${w.y}) on floor`);
+      assert.ok(SOLID_TILES.includes(crypt.tiles[w.y - 1][w.x]), `web (${w.x}, ${w.y}) under a wall`);
+      const side = w.kind === 'cobweb' ? w.x - 1 : w.x + 1;
+      assert.ok(SOLID_TILES.includes(crypt.tiles[w.y][side]), `web (${w.x}, ${w.y}) against its side wall`);
+    }
+    const [runner] = crypt.props.filter((p) => p.kind === 'carpet_runner');
+    const k = PROP_KINDS.carpet_runner;
+    const carpet = crypt.tiles.flatMap((row, y) => row.map((t, x) => [t, x, y] as const)).filter(([t]) => t === Tile.Carpet);
+    assert.equal(carpet.length, k.w * k.h);
+    for (const [, x, y] of carpet) assert.ok(x >= runner.x && x < runner.x + k.w && y >= runner.y && y < runner.y + k.h, `carpet (${x}, ${y}) uncovered`);
   });
 });
