@@ -8,7 +8,7 @@ import { PLAYER_BASIC_ATTACK } from '../../data/playerData';
 import type { EquipmentInstance } from '../../equipment/equipment';
 import type { CombatWorld } from '../../game/CombatWorld';
 import type { BagEntry } from '../../inventory/Bag';
-import { formatComparison, itemName, itemStatSections, itemSummary, previewEquip } from '../../inventory/itemInfo';
+import { formatComparison, itemName, itemStatSections, previewEquip } from '../../inventory/itemInfo';
 import { playerCombatStats } from '../../stats/playerCombatStats';
 import { createButton } from '../components/Button';
 import { ItemSlot, type SlotContent } from '../components/Slot';
@@ -16,6 +16,7 @@ import { Tabs } from '../components/Tabs';
 import { h, setText, toggleClass } from '../dom';
 import { icon, type IconName } from '../icons';
 import { t, type StringKey } from '../i18n';
+import { currencyIcon, equipmentIconUrl, itemIconUrl } from '../itemIcons';
 
 /*
  * Character + Inventory: one view behind both the Character and the Inventory
@@ -39,8 +40,28 @@ type Selection = { kind: 'bag'; key: string } | { kind: 'slot'; slot: EquipmentS
 const LEFT_SLOTS: readonly EquipmentSlot[] = ['weapon', 'head', 'armor', 'gloves', 'boots'];
 const RIGHT_SLOTS: readonly EquipmentSlot[] = ['off_hand', 'necklace', 'ring_1', 'ring_2'];
 
+/** Subtle outline in an empty paper-doll slot: what goes there. */
+const SLOT_SILHOUETTE: Record<EquipmentSlot, IconName> = {
+  weapon: 'sword', off_hand: 'shield', head: 'helm', armor: 'chest', gloves: 'glove', boots: 'boot', necklace: 'necklace', ring_1: 'ring', ring_2: 'ring',
+};
+
 const slotLabel = (slot: EquipmentSlot) => t(`slot.${slot.startsWith('ring') ? 'ring' : slot}` as StringKey);
 const rarityName = (rarity: string) => t(`rarity.${rarity}` as StringKey);
+
+/** "Weapon · Lv20 · Uncommon · Warrior" from the string table (job names stay game data). */
+function summaryText(item: EquipmentInstance): string {
+  const def = EQUIPMENT_DEFS[item.defId];
+  const classes = def.classes.length ? def.classes.map((c) => JOBS[c].name).join(' / ') : t('hero.anyClass');
+  return [t(`slot.${def.slotType}` as StringKey), `Lv${def.equipmentLevel}`, rarityName(def.rarity), classes].join(' · ');
+}
+
+/** Stat-section titles: base (with its enhancement), bonus, enchant; future layers keep their id. */
+function sectionTitle(layer: string, item: EquipmentInstance): string {
+  if (layer === 'enhancement') return item.enhancement > 0 ? t('hero.section.baseEnhanced', { level: item.enhancement }) : t('hero.section.base');
+  if (layer === 'definition') return t('hero.section.bonus');
+  if (layer === 'enchant') return t('hero.section.enchant');
+  return layer;
+}
 const hex = (color: number) => `#${color.toString(16).padStart(6, '0')}`;
 const caption = (text: string, role?: string) => h('div', { className: 'ui-caption', text, attrs: role ? { 'data-role': role } : {} });
 
@@ -52,7 +73,7 @@ const FAIL_KEYS: Record<string, true> = Object.fromEntries(
   ['inventory_full', 'class_restricted', 'weapon_not_allowed', 'off_hand_blocked_by_two_handed', 'cooldown', 'resource_full', 'action_locked'].map((r) => [`hero.fail.${r}`, true]),
 );
 
-/** Vector glyph for what an item is; materials keep the lettered disc until item icons exist. */
+/** Vector glyph for what an item is: the fallback when its illustrated icon is unavailable. */
 function equipmentGlyph(item: EquipmentInstance): IconName | undefined {
   const type = EQUIPMENT_DEFS[item.defId].slotType;
   return type === 'weapon' ? 'sword' : type === 'off_hand' ? 'shield' : undefined;
@@ -60,11 +81,13 @@ function equipmentGlyph(item: EquipmentInstance): IconName | undefined {
 
 function equipmentContent(item: EquipmentInstance): SlotContent {
   const def = EQUIPMENT_DEFS[item.defId];
-  return { abbr: def.name.slice(0, 2), color: `var(--rarity-${def.rarity})`, title: itemName(item), glyph: equipmentGlyph(item) };
+  const iconUrl = equipmentIconUrl(item.defId);
+  return { abbr: def.name.slice(0, 2), color: `var(--rarity-${def.rarity})`, title: itemName(item), glyph: equipmentGlyph(item), ...(iconUrl ? { iconUrl } : {}) };
 }
 
 function itemContent(def: ItemDef): SlotContent {
-  return { abbr: def.name.slice(0, 2), color: hex(def.color), title: def.name, glyph: def.use?.kind === 'potion' ? 'potion' : undefined };
+  const iconUrl = itemIconUrl(def.id);
+  return { abbr: def.name.slice(0, 2), color: hex(def.color), title: def.name, glyph: def.use?.kind === 'potion' ? 'potion' : undefined, ...(iconUrl ? { iconUrl } : {}) };
 }
 
 /** A bag or doll cell: rarity frame, enhancement badge, stack count, optional "better" mark. */
@@ -204,7 +227,7 @@ export function renderHero(world: CombatWorld, focus: 'character' | 'inventory')
       const unequip = createButton({ label: t('hero.unequip'), onClick: () => act(() => world.unequipPlayerSlot(sel.slot), t('hero.didUnequip', { item: itemName(item) })) });
       unequip.dataset.action = 'unequip';
       details.dataset.instance = item.instanceId;
-      details.replaceChildren(head(itemName(item), EQUIPMENT_DEFS[item.defId].rarity, `${itemSummary(item)} · ${t('hero.equipped')}`, [unequip]), body(equipmentLines(item, false)));
+      details.replaceChildren(head(itemName(item), EQUIPMENT_DEFS[item.defId].rarity, `${summaryText(item)} · ${t('hero.equipped')}`, [unequip]), body(equipmentLines(item, false)));
       return;
     }
     const entry = world.bag.entries('all').find((e) => e.key === sel.key);
@@ -225,14 +248,14 @@ export function renderHero(world: CombatWorld, focus: 'character' | 'inventory')
       const compare: Node[] = [];
       const check = p.equipment.canEquip(item.instanceId);
       if (comparison && check.ok) {
-        // Comparison lines come from the shared item text (English game data, like item names).
-        compare.push(caption(comparison.slotItem ? `Compared to equipped ${itemName(comparison.slotItem)}` : `${slotLabel(check.slot)} slot is empty`));
+        // Stat deltas come from the shared item text (English game data, like item names); the captions are interface text.
+        compare.push(caption(comparison.slotItem ? t('hero.compareEquipped', { item: itemName(comparison.slotItem) }) : t('hero.compareEmpty', { slot: slotLabel(check.slot) })));
         for (const c of comparison.changes) {
           compare.push(h('div', { className: `inv-delta ${c.delta > 0 ? 'inv-delta--up' : 'inv-delta--down'}`, text: formatComparison(c), attrs: { 'data-stat': c.key, 'data-delta': String(c.delta) } }));
         }
       } else compare.push(caption(failText(check), 'cannot-equip'));
       lines.push(h('div', { className: 'inv-compare', attrs: { 'data-role': 'compare' } }, compare));
-      details.replaceChildren(head(itemName(item), entry.rarity, itemSummary(item), [equip]), body(lines));
+      details.replaceChildren(head(itemName(item), entry.rarity, summaryText(item), [equip]), body(lines));
       return;
     }
     const def = ITEMS[entry.itemId];
@@ -264,7 +287,7 @@ export function renderHero(world: CombatWorld, focus: 'character' | 'inventory')
 
   function equipmentLines(item: EquipmentInstance, withSell: boolean): Node[] {
     const lines: Node[] = itemStatSections(item).map((section) =>
-      h('div', { className: 'inv-section', attrs: { 'data-layer': section.layer } }, [caption(section.title), ...section.lines.map((l) => h('div', { className: 'inv-stat', text: l }))]),
+      h('div', { className: 'inv-section', attrs: { 'data-layer': section.layer } }, [caption(sectionTitle(section.layer, item)), ...section.lines.map((l) => h('div', { className: 'inv-stat', text: l }))]),
     );
     if (withSell) {
       const entry = world.bag.entries('equipment').find((e) => e.kind === 'equipment' && e.item.instanceId === item.instanceId);
@@ -280,7 +303,12 @@ export function renderHero(world: CombatWorld, focus: 'character' | 'inventory')
     c.el.dataset.slot = slot;
     c.el.setAttribute('role', 'button');
     c.el.setAttribute('aria-label', item ? `${slotLabel(slot)}: ${itemName(item)}` : `${slotLabel(slot)}: ${t('hero.empty')}`);
-    if (!item) c.el.append(h('span', { className: 'hero-cell__slot', text: slotLabel(slot) }));
+    if (!item) {
+      const silhouette = icon(SLOT_SILHOUETTE[slot]);
+      silhouette.classList.add('hero-cell__silhouette');
+      silhouette.dataset.silhouette = slot;
+      c.el.append(silhouette, h('span', { className: 'hero-cell__slot', text: slotLabel(slot) }));
+    }
     else c.el.title = `${slotLabel(slot)}: ${itemName(item)}`;
     c.el.addEventListener('click', () => select({ kind: 'slot', slot }));
     cells.set(`slot:${slot}`, c.el);
@@ -294,11 +322,11 @@ export function renderHero(world: CombatWorld, focus: 'character' | 'inventory')
     const full = used >= world.bag.capacity;
     const bar = h('div', { className: 'hero-bar' }, [
       h('span', { className: 'hero-currency', attrs: { 'data-currency': 'gold', title: t('currency.gold') } }, [
-        icon('coin'),
+        currencyIcon('gold'),
         h('span', { text: `${world.wallet.get('gold').toLocaleString('en-US')} G`, attrs: { 'data-role': 'gold' } }),
       ]),
       h('span', { className: 'hero-currency', attrs: { 'data-currency': 'diamond', title: t('currency.diamond') } }, [
-        icon('gem'),
+        currencyIcon('diamond'),
         h('span', { text: world.wallet.get('diamond').toLocaleString('en-US'), attrs: { 'data-role': 'diamond' } }),
       ]),
       result,

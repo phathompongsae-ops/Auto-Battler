@@ -5,6 +5,7 @@ import { ITEMS } from '../../data/itemData';
 import type { CombatWorld } from '../../game/CombatWorld';
 import { rewardText } from '../../quests/questText';
 import { h } from '../dom';
+import { t, type StringKey } from '../i18n';
 import type { ChatLog } from './chatLog';
 
 /** How long a line stays on screen (real time, ms). */
@@ -33,8 +34,8 @@ export class LootFeed {
     this.el = h('div', { className: 'hud-loot', attrs: { 'data-hud': 'loot-feed', 'aria-live': 'polite' } });
     const ev = world.events;
     this.unsubscribe.push(
-      ev.on('skillUnassigned', ({ skillId }) => this.push('locked', SKILLS[skillId].name + ' learned. Assign it in Skills; all five slots are occupied.', '#fbe7b8')),
-      ev.on('goldGained', ({ amount }) => this.stack('gold', 'gold', amount, (n) => `+${n} Gold`, '#ffd166')),
+      ev.on('skillUnassigned', ({ skillId }) => this.push('locked', t('feed.skillUnassigned', { skill: SKILLS[skillId].name }), '#fbe7b8')),
+      ev.on('goldGained', ({ amount }) => this.stack('gold', 'gold', amount, (n) => t('feed.gold', { amount: n }), '#ffd166')),
       ev.on('itemAcquired', ({ itemId, amount, source }) => {
         if (source !== 'loot') return;
         const def = ITEMS[itemId];
@@ -42,15 +43,15 @@ export class LootFeed {
       }),
       ev.on('equipmentPicked', ({ defId }) => {
         const def = EQUIPMENT_DEFS[defId];
-        this.push('equipment', `Equipment: ${def.name} (${RARITY_INFO[def.rarity].name})`, RARITY_INFO[def.rarity].color);
+        this.push('equipment', t('feed.equipment', { item: def.name, rarity: t(`rarity.${def.rarity}` as StringKey) }), RARITY_INFO[def.rarity].color);
       }),
-      ev.on('equipmentDropped', ({ defId, rarity }) => this.push('rare', `${dropLabel(rarity)}: ${EQUIPMENT_DEFS[defId].name} on the ground`, RARITY_INFO[rarity].color)),
+      ev.on('equipmentDropped', ({ defId, rarity }) => this.push('rare', dropText(rarity, EQUIPMENT_DEFS[defId].name), RARITY_INFO[rarity].color)),
       ev.on('lootDropped', ({ itemId, delivery }) => {
         if (delivery !== 'ground') return;
         const def = ITEMS[itemId];
-        this.push('rare', `${dropLabel(def.rarity)}: ${def.name} on the ground`, RARITY_INFO[def.rarity].color);
+        this.push('rare', dropText(def.rarity, def.name), RARITY_INFO[def.rarity].color);
       }),
-      ev.on('lootBlocked', ({ name }) => this.push('full', `Bag full: ${name} left on the ground`, '#ff6b6b')),
+      ev.on('lootBlocked', ({ name }) => this.push('full', t('feed.bagFull', { item: name }), '#ff6b6b')),
       // Dungeon entry refused: say exactly what is missing (the player stays on this map).
       ev.on('mapEntryBlocked', ({ message }) => this.push('locked', message, '#ffb86b')),
       // Dungeon attempt: checkpoints (retry positions, no healing), party wipes and failure.
@@ -60,24 +61,24 @@ export class LootFeed {
         for (const line of this.el.querySelectorAll<HTMLDivElement>('[data-loot-kind=tutorial]')) this.drop(line);
       }),
       ev.on('progressBlocked', ({ message }) => this.push('locked', message, '#ffb86b')),
-      ev.on('checkpointReached', ({ label }) => this.push('dungeon', `Checkpoint: ${label}`, '#9fd8ff')),
+      ev.on('checkpointReached', ({ label }) => this.push('dungeon', t('feed.checkpoint', { label }), '#9fd8ff')),
       ev.on('partyWiped', ({ retriesLeft, failed }) =>
-        this.push('dungeon', failed ? 'Defeated: no retries left' : `Defeated: ${retriesLeft} ${retriesLeft === 1 ? 'retry' : 'retries'} left`, '#ff6b6b'),
+        this.push('dungeon', failed ? t('feed.wipedNoRetries') : retriesLeft === 1 ? t('feed.wipedRetry') : t('feed.wipedRetries', { count: retriesLeft }), '#ff6b6b'),
       ),
-      ev.on('dungeonFailed', () => this.push('dungeon', 'Dungeon failed: returned to Town', '#ff6b6b')),
+      ev.on('dungeonFailed', () => this.push('dungeon', t('feed.dungeonFailed'), '#ff6b6b')),
       // Quest feedback (main / side quests; Daily and Weekly have their own screen).
       ev.on('questStarted', ({ questId }) => {
         const def = world.quests.defs[questId];
-        if (def && !def.repeat) this.push('quest', `Quest accepted: ${def.title}`, '#7fd4ff');
+        if (def && !def.repeat) this.push('quest', t('feed.questAccepted', { quest: def.title }), '#7fd4ff');
       }),
       ev.on('questCompleted', ({ questId }) => {
         const def = world.quests.defs[questId];
-        if (def && !def.repeat) this.push('quest', `Objectives done: ${def.title}`, '#7fd4ff');
+        if (def && !def.repeat) this.push('quest', t('feed.questDone', { quest: def.title }), '#7fd4ff');
       }),
       ev.on('questClaimed', ({ questId }) => {
         const def = world.quests.defs[questId];
         if (!def || def.repeat) return;
-        this.push('quest', `Quest complete: ${def.title}`, '#ffe066');
+        this.push('quest', t('feed.questComplete', { quest: def.title }), '#ffe066');
         const reward = rewardText(def);
         if (reward) this.push('quest', reward, '#ffe066');
       }),
@@ -123,4 +124,4 @@ export class LootFeed {
   }
 }
 
-const dropLabel = (rarity: Rarity) => (rarity === 'rare' || rarity === 'legendary' ? 'Rare drop' : 'Drop');
+const dropText = (rarity: Rarity, item: string) => t(rarity === 'rare' || rarity === 'legendary' ? 'feed.rareDrop' : 'feed.drop', { item });

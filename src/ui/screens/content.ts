@@ -1,7 +1,8 @@
 import type { CombatWorld } from '../../game/CombatWorld';
 import { h } from '../dom';
+import { t, type StringKey } from '../i18n';
 import { renderHero } from './inventoryView';
-import { objectiveText, PHASE_LABEL, questPhase, rewardText } from '../../quests/questText';
+import { objectiveText, questPhase, rewardText } from '../../quests/questText';
 import { renderSkillTree } from './skillTreeView';
 import { renderRecurring } from './recurringView';
 import { renderCraft, renderEnchant, renderEnhancement, renderJobChange, renderWarp } from './systemScreens';
@@ -28,7 +29,7 @@ export type ScreenRenderer = (tab: string | null, ctx: ScreenContext) => Node;
 
 function emptyState(message: string): HTMLElement {
   return h('div', { className: 'ui-empty' }, [
-    h('div', { className: 'ui-label', text: 'Coming soon' }),
+    h('div', { className: 'ui-label', text: t('common.comingSoon') }),
     h('div', { className: 'ui-caption', text: message }),
   ]);
 }
@@ -53,7 +54,7 @@ const quest: ScreenRenderer = (tab, { world }) => {
       const phase = questPhase(q, id);
       return tab === 'completed' ? phase === 'completed' : phase !== 'completed' && phase !== 'locked';
     });
-  if (!ids.length) return emptyState(tab === 'completed' ? 'Finished quests appear here.' : 'No active quests.');
+  if (!ids.length) return emptyState(t(tab === 'completed' ? 'quest.emptyCompleted' : 'quest.emptyActive'));
   return h(
     'div',
     { className: 'ui-list' },
@@ -63,9 +64,9 @@ const quest: ScreenRenderer = (tab, { world }) => {
       return h('div', { className: 'ui-list__row', attrs: { 'data-quest': id, 'data-phase': questPhase(q, id) } }, [
         h('div', {}, [
           h('div', { className: 'ui-label', text: def.title }),
-          h('div', { className: 'ui-caption', text: PHASE_LABEL[questPhase(q, id)] }),
+          h('div', { className: 'ui-caption', text: t(`quest.phase.${questPhase(q, id)}` as StringKey) }),
           ...def.objectives.map((o, i) => h('div', { className: 'ui-caption', text: objectiveText(o, progress[i].current, progress[i].required) })),
-          h('div', { className: 'ui-caption', text: `Rewards: ${rewardText(def)}` }),
+          h('div', { className: 'ui-caption', text: t('quest.rewards', { rewards: rewardText(def) }) }),
         ]),
       ]);
     }),

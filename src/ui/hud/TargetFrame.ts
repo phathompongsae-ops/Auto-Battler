@@ -90,7 +90,7 @@ export class RespawnNotice {
 
   constructor(private readonly world: CombatWorld) {
     this.text = h('span');
-    this.el = createPanel({ className: 'hud-respawn', strong: true }, [h('strong', { text: 'Defeated' }), this.text]);
+    this.el = createPanel({ className: 'hud-respawn', strong: true }, [h('strong', { text: t('hud.defeated') }), this.text]);
     this.el.dataset.hud = 'respawn';
     this.el.hidden = true;
   }
@@ -99,6 +99,6 @@ export class RespawnNotice {
     const at = this.world.playerRespawnAt;
     const down = this.world.player.combat.dead && at !== null;
     if (this.el.hidden === down) this.el.hidden = !down;
-    if (down) setText(this.text, `Respawning in ${Math.max(0, Math.ceil((at - now) / 1000))} s`);
+    if (down) setText(this.text, t('hud.respawning', { seconds: Math.max(0, Math.ceil((at - now) / 1000)) }));
   }
 }

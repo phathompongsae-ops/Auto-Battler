@@ -51,22 +51,29 @@ export async function warriorSkillSuite(b, t) {
     debug.setMonsterHp('slime-1', 100000);
     debug.selectTarget('slime-1');
     debug.resetCooldowns();
-    debug.setPlayerMp(50);
     debug.clearLog();
   })()`);
   const atk = (await b.eval('debug.player()')).stats.attack;
   const def = await b.eval(`${WORLD}.world.monsterById('slime-1').combat.stats.defense`);
+  // MP regenerates continuously (stats.mpRegen per second of game time) before and after the cast, so MP and
+  // the remaining cooldown are checked against game time (world.now), not wall-clock sleeps: the cost is
+  // exactly 8 if MP = 50 - 8 + regen x (game time since it was set to 50), and the cooldown is ~4 s if
+  // remaining + (game time since the cast) is. A fixed 42 <= MP < 43 window flaked under load (MP ≈ 43.05).
+  const setAt = await b.eval(`(debug.setPlayerMp(50), ${WORLD}.world.now)`);
   await b.press('KeyQ');
-  await sleep(120);
+  await b.waitFor(`debug.log.some((e) => e.type === 'skillUsed' && e.skill === 'power_strike')`, { timeout: 2000, label: 'Power Slash cast' }).catch(() => {});
   const anim = await b.eval(ANIM);
-  await sleep(450);
-  const p = await b.eval('debug.player()');
+  await b.waitFor(`debug.log.some((e) => e.type === 'damage' && e.skill === 'power_strike')`, { timeout: 2000, label: 'Power Slash hit' }).catch(() => {});
+  const r = await b.eval(`(() => { const w = ${WORLD}.world, p = w.player.combat, cast = debug.log.find((e) => e.type === 'skillUsed' && e.skill === 'power_strike');
+    return { now: w.now, mp: p.mp, regen: p.stats.mpRegen, castAt: cast?.t ?? null, cd: debug.player().cooldowns.power_strike }; })()`);
   const hits = await b.eval(`debug.log.filter((e) => e.type === 'damage' && e.skill === 'power_strike').map((e) => e.amount)`);
   const expected = Math.max(1, Math.round((atk * 1.25 * 100) / (100 + def)));
+  const expectedMp = 50 - 8 + (r.regen * (r.now - setAt)) / 1000;
+  const cdTotal = r.castAt === null ? null : r.cd + (r.now - r.castAt);
   t.check(
     'W-3. Power Slash rank 1: 8 MP, ~4 s cooldown, 125% damage, the existing Power Slash animation',
-    p.mp >= 42 && p.mp < 43 && p.cooldowns.power_strike > 3300 && p.cooldowns.power_strike <= 4000 && JSON.stringify(hits) === JSON.stringify([expected]) && anim === 'player-powerSlash-down',
-    JSON.stringify({ mp: p.mp, cd: p.cooldowns.power_strike, hits, expected, anim }),
+    Math.abs(r.mp - expectedMp) < 0.1 && cdTotal !== null && cdTotal > 3300 && cdTotal <= 4000 + 1 && JSON.stringify(hits) === JSON.stringify([expected]) && anim === 'player-powerSlash-down',
+    JSON.stringify({ mp: r.mp, expectedMp, cdTotal, hits, expected, anim }),
   );
 
   // 4. A gate opens at exactly 5 Tank SP.

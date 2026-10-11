@@ -644,3 +644,21 @@
   .hud-chat__note { display: none; }
   .hud-chat__tabs .ui-tab { padding: 0 7px; }
 }
+
+/* Final Thai + icon polish: illustrated item / currency / passive art (ui/art/iconArt.ts). The art is the symbol only;
+ * rarity rims, counts and enhancement badges stay UI layers drawn around it. */
+.ui-slot__icon.has-art { width: 88%; height: 88%; border-radius: 0; background-color: transparent; background-size: contain; background-repeat: no-repeat; text-shadow: none; }
+.ui-currency-icon { width: 18px; height: 18px; flex: none; object-fit: contain; }
+.shop-balance .ui-currency-icon { width: 22px; height: 22px; }
+/* Empty paper-doll slot: a faint outline of what goes there, above its name. */
+.hero-cell__silhouette { position: absolute; left: 24%; top: 10%; width: 52%; height: 52%; color: #a89a7a; opacity: .4; stroke-width: 1.6; pointer-events: none; }
+/* Skills window: actives on a dark medallion, passives / procs on their own muted plate. */
+.skill-node { gap: 10px; }
+.skill-node__icon { width: 40px; height: 40px; flex: none; object-fit: contain; }
+.skill-node__icon--active { border-radius: 50%; background: #1b2429; box-shadow: 0 0 0 2px #a8823e; }
+.skill-node__text { flex: 1; min-width: 0; }
+.hud-status__cell .ui-icon--art { width: 88%; height: 88%; }
+.hud-status__cell.has-label .ui-icon--art { width: max(16px, calc(17px * var(--ui-scale))); height: max(16px, calc(17px * var(--ui-scale))); }
+@media (max-height: 420px), (max-width: 760px) {
+  .skill-node__icon { width: 32px; height: 32px; }
+}

@@ -141,7 +141,7 @@ export async function guardianAnimSuite(b, t, shot) {
     smashDodged.windup && smashDodged.damage === 0 && smashDodged.resolved.length > 0, JSON.stringify(smashDodged));
 
   // 4. Real fights facing west (player west) and east (player east), then circling the Guardian.
-  // West from 60 px: from 75 px a collider at the Guardian Stones stops its approach at -27 px, out of reach (map, not art).
+  // West from 60 px (the clearing is open on every side since the environment polish pass).
   const runs = { west: await fight(b, -60, 4200), east: await fight(b, 75, 4200), circle: await fight(b, -60, 4800, { circle: true }) };
   for (const [side, { samples, log }] of Object.entries(runs)) {
     const states = new Set(samples.map((s) => s.state));

@@ -35,6 +35,13 @@ const PATHS = {
   shop: 'M3 9 5 4h14l2 5M3 9h18M3 9a3 3 0 0 0 6 0 3 3 0 0 0 6 0 3 3 0 0 0 6 0M5 12v8h14v-8M10 20v-5h4v5',
   // Daily / Weekly commissions: a calendar page with a tick.
   calendar: 'M4 6h16v15H4V6Zm0 5h16M8 3v5m8-5v5m-7 6.5 2 2 4-4',
+  // Empty equipment-slot silhouettes (weapon and off-hand reuse `sword` / `shield`).
+  helm: 'M4 17c0-7 3-12 8-12s8 5 8 12v3H4v-3Zm0 0h16M9 11h6m-3 0v6',
+  chest: 'M7 4 4 6l1 5 2-1v10h10V10l2 1 1-5-3-2-2 2c-1 1-3 1-4 0L7 4Zm5 3v13',
+  glove: 'M7 21v-8L5 9c-.5-1.5 1.5-2.5 2.5-1L9 10V4.5a1.5 1.5 0 0 1 3 0V10V3.5a1.5 1.5 0 0 1 3 0V10V5a1.5 1.5 0 0 1 3 0v8c0 3-1 5-2 8H7Z',
+  boot: 'M7 3h7v10l5 2c1 .5 2 1.5 2 3v2H5V3h2Zm-2 14h16',
+  necklace: 'M4 3c1 6 4 9 8 9s7-3 8-9M12 12v2m-3 3 3-3 3 3-3 4-3-4Z',
+  ring: 'M12 21a6 6 0 1 0 0-12 6 6 0 0 0 0 12Zm-3-12 3-5 3 5',
   coin: 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Zm0-14v10m3-8.5c-.7-.9-1.8-1.5-3-1.5-1.7 0-3 .9-3 2.2s1.3 1.8 3 2.3 3 1 3 2.3-1.3 2.2-3 2.2c-1.2 0-2.3-.6-3-1.5',
   gem: 'M6 4h12l4 6-10 11L2 10l4-6Zm-4 6h20M9 4l3 6 3-6m-3 6v11',
 } as const;

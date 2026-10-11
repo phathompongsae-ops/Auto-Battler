@@ -1,6 +1,7 @@
 import { POTION_COOLDOWNS, preferredPotion, potionKey } from '../../items/PotionSystem';
 import { PLAYER_BASIC_ATTACK, SKILL_SLOTS, type SkillSlot as LoadoutSlot } from '../../data/playerData';
 import { SKILLS, type SkillId } from '../../data/skillData';
+import { itemIconUrl } from '../itemIcons';
 import { SKILL_ICONS } from '../../data/skillIcons';
 import { BASIC_DODGE } from '../../combat/DodgeSystem';
 import type { CombatWorld } from '../../game/CombatWorld';
@@ -35,10 +36,13 @@ function skillContent(skillId: SkillId): SlotContent {
   return { abbr, color, title: skill.name, glyph, ...(iconUrl ? { iconUrl } : {}) };
 }
 
+const withArt = (content: SlotContent, iconUrl: string | undefined): SlotContent => (iconUrl ? { ...content, iconUrl } : content);
+
 /** Dodge / potion faces; null for a skill action (its face comes from the loadout). */
 function utilityContent(action: Action): SlotContent | null {
-  if (action === 'hp_potion') return { abbr: 'HP', color: '#86ef8f', title: t('hud.hpPotion'), glyph: 'potion' };
-  if (action === 'mp_potion') return { abbr: 'MP', color: '#7fd4ff', title: t('hud.mpPotion'), glyph: 'potion' };
+  // Potions show the same illustrated flask as the bag (the vector glyph stays the fallback).
+  if (action === 'hp_potion') return withArt({ abbr: 'HP', color: '#86ef8f', title: t('hud.hpPotion'), glyph: 'potion' }, itemIconUrl('small_hp_potion'));
+  if (action === 'mp_potion') return withArt({ abbr: 'MP', color: '#7fd4ff', title: t('hud.mpPotion'), glyph: 'potion' }, itemIconUrl('small_mp_potion'));
   if (action === 'dodge') return { abbr: 'DG', color: '#7fd4ff', title: t('hud.dodge'), glyph: 'dodge' };
   return null;
 }

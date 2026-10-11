@@ -13,8 +13,8 @@ export function renderAreaMap(world: CombatWorld): Node {
   }
   return h('div', { className: 'ui-area-chart' }, [
     h('div', { className: 'ui-title', text: map.displayName }), canvas,
-    h('div', { className: 'ui-caption', text: 'Gold · You     Red · Monsters     Green · Loot     Violet · Gate' }),
-    h('div', { className: 'ui-caption', text: `Current position: ${Math.round(world.player.x)}, ${Math.round(world.player.y)}` }),
+    h('div', { className: 'ui-caption', text: t('map.legend') }),
+    h('div', { className: 'ui-caption', text: t('map.position', { x: Math.round(world.player.x), y: Math.round(world.player.y) }) }),
   ]);
 }
 
@@ -35,7 +35,7 @@ export function renderHudSettings(tab: string | null, world: CombatWorld): Node 
       input.addEventListener('change', () => { root.dataset[key] = String(input.checked); });
       return h('label', { className: 'ui-preference' }, [input, h('span', {}, [h('span', { className: 'ui-label', text: label }), h('span', { className: 'ui-caption', text: description })])]);
     }),
-    tab === 'controls' ? h('div', { className: 'ui-caption', text: 'Move: WASD / arrows / drag · Attack: Space · Skills: Q E R F G · Dodge: Shift · HP Potion: 1 · MP Potion: 2 · Talk: T · Character: C · Inventory: I · Skills: K · Quests: J · Map: M · Close: Esc' }) : null,
+    tab === 'controls' ? h('div', { className: 'ui-caption', text: t('settings.controlsList') }) : null,
   ]);
 }
 

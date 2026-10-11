@@ -1,10 +1,11 @@
 import { NPCS, type NpcService } from '../../data/npcData';
 import type { CombatWorld } from '../../game/CombatWorld';
-import { nextObjective, npcQuests, objectiveText, PHASE_LABEL, rewardText } from '../../quests/questText';
+import { nextObjective, npcQuests, objectiveText, rewardText } from '../../quests/questText';
 import { createButton } from '../components/Button';
 import { h, setText } from '../dom';
 import type { ScreenId } from '../data/screens';
 import type { WindowManager } from './WindowManager';
+import { t, type StringKey } from '../i18n';
 
 /*
  * NPC dialogue (functional placeholder UI): greeting, the quests this NPC
@@ -14,13 +15,14 @@ import type { WindowManager } from './WindowManager';
 
 const caption = (text: string, role?: string) => h('div', { className: 'ui-caption', text, attrs: role ? { 'data-role': role } : {} });
 
-const SERVICE: Record<NpcService, { label: string; screen?: ScreenId; note?: string }> = {
-  enhancement: { label: 'Enhance equipment', screen: 'enhancement' },
-  enchant: { label: 'Enchant equipment', screen: 'enchant' },
-  craft: { label: 'Craft equipment', screen: 'craft' },
-  job: { label: 'Job Change', screen: 'job' },
-  pet: { label: 'Pet Stable', note: 'Coming later: the Pet Stable opens in a future update.' },
-  dungeon: { label: 'Go to the Dungeon Gate', note: 'The Sunken Crypt gate north of the plaza opens at Lv3 after Trouble in the Meadow is turned in. Repeat Normal runs unlock at Lv20.' },
+/** NPC services by string key (read at render time, so labels follow the interface language). */
+const SERVICE: Record<NpcService, { label: StringKey; screen?: ScreenId; note?: StringKey }> = {
+  enhancement: { label: 'npc.service.enhancement', screen: 'enhancement' },
+  enchant: { label: 'npc.service.enchant', screen: 'enchant' },
+  craft: { label: 'npc.service.craft', screen: 'craft' },
+  job: { label: 'npc.service.job', screen: 'job' },
+  pet: { label: 'npc.service.pet', note: 'npc.service.petNote' },
+  dungeon: { label: 'npc.service.dungeon', note: 'npc.service.dungeonNote' },
 };
 
 /** Navigate to where a quest needs the player next (or to its turn-in NPC when it's ready). */
@@ -49,36 +51,36 @@ export function renderNpcDialogue(world: CombatWorld, windows: WindowManager, np
       const progress = world.quests.progress(q.questId);
       const block = h('div', { className: 'npc-quest', attrs: { 'data-quest': q.questId, 'data-phase': q.phase } }, [
         h('div', { className: 'ui-label', text: q.def.title }),
-        caption(PHASE_LABEL[q.phase], 'phase'),
+        caption(t(`quest.phase.${q.phase}` as StringKey), 'phase'),
         caption(q.def.description),
         ...q.def.objectives.map((o, i) =>
           h('div', { className: `npc-quest__objective${progress[i].current >= progress[i].required ? ' is-done' : ''}`, text: objectiveText(o, progress[i].current, progress[i].required) }),
         ),
-        caption(`Rewards: ${rewardText(q.def)}`, 'rewards'),
+        caption(t('quest.rewards', { rewards: rewardText(q.def) }), 'rewards'),
       ]);
       const button =
         q.action === 'accept'
           ? createButton({
-              label: 'Accept',
+              label: t('npc.accept'),
               variant: 'primary',
               onClick: () => {
                 const r = world.acceptQuest(q.questId);
-                say(r.ok ? `Accepted: ${q.def.title}` : `Cannot accept (${r.reason}).`);
+                say(r.ok ? t('npc.accepted', { quest: q.def.title }) : t('npc.cannotAccept', { reason: String(r.reason) }));
                 rerender();
               },
             })
           : q.action === 'complete'
             ? createButton({
-                label: 'Complete',
+                label: t('npc.complete'),
                 variant: 'primary',
                 onClick: () => {
                   const r = world.turnInQuest(q.questId, npcId);
-                  say(r.ok ? `Quest complete: ${q.def.title}! ${rewardText(q.def)}` : `Cannot complete (${r.reason}).`);
+                  say(r.ok ? t('npc.completed', { quest: q.def.title, rewards: rewardText(q.def) }) : t('npc.cannotComplete', { reason: String(r.reason) }));
                   rerender();
                 },
               })
             : createButton({
-                label: 'Continue',
+                label: t('npc.continue'),
                 onClick: () => {
                   world.quests.track(q.questId);
                   windows.close();
@@ -93,7 +95,7 @@ export function renderNpcDialogue(world: CombatWorld, windows: WindowManager, np
     for (const service of npc.services) {
       const def = SERVICE[service];
       const button = createButton({
-        label: def.label,
+        label: t(def.label),
         onClick: () => {
           if (def.screen) {
             const reason = windows.lockReason(def.screen);
@@ -102,12 +104,12 @@ export function renderNpcDialogue(world: CombatWorld, windows: WindowManager, np
           } else if (service === 'dungeon') {
             windows.close();
             world.autoMove.navigateTo('nav_demo_dungeon_entrance');
-          } else say(def.note ?? '');
+          } else say(def.note ? t(def.note) : '');
         },
       });
       button.dataset.service = service;
-      rows.push(h('div', { className: 'npc-service' }, [button, def.note && service !== 'dungeon' ? caption(def.note) : null]));
-      if (service === 'dungeon' && def.note) rows.push(caption(def.note));
+      rows.push(h('div', { className: 'npc-service' }, [button, def.note && service !== 'dungeon' ? caption(t(def.note)) : null]));
+      if (service === 'dungeon' && def.note) rows.push(caption(t(def.note)));
     }
     root.replaceChildren(...rows, result);
   };

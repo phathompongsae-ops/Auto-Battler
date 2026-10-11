@@ -1,6 +1,7 @@
 import type { CombatantState } from '../../combat/CombatantState';
 import { h, setText, setVar, toggleClass } from '../dom';
 import { icon, type IconName } from '../icons';
+import { passiveIconUrl } from '../itemIcons';
 
 /**
  * A compact row of timed-state icons for one combatant: its active statuses
@@ -27,6 +28,15 @@ const GLYPHS: Record<string, IconName> = {
   potion_hp: 'heal',
   potion_mp: 'potion',
 };
+
+/** Procs from the Warrior tree show their illustrated plate (the same art as in Skills); everything else keeps its glyph. */
+const PROC_ART = new Set(['guardian_instinct', 'battle_instinct']);
+
+function statusSymbol(id: string, kind: 'buff' | 'debuff'): Element {
+  const url = PROC_ART.has(id) ? passiveIconUrl(id) : undefined;
+  if (!url) return icon(GLYPHS[id] ?? (kind === 'buff' ? 'rune' : 'lock'));
+  return h('img', { className: 'ui-icon ui-icon--art', attrs: { src: url, alt: '', 'aria-hidden': 'true', 'data-status-art': id, draggable: 'false' } });
+}
 
 const RECOVERY: Record<string, { name: string; color: string }> = {
   potion_hp: { name: 'HP Recovery', color: '#86ef8f' },
@@ -125,7 +135,7 @@ export class StatusRow {
       cell.el.dataset.kind = kind;
       cell.el.style.setProperty('--status-color', color);
       cell.el.querySelector('.ui-icon')?.remove();
-      cell.el.prepend(icon(GLYPHS[id] ?? (kind === 'buff' ? 'rune' : 'lock')));
+      cell.el.prepend(statusSymbol(id, kind));
       cell.el.title = name;
       cell.el.setAttribute('aria-label', name);
       this.applyLabel(cell);

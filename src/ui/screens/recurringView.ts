@@ -4,6 +4,7 @@ import type { QuestRewards } from '../../data/questData';
 import type { CombatWorld } from '../../game/CombatWorld';
 import { createButton } from '../components/Button';
 import { h } from '../dom';
+import { t, type StringKey } from '../i18n';
 
 /*
  * TEMPORARY Daily Commission / Weekly quest window body (not final art).
@@ -20,7 +21,7 @@ export function rewardText(r: QuestRewards): string {
   return parts.join(', ') || '—';
 }
 
-const STATE_TEXT: Record<string, string> = { locked: 'Locked', available: 'Available', active: 'In progress', completed: 'Complete!', claimed: 'Claimed' };
+const stateText = (status: string) => t(`daily.state.${status}` as StringKey);
 
 export function renderRecurring(world: CombatWorld, tab: 'daily' | 'weekly'): HTMLElement {
   const root = h('div', { className: 'ui-list', attrs: { 'data-recurring': tab } });
@@ -31,7 +32,7 @@ export function renderRecurring(world: CombatWorld, tab: 'daily' | 'weekly'): HT
     const status = world.quests.status(questId);
     const progress = world.quests.progress(questId).map((p) => `${p.current}/${p.required}`).join(' · ');
     const claim = createButton({
-      label: 'Claim',
+      label: t('daily.claim'),
       variant: 'primary',
       onClick: () => {
         world.quests.claim(questId);
@@ -44,7 +45,7 @@ export function renderRecurring(world: CombatWorld, tab: 'daily' | 'weekly'): HT
       h('div', {}, [
         h('div', { className: 'ui-label', text: `${def.title}  ${progress}` }),
         h('div', { className: 'ui-caption', text: def.description }),
-        h('div', { className: 'ui-caption', text: `Reward: ${rewardText(def.rewards)} · ${STATE_TEXT[status]}` }),
+        h('div', { className: 'ui-caption', text: `${t('quest.reward', { rewards: rewardText(def.rewards) })} · ${stateText(status)}` }),
       ]),
       claim,
     ]);
@@ -57,21 +58,21 @@ export function renderRecurring(world: CombatWorld, tab: 'daily' | 'weekly'): HT
       const access = world.featureProgression.check(feature);
       return [
         h('div', { className: 'ui-empty', attrs: { 'data-recurring-state': 'locked' } }, [
-          h('div', { className: 'ui-label', text: 'Not unlocked yet' }),
+          h('div', { className: 'ui-label', text: t('daily.notUnlocked') }),
           h('div', { className: 'ui-caption', text: access.ok ? '' : access.message }),
         ]),
       ];
     }
     if (tab === 'daily') {
       return [
-        h('div', { className: 'ui-caption', text: `Server day ${rq.state.daily.cycleId} · resets each server day · ${rq.state.weekly.dailyClaims} claimed this week` }),
+        h('div', { className: 'ui-caption', text: t('daily.serverDay', { day: rq.state.daily.cycleId ?? '—', claims: rq.state.weekly.dailyClaims }) }),
         ...rq.dailyQuestIds().map(questRow),
       ];
     }
     const claimed = rq.weeklyClaimed();
     const milestones = rq.milestones().map((m) => {
       const button = createButton({
-        label: m.claimed ? 'Claimed' : `Claim ${m.milestone}/7`,
+        label: m.claimed ? t('daily.claimed') : t('daily.claimMilestone', { n: m.milestone }),
         variant: 'primary',
         onClick: () => {
           rq.claimMilestone(m.milestone);
@@ -82,16 +83,16 @@ export function renderRecurring(world: CombatWorld, tab: 'daily' | 'weekly'): HT
       button.disabled = m.claimed || !m.reached;
       return h('div', { className: 'ui-list__row', attrs: { 'data-milestone-row': String(m.milestone) } }, [
         h('div', {}, [
-          h('div', { className: 'ui-label', text: `Milestone ${m.milestone}/7` }),
-          h('div', { className: 'ui-caption', text: `Reward: ${rewardText(m.rewards)}` }),
+          h('div', { className: 'ui-label', text: t('weekly.milestone', { n: m.milestone }) }),
+          h('div', { className: 'ui-caption', text: t('quest.reward', { rewards: rewardText(m.rewards) }) }),
         ]),
         button,
       ]);
     });
     return [
-      h('div', { className: 'ui-caption', attrs: { 'data-role': 'weekly-progress' }, text: `Week ${rq.state.weekly.cycleId} · ${claimed}/7 Weekly quests claimed` }),
+      h('div', { className: 'ui-caption', attrs: { 'data-role': 'weekly-progress' }, text: t('weekly.progress', { week: rq.state.weekly.cycleId ?? '—', claimed }) }),
       ...rq.weeklyQuestIds().map(questRow),
-      h('div', { className: 'ui-label', text: 'Milestones' }),
+      h('div', { className: 'ui-label', text: t('weekly.milestones') }),
       ...milestones,
     ];
   }

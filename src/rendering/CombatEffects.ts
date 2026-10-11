@@ -8,6 +8,7 @@ import type { CombatWorld } from '../game/CombatWorld';
 import { bodyCenterY, textAnchorY } from './characterLayout';
 import { COMBAT_NUMBER_STYLES, damageKind, NumberSlots, type CombatNumberKind } from './damageNumbers';
 import { FloatingText } from './FloatingText';
+import { t, type StringKey } from '../ui/i18n';
 import { sharedVfxPool, type VfxPool } from './VfxPool';
 
 /** A view that can flash when hit. Player and Monster both implement it. */
@@ -22,13 +23,14 @@ const HIT_STOP_MS = 55;
 const SHAKE = { duration: 110, intensity: 0.004 };
 const EFFECT_DEPTH = 900_000;
 
-const FAIL_MESSAGES: Record<SkillFailReason, string> = {
+/** Skill-failure notes by string key ('' = say nothing). */
+const FAIL_MESSAGES: Record<SkillFailReason, StringKey | ''> = {
   dead: '',
-  cooldown: 'Not ready',
-  no_target: 'No target',
-  out_of_range: 'Out of range',
-  no_mp: 'Not enough MP',
-  not_learned: 'Not learned',
+  cooldown: 'fail.cooldown',
+  no_target: 'fail.no_target',
+  out_of_range: 'fail.out_of_range',
+  no_mp: 'fail.no_mp',
+  not_learned: 'fail.not_learned',
 };
 
 /** Bottom of monster floating text, relative to the monster position. */
@@ -117,7 +119,7 @@ export class CombatEffects {
     ev.on('skillFailed', ({ casterId, reason }) => {
       if (!isPlayer(casterId) || !FAIL_MESSAGES[reason]) return;
       const p = world.player;
-      this.text.show(p.x, textY(p, 'fail'), FAIL_MESSAGES[reason], { color: '#c9d1e3', size: 12, rise: 14 });
+      this.text.show(p.x, textY(p, 'fail'), t(FAIL_MESSAGES[reason]), { color: '#c9d1e3', size: 12, rise: 14 });
     });
 
     ev.on('expGained', ({ entityId, amount }) => {
@@ -128,13 +130,13 @@ export class CombatEffects {
     // TEMPORARY unlock toast; quiet for unlocks restored on load / migration.
     ev.on('featureUnlocked', ({ displayName, restored }) => {
       const p = world.player;
-      if (!restored) this.text.show(p.x, textY(p, 'levelUp') - 22, `${displayName} Unlocked!`, { color: '#7fd4ff', size: 15, rise: 30, duration: 2200 });
+      if (!restored) this.text.show(p.x, textY(p, 'levelUp') - 22, t('notice.featureUnlocked', { feature: displayName }), { color: '#7fd4ff', size: 15, rise: 30, duration: 2200 });
     });
 
     ev.on('levelUp', ({ entityId, level }) => {
       const e = world.getEntity(entityId);
       if (!e) return;
-      this.text.show(e.x, textY(e, 'levelUp'), `LEVEL UP! Lv.${level}`, { color: '#ffe066', size: 18, rise: 40, duration: 1600 });
+      this.text.show(e.x, textY(e, 'levelUp'), t('notice.levelUp', { level }), { color: '#ffe066', size: 18, rise: 40, duration: 1600 });
       this.ring(e.x, centerY(e), 0xffe066, 48, 500);
     });
 
@@ -164,7 +166,7 @@ export class CombatEffects {
     ev.on('death', ({ entityId }) => {
       if (!isPlayer(entityId)) return;
       const p = world.player;
-      this.text.show(p.x, textY(p, 'death'), 'You were defeated', { color: '#ff6b6b', size: 16, duration: 2500, rise: 10 });
+      this.text.show(p.x, textY(p, 'death'), t('notice.defeated'), { color: '#ff6b6b', size: 16, duration: 2500, rise: 10 });
     });
 
     // Telegraphs: a monster's wind-up shows where its hit will land, filling up until it does.
@@ -185,7 +187,7 @@ export class CombatEffects {
     ev.on('monsterEnraged', ({ entityId }) => {
       const m = world.getEntity(entityId);
       if (!m) return;
-      this.text.show(m.x, textY(m, 'levelUp') - 20, 'ENRAGED!', { color: '#ff4d4d', size: 16, rise: 24, duration: 1400 });
+      this.text.show(m.x, textY(m, 'levelUp') - 20, t('notice.enraged'), { color: '#ff4d4d', size: 16, rise: 24, duration: 1400 });
       this.ring(m.x, m.y, 0xff4d4d, 60, 500);
     });
 
@@ -193,7 +195,7 @@ export class CombatEffects {
       const def = world.quests.defs[questId];
       if (!def || def.repeat) return;
       const p = world.player;
-      this.text.show(p.x, textY(p, 'levelUp') - 30, `QUEST COMPLETE: ${def.title}`, { color: '#ffe066', size: 16, rise: 36, duration: 2400 });
+      this.text.show(p.x, textY(p, 'levelUp') - 30, t('notice.questComplete', { quest: def.title }), { color: '#ffe066', size: 16, rise: 36, duration: 2400 });
       this.ring(p.x, centerY(p), 0xffe066, 56, 600);
     });
 
@@ -202,12 +204,12 @@ export class CombatEffects {
     ev.on('checkpointReached', () => {
       const p = world.player;
       this.ring(p.x, centerY(p), 0x9fd8ff, 44, 650);
-      this.text.show(p.x, textY(p, 'levelUp') - 8, 'Retry point updated', { color: '#bfe6ff', size: 13, rise: 18, duration: 1500 });
+      this.text.show(p.x, textY(p, 'levelUp') - 8, t('notice.retryPoint'), { color: '#bfe6ff', size: 13, rise: 18, duration: 1500 });
     });
 
     ev.on('bossDefeated', ({ claimed, runId }) => {
       const p = world.player;
-      const message = claimed ? 'BOSS DEFEATED! Reward claimed' : runId ? 'BOSS DEFEATED! (no reward left today)' : 'BOSS DEFEATED! (no run: no reward)';
+      const message = t(claimed ? 'notice.bossClaimed' : runId ? 'notice.bossNoReward' : 'notice.bossNoRun');
       this.text.show(p.x, textY(p, 'levelUp') - 30, message, { color: '#ffe066', size: 18, rise: 36, duration: 2600 });
     });
   }

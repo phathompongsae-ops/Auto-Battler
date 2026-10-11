@@ -6,6 +6,9 @@ import { JOBS } from '../../data/jobData';
 import type { CombatWorld } from '../../game/CombatWorld';
 import { createButton } from '../components/Button';
 import { h } from '../dom';
+import { t, type StringKey } from '../i18n';
+import { SKILL_ICONS } from '../../data/skillIcons';
+import { passiveIconUrl } from '../itemIcons';
 
 /*
  * TEMPORARY Skill Tree window body (not final art). Everything it shows and
@@ -40,19 +43,29 @@ function passiveText(node: SkillNodeDef, rank: number): string {
   return parts.join(', ');
 }
 
-const BLOCKED_TEXT: Record<string, string> = {
-  max_rank: 'Max rank',
-  not_enough_points: 'No Skill Points',
-  branch_requirement: 'Locked',
-  prerequisite: 'Locked',
-  feature_locked: 'Locked',
-  no_skill_tree: 'Unavailable',
-  unknown_skill: 'Unavailable',
+const BLOCKED_TEXT: Record<string, StringKey> = {
+  max_rank: 'skills.blocked.maxRank',
+  not_enough_points: 'skills.blocked.noPoints',
+  branch_requirement: 'skills.blocked.locked',
+  prerequisite: 'skills.blocked.locked',
+  feature_locked: 'skills.blocked.locked',
+  no_skill_tree: 'skills.blocked.unavailable',
+  unknown_skill: 'skills.blocked.unavailable',
 };
+
+/**
+ * A node's symbol: actives use their illustrated medallion icon, passives and procs
+ * the muted round plate (ui/art/iconArt.ts), so the two never read alike.
+ */
+function nodeIcon(node: SkillNodeDef): HTMLElement | null {
+  const url = node.combatSkillId ? SKILL_ICONS[node.combatSkillId] : passiveIconUrl(node.id);
+  if (!url) return null;
+  return h('img', { className: `skill-node__icon skill-node__icon--${node.type}`, attrs: { src: url, alt: '', 'aria-hidden': 'true', 'data-node-icon': node.type, draggable: 'false' } });
+}
 
 export function renderSkillTree(world: CombatWorld): HTMLElement {
   let selected: SkillId | null | undefined;
-  let feedback = 'Select a learned active skill, then a slot. Equipped skills swap positions.';
+  let feedback = t('skills.assignHint');
   const root = h('div', { className: 'ui-list', attrs: { 'data-skill-tree': 'root' } });
   const render = () => root.replaceChildren(...build());
 
@@ -68,14 +81,14 @@ export function renderSkillTree(world: CombatWorld): HTMLElement {
     const classId = world.player.progress.classId;
     const tree = st.tree();
     if (!tree) {
-      if (JOBS[classId].tier === 0) return message('novice', 'No skill tree yet', 'Reach Lv11 and choose a Class to unlock your skill tree.');
-      return message('not-implemented', `${JOBS[classId].name} skills`, 'Skill Tree not implemented for this class yet.');
+      if (JOBS[classId].tier === 0) return message('novice', t('skills.noTree'), t('skills.noTreeHint'));
+      return message('not-implemented', t('skills.notImplemented', { job: JOBS[classId].name }), t('skills.notImplementedHint'));
     }
-    if (!st.usable()) return message('locked', 'Skill tree locked', 'Complete the Job Change to unlock Class 1 skills.');
+    if (!st.usable()) return message('locked', t('skills.locked'), t('skills.lockedHint'));
 
     const pts = st.points();
     const reset = createButton({
-      label: 'Reset (free)',
+      label: t('skills.reset'),
       onClick: () => {
         st.reset();
         render();
@@ -89,7 +102,7 @@ export function renderSkillTree(world: CombatWorld): HTMLElement {
         h('div', {
           className: 'ui-caption',
           attrs: { 'data-role': 'points' },
-          text: `Skill Points: ${pts.available} available (${pts.earned} earned, ${pts.spent} spent)`,
+          text: t('skills.points', { available: pts.available, earned: pts.earned, spent: pts.spent }),
         }),
       ]),
       reset,
@@ -99,23 +112,23 @@ export function renderSkillTree(world: CombatWorld): HTMLElement {
     for (const branch of tree.branches) {
       const nodes = tree.nodes.filter((n) => n.branch === branch.id);
       const branchSpent = nodes.reduce((sum, n) => sum + st.rank(n.id), 0);
-      sections.push(h('div', { className: 'ui-label', text: `${branch.name} — ${branchSpent} SP spent` }));
+      sections.push(h('div', { className: 'ui-label', text: t('skills.branch', { branch: branch.name, spent: branchSpent }) }));
       for (const node of nodes) {
         const view = st.nodeView(node.id);
         const lines: string[] = [node.description];
-        if (view.current) lines.push(`Now: ${activeText(view.current, node)}`);
-        if (view.next) lines.push(`${view.rank ? 'Next' : 'Rank 1'}: ${activeText(view.next, node)}`);
+        if (view.current) lines.push(t('skills.now', { text: activeText(view.current, node) }));
+        if (view.next) lines.push(t(view.rank ? 'skills.next' : 'skills.rank1', { text: activeText(view.next, node) }));
         if (node.type === 'passive') {
-          if (view.rank) lines.push(`Now: ${passiveText(node, view.rank)}`);
-          if (view.rank < node.maxRank) lines.push(`${view.rank ? 'Next' : 'Rank 1'}: ${passiveText(node, view.rank + 1)}`);
+          if (view.rank) lines.push(t('skills.now', { text: passiveText(node, view.rank) }));
+          if (view.rank < node.maxRank) lines.push(t(view.rank ? 'skills.next' : 'skills.rank1', { text: passiveText(node, view.rank + 1) }));
         }
         if (node.branchSpendRequirement) {
-          lines.push(`Requires ${node.branchSpendRequirement} ${branch.name} SP (${Math.min(view.branchSpent, node.branchSpendRequirement)}/${node.branchSpendRequirement})`);
+          lines.push(t('skills.requires', { count: node.branchSpendRequirement, branch: branch.name, have: Math.min(view.branchSpent, node.branchSpendRequirement) }));
         }
         const learn = createButton({
           label: '+',
           variant: 'primary',
-          title: `Learn ${node.displayName}`,
+          title: t('skills.learn', { skill: node.displayName }),
           onClick: () => {
             st.learn(node.id);
             render();
@@ -123,12 +136,13 @@ export function renderSkillTree(world: CombatWorld): HTMLElement {
         });
         learn.dataset.learn = node.id;
         learn.disabled = view.blockedBy !== null;
-        const row = h('div', { className: 'ui-list__row', attrs: { 'data-node': node.id, 'data-rank': String(view.rank) } }, [
-          h('div', {}, [
-            h('div', { className: 'ui-label', text: `${node.displayName}  ${view.rank}/${node.maxRank}  (${node.type})` }),
+        const row = h('div', { className: 'ui-list__row skill-node', attrs: { 'data-node': node.id, 'data-rank': String(view.rank), 'data-type': node.type } }, [
+          nodeIcon(node),
+          h('div', { className: 'skill-node__text' }, [
+            h('div', { className: 'ui-label', text: `${node.displayName}  ${view.rank}/${node.maxRank}  (${t(`skills.type.${node.type}` as StringKey)})` }),
             ...lines.map((text) => h('div', { className: 'ui-caption', text })),
             view.blockedBy && view.blockedBy !== 'max_rank' && view.blockedBy !== 'not_enough_points'
-              ? h('div', { className: 'ui-caption', attrs: { 'data-role': 'locked' }, text: BLOCKED_TEXT[view.blockedBy] })
+              ? h('div', { className: 'ui-caption', attrs: { 'data-role': 'locked' }, text: t(BLOCKED_TEXT[view.blockedBy]) })
               : null,
           ]),
           learn,
@@ -144,13 +158,13 @@ export function renderSkillTree(world: CombatWorld): HTMLElement {
     const layout = st.editingLoadout();
     const place = (slot: SkillSlot, id: SkillId | null) => {
       const result = st.assign(slot, id);
-      feedback = result.queued ? 'Assignment queued until the current action finishes.' : 'Assignment updated.';
+      feedback = t(result.queued ? 'skills.assignQueued' : 'skills.assignUpdated');
       selected = undefined;
       render();
     };
     const slots = SKILL_SLOTS.map((slot, i) => {
       const id = layout[slot];
-      const button = createButton({ label: `${['Q', 'E', 'R', 'F', 'G'][i]}: ${id ? SKILLS[id].name : 'Empty'}`, onClick: () => {
+      const button = createButton({ label: `${['Q', 'E', 'R', 'F', 'G'][i]}: ${id ? SKILLS[id].name : t('hero.empty')}`, onClick: () => {
         if (selected !== undefined) place(slot, selected);
         else if (id) { selected = id; render(); }
       } });
@@ -165,7 +179,7 @@ export function renderSkillTree(world: CombatWorld): HTMLElement {
     });
     const learned = st.activeSkills().map(id => {
       const assigned = SKILL_SLOTS.find(s => layout[s] === id);
-      const button = createButton({ label: `${SKILLS[id].name} (${assigned ? `Slot ${assigned.slice(5)}` : 'unassigned'})`, onClick: () => { selected = id; render(); } });
+      const button = createButton({ label: `${SKILLS[id].name} (${assigned ? t('skills.slotN', { n: assigned.slice(5) }) : t('skills.unassigned')})`, onClick: () => { selected = id; render(); } });
       button.dataset.assignSkill = id;
       button.setAttribute('aria-pressed', String(selected === id));
       button.draggable = true;
@@ -173,11 +187,11 @@ export function renderSkillTree(world: CombatWorld): HTMLElement {
       return button;
     });
     return h('section', { attrs: { 'data-hotbar-editor': '', 'aria-label': 'Active skill assignment' } }, [
-      h('div', { className: 'ui-label', text: 'Active slots' }),
+      h('div', { className: 'ui-label', text: t('skills.activeSlots') }),
       h('div', { className: 'ui-caption', text: feedback, attrs: { 'aria-live': 'polite' } }),
       h('div', { className: 'hotbar-editor__buttons' }, slots),
       h('div', { className: 'hotbar-editor__buttons' }, learned),
-      createButton({ label: 'Clear a slot', onClick: () => { selected = null; feedback = 'Choose the slot to clear.'; render(); } }),
+      createButton({ label: t('skills.clearSlot'), onClick: () => { selected = null; feedback = t('skills.chooseClear'); render(); } }),
     ]);
   }
 

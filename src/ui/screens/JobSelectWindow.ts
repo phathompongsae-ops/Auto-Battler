@@ -6,6 +6,7 @@ import { PRIMARY_STATS } from '../../stats/primaryStats';
 import { createButton } from '../components/Button';
 import { UiWindow } from '../components/Window';
 import { h, setText } from '../dom';
+import { t } from '../i18n';
 import type { WindowManager } from './WindowManager';
 
 /**
@@ -46,7 +47,7 @@ export class JobSelectWindow {
     const body = h('div', { className: 'ui-job-select' });
     const render = () => body.replaceChildren(...this.renderBody(render));
     render();
-    this.window = new UiWindow({ id: 'job-select', title: 'Choose your Class', render: () => body, onClose: () => (this.window = null) });
+    this.window = new UiWindow({ id: 'job-select', title: t('job.chooseTitle'), render: () => body, onClose: () => (this.window = null) });
     this.host.append(this.window.el);
     return true;
   }
@@ -67,7 +68,7 @@ export class JobSelectWindow {
         .map((s) => `${s.toUpperCase()} +${job.jobBonus[s]}`)
         .join('  ');
       const button = createButton({
-        label: `${job.displayName} — ${implemented ? bonus : 'Not yet implemented'}`,
+        label: `${job.displayName} — ${implemented ? bonus : t('job.notImplemented')}`,
         variant: this.chosen === job.jobId ? 'primary' : 'default',
         onClick: () => {
           this.chosen = job.jobId;
@@ -80,12 +81,12 @@ export class JobSelectWindow {
     });
     const error = h('p', { className: 'ui-caption', attrs: { 'data-role': 'error' } });
     const confirm = createButton({
-      label: this.chosen ? `Confirm ${this.world.jobChange.choices().find((j) => j.jobId === this.chosen)?.displayName}` : 'Select a class',
+      label: this.chosen ? t('job.confirm', { job: this.world.jobChange.choices().find((j) => j.jobId === this.chosen)?.displayName ?? '' }) : t('job.select'),
       variant: 'primary',
       onClick: () => {
         if (!this.chosen) return;
         const result = this.world.changePlayerJob(this.chosen);
-        if (!result.ok) setText(error, `Cannot choose this class (${result.reason}).`);
+        if (!result.ok) setText(error, t('job.cannot', { reason: String(result.reason) }));
         // On success 'jobChanged' closes the window.
       },
     });
@@ -93,7 +94,7 @@ export class JobSelectWindow {
     confirm.disabled = !this.chosen;
     return [
       h('div', { className: 'ui-menu-grid' }, choices),
-      h('p', { className: 'ui-caption', text: 'This choice is final for the Demo: your class cannot be changed afterwards.' }),
+      h('p', { className: 'ui-caption', text: t('job.final') }),
       error,
       confirm,
     ];
