@@ -1,0 +1,30 @@
+{
+  "npcId": "npc_stablekeeper_mira",
+  "source": "art-source/npcs/npc_stablekeeper_mira/raw.png",
+  "sourceSize": [
+    1254,
+    1254
+  ],
+  "keyedBackground": false,
+  "sourceBox": [
+    357,
+    224,
+    927,
+    1102
+  ],
+  "top": 224,
+  "feet": 1102,
+  "axis": 642.5,
+  "scale": 0.1377,
+  "outputBox": [
+    56,
+    33,
+    133,
+    153
+  ],
+  "bodyHeight": 121,
+  "checks": {
+    "feetOnRow153": true,
+    "clearOfEdges": true
+  }
+}

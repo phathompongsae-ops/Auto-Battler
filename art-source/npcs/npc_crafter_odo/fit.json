@@ -1,0 +1,30 @@
+{
+  "npcId": "npc_crafter_odo",
+  "source": "art-source/npcs/npc_crafter_odo/raw.png",
+  "sourceSize": [
+    1254,
+    1254
+  ],
+  "keyedBackground": false,
+  "sourceBox": [
+    409,
+    184,
+    873,
+    1125
+  ],
+  "top": 184,
+  "feet": 1125,
+  "axis": 641.5,
+  "scale": 0.1285,
+  "outputBox": [
+    65,
+    34,
+    124,
+    153
+  ],
+  "bodyHeight": 121,
+  "checks": {
+    "feetOnRow153": true,
+    "clearOfEdges": true
+  }
+}

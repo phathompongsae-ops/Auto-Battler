@@ -13,6 +13,8 @@ import { CombatWorld, type WorldMapView } from '../game/CombatWorld';
 import { isCharacterArtReady } from '../graphics/characterArt';
 import { NPC_BASE_KEY, NPC_ROBE_KEY, TILESET_KEY } from '../graphics/placeholderTextures';
 import { NPCS } from '../data/npcData';
+import { NPC_ART_CONTRACT, NPC_ART_SCALE, npcArtKey } from '../data/npcArt';
+import { npcArtTopRow } from '../graphics/npcArt';
 import { npcMarker } from '../quests/questText';
 import { CRYPT_WALL_FACE_KEYS, propTextureKey } from '../graphics/propTextures';
 import { envDrawScale } from '../graphics/environmentArt';
@@ -491,16 +493,43 @@ export class WorldScene extends Phaser.Scene implements WorldMapView {
       const at = this.world.npcPosition(npc.id);
       if (!at || at.mapId !== map.id) continue;
       const feet = at.y + 6;
-      const npcScale = envDrawScale(this, NPC_BASE_KEY);
-      const base = this.add.image(at.x, feet, NPC_BASE_KEY).setOrigin(0.5, 1).setScale(npcScale).setDepth(feet);
-      const robe = this.add.image(at.x, feet, NPC_ROBE_KEY).setOrigin(0.5, 1).setScale(npcScale).setDepth(feet + 0.1).setTint(npc.color);
-      const name = text(at.x, feet - 46, npc.name, '#ffe9a8', 9);
-      const role = text(at.x, feet - 36, npc.title, '#c9d1e3', 8);
-      const mark = text(at.x, feet - 56, '', '#ffd23f', 18).setVisible(false);
-      this.tweens.add({ targets: mark, y: feet - 60, yoyo: true, repeat: -1, duration: 500, ease: 'Sine.easeInOut' });
-      this.mapVisuals.push(base, robe, name, role, mark);
+      const figure = this.drawNpcFigure(npc.id, npc.color, at.x, feet, this.npcMarkers.length);
+      // Plates sit a little above the figure's head (a production body is taller than the chibi).
+      const lift = figure.lift;
+      const name = text(at.x, feet - 46 - lift, npc.name, '#ffe9a8', 9);
+      const role = text(at.x, feet - 36 - lift, npc.title, '#c9d1e3', 8);
+      const mark = text(at.x, feet - 56 - lift, '', '#ffd23f', 18).setVisible(false);
+      this.tweens.add({ targets: mark, y: feet - 60 - lift, yoyo: true, repeat: -1, duration: 500, ease: 'Sine.easeInOut' });
+      this.mapVisuals.push(...figure.parts, name, role, mark);
       this.npcMarkers.push({ npcId: npc.id, mark });
     }
+  }
+
+  /**
+   * One NPC body standing on `feet`. A production master (data/npcArt.ts) is drawn on the character contract
+   * (feet row and body axis on the stand point, 0.32 scale) over a soft contact shadow, with a slow breathing
+   * idle anchored at the feet (a phase per NPC so the town never pulses in step). Without one, the code-drawn
+   * two-layer chibi with its tinted robe. Visual only: position, interaction and collision are unchanged.
+   */
+  private drawNpcFigure(npcId: string, color: number, x: number, feet: number, index: number): { parts: Phaser.GameObjects.GameObject[]; lift: number } {
+    const key = npcArtKey(npcId);
+    if (this.textures.exists(key)) {
+      const c = NPC_ART_CONTRACT;
+      const shadow = this.add.ellipse(x, feet - 1, 22, 7, 0x0a0814, 0.3).setDepth(feet - 0.2);
+      const body = this.add.image(x, feet, key)
+        .setOrigin(c.axisX / c.canvas, (c.feetRow + 1) / c.canvas)
+        .setScale(NPC_ART_SCALE)
+        .setDepth(feet);
+      body.setData('npcArt', npcId);
+      this.tweens.add({ targets: body, scaleY: NPC_ART_SCALE * 1.014, yoyo: true, repeat: -1, duration: 1700, delay: index * 230, ease: 'Sine.easeInOut' });
+      // The plates clear the figure's real top (hat brim, staff tip...) by 4 px, breathing included.
+      const top = (c.feetRow + 1 - npcArtTopRow(this, key)) * NPC_ART_SCALE * 1.014;
+      return { parts: [shadow, body], lift: Math.max(0, Math.ceil(top) + 4 - 36) };
+    }
+    const npcScale = envDrawScale(this, NPC_BASE_KEY);
+    const base = this.add.image(x, feet, NPC_BASE_KEY).setOrigin(0.5, 1).setScale(npcScale).setDepth(feet);
+    const robe = this.add.image(x, feet, NPC_ROBE_KEY).setOrigin(0.5, 1).setScale(npcScale).setDepth(feet + 0.1).setTint(color);
+    return { parts: [base, robe], lift: 0 };
   }
 
   private updateNpcMarkers(): void {

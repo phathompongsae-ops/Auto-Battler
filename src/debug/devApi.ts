@@ -25,6 +25,7 @@ import { defaultUnlocks, locationKind, useDungeonWarp, useTownWarp } from '../wa
 import { FIELD_MAP_ID, MAPS, mapSize } from '../data/maps';
 import { spawnPlan } from '../world/mapRules';
 import { installMonsterAnimFixture, removeMonsterAnimFixture } from './monsterAnimFixture';
+import { installNpcArtFixture, removeNpcArtFixture } from './npcArtFixture';
 import type { MonsterAnimState } from '../data/monsterArt';
 import { animStripKey, MONSTER_ANIM_ART } from '../data/monsterAnimArt';
 import { reloadMonsterAnimStrips } from '../graphics/monsterArt';
@@ -717,6 +718,9 @@ export function createDevApi(world: CombatWorld, overlays: WorldOverlays) {
     /** TEST ONLY: code-drawn Visual Pass 4 strips for a pending art contract (used by monsters created afterwards, e.g. on reset). */
     installMonsterAnimFixture: (artId: string) => installMonsterAnimFixture(world.player.scene, artId),
     removeMonsterAnimFixture: (artId: string) => removeMonsterAnimFixture(world.player.scene, artId),
+    /** TEST-ONLY: a contract-shaped NPC master stand-in (takes effect when the map is next drawn). */
+    installNpcArtFixture: (npcId: string) => installNpcArtFixture(world.player.scene, npcId),
+    removeNpcArtFixture: (npcId: string) => removeNpcArtFixture(world.player.scene, npcId),
     /** TEST ONLY: drop one loaded strip of an animation set (as if its file failed to load); monsters created afterwards fall back. */
     dropMonsterAnimStrip: (artId: string, state: MonsterAnimState) => {
       const art = MONSTER_ANIM_ART[artId], tex = world.player.scene.textures, key = art && animStripKey(art, state);

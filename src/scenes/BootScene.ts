@@ -7,6 +7,7 @@ import {
 } from '../graphics/characterArt';
 import { applyEnvironmentArtFilter, preloadEnvironmentArt } from '../graphics/environmentArt';
 import { applyMonsterArtFilter, preloadMonsterArt } from '../graphics/monsterArt';
+import { applyNpcArtFilter, preloadNpcArt } from '../graphics/npcArt';
 import { createPlaceholderTextures } from '../graphics/placeholderTextures';
 import { preloadVfxArt, applyVfxArtFilter } from '../graphics/vfxArt';
 
@@ -24,12 +25,15 @@ export class BootScene extends Phaser.Scene {
     // Production monster sheets, combat VFX strips; a failed file keeps its placeholder.
     preloadMonsterArt(this);
     preloadVfxArt(this);
+    // Production NPC masters; an NPC whose file is missing keeps the code-drawn chibi.
+    preloadNpcArt(this);
   }
 
   create(): void {
     applyEnvironmentArtFilter(this);
     applyMonsterArtFilter(this);
     applyVfxArtFilter(this);
+    applyNpcArtFilter(this);
     createPlaceholderTextures(this);
     for (const art of PRESENTATION_ARTS) applyCharacterArtFilter(this, art);
     this.scene.start('World');

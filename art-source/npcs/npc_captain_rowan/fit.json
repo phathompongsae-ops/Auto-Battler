@@ -1,0 +1,30 @@
+{
+  "npcId": "npc_captain_rowan",
+  "source": "art-source/npcs/npc_captain_rowan/raw.png",
+  "sourceSize": [
+    1254,
+    1254
+  ],
+  "keyedBackground": false,
+  "sourceBox": [
+    302,
+    198,
+    949,
+    1122
+  ],
+  "top": 198,
+  "feet": 1122,
+  "axis": 626,
+  "scale": 0.1308,
+  "outputBox": [
+    53,
+    33,
+    136,
+    153
+  ],
+  "bodyHeight": 121,
+  "checks": {
+    "feetOnRow153": true,
+    "clearOfEdges": true
+  }
+}

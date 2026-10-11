@@ -1,0 +1,30 @@
+{
+  "npcId": "npc_smith_brann",
+  "source": "art-source/npcs/npc_smith_brann/raw.png",
+  "sourceSize": [
+    1254,
+    1254
+  ],
+  "keyedBackground": false,
+  "sourceBox": [
+    261,
+    232,
+    943,
+    1069
+  ],
+  "top": 232,
+  "feet": 1069,
+  "axis": 637.5,
+  "scale": 0.1444,
+  "outputBox": [
+    41,
+    33,
+    138,
+    153
+  ],
+  "bodyHeight": 121,
+  "checks": {
+    "feetOnRow153": true,
+    "clearOfEdges": true
+  }
+}

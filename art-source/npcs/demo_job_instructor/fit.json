@@ -1,0 +1,30 @@
+{
+  "npcId": "demo_job_instructor",
+  "source": "art-source/npcs/demo_job_instructor/raw.png",
+  "sourceSize": [
+    1254,
+    1254
+  ],
+  "keyedBackground": false,
+  "sourceBox": [
+    324,
+    172,
+    899,
+    1105
+  ],
+  "top": 212,
+  "feet": 1105,
+  "axis": 612,
+  "scale": 0.1353,
+  "outputBox": [
+    56,
+    28,
+    133,
+    153
+  ],
+  "bodyHeight": 121,
+  "checks": {
+    "feetOnRow153": true,
+    "clearOfEdges": true
+  }
+}

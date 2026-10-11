@@ -1,0 +1,30 @@
+{
+  "npcId": "npc_enchanter_lyra",
+  "source": "art-source/npcs/npc_enchanter_lyra/raw.png",
+  "sourceSize": [
+    1254,
+    1254
+  ],
+  "keyedBackground": false,
+  "sourceBox": [
+    309,
+    193,
+    996,
+    1113
+  ],
+  "top": 193,
+  "feet": 1113,
+  "axis": 630,
+  "scale": 0.1314,
+  "outputBox": [
+    53,
+    33,
+    142,
+    153
+  ],
+  "bodyHeight": 121,
+  "checks": {
+    "feetOnRow153": true,
+    "clearOfEdges": true
+  }
+}
