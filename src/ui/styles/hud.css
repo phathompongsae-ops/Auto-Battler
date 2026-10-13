@@ -234,6 +234,11 @@
 .hud-respawn[hidden] {
   display: none !important;
 }
+/* Boot pre-paint (TargetFrame): drawn once, imperceptibly, so its one-time raster setup happens while loading. */
+.hud-target.is-prepaint {
+  opacity: .01;
+  visibility: visible;
+}
 .hud-target {
   display: flex;
   flex-direction: column;

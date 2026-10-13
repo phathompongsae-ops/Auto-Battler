@@ -20,6 +20,9 @@ const TIER_LABEL: Record<MonsterTier, string> = {
  * that pulses once when it starts, then any Stun / Taunt the player applied).
  * Hidden without a target. Reads simulation state every frame; writes only on change.
  */
+/** Boot pre-paint length (frames): long enough for the browser to raster the panel once. */
+const PREPAINT_FRAMES = 4;
+
 export class TargetFrame {
   readonly el: HTMLDivElement;
   private readonly hp = new Bar('hp', { showText: true });
@@ -29,6 +32,12 @@ export class TargetFrame {
   private readonly statuses = new StatusRow('target-status', 4, (id) => (id === 'enraged' ? t('hud.enraged') : null), new Set(['enraged']));
   private readonly offLocale: () => void;
   private targetId: string | null = null;
+  /**
+   * Frames left of the boot pre-paint: the frame is drawn once, invisibly, while the world loads. Its first paint
+   * costs ~150 ms of one-time GPU raster setup (panel shadow / gradient / rounded rim) on a cold browser, which
+   * otherwise landed on the first target selection (the "first-fight hitch"). Visual only; no input, no layout change.
+   */
+  private prepaintFrames = PREPAINT_FRAMES;
 
   constructor(private readonly world: CombatWorld) {
     this.nameEl = h('span', { className: 'ui-label hud-target__name' });
@@ -37,7 +46,8 @@ export class TargetFrame {
     const head = h('div', { className: 'hud-target__head' }, [this.tierEl, this.nameEl, this.stateEl]);
     this.el = createPanel({ className: 'hud-target' }, [head, this.hp.el, this.statuses.el]);
     this.el.dataset.hud = 'target';
-    this.el.hidden = true;
+    this.el.hidden = false;
+    this.el.classList.add('is-prepaint');
     this.statuses.setLabel(t('hud.targetStatuses'));
     this.offLocale = onLocaleChange(() => {
       this.statuses.setLabel(t('hud.targetStatuses'));
@@ -53,6 +63,13 @@ export class TargetFrame {
   update(now: number): void {
     const target = this.world.targeting.current as Monster | null;
     const shown = !!target && !target.combat.dead;
+    if (this.prepaintFrames > 0) {
+      // Keep the invisible pre-paint up for a few frames unless a real target arrives first.
+      if (--this.prepaintFrames > 0 && !shown) return;
+      this.prepaintFrames = 0;
+      this.el.classList.remove('is-prepaint');
+      this.el.hidden = true;
+    }
     if (this.el.hidden === shown) this.el.hidden = !shown;
     if (!target || !shown) {
       this.statuses.update(null, now);

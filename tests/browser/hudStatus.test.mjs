@@ -43,7 +43,9 @@ export async function hudStatusSuite(b, t, shot) {
   await sleep(150);
   const before = await row(b, 'player-status');
   const used = await b.eval(`[debug.useItem('small_hp_potion').ok, debug.useItem('small_mp_potion').ok]`);
-  await sleep(150);
+  // Right after boot the first frames can be long on a cold browser (one-time raster setup, incl. the target frame's
+  // boot pre-paint): wait for the HUD's next updates (at most 1 s) rather than a fixed 150 ms.
+  await b.waitFor(`document.querySelectorAll('[data-hud=player-status] [data-status]').length >= 2`, { timeout: 1000 }).catch(() => {});
   const hot = await row(b, 'player-status');
   await sleep(1100);
   const later = await row(b, 'player-status');
