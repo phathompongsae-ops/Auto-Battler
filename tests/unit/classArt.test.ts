@@ -72,9 +72,14 @@ describe('Class 1 character art', () => {
     for (const art of CLASS1) assert.deepEqual(artLayout(art), artLayout(WARRIOR_ART), art.displayName);
   });
 
-  test('Warrior: North idle is the 4-frame strip; combat timing unchanged', () => {
-    assert.equal(WARRIOR_ART.anims.idle.up.frames, 4);
-    assert.match(WARRIOR_ART.anims.idle.up.url, /warrior_idle_v2_north\.png$/);
+  test('Warrior: idle is the 4-frame battle-ready stance in every facing; combat timing unchanged', () => {
+    for (const [dir, name] of [['down', 'south'], ['up', 'north'], ['right', 'east']] as const) {
+      assert.equal(WARRIOR_ART.anims.idle[dir].frames, 4);
+      assert.match(WARRIOR_ART.anims.idle[dir].url, new RegExp(`warrior_idle_ready_${name}\\.png$`));
+    }
+    // Same feet rows and body heights as the relaxed strips they were built from: scale and origin unchanged.
+    assert.deepEqual([WARRIOR_ART.anims.idle.down.visibleHeight, WARRIOR_ART.anims.idle.up.visibleHeight, WARRIOR_ART.anims.idle.right.visibleHeight], [120, 124, 128]);
+    assert.deepEqual([WARRIOR_ART.anims.idle.down.offsetY, WARRIOR_ART.anims.idle.up.offsetY, WARRIOR_ART.anims.idle.right.offsetY], [-4, -1, undefined]);
     assert.equal(WARRIOR_ART.actions.attack.down!.frameRate, 18);
     assert.equal(WARRIOR_ART.actions.attack.down!.hitFrame, 4);
     assert.equal(Math.round(actionHitDelayMs(WARRIOR_ART.actions.powerSlash.down!)), 313);

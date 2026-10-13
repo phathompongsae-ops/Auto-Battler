@@ -6,6 +6,7 @@ import './styles/components.css';
 import './styles/hud.css';
 import './styles/production.css';
 import './styles/interface.css';
+import './styles/skillIcons.css';
 
 /** --ui-scale is the canvas height relative to the design height, kept in this range. */
 const DESIGN_HEIGHT = 540;

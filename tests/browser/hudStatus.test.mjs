@@ -91,8 +91,9 @@ export async function hudStatusSuite(b, t, shot) {
   const during = await b.eval(`(() => { const f = document.querySelector('[data-hud=target]'); return { state: f.dataset.state, text: f.querySelector('.hud-target__state').textContent, danger: document.querySelector('[data-hud=actions]').dataset.danger }; })()`);
   const duringRow = await row(b, 'target-status');
   const windup = await b.eval(`debug.log.find((e) => e.type === 'skillWindup' && e.skill === 'crypt_slam_story')?.amount ?? null`);
-  const arcs = await b.eval(`${S}.children.list.filter((o) => o.type === 'Arc' && o.visible && Math.abs(o.radius - ${windup ?? -1}) < 0.01)
-    .map((o) => ({ fill: o.fillAlpha, stroke: o.isStroked ? o.strokeAlpha : 0, line: o.lineWidth, scale: Math.round(o.scale * 100) / 100 }))`);
+  const zone = await b.eval(`({ layers: ${S}.children.list.filter((o) => o.visible && o.getData && o.getData('telegraph'))
+      .map((o) => ({ kind: o.getData('telegraph'), w: Math.round(o.displayWidth), alpha: +o.alpha.toFixed(3) })),
+    strokes: ${S}.children.list.filter((o) => o.type === 'Arc' && o.visible && o.isStroked && Math.abs(o.radius - ${windup ?? -1}) < 0.01).length })`);
   await shot('hud-status-02-enrage-windup');
   await slamDone(b);
   await sleep(250);
@@ -103,11 +104,13 @@ export async function hudStatusSuite(b, t, shot) {
   t.check('HS-6. during a Grave Slam wind-up the warning and the Enrage chip show together; the cluster is flagged for danger until it lands',
     during.state === 'windup' && during.text === 'Winding up!' && duringRow.cells[0]?.id === 'enraged' && during.danger === 'true' && afterSlam.danger === 'false',
     JSON.stringify({ during, duringRow: duringRow.cells, afterSlam }));
-  // Telegraph (shared progressive zone, rendering/Telegraphs.ts): every layer sits on the real skill radius (84); fills stay
-  // light; mid wind-up the edge is clearly visible but not yet at its pre-impact strength (it strengthens toward impact).
-  const edge = arcs.filter((a) => a.scale === 1 && a.stroke >= 0.3 && a.line >= 1.1 && a.line < 4);
-  t.check('HS-7. telegraph keeps the real radius: shadow, fill, growing core and edge all on it; light fills (no heavy disc); the edge is visible mid wind-up and still below full strength',
-    windup === 84 && arcs.length === 4 && edge.length === 1 && edge[0].stroke < 1 && arcs.every((a) => a.fill <= 0.25), JSON.stringify({ windup, arcs }));
+  // Telegraph (shared progressive zone, rendering/Telegraphs.ts): a soft danger shadow of feathered layers on the real skill
+  // radius (84 -> 168 px across); no stroked ring; light, translucent fills; mid wind-up there is no rim yet (it only
+  // firms up in the late phase) and the growing core has not reached the edge.
+  const field = zone.layers.filter((l) => l.kind === 'field'), rim = zone.layers.filter((l) => l.kind === 'rim');
+  t.check('HS-7. telegraph keeps the real radius as a soft danger field: shade, fill and rim span it, the core grows inside; no stroked ring; translucent fills; no rim mid wind-up',
+    windup === 84 && zone.strokes === 0 && field.length === 3 && rim.length === 1 && rim[0].w === 168 && field.filter((l) => l.w === 168).length === 2 &&
+      field.some((l) => l.w < 168) && field.every((l) => l.alpha > 0 && l.alpha <= 0.5) && rim[0].alpha === 0, JSON.stringify({ windup, zone }));
   await b.eval(`debug.selectTarget(null); true`);
   await sleep(100);
   t.check('HS-8. the "Crypt Lord" zone sign steps aside while the Lord is engaged and returns afterwards',

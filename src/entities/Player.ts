@@ -6,6 +6,7 @@ import {
   actionHitDelayMs,
   artLayout,
   artScale,
+  idleMotionKey,
   type ActionVfx,
   type ArtDirection,
   type CharacterAction,
@@ -375,10 +376,14 @@ export class Player extends Phaser.Physics.Arcade.Sprite implements CombatEntity
       if (art) {
         for (const state of ['idle', 'walk'] as const) {
           const anim = art.anims[state][artDirection(dir)];
+          const motionKey = idleMotionKey(anim.key);
           scene.anims.create({
             key: animKey(state, dir),
-            // A timed strip plays its own order and per-frame holds (Phaser: a frame duration replaces the frame rate).
-            frames: anim.timing
+            // Baked idle life (same cell and feet row) when available; else a timed strip plays its own order and
+            // per-frame holds (Phaser: a frame duration replaces the frame rate).
+            frames: anim.motion && scene.textures.exists(motionKey)
+              ? anim.motion.map((p, i) => ({ key: motionKey, frame: i, duration: p.ms }))
+              : anim.timing
               ? anim.timing.map((f) => ({ key: anim.key, frame: f.frame, duration: f.ms }))
               : scene.anims.generateFrameNumbers(anim.key, { start: 0, end: anim.frames - 1 }),
             frameRate: anim.frameRate,

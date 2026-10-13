@@ -1,0 +1,48 @@
+/* ---------------------------------------------------------------------------
+ * Circular skill presentation (final combat presentation polish): every active skill reads as one round icon —
+ * the illustrated motif on a dark circular face inside a thin bronze ring — on the combat hotbar, in the Skills
+ * window loadout and in its list / detail. The face is exactly the circle the cooldown sweep covers (inset 19% of
+ * the socket), so the radial sweep, its timer and the ready flash sit cleanly over it. Loaded last; no filters on
+ * hotbar elements (combat frame time), and nothing here changes per frame.
+ * ------------------------------------------------------------------------- */
+
+/* Hotbar: the art face is the sweep's circle (62% of the socket), not a square tile. */
+.hud-actions > .ui-slot[data-tier='skill'] .ui-slot__icon.has-art {
+  width: 62%;
+  height: 62%;
+  border: 0;
+  border-radius: 50%;
+  background-color: #182027;
+  background-size: 84% 84%;
+  background-position: center;
+  background-repeat: no-repeat;
+  /* Thin bronze ring, a dark seat under it, and a soft inner vignette that frames the motif. */
+  box-shadow: 0 0 0 1.5px #c9a86a, 0 0 0 3px #1a120acc, inset 0 0 7px 1px #050a0fcc, inset 0 2px 3px #f7dfa51f;
+}
+/* Ready to use: the ring warms slightly (a static glow; the socket's own ready halo stays as before). */
+.hud-actions > .ui-slot[data-tier='skill']:not(.is-disabled):not([data-cooldown='true']) .ui-slot__icon.has-art {
+  box-shadow: 0 0 0 1.5px #e6c27a, 0 0 0 3px #1a120acc, 0 0 6px 2px #f0c06a40, inset 0 0 7px 1px #050a0fcc, inset 0 2px 3px #f7dfa52a;
+}
+.hud-actions > .ui-slot[data-tier='skill'].is-pressed .ui-slot__icon.has-art {
+  box-shadow: 0 0 0 1.5px #ffe0a0, 0 0 0 3px #1a120acc, 0 0 8px 2px #f6cf8a77, inset 0 0 7px 1px #050a0fcc;
+}
+/* Cooldown: a dark radial sweep over exactly the face circle (the shared sweep rules already use inset 19%). */
+.hud-actions > .ui-slot[data-tier='skill'] .ui-slot__cooldown { inset: 19%; border-radius: 50%; }
+.hud-actions > .ui-slot[data-tier='skill'] .ui-slot__cooldown-text { z-index: 1; }
+
+/* Skills window loadout: round sockets with the same ring and face. */
+.skills-slot {
+  border-radius: 50%;
+  border: 0;
+  background: radial-gradient(circle at 50% 40%, #222d36, #11181f 72%);
+  box-shadow: 0 0 0 2px #8a6a3a, 0 0 0 3px #0b1117;
+}
+.skills-slot img { width: 84%; height: 84%; border-radius: 50%; object-fit: contain; }
+.skills-slot.is-filled { border: 0; box-shadow: 0 0 0 2px #d6b46a, 0 0 0 3px #0b1117, 0 0 9px #e0b45a40; }
+.skills-slot.is-empty { border: 0; box-shadow: 0 0 0 2px #8a6a3a77, 0 0 0 3px #0b1117; background: radial-gradient(circle, #1a222a, #10161c 72%); }
+.skills-slot.is-target { box-shadow: 0 0 0 2px #f3dca2, 0 0 0 3px #0b1117, 0 0 10px #f3dca255; }
+.skills-slot.is-armed { outline: 0; box-shadow: 0 0 0 2px #8be38f, 0 0 0 4px #0b1117, 0 0 10px #8be38f66; }
+
+/* Skill list / detail: actives already sit in a round bronze ring; give the motif the same dark face and inset. */
+.skill-icon--active { background: radial-gradient(circle at 50% 40%, #222d36, #10171e 72%); }
+.skill-icon--active img { width: 86%; height: 86%; }

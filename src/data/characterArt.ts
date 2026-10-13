@@ -1,5 +1,6 @@
 import type { Direction } from '../input/Direction';
 import type { SkillId } from './skillData';
+import { WARRIOR_IDLE_MOTION, type IdlePose } from './idleMotion';
 
 /*
  * Sprite-sheet art for characters. The PixelLab sheets are used exactly as
@@ -36,7 +37,15 @@ export interface CharacterAnimArt {
    * give an idle strip a calm, uneven breathing rhythm without redrawing it.
    */
   readonly timing?: readonly { readonly frame: number; readonly ms: number }[];
+  /**
+   * Optional idle life (data/idleMotion): poses baked at boot from this strip's frames into `idleMotionKey(key)`
+   * (same cell size and feet row). Played instead of `timing` when that texture exists.
+   */
+  readonly motion?: readonly IdlePose[];
 }
+
+/** Texture key of a strip's baked idle-motion poses. */
+export const idleMotionKey = (key: string) => `${key}~motion`;
 
 /**
  * Phaser-drawn effects for an action, all optional. Arc and afterimage play
@@ -124,7 +133,8 @@ const WARRIOR_FEET_Y = 157;
 /** Shared loop speeds of the Class 1 animation set (attack speeds are per class). */
 const IDLE_FPS = 5;
 /**
- * Warrior idle rhythm (same four frames, uneven holds): rest on the neutral pose, a quick in-between, hold
+ * Fallback Warrior idle rhythm, used only when the baked idle motion (data/idleMotion) is unavailable
+ * (same four frames, uneven holds): rest on the neutral pose, a quick in-between, hold
  * the weight-shift pose (frame 2 settles ~1 px down and across), a quick return. One calm ~1.8 s breath
  * instead of an even 0.8 s flicker; feet stay planted (every frame shares the strip's feet row).
  */
@@ -179,11 +189,13 @@ export const WARRIOR_ART: CharacterArt = {
   effectPadding: { x: 7, y: 5 },
   smooth: true,
   anims: {
+    // Battle-ready stance (tools/character-art/buildWarriorReadyIdle.mjs, from the approved idle frames): sword raised
+    // up and out, knees settled ~2 px; same cells, feet rows and body height (scale and origin unchanged).
     idle: {
-      down: { ...strip('idle_south', 4, IDLE_FPS, 120, 153), timing: WARRIOR_IDLE_TIMING },
-      // 4-frame back idle (Class 1 animation set); feet on the same row as walk_north.
-      up: { ...strip('idle_v2_north', 4, IDLE_FPS, 124, 156), timing: WARRIOR_IDLE_TIMING },
-      right: { ...strip('idle_east', 4, IDLE_FPS, 128), timing: WARRIOR_IDLE_TIMING },
+      down: { ...strip('idle_ready_south', 4, IDLE_FPS, 120, 153), timing: WARRIOR_IDLE_TIMING, motion: WARRIOR_IDLE_MOTION },
+      // Back view (from the Class 1 4-frame back idle): the raised blade shows past the right shoulder.
+      up: { ...strip('idle_ready_north', 4, IDLE_FPS, 124, 156), timing: WARRIOR_IDLE_TIMING, motion: WARRIOR_IDLE_MOTION },
+      right: { ...strip('idle_ready_east', 4, IDLE_FPS, 128), timing: WARRIOR_IDLE_TIMING, motion: WARRIOR_IDLE_MOTION },
     },
     walk: {
       down: strip('walk_south', 8, 10, 121, 154),

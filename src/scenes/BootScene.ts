@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { PRESENTATION_ARTS } from '../data/demoConfig';
 import {
   applyCharacterArtFilter,
+  bakeIdleMotion,
   characterArtDisabled,
   preloadCharacterArt,
 } from '../graphics/characterArt';
@@ -35,7 +36,11 @@ export class BootScene extends Phaser.Scene {
     applyVfxArtFilter(this);
     applyNpcArtFilter(this);
     createPlaceholderTextures(this);
-    for (const art of PRESENTATION_ARTS) applyCharacterArtFilter(this, art);
+    for (const art of PRESENTATION_ARTS) {
+      // Idle life baked from the loaded strips (before the filter, which also covers the baked sheets).
+      bakeIdleMotion(this, art);
+      applyCharacterArtFilter(this, art);
+    }
     this.scene.start('World');
   }
 }
