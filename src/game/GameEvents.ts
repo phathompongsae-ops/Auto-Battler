@@ -7,7 +7,7 @@ import type { DifficultyId } from '../data/dungeonDifficulty';
 import type { FeatureId } from '../data/featureData';
 import type { QuestType } from '../data/questData';
 import type { MonsterTier } from '../data/monsterBalance';
-import type { NavigationState } from '../navigation/AutoMove';
+import type { NavigationState, StartNavFailure } from '../navigation/AutoMove';
 import type { SkillId } from '../data/skillData';
 import type { SkillSlot } from '../data/playerData';
 import type { StatusId } from '../data/statusData';
@@ -108,6 +108,8 @@ export type GameEvents = {
 
   /** Auto Move state changed (started, paused/resumed, next step, arrived, cancelled, failed). */
   navigationChanged: NavigationState;
+  /** A player asked Auto Move to go somewhere (quest Go, NPC Continue) and it could not even start. */
+  navigationUnavailable: { reason: StartNavFailure };
   /** The player changed map through a portal. */
   mapChanged: { fromMapId: string; toMapId: string; portalId: string };
   /** A dungeon's entry requirements stopped a portal / warp; the player stays on the current map. */

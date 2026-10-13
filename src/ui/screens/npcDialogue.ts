@@ -1,5 +1,6 @@
 import { NPCS, type NpcService } from '../../data/npcData';
 import type { CombatWorld } from '../../game/CombatWorld';
+import type { StartNavFailure } from '../../navigation/AutoMove';
 import { nextObjective, npcQuests, objectiveText, rewardText } from '../../quests/questText';
 import { createButton } from '../components/Button';
 import { h, setText } from '../dom';
@@ -30,12 +31,18 @@ export function goToQuest(world: CombatWorld, questId: string): boolean {
   const def = world.quests.defs[questId];
   const status = world.quests.status(questId);
   const npcId = status === 'completed' ? (def.turnInNpcId ?? def.giverNpcId) : status === 'available' ? def.giverNpcId : undefined;
+  // Never fail silently: when Auto Move can't start, the feed tells the player to walk there themselves.
+  const unavailable = (reason: StartNavFailure) => (world.events.emit('navigationUnavailable', { reason }), false);
   if (npcId) {
     const target = NPCS[npcId] && world.navigation.target(NPCS[npcId].navTargetId);
-    return !!target && world.autoMove.navigateTo(target.id).ok;
+    if (!target) return unavailable('no_target');
+    const r = world.autoMove.navigateTo(target.id);
+    return r.ok || unavailable(r.reason);
   }
   const index = nextObjective(world.quests, questId);
-  return index >= 0 && world.autoMove.navigateToQuestObjective(questId, index).ok;
+  if (index < 0) return unavailable('no_target');
+  const r = world.autoMove.navigateToQuestObjective(questId, index);
+  return r.ok || unavailable(r.reason);
 }
 
 export function renderNpcDialogue(world: CombatWorld, windows: WindowManager, npcId: string): HTMLElement {

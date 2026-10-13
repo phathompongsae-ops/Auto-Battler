@@ -61,6 +61,11 @@ export class LootFeed {
         for (const line of this.el.querySelectorAll<HTMLDivElement>('[data-loot-kind=tutorial]')) this.drop(line);
       }),
       ev.on('progressBlocked', ({ message }) => this.push('locked', message, '#ffb86b')),
+      // Auto Move never fails silently: no route found, stuck on the way, or it could not start at all.
+      ev.on('navigationChanged', ({ status }) => {
+        if (status === 'failed') this.push('locked', t('feed.autoMoveFailed'), '#ffb86b');
+      }),
+      ev.on('navigationUnavailable', () => this.push('locked', t('feed.autoMoveFailed'), '#ffb86b')),
       ev.on('checkpointReached', ({ label }) => this.push('dungeon', t('feed.checkpoint', { label }), '#9fd8ff')),
       ev.on('partyWiped', ({ retriesLeft, failed }) =>
         this.push('dungeon', failed ? t('feed.wipedNoRetries') : retriesLeft === 1 ? t('feed.wipedRetry') : t('feed.wipedRetries', { count: retriesLeft }), '#ff6b6b'),

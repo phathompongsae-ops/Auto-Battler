@@ -461,6 +461,42 @@ describe('pathing helpers', () => {
     const boxed: CollisionGrid = { isBlocked: (x, y) => (x > 150 && x < 170) || (y > 150 && y < 170) };
     assert.equal(new LPathPlanner(() => boxed, 0).plan('m', { x: 100, y: 100 }, { x: 300, y: 300 }), null);
   });
+
+  test('when both elbows are blocked the planner detours around the obstacle on axis-aligned, collision-clear legs', () => {
+    // A block straight between start and goal (both L-shapes cross it), open all around.
+    const block: CollisionGrid = { isBlocked: (x, y) => x < 0 || y < 0 || x > 640 || y > 640 || (x > 192 && x < 320 && y > 128 && y < 320) };
+    const path = new LPathPlanner(() => block).plan('m', { x: 112, y: 208 }, { x: 400, y: 208 });
+    assert.ok(path, 'a detour exists');
+    const pts = [{ x: 112, y: 208 }, ...path];
+    for (let i = 1; i < pts.length; i++) {
+      const [a, b] = [pts[i - 1], pts[i]];
+      for (let s = 0; s <= 40; s++) {
+        const x = a.x + ((b.x - a.x) * s) / 40, y = a.y + ((b.y - a.y) * s) / 40;
+        for (const [ox, oy] of [[-12, -12], [12, -12], [-12, 12], [12, 12]]) assert.equal(block.isBlocked(x + ox, y + oy), false, `leg ${i} at ${x},${y}`);
+      }
+    }
+    assert.deepEqual(path.at(-1), { x: 400, y: 208 });
+  });
+
+  // Demo QA (docs/qa/demo-candidate-qa.md): quest Go returned no_path from these real positions.
+  for (const [label, mapId, from, targetId] of [
+    ['Town: Captain Rowan → Smith Brann', TOWN_MAP_ID, { x: 562, y: 503 }, 'nav_town_enhancement'],
+    ['Field: the meadow road → Elite Ruins', FIELD_MAP_ID, { x: 314, y: 265 }, 'nav_field_elite_zone'],
+    ['Field: the west entry → Elite Ruins', FIELD_MAP_ID, { x: 353, y: 268 }, 'nav_field_elite_zone'],
+    ['Crypt: Section I → Crypt Lord', CRYPT_MAP_ID, { x: 600, y: 1146 }, 'nav_crypt_boss'],
+    // The sim collides the body centre; in the game the player's box sits lower (y+4..y+14), clear of the wall row above.
+    ['Crypt: Section II → Crypt Lord', CRYPT_MAP_ID, { x: 598, y: 996 }, 'nav_crypt_boss'],
+  ] as const) {
+    test(`quest Go reaches its target from the QA position: ${label}`, () => {
+      const { auto, world } = demoRig(mapId);
+      world.pos = { ...from };
+      const r = auto.navigateTo(targetId);
+      assert.ok(r.ok, JSON.stringify(r));
+      run(auto, world, 4000);
+      assert.equal(auto.state().status, 'arrived', JSON.stringify({ state: auto.state(), at: world.pos }));
+      assert.ok(world.maxStep < 10, 'walked, never teleported');
+    });
+  }
 });
 
 describe('save / load', () => {

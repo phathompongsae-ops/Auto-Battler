@@ -468,7 +468,7 @@
 .hero-bag.inv-full { color: #ff8a7a; }
 
 /* Left: paper doll around the hero, then stats. */
-.hero-left { grid-area: left; display: flex; flex-direction: column; gap: calc(6px * var(--ui-scale)); min-height: 0; }
+.hero-left { grid-area: left; display: flex; flex-direction: column; gap: calc(6px * var(--ui-scale)); min-height: 0; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: #8a6a3a transparent; }
 /* The stats block belongs to the character: a framed 2-column sheet under the doll. */
 .hero-sheet { flex: none; padding: calc(4px * var(--ui-scale)) calc(6px * var(--ui-scale)) calc(5px * var(--ui-scale)); border: 1px solid #a98a5540; border-radius: 8px; background: linear-gradient(#1a232c, #131a21); }
 .hero-sheet__title { margin: 0 2px 2px; font-size: var(--ui-text-xs); font-weight: 800; letter-spacing: .04em; color: #e6c77e; }
@@ -507,6 +507,21 @@
 .hero-stat__gear { font-size: var(--ui-text-xs); font-weight: 700; }
 .hero-stat__gear.is-up { color: #8be38f; }
 .hero-stat__gear.is-down { color: #ff8a7a; }
+/* Unspent stat points: a small pill in the window's top bar (only while points remain). */
+.hero-points { min-height: 24px; padding: 1px 10px; border: 0; border-radius: 12px; font: inherit; font-size: var(--ui-text-xs); font-weight: 800; color: #10170f; background: #8be38f; box-shadow: 0 0 0 1px #0b1117; white-space: nowrap; cursor: pointer; touch-action: manipulation; }
+/* Attributes + free stat points: a compact 3-column block under the derived stats; `+` only while points remain. */
+.hero-attrs { margin-top: calc(4px * var(--ui-scale)); padding-top: calc(3px * var(--ui-scale)); border-top: 1px solid #ac915640; }
+.hero-attrs__head { display: flex; align-items: center; justify-content: space-between; gap: 6px; margin: 0 2px 2px; }
+.hero-attrs__title { font-size: var(--ui-text-xs); font-weight: 800; letter-spacing: .04em; color: #e6c77e; }
+.hero-attrs__points { display: inline-flex; align-items: baseline; gap: 5px; padding: 0 7px; border-radius: 4px; font-size: var(--ui-text-xs); font-weight: 700; color: #a99c80; background: #0b111799; }
+.hero-attrs__points strong { font-size: max(12px, calc(13px * var(--ui-scale))); color: #c9b88f; font-variant-numeric: tabular-nums; }
+.hero-attrs__points.has-points { color: #f3dca2; box-shadow: 0 0 0 1px #e6c77e88; }
+.hero-attrs__points.has-points strong { color: #8be38f; }
+.hero-attrs__grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2px calc(8px * var(--ui-scale)); }
+.hero-attr { display: flex; align-items: center; gap: 5px; min-height: 28px; padding: 0 4px 0 7px; border-bottom: 1px solid #ac915626; }
+.hero-attr__name { font-size: var(--ui-text-xs); font-weight: 700; letter-spacing: .04em; color: #c9b88f; }
+.hero-attr__value { margin-left: auto; font-weight: 800; color: #fbf1d8; font-variant-numeric: tabular-nums; }
+.hero-attr__add.ui-button { flex: none; width: 26px; height: 26px; min-width: 26px; min-height: 26px; padding: 0; font-size: 16px; font-weight: 900; line-height: 1; }
 
 /* Right: categories, bag grid, details docked under it (actions always in view). */
 .hero-right { grid-area: right; display: flex; flex-direction: column; gap: calc(6px * var(--ui-scale)); min-height: 0; min-width: 0; }
@@ -558,6 +573,10 @@
   .hero-preview__name { margin-top: -2px; }
   .hero-left { gap: 4px; }
   .hero-sheet { padding: 2px 4px 3px; }
+  .hero-attrs__grid { column-gap: 4px; }
+  .hero-attr { min-height: 27px; padding-left: 4px; gap: 3px; }
+  .hero-attr__name { font-size: 10px; letter-spacing: 0; }
+  .hero-attr__value { font-size: 12px; }
   .hero-sheet__title { display: none; }
   .hero-stats.ui-stats { column-gap: 6px; row-gap: 0; }
   .hero-stat { padding: 1px 4px; gap: 3px; line-height: 1.15; }

@@ -210,9 +210,13 @@ export class CombatEffects {
       this.text.show(p.x, textY(p, 'levelUp') - 8, t('notice.retryPoint'), { color: '#bfe6ff', size: 13, rise: 18, duration: 1500 });
     });
 
-    ev.on('bossDefeated', ({ claimed, runId }) => {
+    ev.on('bossDefeated', ({ entityId, claimed, runId }) => {
       const p = world.player;
-      const message = t(claimed ? 'notice.bossClaimed' : runId ? 'notice.bossNoReward' : 'notice.bossNoRun');
+      // A Story clear has no dungeon run: it is a victory (the Story reward comes from the quest turn-in), never "no reward".
+      const boss = world.monsterById(entityId)?.def.name || 'Boss';
+      const message = !runId && world.encounterProfile === 'story'
+        ? t('notice.bossStoryCleared', { boss: boss.toUpperCase() })
+        : t(claimed ? 'notice.bossClaimed' : runId ? 'notice.bossNoReward' : 'notice.bossNoRun');
       this.text.show(p.x, textY(p, 'levelUp') - 30, message, { color: '#ffe066', size: 18, rise: 36, duration: 2600 });
     });
   }

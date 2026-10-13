@@ -10,6 +10,7 @@ import type { CombatWorld } from '../../game/CombatWorld';
 import type { BagEntry } from '../../inventory/Bag';
 import { formatComparison, itemName, itemStatSections, previewEquip } from '../../inventory/itemInfo';
 import { playerCombatStats } from '../../stats/playerCombatStats';
+import { PRIMARY_STATS, type PrimaryStat } from '../../stats/primaryStats';
 import { createButton } from '../components/Button';
 import { ItemSlot, type SlotContent } from '../components/Slot';
 import { Tabs } from '../components/Tabs';
@@ -101,6 +102,56 @@ function cell(content: SlotContent | null, options: { rarity?: string; count?: n
 }
 
 /** Stats with and without equipment (same level, allocation, passives and statuses): the difference is the gear's share. */
+/**
+ * The six attributes with the free stat points earned by levelling: one tap on `+` spends exactly one point through
+ * the real allocation (CombatWorld.allocatePlayerStat), and `onSpend` rebuilds the sheet so derived stats follow.
+ * The `+` controls only show while points remain. Values are the character's own: base + allocated + job bonuses.
+ */
+function attributeBlock(world: CombatWorld, onSpend: () => void): HTMLElement {
+  const p = world.player;
+  const level = p.combat.level;
+  const points = p.progress.remaining(level);
+  const job = p.progress.totalJobBonus();
+  const label = (stat: PrimaryStat) => stat.toUpperCase();
+  return h('div', { className: 'hero-attrs', attrs: { 'data-role': 'hero-attributes', 'data-points': String(points) } }, [
+    h('div', { className: 'hero-attrs__head' }, [
+      h('span', { className: 'hero-attrs__title', text: t('stat.attributes') }),
+      h('span', { className: `hero-attrs__points${points > 0 ? ' has-points' : ''}`, attrs: { 'data-role': 'stat-points', title: points > 0 ? '' : t('stat.noPoints') } }, [
+        h('span', { text: t('stat.points') }),
+        h('strong', { text: String(points) }),
+      ]),
+    ]),
+    h(
+      'div',
+      { className: 'hero-attrs__grid' },
+      PRIMARY_STATS.map((stat) => {
+        const value = p.progress.base[stat] + p.progress.allocated[stat] + job[stat];
+        const add =
+          points > 0
+            ? createButton({
+                label: '+',
+                variant: 'primary',
+                title: t('stat.addPoint', { stat: label(stat) }),
+                onClick: () => {
+                  if (world.allocatePlayerStat(stat, 1).ok) onSpend();
+                },
+              })
+            : null;
+        if (add) {
+          add.classList.add('hero-attr__add');
+          add.dataset.addStat = stat;
+          add.setAttribute('aria-label', t('stat.addPoint', { stat: label(stat) }));
+        }
+        return h('div', { className: 'hero-attr', attrs: { 'data-attr': stat } }, [
+          h('span', { className: 'hero-attr__name', text: label(stat) }),
+          h('span', { className: 'hero-attr__value', text: String(value) }),
+          add,
+        ]);
+      }),
+    ),
+  ]);
+}
+
 function statBlock(world: CombatWorld): HTMLElement {
   const p = world.player;
   const all = p.statModifiers.list();
@@ -315,10 +366,18 @@ export function renderHero(world: CombatWorld, focus: 'character' | 'inventory')
     return c.el;
   }
 
+  /** Unspent points, always in view in the top bar; a tap scrolls the sheet to the attributes (never automatic). */
+  function pointsNotice(count: number): HTMLElement {
+    const notice = h('button', { className: 'hero-points', text: t('stat.pointsAvailable', { count }), attrs: { type: 'button', 'data-role': 'stat-points-notice' } });
+    notice.addEventListener('click', () => root.querySelector('[data-role=hero-attributes]')?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }));
+    return notice;
+  }
+
   function build(): void {
     built = true;
     cells.clear();
     const used = world.bag.usedSlots();
+    const statPoints = world.player.progress.remaining(world.player.combat.level);
     const full = used >= world.bag.capacity;
     const bar = h('div', { className: 'hero-bar' }, [
       h('span', { className: 'hero-currency', attrs: { 'data-currency': 'gold', title: t('currency.gold') } }, [
@@ -330,6 +389,7 @@ export function renderHero(world: CombatWorld, focus: 'character' | 'inventory')
         h('span', { text: world.wallet.get('diamond').toLocaleString('en-US'), attrs: { 'data-role': 'diamond' } }),
       ]),
       result,
+      statPoints > 0 ? pointsNotice(statPoints) : null,
       bagOpen ? h('span', { className: `hero-bag${full ? ' inv-full' : ''}`, text: t(full ? 'hero.bagFull' : 'hero.bag', { used, capacity: world.bag.capacity }), attrs: { 'data-role': 'bag-usage' } }) : null,
     ]);
 
@@ -339,7 +399,7 @@ export function renderHero(world: CombatWorld, focus: 'character' | 'inventory')
       h('div', { className: 'hero-doll__column' }, RIGHT_SLOTS.map(dollSlot)),
     ]);
     // Stats sit under the paper doll as one character sheet (a 2-column block at every size, never a footer strip).
-    const left = h('div', { className: 'hero-left' }, [doll, h('section', { className: 'hero-sheet', attrs: { 'aria-label': t('hero.stats') } }, [h('div', { className: 'hero-sheet__title', text: t('hero.stats') }), statBlock(world)])]);
+    const left = h('div', { className: 'hero-left' }, [doll, h('section', { className: 'hero-sheet', attrs: { 'aria-label': t('hero.stats') } }, [h('div', { className: 'hero-sheet__title', text: t('hero.stats') }), statBlock(world), attributeBlock(world, build)])]);
 
     let right: HTMLElement;
     if (bagOpen) {
