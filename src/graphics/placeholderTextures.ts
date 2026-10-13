@@ -6,6 +6,7 @@ import { Tile, TILE_COUNT } from '../world/tiles';
 import { environmentArtDisabled } from './environmentArt';
 import { drawNpcBase, drawNpcRobe, HD_ART_SCALE } from './hdPropArt';
 import { createPropTextures } from './propTextures';
+import { createEnvFeatureTextures } from './envFeatureArt';
 
 /*
  * Placeholder art drawn to canvas at boot. Every texture here is meant to be
@@ -43,6 +44,8 @@ export function createPlaceholderTextures(scene: Phaser.Scene): void {
   for (const [key, palette] of Object.entries(BLOB_PALETTES)) createBlobSheet(scene, key, palette);
   createLootGem(scene);
   createPropTextures(scene);
+  // Code-drawn 2x portals, gate seals and soft shadows (absent with ?envArt=off: the older code art stays).
+  if (!environmentArtDisabled()) createEnvFeatureTextures(scene);
   createNpcFigure(scene);
 }
 

@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { TILE_SIZE } from '../config';
 import type { ProgressionGateDef } from '../data/maps';
+import { GATE_SEAL_KEY, GATE_SEAL_SIZE } from '../graphics/envFeatureArt';
 
 /** On the floor: above the ground tiles (-1..-0.85), below every y-sorted character, monster and prop. */
 const BARRIER_DEPTH = -0.5;
@@ -9,14 +10,15 @@ const RUNE = 0xf1cf86;
 
 interface Barrier {
   gate: ProgressionGateDef;
-  g: Phaser.GameObjects.Graphics;
+  g: Phaser.GameObjects.Graphics | Phaser.GameObjects.Image;
   shimmer: Phaser.Tweens.Tween;
 }
 
 /**
- * Closed progression gates drawn as a faint amber rune seal across their
- * doorway (code-drawn, from the shared gate data): a translucent band, two
- * thin rails and three small runes, breathing gently while closed. Hidden the
+ * Closed progression gates drawn across their doorway (from the shared gate
+ * data): a dark iron portcullis with an amber rune lock (graphics/envFeatureArt,
+ * stretched to the doorway width), its lock glow breathing gently while closed;
+ * the older code-drawn rune band when that art is unavailable. Hidden the
  * moment the gate opens (and its shimmer paused); rebuilt per map.
  */
 export class GateBarriers {
@@ -30,7 +32,15 @@ export class GateBarriers {
     for (const gate of gates) {
       const w = gate.area.w * TILE_SIZE;
       const h = gate.area.h * TILE_SIZE;
-      const g = this.scene.add.graphics().setDepth(BARRIER_DEPTH).setPosition(gate.area.x * TILE_SIZE + w / 2, gate.area.y * TILE_SIZE + h / 2);
+      const cx = gate.area.x * TILE_SIZE + w / 2;
+      const cy = gate.area.y * TILE_SIZE + h / 2;
+      if (this.scene.textures.exists(GATE_SEAL_KEY)) {
+        const seal = this.scene.add.image(cx, cy, GATE_SEAL_KEY).setDepth(BARRIER_DEPTH).setDisplaySize(w, GATE_SEAL_SIZE.h * (w / GATE_SEAL_SIZE.w));
+        const shimmer = this.scene.tweens.add({ targets: seal, alpha: { from: 0.86, to: 1 }, duration: 1100, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+        this.barriers.push({ gate, g: seal, shimmer });
+        continue;
+      }
+      const g = this.scene.add.graphics().setDepth(BARRIER_DEPTH).setPosition(cx, cy);
       g.fillStyle(AMBER, 0.12);
       g.fillRect(-w / 2, -h / 2 + 4, w, h - 8);
       g.lineStyle(1.5, AMBER, 0.6);

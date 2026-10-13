@@ -11,6 +11,7 @@ import { LOOT_KEY } from '../graphics/placeholderTextures';
 import { auraEllipse, barOffsetY } from './characterLayout';
 import { VFX_ART } from '../data/vfxArt';
 import { hasVfxArt } from '../graphics/vfxArt';
+import { SOFT_SHADOW_KEY } from '../graphics/envFeatureArt';
 
 const BAR_WIDTH = 26;
 /** Monsters still use the placeholder-era fixed offset. */
@@ -29,6 +30,8 @@ export class WorldOverlays {
   private readonly bars: Phaser.GameObjects.Graphics;
   /** Soft contact shadows: characters read clearly against the ground. */
   private readonly shadows: Phaser.GameObjects.Graphics;
+  /** Soft (feathered) shadow images, one per shown character, reused frame to frame; hard ellipses without the art. */
+  private readonly softShadows: Phaser.GameObjects.Image[] = [];
   private readonly targetMarker: Phaser.GameObjects.Ellipse;
   private readonly guardAura: Phaser.GameObjects.Ellipse;
   private readonly aura: ReturnType<typeof auraEllipse>;
@@ -101,15 +104,29 @@ export class WorldOverlays {
 
   private drawShadows(): void {
     const g = this.shadows.clear();
-    g.fillStyle(0x000000, 0.3);
+    const soft = this.scene.textures.exists(SOFT_SHADOW_KEY);
+    let n = 0;
+    // A feathered shadow reads as contact with the ground (the hard ellipse read as a flat sticker); same size and
+    // place as before, slightly stronger core so it stays as visible.
+    const put = (x: number, y: number, w: number, h: number, alpha: number) => {
+      if (!soft) {
+        g.fillStyle(0x000000, alpha);
+        g.fillEllipse(x, y, w, h);
+        return;
+      }
+      let img = this.softShadows[n];
+      if (!img) this.softShadows.push((img = this.scene.add.image(0, 0, SOFT_SHADOW_KEY).setDepth(SHADOW_DEPTH)));
+      img.setPosition(x, y).setDisplaySize(w * 1.25, h * 1.4).setAlpha(alpha * 1.3).setVisible(true);
+      n++;
+    };
     const player = this.world.player;
-    if (!player.combat.dead) g.fillEllipse(player.x, player.y + player.layout.feetOffset, 22, 8);
+    if (!player.combat.dead) put(player.x, player.y + player.layout.feetOffset, 22, 8, 0.3);
     for (const m of this.world.monsters) {
       if (m.combat.dead || !m.visible) continue;
       const k = m.def.scale ?? 1;
-      g.fillStyle(0x000000, m.def.id === 'wolf' ? 0.36 : 0.3);
-      g.fillEllipse(m.x, m.y + MONSTER_FEET_Y * k, 22 * k, 7 * k);
+      put(m.x, m.y + MONSTER_FEET_Y * k, 22 * k, 7 * k, m.def.id === 'wolf' ? 0.36 : 0.3);
     }
+    for (let i = n; i < this.softShadows.length; i++) if (this.softShadows[i].visible) this.softShadows[i].setVisible(false);
   }
 
   private drawBars(): void {

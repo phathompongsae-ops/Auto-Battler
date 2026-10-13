@@ -193,7 +193,8 @@ export const ENV_MAP_GROUND: Readonly<Record<string, EnvMapGround>> = {
     margin: 2,
     spacing: 4,
     // Floor: the graded stone in four mirror variants; wall top: two.
-    tiles: { [Tile.DungeonFloor]: [0, 1, 2, 3], [Tile.DungeonWall]: [4, 5] },
+    // Portal cells get floor stone (their stairwell art is drawn on top; see WorldScene.drawPortalArt).
+    tiles: { [Tile.DungeonFloor]: [0, 1, 2, 3], [Tile.Portal]: [0, 1, 2, 3], [Tile.DungeonWall]: [4, 5] },
     // Rooms read as walled chambers: a stone face along each room's north edge.
     wallFaces: true,
   },

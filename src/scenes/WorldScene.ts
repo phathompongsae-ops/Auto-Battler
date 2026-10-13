@@ -17,6 +17,7 @@ import { NPC_ART_CONTRACT, NPC_ART_SCALE, npcArtKey } from '../data/npcArt';
 import { npcArtTopRow } from '../graphics/npcArt';
 import { npcMarker } from '../quests/questText';
 import { CRYPT_WALL_FACE_KEYS, propTextureKey } from '../graphics/propTextures';
+import { CRYPT_PORTAL_KEY, CRYPT_PORTAL_SIZE, SOFT_SHADOW_KEY } from '../graphics/envFeatureArt';
 import { envDrawScale } from '../graphics/environmentArt';
 import { ENV_BUILDINGS, ENV_GROUND_TILESET, ENV_MAP_GROUND, type EnvTileSkin, type EnvWangGround } from '../data/environmentArt';
 
@@ -102,6 +103,8 @@ export class WorldScene extends Phaser.Scene implements WorldMapView {
   private opaqueMasks = new Map<string, OpaqueMask | null>();
   /** Quest markers over the current map's NPCs. */
   private npcMarkers: { npcId: string; mark: Phaser.GameObjects.Text }[] = [];
+  /** Landmark names; they step back while the player stands under one (e.g. a Crypt doorway) so the hero stays readable. */
+  private landmarkLabels: Phaser.GameObjects.Text[] = [];
   /** Monster-zone signs ("Crypt Lord"): hidden while their own monster is engaged (the target frame names it then). */
   private zoneMarkers: { monsterIds: readonly string[]; parts: (Phaser.GameObjects.Arc | Phaser.GameObjects.Text)[] }[] = [];
 
@@ -282,6 +285,26 @@ export class WorldScene extends Phaser.Scene implements WorldMapView {
       ?.setScale(envDrawScale(this, skin.key))
       .setDepth(GROUND_DEPTH + 0.05);
     if (skin.wallFaces) this.drawWallFaces(map);
+    this.drawPortalArt(map);
+  }
+
+  /**
+   * Tile-skinned maps (the Crypt): each portal gets a carved stone stairwell over its doorway, opening toward the
+   * room it leaves (flipped for a south exit). Visual only: the portal area, its trigger and collision are unchanged.
+   */
+  private drawPortalArt(map: MapDef): void {
+    if (!this.textures.exists(CRYPT_PORTAL_KEY)) return;
+    for (const p of map.portals) {
+      const { x, y, w, h } = p.area;
+      const floorAbove = map.tiles[y - 1]?.[x] !== undefined && !SOLID_TILES.includes(map.tiles[y - 1][x]);
+      const cx = (x + w / 2) * TILE_SIZE;
+      const scale = (w * TILE_SIZE) / (CRYPT_PORTAL_SIZE.w - 32);
+      const art = this.add.image(cx, 0, CRYPT_PORTAL_KEY).setScale(envDrawScale(this, CRYPT_PORTAL_KEY) * scale).setDepth(GROUND_DEPTH + 0.2);
+      // Opening against the floor: a south exit hangs below the room (lintel at the map edge), a north exit above it.
+      if (floorAbove) art.setFlipY(true).setOrigin(0.5, 0).setY(y * TILE_SIZE);
+      else art.setOrigin(0.5, 1).setY((y + h) * TILE_SIZE);
+      this.mapVisuals.push(art);
+    }
   }
 
   /** A stone face on each solid wall cell whose south neighbour is walkable (visual only; props such as torches draw over it). */
@@ -340,8 +363,52 @@ export class WorldScene extends Phaser.Scene implements WorldMapView {
     const wallArt = ground.wall.length > 0;
     this.visualLayer(wangOverlayCells(tiles, wallArt), TILESET_KEY, TILE_SIZE, 0, 0)?.setDepth(GROUND_DEPTH + 0.15);
     if (wallArt) this.visualLayer(wallCells(tiles, ground.wall), ground.key, ground.frameSize, ground.margin, ground.spacing)?.setScale(scale).setDepth(GROUND_DEPTH + 0.15);
+    this.drawWaterDepth(map);
     this.groundLayer?.setVisible(false);
     return true;
+  }
+
+  /**
+   * Water reads as depth, not a repeated tile: the farther a cell is from the shore, the deeper its blue (soft
+   * overlapping discs, so no tile grid shows), plus a few sparse glints that drift in brightness. Drawn once per
+   * map into two Graphics; visual only (water stays solid in map.tiles).
+   */
+  private drawWaterDepth(map: MapDef): void {
+    const tiles = map.tiles;
+    const water = (x: number, y: number) => tiles[y]?.[x] === Tile.Water;
+    const cells: [number, number, number][] = [];
+    for (let y = 0; y < tiles.length; y++) {
+      for (let x = 0; x < tiles[y].length; x++) {
+        if (!water(x, y)) continue;
+        // Chebyshev distance to the nearest non-water cell (1 = on the shoreline).
+        let d = 1;
+        while (d < 6) {
+          let shore = false;
+          for (let dy = -d; dy <= d && !shore; dy++) for (let dx = -d; dx <= d; dx++) if (!water(x + dx, y + dy)) { shore = true; break; }
+          if (shore) break;
+          d++;
+        }
+        cells.push([x, y, d]);
+      }
+    }
+    if (!cells.length) return;
+    const deep = this.add.graphics().setDepth(GROUND_DEPTH + 0.17);
+    for (const [x, y, d] of cells) {
+      if (d < 2) continue;
+      deep.fillStyle(0x0b2f5c, Math.min(0.16, 0.055 * (d - 1)));
+      deep.fillCircle((x + 0.5) * TILE_SIZE, (y + 0.5) * TILE_SIZE, 30);
+    }
+    const glints = this.add.graphics().setDepth(GROUND_DEPTH + 0.18);
+    glints.lineStyle(1.5, 0xe8f6ff, 0.7);
+    for (const [x, y, d] of cells) {
+      const h = Math.abs(Math.sin(x * 127.1 + y * 311.7) * 43758.5453) % 1;
+      if (d < 2 || h > 0.32) continue;
+      const gx = x * TILE_SIZE + 6 + h * 40, gy = y * TILE_SIZE + 8 + ((h * 7) % 1) * 16;
+      glints.lineBetween(gx, gy, gx + 7, gy);
+      glints.lineBetween(gx + 3, gy + 4, gx + 8, gy + 4);
+    }
+    this.tweens.add({ targets: glints, alpha: { from: 0.35, to: 0.9 }, duration: 2600, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+    this.mapVisuals.push(deep, glints);
   }
 
   /** Building facades (2x PNGs) over their Roof-tile footprints; returns the footprints covered. */
@@ -484,7 +551,8 @@ export class WorldScene extends Phaser.Scene implements WorldMapView {
       marker(c.x, c.y, p.label, 0xb388ff);
     }
     // Landmark names are orientation, not headlines: sized for the 1.65 zoom (~16 screen px) and slightly translucent.
-    for (const l of map.landmarks ?? []) this.mapVisuals.push(text(l.x, l.y, l.label.toUpperCase(), '#ffe2a0', 10, 1).setAlpha(0.85));
+    this.landmarkLabels = (map.landmarks ?? []).map((l) => text(l.x, l.y, l.label.toUpperCase(), '#ffe2a0', 10, 1).setAlpha(0.85));
+    this.mapVisuals.push(...this.landmarkLabels);
     this.drawNpcs(map, text);
   }
 
@@ -517,7 +585,10 @@ export class WorldScene extends Phaser.Scene implements WorldMapView {
     const key = npcArtKey(npcId);
     if (this.textures.exists(key)) {
       const c = NPC_ART_CONTRACT;
-      const shadow = this.add.ellipse(x, feet - 1, 22, 7, 0x0a0814, 0.3).setDepth(feet - 0.2);
+      // Same feathered contact shadow as the player and monsters (a hard ellipse without the art).
+      const shadow = this.textures.exists(SOFT_SHADOW_KEY)
+        ? this.add.image(x, feet - 1, SOFT_SHADOW_KEY).setDisplaySize(27, 10).setAlpha(0.4).setDepth(feet - 0.2)
+        : this.add.ellipse(x, feet - 1, 22, 7, 0x0a0814, 0.3).setDepth(feet - 0.2);
       const body = this.add.image(x, feet, key)
         .setOrigin(c.axisX / c.canvas, (c.feetRow + 1) / c.canvas)
         .setScale(NPC_ART_SCALE)
@@ -532,6 +603,16 @@ export class WorldScene extends Phaser.Scene implements WorldMapView {
     const base = this.add.image(x, feet, NPC_BASE_KEY).setOrigin(0.5, 1).setScale(npcScale).setDepth(feet);
     const robe = this.add.image(x, feet, NPC_ROBE_KEY).setOrigin(0.5, 1).setScale(npcScale).setDepth(feet + 0.1).setTint(color);
     return { parts: [base, robe], lift: 0 };
+  }
+
+  private updateLandmarkLabels(): void {
+    const p = this.player;
+    if (!p) return;
+    for (const label of this.landmarkLabels) {
+      const near = Math.abs(label.x - p.x) < 70 && p.y - label.y > -12 && p.y - label.y < 46;
+      const alpha = near ? 0.18 : 0.85;
+      if (label.alpha !== alpha) label.setAlpha(alpha);
+    }
   }
 
   private updateNpcMarkers(): void {
@@ -571,6 +652,7 @@ export class WorldScene extends Phaser.Scene implements WorldMapView {
     this.monsterAnimator.update();
     this.gateBarriers.update((gate) => gateOpen(gate, (zone) => this.world.zoneCleared(zone)));
     this.updateNpcMarkers();
+    this.updateLandmarkLabels();
     this.updateZoneMarkers();
     this.updateOccluders();
     this.hud.update(this.world.now);

@@ -39,7 +39,7 @@ export async function npcFiguresSuite(b, t, shot) {
   const art = await b.eval(`(() => { const s = ${S}, o = s.children.list.find((x) => x.getData && x.getData('npcArt') === 'npc_captain_rowan');
     if (!o) return null; const tw = s.tweens.getTweensOf(o); const f = o.frame;
     return { x: o.x, y: o.y, scale: o.scaleX, scaleY: o.scaleY, originX: o.originX, originY: o.originY, w: f.width, h: f.height, tweens: tw.length, depth: o.depth,
-      shadow: s.children.list.some((x) => x.type === 'Ellipse' && Math.abs(x.x - o.x) < 0.5 && Math.abs(x.y - (o.y - 1)) < 0.5),
+      shadow: s.children.list.some((x) => (x.type === 'Ellipse' || x.texture?.key === 'env-soft-shadow') && Math.abs(x.x - o.x) < 0.5 && Math.abs(x.y - (o.y - 1)) < 0.5),
       role: s.children.list.find((x) => x.type === 'Text' && x.text === "Adventurers' Guild")?.y ?? null }; })()`);
   await b.eval(`debug.teleport(${captain.x}, ${captain.y + 44}); true`);
   await sleep(500);
