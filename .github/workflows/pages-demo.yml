@@ -1,0 +1,54 @@
+# Publishes the playable Phaser demo (the `phaser-rebuild` branch) as a public web build at
+#   https://phathompongsae-ops.github.io/Auto-Battler/demo/
+# alongside the production root (pages.yml, main) and PR previews (pages-preview.yml), which it never touches:
+# it writes only the `demo/` directory of the `gh-pages` branch (keep_files: true leaves every other path as is).
+#
+# vite.config.ts uses a relative base ('./'), so the same build works from the demo/ subdirectory without rewriting.
+# Shares the `gh-pages-deploy` concurrency group so it never races the other gh-pages writers.
+#
+# Note: pages.yml publishes main to the root with keep_files: false, which clears the whole branch; after a main
+# deploy, re-run this workflow (Actions -> Deploy Web Demo -> Run workflow) to restore demo/.
+name: Deploy Web Demo
+
+on:
+  push:
+    branches: [phaser-rebuild]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: gh-pages-deploy
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type-check and build
+        run: npm run build
+
+      - name: Unit tests
+        run: npm run test:unit
+
+      - name: Publish demo/
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: dist
+          destination_dir: demo
+          keep_files: true
+          commit_message: "Deploy web demo ${{ github.sha }}"
