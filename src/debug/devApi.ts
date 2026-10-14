@@ -42,6 +42,7 @@ let devJobCounter = 0;
 import type { WorldOverlays } from '../rendering/WorldOverlays';
 import { finalPrimary } from '../stats/modifiers';
 import { playerDerivedStats } from '../stats/playerCombatStats';
+import type { CombatStats } from '../combat/types';
 import type { PrimaryStat } from '../stats/primaryStats';
 
 export interface EventRecord {
@@ -62,6 +63,15 @@ export interface EventRecord {
   energyLeft?: number;
   quest?: string;
   status?: string;
+  /** damage: how it was delivered ('area' | 'splash' | 'dot'); missing = a plain strike. */
+  delivery?: string;
+  x?: number;
+  y?: number;
+  radius?: number;
+  hits?: number;
+  zone?: number;
+  tick?: number;
+  ms?: number;
 }
 
 /**
@@ -81,7 +91,11 @@ export function createDevApi(world: CombatWorld, overlays: WorldOverlays) {
     log.push({ type, t: world.now, ...extra });
 
   const ev = world.events;
-  ev.on('damage', (e) => record('damage', { source: e.sourceId, target: e.targetId, skill: e.skillId, amount: e.amount, crit: e.crit }));
+  ev.on('damage', (e) => record('damage', { source: e.sourceId, target: e.targetId, skill: e.skillId, amount: e.amount, crit: e.crit, ...(e.delivery ? { delivery: e.delivery } : {}) }));
+  ev.on('areaLanded', (e) => record('areaLanded', { source: e.casterId, skill: e.skillId, x: e.x, y: e.y, radius: e.radius, hits: e.hits }));
+  ev.on('zoneStarted', (e) => record('zoneStarted', { source: e.casterId, skill: e.skillId, zone: e.zoneId, x: e.x, y: e.y, radius: e.radius, amount: e.ticks }));
+  ev.on('zoneTick', (e) => record('zoneTick', { zone: e.zoneId, tick: e.tick, hits: e.hits }));
+  ev.on('zoneEnded', (e) => record('zoneEnded', { zone: e.zoneId, reason: e.reason }));
   ev.on('heal', (e) => record('heal', { target: e.targetId, amount: e.amount }));
   ev.on('miss', (e) => record('miss', { source: e.sourceId, target: e.targetId, skill: e.skillId }));
   ev.on('death', (e) => record('death', { entity: e.entityId, source: e.killerId ?? undefined }));
@@ -119,7 +133,7 @@ export function createDevApi(world: CombatWorld, overlays: WorldOverlays) {
   ev.on('dungeonRetry', (e) => record('dungeonRetry', { target: e.mapId, item: e.checkpointId ?? undefined, amount: e.retriesLeft }));
   ev.on('dungeonFailed', (e) => record('dungeonFailed', { target: e.mapId }));
   ev.on('locationReached', (e) => record('locationReached', { target: e.locationId }));
-  ev.on('skillWindup', (e) => record('skillWindup', { source: e.casterId, skill: e.skillId, target: e.targetId ?? undefined, amount: e.radius ?? undefined }));
+  ev.on('skillWindup', (e) => record('skillWindup', { source: e.casterId, skill: e.skillId, target: e.targetId ?? undefined, amount: e.radius ?? undefined, ms: e.ms, ...(e.x !== undefined ? { x: e.x, y: e.y } : {}) }));
   ev.on('goldGained', (e) => record('goldGained', { entity: e.entityId, amount: e.amount }));
   ev.on('monsterEnraged', (e) => record('monsterEnraged', { entity: e.entityId }));
   ev.on('bossDefeated', (e) => record('bossDefeated', { entity: e.entityId, rewarded: e.claimed, item: e.runId ?? undefined }));
@@ -160,6 +174,9 @@ export function createDevApi(world: CombatWorld, overlays: WorldOverlays) {
         dead: m.combat.dead,
         state: m.brain.state as MonsterAiState,
         visible: m.visible,
+        moveSpeed: m.combat.stats.moveSpeed,
+        statuses: m.combat.statuses.map((st) => ({ id: st.def.id, remaining: Math.max(0, st.expiresAt - world.now), dot: st.dot ? { magnitude: st.dot.magnitude, nextTickIn: st.dot.nextTickAt - world.now } : null })),
+        tint: m.tintTopLeft,
       };
     },
     /** Move a monster (and optionally its spawn) and reset it to idle. */
@@ -174,6 +191,18 @@ export function createDevApi(world: CombatWorld, overlays: WorldOverlays) {
       m.brain.setState('idle', world.now);
     },
     setMonsterHp: (id: string, hp: number) => (monster(id).combat.hp = hp),
+    /**
+     * FORCE (tests only): turn a monster into a training dummy with this Max HP (and full HP). Statuses re-derive
+     * stats and clamp HP to Max HP, so a large HP alone does not survive a Slow or Burn. Lasts until its map reloads.
+     */
+    setMonsterMaxHp: (id: string, maxHp: number) => {
+      const m = monster(id);
+      const c = m.combat as unknown as { statsFor: (level: number, statuses: unknown) => CombatStats; refreshStats(): void; hp: number };
+      const base = c.statsFor;
+      c.statsFor = (level, statuses) => ({ ...base(level, statuses), maxHp });
+      c.refreshStats();
+      c.hp = maxHp;
+    },
     player: () => {
       const p = world.player;
       const c = p.combat;
@@ -386,6 +415,17 @@ export function createDevApi(world: CombatWorld, overlays: WorldOverlays) {
     passiveEffects: () => passiveModifiers(world.skillTree.tree(), world.player.progress.skillRanks),
     /** The player's version of a skill (learned rank numbers), or null if it can't be cast. */
     skillDef: (skillId: SkillId) => world.skills.definition(world.player, skillId),
+    /** The job's basic attack (ATK) and the MP the player would pay for a skill now (Mana Flow included). */
+    basicAttack: () => world.skillTree.basicAttack(),
+    mpCost: (skillId: SkillId) => {
+      const def = world.skills.definition(world.player, skillId);
+      return def ? world.skills.mpCost(world.player, def) : null;
+    },
+    /** Live ground zones (simulation) and their visuals (renderer). */
+    zones: () => world.skills.zones.active.map((z) => ({ id: z.id, skillId: z.skillId, x: z.x, y: z.y, radius: z.radius, ticks: z.ticks, applied: z.applied, power: z.power })),
+    zoneVisuals: () => (world.player.scene as unknown as { spellEffects?: { zoneStates(): unknown[] } | null }).spellEffects?.zoneStates() ?? [],
+    /** Skill wind-ups / releases not landed yet (all casters). */
+    pendingCasts: () => world.skills.pendingCount(),
 
     // --- Class 1 Job Change (dev only) -------------------------------------
     /** Current job, Job Change stage, trial state, Job Bonus and Class 1 Skill Points. */

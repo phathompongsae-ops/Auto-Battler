@@ -41,6 +41,8 @@ export class Monster extends Phaser.Physics.Arcade.Sprite implements MonsterAgen
   private restPose: { originX: number; originY: number; offsetX: number; offsetY: number } | null = null;
   /** Multiply tint a variant keeps between hit flashes (see MONSTER_ART_TINT); null = none. */
   private restTint: number | null = null;
+  /** Multiply tint while a status shows on the body (Burn, Slow; set by the renderer); null = none. */
+  private statusTint: number | null = null;
   /** Velocity the brain asked for (separation is added on top). */
   private moveX = 0;
   private moveY = 0;
@@ -206,7 +208,26 @@ export class Monster extends Phaser.Physics.Arcade.Sprite implements MonsterAgen
 
   resetTint(): void {
     this.setTintMode(Phaser.TintModes.MULTIPLY);
-    if (this.restTint === null) this.clearTint();
-    else this.setTint(this.restTint);
+    const tint = multiplyTint(this.restTint, this.statusTint);
+    if (tint === null) this.clearTint();
+    else this.setTint(tint);
   }
+
+  /**
+   * Show (or clear) a status colour on the body, multiplied with the variant tint. Presentation only. A hit flash
+   * in progress keeps its white fill; it restores this tint when it ends.
+   */
+  setStatusTint(color: number | null): void {
+    if (color === this.statusTint) return;
+    this.statusTint = color;
+    if (this.tintMode !== Phaser.TintModes.FILL) this.resetTint();
+  }
+}
+
+/** Channel-wise product of two multiply tints (null = white / none). */
+function multiplyTint(a: number | null, b: number | null): number | null {
+  if (a === null) return b;
+  if (b === null) return a;
+  const ch = (shift: number) => Math.round((((a >> shift) & 0xff) * ((b >> shift) & 0xff)) / 255) << shift;
+  return ch(16) | ch(8) | ch(0);
 }

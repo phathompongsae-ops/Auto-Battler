@@ -31,6 +31,8 @@ export class PlayerCombatController {
     private readonly loadout: () => Record<SkillSlot, SkillId | null>,
     private readonly dodge: (now: number) => void = () => {},
     private readonly potion: (resource: 'hp' | 'mp') => void = () => {},
+    /** The job's basic attack (ATK): melee Attack, or the Mage's Magic Bolt. */
+    private readonly basicAttack: () => SkillId = () => PLAYER_BASIC_ATTACK,
   ) {}
 
   update(now: number): void {
@@ -72,7 +74,7 @@ export class PlayerCombatController {
     if (cyclePressed) this.targeting.cycle(this.player, this.enemies());
 
     // Holding attack keeps swinging as the cooldown allows, without failure spam.
-    if ((attackPressed || attackHeld) && !holdAttack) this.cast(PLAYER_BASIC_ATTACK, now, !attackPressed);
+    if ((attackPressed || attackHeld) && !holdAttack) this.cast(this.basicAttack(), now, !attackPressed);
 
     const loadout = this.loadout();
     SKILL_SLOTS.forEach((slot, i) => {

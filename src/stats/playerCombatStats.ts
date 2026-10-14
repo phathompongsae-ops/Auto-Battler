@@ -43,18 +43,22 @@ export function playerDerivedStats(
 /** Effect modifiers (sets, enchants...) as combat fields. */
 export function combatEffects(
   modifiers: readonly StatModifier[],
-): Pick<CombatStats, 'damageReduction' | 'physicalDamageBonus' | 'skillDamageBonus' | 'skillCooldownReduction'> {
+): Pick<CombatStats, 'damageReduction' | 'physicalDamageBonus' | 'mpCostReduction' | 'elementDamageBonus' | 'skillDamageBonus' | 'skillCooldownReduction'> {
   const effects = sumEffects(modifiers);
   const skillDamageBonus: Record<string, number> = {};
   const skillCooldownReduction: Record<string, number> = {};
+  const elementDamageBonus: Record<string, number> = {};
   for (const [key, value] of Object.entries(effects)) {
-    const [kind, skillId] = key.split(':');
-    if (kind === 'skillDamage' && skillId) skillDamageBonus[skillId] = value;
-    if (kind === 'skillCooldown' && skillId) skillCooldownReduction[skillId] = value;
+    const [kind, id] = key.split(':');
+    if (kind === 'skillDamage' && id) skillDamageBonus[id] = value;
+    if (kind === 'skillCooldown' && id) skillCooldownReduction[id] = value;
+    if (kind === 'elementDamage' && id) elementDamageBonus[id] = value;
   }
   return {
     damageReduction: effects[effectKey.damageReduction] ?? 0,
     physicalDamageBonus: effects[effectKey.physicalDamage] ?? 0,
+    mpCostReduction: effects[effectKey.mpCost] ?? 0,
+    elementDamageBonus,
     skillDamageBonus,
     skillCooldownReduction,
   };

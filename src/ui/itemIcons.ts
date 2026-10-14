@@ -1,4 +1,5 @@
 import { EQUIPMENT_DEFS } from '../data/equipmentItems';
+import { PASSIVE_ICONS } from '../data/skillIcons';
 import type { ItemId } from '../data/itemData';
 import { equipmentArtId, iconArtUrl, jewelleryArtId } from './art/iconArt';
 import { h } from './dom';
@@ -21,9 +22,9 @@ export function equipmentIconUrl(defId: string): string | undefined {
   return iconArtUrl(id) ?? undefined;
 }
 
-/** Passive / proc art by skill-tree node or status id (Warrior: masteries and instincts). */
+/** Passive / proc art by skill-tree node or status id: an illustrated PNG (Mage passives), else the code-drawn plate (Warrior). */
 export function passiveIconUrl(id: string): string | undefined {
-  return iconArtUrl(id) ?? undefined;
+  return PASSIVE_ICONS[id] ?? iconArtUrl(id) ?? undefined;
 }
 
 export type Currency = 'gold' | 'diamond';

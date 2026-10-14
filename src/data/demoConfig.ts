@@ -6,8 +6,8 @@ import type { JobId } from './jobData';
  * the character's real class, Job Bonus and stats always come from its saved
  * job, never from here.
  *
- * Every Class 1 job has its own production art. Only Warrior has a real kit:
- * Archer / Mage / Cleric / Ninja still play the TEMPORARY Warrior demo kit
+ * Every Class 1 job has its own production art. Warrior and Mage have their
+ * real kits: Archer / Cleric / Ninja still play the TEMPORARY Warrior demo kit
  * (PLAYER_LOADOUT: Power Strike, Fire Bolt, Guard) until their skill trees
  * exist. Novice has no art of its own and borrows the Warrior's (explicit
  * TEMPORARY DEMO FALLBACK) until the Lv11 Job Change.
@@ -23,6 +23,7 @@ export interface ClassPresentation {
 }
 
 const WARRIOR: ClassPresentation = { art: WARRIOR_ART, kit: 'warrior', temporaryFallback: false, temporaryKit: false };
+const MAGE: ClassPresentation = { art: MAGE_ART, kit: 'mage', temporaryFallback: false, temporaryKit: false };
 /** TEMPORARY DEMO FALLBACK (see above). */
 const NOVICE_FALLBACK: ClassPresentation = { art: WARRIOR_ART, kit: 'warrior-demo', temporaryFallback: true, temporaryKit: true };
 /** Real art, TEMPORARY demo kit. */
@@ -32,7 +33,7 @@ export const CLASS_PRESENTATION: Record<JobId, ClassPresentation> = {
   novice: NOVICE_FALLBACK,
   warrior: WARRIOR,
   archer: ownArtDemoKit(ARCHER_ART),
-  mage: ownArtDemoKit(MAGE_ART),
+  mage: MAGE,
   cleric: ownArtDemoKit(CLERIC_ART),
   ninja: ownArtDemoKit(NINJA_ART),
 };

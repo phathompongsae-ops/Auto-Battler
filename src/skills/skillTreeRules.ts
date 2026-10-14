@@ -1,6 +1,6 @@
 import { TILE_SIZE } from '../config';
 import { JOBS, type JobId } from '../data/jobData';
-import { SKILLS, type SkillDef, type SkillEffect, type SkillId } from '../data/skillData';
+import { SKILLS, type OnHitStatus, type SkillDef, type SkillEffect, type SkillId } from '../data/skillData';
 import { SKILL_TREES, type SkillNodeDef, type SkillTreeDef } from '../data/skillTreeData';
 import type { DerivedStatKey, StatModifier } from '../stats/modifiers';
 
@@ -28,7 +28,15 @@ export function treeForJob(jobId: JobId): SkillTreeDef | null {
   return (id && SKILL_TREES[id]) || null;
 }
 
-export const rankOf = (ranks: SkillRanks, nodeId: string) => ranks[nodeId] ?? 0;
+/** The melee basic attack every job without its own uses (Novice, Warrior). */
+export const DEFAULT_BASIC_ATTACK: SkillId = 'basic_attack';
+
+/** The job's basic attack: its tree's own (Mage: Magic Bolt), otherwise the melee one. */
+export function basicAttackFor(jobId: JobId): SkillId {
+  return treeForJob(jobId)?.basicAttack ?? DEFAULT_BASIC_ATTACK;
+}
+
+export const rankOf =(ranks: SkillRanks, nodeId: string) => ranks[nodeId] ?? 0;
 
 export function totalSpent(ranks: SkillRanks): number {
   return Object.values(ranks).reduce((n, r) => n + r, 0);
@@ -89,12 +97,14 @@ export function rankProblem(tree: SkillTreeDef | null, ranks: SkillRanks, earned
 export function passiveModifiers(tree: SkillTreeDef | null, ranks: SkillRanks): StatModifier[] {
   if (!tree) return [];
   const out: StatModifier[] = [];
-  const scale = (part: Partial<Record<DerivedStatKey, number>> | undefined, r: number) =>
-    part && Object.fromEntries(Object.entries(part).map(([k, v]) => [k, v * r]));
+  const scale = <K extends string>(part: Readonly<Partial<Record<K, number>>> | undefined, r: number) =>
+    part && (Object.fromEntries(Object.entries(part).map(([k, v]) => [k, (v as number) * r])) as Partial<Record<K, number>>);
   for (const node of tree.nodes) {
     const r = rankOf(ranks, node.id);
     if (node.type !== 'passive' || !node.perRank || r <= 0) continue;
-    out.push({ source: 'skill', id: `skill:${node.id}`, flat: scale(node.perRank.flat, r), percent: scale(node.perRank.percent, r) });
+    const modifier: StatModifier = { source: 'skill', id: `skill:${node.id}`, flat: scale<DerivedStatKey>(node.perRank.flat, r), percent: scale<DerivedStatKey>(node.perRank.percent, r) };
+    if (node.perRank.effects) modifier.effects = scale<string>(node.perRank.effects, r) as Record<string, number>;
+    out.push(modifier);
   }
   return out;
 }
@@ -121,14 +131,28 @@ export function skillAtRank(node: SkillNodeDef, rank: number): SkillDef | null {
   const tiles = (t: number | undefined, fallback: number) => (t === undefined ? fallback : t * TILE_SIZE);
   const stun = r.stunMs ? { statusId: 'stunned' as const, duration: r.stunMs } : undefined;
   const e = base.effect;
+  // A data-declared on-hit status (Slow, Burn) takes this rank's duration and strength.
+  const onHit = (h: OnHitStatus | undefined): OnHitStatus | undefined =>
+    h && { ...h, duration: r.statusMs ?? h.duration, ...(r.statusPower !== undefined ? { magnitude: r.statusPower } : {}) };
   let effect: SkillEffect;
   switch (e.kind) {
     case 'damage':
       effect = { ...e, power: r.power ?? e.power, onHit: stun, critBonus: r.critBonus };
       break;
     case 'aoe_damage':
-      effect = { ...e, power: r.power ?? e.power, radius: tiles(r.radiusTiles, e.radius) };
+      effect = { ...e, power: r.power ?? e.power, radius: tiles(r.radiusTiles, e.radius), onHit: onHit(e.onHit) };
       break;
+    case 'target_area':
+      effect = { ...e, power: r.power ?? e.power, radius: tiles(r.radiusTiles, e.radius), onHit: onHit(e.onHit) };
+      break;
+    case 'ground_zone':
+      effect = { ...e, power: r.power ?? e.power, radius: tiles(r.radiusTiles, e.radius), durationMs: r.durationMs ?? e.durationMs, onHit: onHit(e.onHit) };
+      break;
+    case 'projectile': {
+      const splash = e.splash && { radius: tiles(r.splashRadiusTiles, e.splash.radius), power: r.splashPower ?? e.splash.power };
+      effect = { ...e, power: r.power ?? e.power, splash, onHit: onHit(e.onHit) };
+      break;
+    }
     case 'taunt':
       effect = { ...e, duration: r.durationMs ?? e.duration, radius: tiles(r.radiusTiles, e.radius) };
       break;

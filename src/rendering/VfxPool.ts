@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { VFX_ART, type VfxId } from '../data/vfxArt';
+import { VFX_ART, type VfxArtDef, type VfxId } from '../data/vfxArt';
 import { hasVfxArt } from '../graphics/vfxArt';
 
 /** Above characters and props, like the code-drawn effects. */
@@ -15,6 +15,22 @@ export interface VfxPlacement {
   flipY?: boolean;
   /** Multiplies the strip's own world scale. */
   scale?: number;
+  /** Ground effects with a measured footprint: scale so the painted footprint spans this radius (world px). */
+  radius?: number;
+  /** Draw order (default: above characters). Ground effects pass a depth just under the actors standing on them. */
+  depth?: number;
+  alpha?: number;
+}
+
+/** World scale of a strip played at a placement (its footprint fitted to `radius` when both are known). */
+export function vfxScale(def: VfxArtDef, at: Pick<VfxPlacement, 'scale' | 'radius'>): number {
+  const base = def.footprint && at.radius ? (2 * at.radius) / def.footprint : def.scale;
+  return base * (at.scale ?? 1);
+}
+
+/** Origin (0..1) that puts the strip's anchor pixel on the placement point. */
+export function vfxOrigin(def: VfxArtDef): { x: number; y: number } {
+  return def.anchor ? { x: def.anchor.x / def.frameWidth, y: def.anchor.y / def.frameHeight } : { x: 0.5, y: 0.5 };
 }
 
 /**
@@ -41,13 +57,16 @@ export class VfxPool {
     const sprite = this.take();
     if (!sprite) return false;
     const def = VFX_ART[id];
+    const origin = vfxOrigin(def);
     sprite
       .setPosition(at.x, at.y)
+      .setOrigin(origin.x, origin.y)
       .setRotation(at.rotation ?? 0)
       .setFlipY(at.flipY ?? false)
-      .setScale(def.scale * (at.scale ?? 1))
-      .setDepth(VFX_DEPTH)
-      .setAlpha(1)
+      .setScale(vfxScale(def, at))
+      .setBlendMode(def.blend === 'add' ? Phaser.BlendModes.ADD : Phaser.BlendModes.NORMAL)
+      .setDepth(at.depth ?? VFX_DEPTH)
+      .setAlpha(at.alpha ?? 1)
       .setVisible(true)
       .setActive(true);
     sprite.play(def.key);

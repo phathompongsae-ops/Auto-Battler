@@ -1,13 +1,15 @@
 import type { SkillId } from '../data/skillData';
 import type { StatusDef } from '../data/statusData';
 import { MAX_LEVEL } from '../data/progressionData';
-import type { CombatStats, Team } from './types';
+import type { CombatEntity, CombatStats, Team } from './types';
 import type { Direction } from '../input/Direction';
 import type { PeriodicResourceEffect } from './PeriodicResourceSystem';
 
 export interface ActiveStatus {
   def: StatusDef;
   expiresAt: number;
+  /** Damage-over-time statuses (StatusDef.dot): who applied it, with which skill, at what strength, and the next tick. */
+  dot?: { source: CombatEntity; skillId: SkillId; magnitude: number; nextTickAt: number };
 }
 
 /**

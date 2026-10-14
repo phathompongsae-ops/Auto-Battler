@@ -2,6 +2,7 @@ import type { CombatantState } from '../../combat/CombatantState';
 import { h, setText, setVar, toggleClass } from '../dom';
 import { icon, type IconName } from '../icons';
 import { passiveIconUrl } from '../itemIcons';
+import { t, type StringKey } from '../i18n';
 
 /**
  * A compact row of timed-state icons for one combatant: its active statuses
@@ -27,7 +28,14 @@ const GLYPHS: Record<string, IconName> = {
   taunted: 'crossed_swords',
   potion_hp: 'heal',
   potion_mp: 'potion',
+  burning: 'flame',
+  slowed: 'frost',
+  chilled: 'frost',
 };
+
+/** Statuses whose name is interface text (the rest show their game-data name). */
+const STATUS_NAME: Record<string, StringKey> = { burning: 'status.burning', slowed: 'status.slowed', chilled: 'status.slowed' };
+const statusName = (id: string, fallback: string) => (STATUS_NAME[id] ? t(STATUS_NAME[id]) : fallback);
 
 /** Procs from the Warrior tree show their illustrated plate (the same art as in Skills); everything else keeps its glyph. */
 const PROC_ART = new Set(['guardian_instinct', 'battle_instinct']);
@@ -95,7 +103,15 @@ export class StatusRow {
 
   /** Relabel visible cells (after a language change). */
   relabel(): void {
-    for (const cell of this.cells) if (cell.id) this.applyLabel(cell);
+    for (const cell of this.cells) {
+      if (!cell.id) continue;
+      if (STATUS_NAME[cell.id]) {
+        const name = t(STATUS_NAME[cell.id]);
+        cell.el.title = name;
+        cell.el.setAttribute('aria-label', name);
+      }
+      this.applyLabel(cell);
+    }
   }
 
   update(c: CombatantState | null, now: number): void {
@@ -104,7 +120,7 @@ export class StatusRow {
     this.owner = c;
     if (c && !c.dead) {
       for (const s of c.statuses) {
-        if (n < this.max) this.fill(this.cells[n++], s.def.id, s.def.name, s.def.kind, hex(s.def.color), s.expiresAt, now);
+        if (n < this.max) this.fill(this.cells[n++], s.def.id, statusName(s.def.id, s.def.name), s.def.kind, hex(s.def.color), s.expiresAt, now);
         else extra++;
       }
       for (const [group, effect] of c.periodicResources) {

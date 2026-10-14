@@ -15,6 +15,12 @@ import type { StatusId } from '../data/statusData';
 export type ProjectileEndReason = 'hit' | 'wall' | 'expired';
 
 /**
+ * How a hit was delivered when it is not a plain strike: one of many from an area (an area spell, a ground zone
+ * tick), a projectile's splash, or a damage-over-time tick. Presentation only.
+ */
+export type DamageDelivery = 'area' | 'splash' | 'dot';
+
+/**
  * Everything the simulation reports. Payloads are plain serialisable data
  * (ids and numbers, no live objects) so the same events can later be sent
  * over the network. Presentation looks entities up by id when it needs them.
@@ -29,6 +35,10 @@ export type GameEvents = {
     amount: number;
     crit: boolean;
     heavy: boolean;
+    /** Missing = a plain strike. */
+    delivery?: DamageDelivery;
+    /** A damage-over-time tick: the status that dealt it. */
+    statusId?: StatusId;
   };
   heal: { targetId: EntityId; amount: number };
   /** A damaging attack missed (hit roll failed); no damage and no on-hit effects. */
@@ -41,7 +51,24 @@ export type GameEvents = {
    * A wind-up skill started (its hit lands in `ms`): the telegraph. Single-target
    * wind-ups name the target; area ones give the radius around the caster.
    */
-  skillWindup: { casterId: EntityId; skillId: SkillId; targetId: EntityId | null; radius: number | null; ms: number };
+  skillWindup: {
+    casterId: EntityId;
+    skillId: SkillId;
+    targetId: EntityId | null;
+    radius: number | null;
+    ms: number;
+    /** A ground-targeted area (target_area): where it will land. Missing = around the caster. */
+    x?: number;
+    y?: number;
+  };
+  /** An area skill resolved (hit or not): its real centre and radius. */
+  areaLanded: { casterId: EntityId; skillId: SkillId; x: number; y: number; radius: number; hits: number };
+  /** A lingering ground area began (Frost Storm): it ticks every `tickMs`, `ticks` times. */
+  zoneStarted: { zoneId: number; casterId: EntityId; skillId: SkillId; x: number; y: number; radius: number; durationMs: number; tickMs: number; ticks: number };
+  /** One zone tick resolved (`tick` counts from 1). */
+  zoneTick: { zoneId: number; tick: number; hits: number };
+  /** A zone ended: all its ticks done, or it was cleared (map change, reset, caster down). */
+  zoneEnded: { zoneId: number; reason: 'done' | 'cleared' };
   /** A delayed (wind-up) hit was dropped before it landed. */
   hitCancelled: { casterId: EntityId; targetId: EntityId; skillId: SkillId; reason: HitCancelReason };
   projectileSpawned: {

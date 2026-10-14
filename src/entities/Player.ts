@@ -366,7 +366,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite implements CombatEntity
   private static createAnimations(scene: Phaser.Scene, art: CharacterArt | null, replace: boolean): void {
     if (replace) {
       for (const dir of DIRECTIONS) {
-        for (const name of ['idle', 'walk', 'attack', 'powerSlash'] as const) scene.anims.remove(animKey(name, dir));
+        for (const name of ['idle', 'walk', 'attack', 'powerSlash', 'cast'] as const) scene.anims.remove(animKey(name, dir));
       }
     } else if (scene.anims.exists(animKey('idle', 'down'))) {
       return;

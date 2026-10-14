@@ -90,8 +90,9 @@ describe('job definitions (one class system)', () => {
       names.add(p.art.displayName);
     }
     assert.equal(names.size, 5, 'five distinct sprite sets');
-    // Skills are out of scope: only Warrior has its real kit.
-    for (const id of ['archer', 'mage', 'cleric', 'ninja'] as const) assert.equal(jobDefinition(id).presentation.temporaryKit, true, id);
+    // Warrior and Mage play their real kits; the rest keep the temporary demo kit.
+    for (const id of ['archer', 'cleric', 'ninja'] as const) assert.equal(jobDefinition(id).presentation.temporaryKit, true, id);
+    for (const id of ['warrior', 'mage'] as const) assert.equal(jobDefinition(id).presentation.temporaryKit, false, id);
   });
 });
 
@@ -171,16 +172,19 @@ describe('Job Trial', () => {
   });
 });
 
+/** Class 1 jobs with a real skill tree (selectable in production). */
+const IMPLEMENTED: ReadonlySet<string> = new Set(['warrior', 'mage']);
+
 describe('job selection', () => {
   for (const job of CLASS_1_CHOICES) {
-      test(`${job}: ${job === 'warrior' ? 'production selection' : 'production guard and explicit dev preview'}, Job Bonus as job stats, allocated untouched`, () => {
+      test(`${job}: ${IMPLEMENTED.has(job) ? 'production selection' : 'production guard and explicit dev preview'}, Job Bonus as job stats, allocated untouched`, () => {
       const r = rig(15);
       allocateStat(r.t, 'str', 2);
       allocateStat(r.t, 'luk', 1);
       const allocated = { ...r.t.progress.allocated };
       r.completeTrial();
-      if (job !== 'warrior') assert.deepEqual(r.jc.select(job), { ok: false, reason: 'tree_unavailable' });
-      const result = r.jc.select(job, { skipTrial: job !== 'warrior' });
+      if (!IMPLEMENTED.has(job)) assert.deepEqual(r.jc.select(job), { ok: false, reason: 'tree_unavailable' });
+      const result = r.jc.select(job, { skipTrial: !IMPLEMENTED.has(job) });
       assert.deepEqual(result, { ok: true, jobId: job });
       assert.equal(r.t.progress.classId, job);
       assert.deepEqual(r.t.progress.jobBonuses, { [job]: BONUSES[job as keyof typeof BONUSES] });

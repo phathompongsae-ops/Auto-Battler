@@ -12,6 +12,21 @@ export type DamageType = 'physical' | 'magic';
 export interface OnHitStatus {
   statusId: StatusId;
   duration: number;
+  /**
+   * Strength for statuses that scale per application: a damage-over-time status's damage multiplier per tick
+   * (MATK / ATK x magnitude, like a hit's power). Missing = the status's own fixed effect.
+   */
+  magnitude?: number;
+}
+
+/** Element tags (Elemental Mastery and similar bonuses read them). Untagged skills have no element. */
+export type Element = 'fire' | 'frost';
+
+/** A projectile's area hit around its impact: every other enemy within `radius` px of it takes `power` x the primary hit's power. */
+export interface ProjectileSplash {
+  radius: number;
+  /** Fraction of the primary power (0.5 = half). */
+  power: number;
 }
 
 /**
@@ -20,13 +35,37 @@ export interface OnHitStatus {
  */
 export type SkillEffect =
   | { kind: 'damage'; power: number; damageType: DamageType; onHit?: OnHitStatus; critBonus?: number }
-  /** One hit on every enemy whose edge is within `radius` px of the caster. */
-  | { kind: 'aoe_damage'; power: number; damageType: DamageType; radius: number }
+  /** One hit on every enemy whose edge is within `radius` px of the caster; `onHit` lands on each enemy hit. */
+  | { kind: 'aoe_damage'; power: number; damageType: DamageType; radius: number; onHit?: OnHitStatus }
+  /**
+   * One hit on every enemy whose edge is within `radius` px of a point: the target's position when the skill is
+   * cast (it stays there through a wind-up, so the target can walk out of it).
+   */
+  | { kind: 'target_area'; power: number; damageType: DamageType; radius: number; onHit?: OnHitStatus }
+  /**
+   * A lingering area at the target's position when cast: every `tickMs` it hits each enemy whose edge is inside
+   * `radius` (`power` per tick) and re-applies `onHit`, floor(durationMs / tickMs) times in all.
+   */
+  | { kind: 'ground_zone'; power: number; damageType: DamageType; radius: number; durationMs: number; tickMs: number; onHit?: OnHitStatus }
   /** Taunt every enemy within `radius` px: they turn on the caster. */
   | { kind: 'taunt'; statusId: StatusId; duration: number; radius: number }
   /** Dash up to `distance` px toward the target (never through walls), then strike. */
   | { kind: 'dash_strike'; power: number; damageType: DamageType; distance: number; onHit?: OnHitStatus }
-  | { kind: 'projectile'; power: number; damageType: DamageType; speed: number; radius: number; color: number }
+  /**
+   * Straight-line projectile that stops on the first enemy or a wall. `homing`: it steers toward the target it
+   * was cast at while that target lives (walls still stop it). `splash` / `onHit` resolve where it hits.
+   */
+  | {
+      kind: 'projectile';
+      power: number;
+      damageType: DamageType;
+      speed: number;
+      radius: number;
+      color: number;
+      homing?: boolean;
+      splash?: ProjectileSplash;
+      onHit?: OnHitStatus;
+    }
   | { kind: 'status'; statusId: StatusId; duration: number }
   | { kind: 'heal'; amount: number };
 
@@ -62,6 +101,13 @@ export interface SkillDef {
   windup?: SkillWindup;
   /** Colour for the swing / cast effect. */
   color?: number;
+  /** Element tag for element damage bonuses (Elemental Mastery). */
+  element?: Element;
+  /**
+   * Player wind-ups normally show no telegraph. A friendly one marks where a delayed area lands (Meteor Burst) in
+   * the ally palette, never the monster danger red.
+   */
+  friendlyTelegraph?: boolean;
 }
 
 const SKILL_DEFS = {
@@ -186,6 +232,89 @@ const SKILL_DEFS = {
     target: 'self',
     effect: { kind: 'status', statusId: 'berserk', duration: 0 },
     color: 0xe0524a,
+  },
+  // --- Mage Class 1. Magic Bolt is the Mage's basic attack (no rank: these are its real numbers). The tree
+  // skills below are placeholders: every cast uses the learned rank's values from
+  // src/data/skillTrees/mageTree.ts (rank 0 = can't cast).
+  magic_bolt: {
+    id: 'magic_bolt',
+    name: 'Magic Bolt',
+    mpCost: 0,
+    // Base attack interval (ASPD-scaled like every basic attack).
+    cooldown: 600,
+    // 7 tiles. Ranged only: there is no melee fallback.
+    range: 224,
+    target: 'enemy',
+    effect: { kind: 'projectile', power: 1, damageType: 'magic', speed: 420, radius: 5, color: 0x8f7bff, homing: true },
+    usesAttackSpeed: true,
+    // Leaves the staff on the attack strip's release frame (frame 4 at 16 fps).
+    windup: { ms: 250 },
+    color: 0x8f7bff,
+  },
+  fireball: {
+    id: 'fireball',
+    name: 'Fireball',
+    mpCost: 0,
+    cooldown: 0,
+    range: 0,
+    target: 'enemy',
+    effect: { kind: 'projectile', power: 0, damageType: 'magic', speed: 380, radius: 6, color: 0xff7b2e, homing: true, splash: { radius: 0, power: 0.5 } },
+    // Released on the cast strip's frame 5 (16 fps).
+    windup: { ms: 312 },
+    element: 'fire',
+    color: 0xff7b2e,
+  },
+  flame_burst: {
+    id: 'flame_burst',
+    name: 'Flame Burst',
+    mpCost: 0,
+    cooldown: 0,
+    range: 0,
+    target: 'enemy',
+    effect: { kind: 'target_area', power: 0, damageType: 'magic', radius: 0, onHit: { statusId: 'burning', duration: 0 } },
+    windup: { ms: 312 },
+    element: 'fire',
+    color: 0xff9e3d,
+  },
+  frost_nova: {
+    id: 'frost_nova',
+    name: 'Frost Nova',
+    mpCost: 0,
+    cooldown: 0,
+    range: 0,
+    target: 'self',
+    effect: { kind: 'aoe_damage', power: 0, damageType: 'magic', radius: 0, onHit: { statusId: 'slowed', duration: 0 } },
+    windup: { ms: 312 },
+    element: 'frost',
+    color: 0x7fd4ff,
+  },
+  frost_storm: {
+    id: 'frost_storm',
+    name: 'Frost Storm',
+    mpCost: 0,
+    cooldown: 0,
+    range: 0,
+    target: 'enemy',
+    // Slow while inside: each tick re-applies a short Chill that outlasts the next tick, so it ends soon after leaving.
+    effect: { kind: 'ground_zone', power: 0, damageType: 'magic', radius: 0, durationMs: 0, tickMs: 500, onHit: { statusId: 'chilled', duration: 700 } },
+    windup: { ms: 312 },
+    element: 'frost',
+    color: 0x9fd4ff,
+  },
+  meteor_burst: {
+    id: 'meteor_burst',
+    name: 'Meteor Burst',
+    mpCost: 0,
+    cooldown: 0,
+    range: 0,
+    target: 'enemy',
+    effect: { kind: 'target_area', power: 0, damageType: 'magic', radius: 0 },
+    // Committed: moving during the warning does not cancel it (first implementation).
+    windup: { ms: 800 },
+    friendlyTelegraph: true,
+    heavy: true,
+    element: 'fire',
+    color: 0xff5a2e,
   },
   slime_bump: {
     id: 'slime_bump',

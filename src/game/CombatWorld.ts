@@ -97,8 +97,8 @@ export interface WorldMapView {
 export class CombatWorld implements MonsterWorld {
   readonly events = new EventBus<GameEvents>();
   readonly combat = new CombatSystem(this.events);
-  readonly statuses = new StatusSystem(this.events);
-  readonly projectiles = new ProjectileSystem(this.events, this.combat);
+  readonly statuses = new StatusSystem(this.events, this.combat);
+  readonly projectiles = new ProjectileSystem(this.events, this.combat, this.statuses);
   readonly skills = new SkillSystem(this.events, this.combat, this.statuses, this.projectiles, {
     actionDuration: (caster, id) => caster === this.player ? this.player.skillActionDuration(id) : 0,
     resolve: (caster, skillId) => (caster === this.player ? this.skillTree.resolve(skillId) : SKILLS[skillId]),
@@ -271,7 +271,7 @@ export class CombatWorld implements MonsterWorld {
         player.facing = player.combat.dodge!.direction;
         this.autoMove.cancel();
       }
-    }, resource => this.usePreferredPotion(resource));
+    }, resource => this.usePreferredPotion(resource), () => this.skillTree.basicAttack());
 
     this.events.on('damage', ({ sourceId, targetId }) => {
       if (targetId === player.id && !player.combat.dead) this.tutorial({

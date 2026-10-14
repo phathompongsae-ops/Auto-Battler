@@ -286,7 +286,7 @@ describe('Novice vs demo Warrior', () => {
     // Class 1 jobs have their own art now; only their skill kit is still the temporary demo kit.
     for (const job of ['archer', 'mage', 'cleric', 'ninja'] as const) {
       assert.equal(CLASS_PRESENTATION[job].temporaryFallback, false, job);
-      assert.equal(CLASS_PRESENTATION[job].temporaryKit, true, job);
+      assert.equal(CLASS_PRESENTATION[job].temporaryKit, job !== 'mage', job);
     }
     const save = capturePlayerSave(makeSaveTarget(1));
     assert.equal(save.classId, 'novice');

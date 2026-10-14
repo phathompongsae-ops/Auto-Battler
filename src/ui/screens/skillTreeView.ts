@@ -1,4 +1,4 @@
-import { SKILLS, type SkillDef, type SkillId } from '../../data/skillData';
+import { SKILLS, type SkillDef, type SkillEffect, type SkillId } from '../../data/skillData';
 import { SKILL_SLOTS, type SkillSlot } from '../../data/playerData';
 import { STATUSES } from '../../data/statusData';
 import type { SkillNodeDef } from '../../data/skillTreeData';
@@ -33,21 +33,70 @@ const tiles = (px: number) => Math.round((px / TILE) * 10) / 10;
 const isPassive = (node: SkillNodeDef) => node.type === 'passive' || node.type === 'proc';
 const nodeSkill = (node: SkillNodeDef): SkillId | null => (node.combatSkillId ?? null) as SkillId | null;
 
+/** A hit's power with its damage type ("125% Physical", "160% Magic"). */
+function damageText(e: SkillEffect): string | null {
+  if (!('power' in e) || !e.power || !('damageType' in e)) return null;
+  return t(e.damageType === 'magic' ? 'skills.sum.magic' : 'skills.sum.physical', { pct: pct(e.power) });
+}
+
+/** Area kinds that cover a radius. */
+const radiusOf = (e: SkillEffect): number | null =>
+  e.kind === 'aoe_damage' || e.kind === 'taunt' || e.kind === 'target_area' || e.kind === 'ground_zone' ? e.radius : null;
+
+/** The Mage's area / status numbers: splash, zone hits, Burn per second, Slow, the Meteor warning. */
+function spellParts(skill: SkillDef): { row: StringKey; text: string }[] {
+  const e = skill.effect;
+  const out: { row: StringKey; text: string }[] = [];
+  if (e.kind === 'projectile' && e.splash && e.splash.radius > 0) {
+    out.push({ row: 'skills.stat.splash', text: `${t('skills.sum.splash', { pct: pct(e.splash.power) })} · ${t('skills.tilesN', { n: tiles(e.splash.radius) })}` });
+  }
+  if (e.kind === 'ground_zone') {
+    out.push({ row: 'skills.stat.ticks', text: t('skills.sum.ticks', { n: Math.floor(e.durationMs / e.tickMs), s: sec(e.durationMs) }) });
+  }
+  const onHit = 'onHit' in e ? e.onHit : undefined;
+  const status = onHit && STATUSES[onHit.statusId];
+  if (onHit && status?.dot && onHit.magnitude) {
+    out.push({ row: 'skills.stat.burn', text: t('skills.sum.burn', { pct: pct(onHit.magnitude * (1000 / status.dot.intervalMs)), s: sec(onHit.duration) }) });
+  }
+  if (onHit && status?.slow) {
+    // A zone's Slow lasts while the target stays inside (each tick re-applies it): no fixed duration to show.
+    out.push({ row: 'skills.stat.slow', text: t('skills.sum.slow', { pct: pct(status.slow), s: e.kind === 'ground_zone' ? '' : sec(onHit.duration) }).trim() });
+  }
+  if (skill.friendlyTelegraph && skill.windup) out.push({ row: 'skills.stat.warning', text: t('skills.sum.warning', { s: sec(skill.windup.ms) }) });
+  return out;
+}
+
 /** One line of numbers for an active / buff skill at a rank. */
 function activeText(skill: SkillDef, node: SkillNodeDef): string {
   const e = skill.effect;
   const parts: string[] = [];
-  if ('power' in e && e.power) parts.push(t('skills.sum.physical', { pct: pct(e.power) }));
+  const damage = damageText(e);
+  if (damage) parts.push(damage);
   if ((e.kind === 'damage' || e.kind === 'dash_strike') && e.onHit) parts.push(t('skills.sum.stun', { s: sec(e.onHit.duration) }));
   if (e.kind === 'damage' && e.critBonus) parts.push(t('skills.sum.crit', { pct: pct(e.critBonus) }));
-  if (e.kind === 'aoe_damage' || e.kind === 'taunt') parts.push(t('skills.sum.radius', { n: tiles(e.radius) }));
+  const radius = radiusOf(e);
+  if (radius !== null) parts.push(t('skills.sum.radius', { n: tiles(radius) }));
+  for (const part of spellParts(skill)) parts.push(part.text);
   if (e.kind === 'taunt' || e.kind === 'status') parts.push(sec(e.duration));
   if (e.kind === 'status' && node.statusId) parts.push(STATUSES[node.statusId].name);
   parts.push(`CD ${sec(skill.cooldown)}`, `MP ${skill.mpCost}`);
   return parts.join(' · ');
 }
 
-const PASSIVE_STAT: Record<string, StringKey> = { def: 'skills.p.def', maxHp: 'skills.p.maxHp', physicalAtk: 'skills.p.physicalAtk', accuracy: 'skills.p.accuracy' };
+const PASSIVE_STAT: Record<string, StringKey> = {
+  def: 'skills.p.def',
+  maxHp: 'skills.p.maxHp',
+  physicalAtk: 'skills.p.physicalAtk',
+  accuracy: 'skills.p.accuracy',
+  magicAtk: 'skills.p.magicAtk',
+  maxMp: 'skills.p.maxMp',
+};
+/** Combat-effect passives (data effect keys): label and whether the number reads as a reduction. */
+const PASSIVE_EFFECT: Record<string, { label: StringKey; sign: '+' | '-' }> = {
+  mpCost: { label: 'skills.p.mpCost', sign: '-' },
+  'elementDamage:fire': { label: 'skills.p.fireDamage', sign: '+' },
+  'elementDamage:frost': { label: 'skills.p.frostDamage', sign: '+' },
+};
 
 /** A passive's total effect at a rank. */
 function passiveText(node: SkillNodeDef, rank: number): string {
@@ -55,6 +104,10 @@ function passiveText(node: SkillNodeDef, rank: number): string {
   const parts: string[] = [];
   for (const [k, v] of Object.entries(node.perRank?.percent ?? {})) parts.push(`${name(k)} +${pct(v * rank)}`);
   for (const [k, v] of Object.entries(node.perRank?.flat ?? {})) parts.push(`${name(k)} +${t('skills.p.points', { n: Math.round(v * rank * 1000) / 10 })}`);
+  for (const [k, v] of Object.entries(node.perRank?.effects ?? {})) {
+    const effect = PASSIVE_EFFECT[k];
+    parts.push(effect ? `${t(effect.label)} ${effect.sign}${pct(v * rank)}` : `${k} +${pct(v * rank)}`);
+  }
   return parts.join(', ');
 }
 
@@ -100,7 +153,7 @@ function nodeIcon(node: SkillNodeDef, size: 'sm' | 'lg' = 'sm'): HTMLElement {
 const badge = (node: SkillNodeDef) =>
   h('span', { className: `skill-badge skill-badge--${isPassive(node) ? 'passive' : 'active'}`, attrs: { 'data-role': 'badge' }, text: t(isPassive(node) ? 'skills.badge.passive' : 'skills.badge.active') });
 
-const BRANCH_TAB: Record<string, StringKey> = { core: 'skills.tab.core', tank: 'skills.tab.tank', damage: 'skills.tab.damage' };
+const BRANCH_TAB: Record<string, StringKey> = { core: 'skills.tab.core', tank: 'skills.tab.tank', damage: 'skills.tab.damage', fire: 'skills.tab.fire', frost: 'skills.tab.frost' };
 const branchName = (id: string, fallback: string) => (BRANCH_TAB[id] ? t(BRANCH_TAB[id]) : fallback);
 
 export function renderSkillTree(world: CombatWorld): HTMLElement {
@@ -286,13 +339,17 @@ export function renderSkillTree(world: CombatWorld): HTMLElement {
     else if (isPassive(node)) rows.push(['skills.stat.effect', view.rank ? passiveText(node, view.rank) : '—']);
     else if (def) {
       const e = def.effect;
-      if ('power' in e && e.power) rows.push(['skills.stat.damage', t('skills.sum.physical', { pct: pct(e.power) })]);
+      const damage = damageText(e);
+      if (damage) rows.push(['skills.stat.damage', damage]);
       if ((e.kind === 'damage' || e.kind === 'dash_strike') && e.onHit) rows.push(['skills.stat.stun', sec(e.onHit.duration)]);
       if (e.kind === 'damage' && e.critBonus) rows.push(['skills.stat.crit', `+${pct(e.critBonus)}`]);
-      if (e.kind === 'aoe_damage' || e.kind === 'taunt') rows.push(['skills.stat.radius', t('skills.tilesN', { n: tiles(e.radius) })]);
+      const radius = radiusOf(e);
+      if (radius !== null) rows.push(['skills.stat.radius', t('skills.tilesN', { n: tiles(radius) })]);
+      for (const part of spellParts(def)) rows.push([part.row, part.text]);
       if (e.kind === 'taunt' || e.kind === 'status') rows.push(['skills.stat.duration', sec(e.duration)]);
       if (e.kind === 'status' && node.statusId) rows.push(['skills.stat.effect', STATUSES[node.statusId].name]);
-      rows.push(['skills.stat.cooldown', sec(def.cooldown)], ['skills.stat.mp', String(def.mpCost)]);
+      // The MP actually paid (Mana Flow's cost reduction included).
+      rows.push(['skills.stat.cooldown', sec(def.cooldown)], ['skills.stat.mp', String(world.skills.mpCost(world.player, def))]);
       if (node.rangeTiles) rows.push(['skills.stat.range', t('skills.tilesN', { n: node.rangeTiles })]);
     }
     const next = view.rank >= node.maxRank ? null

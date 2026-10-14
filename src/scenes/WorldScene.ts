@@ -29,10 +29,12 @@ import { TouchDragSource } from '../input/TouchDragSource';
 import { VirtualActionSource } from '../input/VirtualActionSource';
 import { ActionEffects } from '../rendering/ActionEffects';
 import { CombatEffects } from '../rendering/CombatEffects';
+import { SpellEffects } from '../rendering/SpellEffects';
 import { WORLD_TEXT_FONT } from '../rendering/fonts';
 import { GateBarriers } from '../rendering/GateBarriers';
 import { activeGates, gateOpen } from '../dungeon/gates';
-import { prewarmShaders } from '../rendering/prewarm';
+import { prewarmShaders, warmTexturesGradually } from '../rendering/prewarm';
+import { MAGE_WARM_TEXTURES } from '../data/warmTextures';
 import { WorldOverlays } from '../rendering/WorldOverlays';
 import { MonsterMotion } from '../rendering/MonsterMotion';
 import { MonsterAnimator } from '../rendering/MonsterAnimator';
@@ -87,6 +89,7 @@ export class WorldScene extends Phaser.Scene implements WorldMapView {
   /** Everything drawn for the current map besides tiles: props, markers, signs. */
   /** Combat feedback (numbers, slashes, telegraphs); read by the debug API for telegraph checks. */
   combatEffects: CombatEffects | null = null;
+  spellEffects: SpellEffects | null = null;
   private mapVisuals: Phaser.GameObjects.GameObject[] = [];
   /** Closed Story progression gates drawn as rune seals (rebuilt per map, shown while closed). */
   private gateBarriers!: GateBarriers;
@@ -143,6 +146,7 @@ export class WorldScene extends Phaser.Scene implements WorldMapView {
     this.world.enterMap(DEFAULT_MAP_ID);
 
     this.combatEffects = new CombatEffects(this, this.world);
+    this.spellEffects = new SpellEffects(this, this.world, this.combatEffects.telegraphLayer);
     new ActionEffects(this, this.world);
     this.overlays = new WorldOverlays(this, this.world);
     this.monsterMotion = new MonsterMotion(this.world);
@@ -155,6 +159,8 @@ export class WorldScene extends Phaser.Scene implements WorldMapView {
       fixtureQuests,
     });
     prewarmShaders(this);
+    // Mage strips (spells, Magic Bolt, cast poses): uploaded one at a time after boot, not on their first cast.
+    warmTexturesGradually(this, MAGE_WARM_TEXTURES);
 
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       this.hud.destroy();

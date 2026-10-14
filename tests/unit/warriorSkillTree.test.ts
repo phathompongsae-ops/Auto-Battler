@@ -134,11 +134,15 @@ describe('Skill Points and spending', () => {
   test('Novice, other Class 1 jobs and a locked feature cannot spend', () => {
     const novice = rig({ level: 15, job: 'novice' });
     assert.deepEqual(novice.tree.learn('power_slash'), { ok: false, reason: 'no_skill_tree' });
-    for (const job of ['archer', 'mage', 'cleric', 'ninja']) {
+    for (const job of ['archer', 'cleric', 'ninja']) {
       const r = rig({ level: 15, job });
       assert.deepEqual(r.tree.learn('power_slash'), { ok: false, reason: 'no_skill_tree' }, job);
       assert.deepEqual(r.t.progress.skillRanks, {});
     }
+    // The Mage has its own tree: a Warrior node is simply not in it.
+    const mage = rig({ level: 15, job: 'mage' });
+    assert.deepEqual(mage.tree.learn('power_slash'), { ok: false, reason: 'unknown_skill' });
+    assert.deepEqual(mage.t.progress.skillRanks, {});
     const locked = rig({ unlock: false });
     assert.deepEqual(locked.tree.learn('power_slash'), { ok: false, reason: 'feature_locked' });
     assert.equal(locked.tree.points().available, 1);

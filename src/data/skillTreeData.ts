@@ -3,12 +3,13 @@ import type { JobId } from './jobData';
 import type { SkillId } from './skillData';
 import type { StatusId } from './statusData';
 import type { StatModifier } from '../stats/modifiers';
+import { MAGE_C1_TREE } from './skillTrees/mageTree';
 import { WARRIOR_C1_TREE } from './skillTrees/warriorTree';
 
 /*
  * Skill trees: data only. One engine (src/skills) reads any tree; Warrior
- * Class 1 is the only tree with content so far. Archer / Mage / Cleric /
- * Ninja / Class 2 trees are added here as data.
+ * and Mage Class 1 have content so far. Archer / Cleric / Ninja / Class 2
+ * trees are added here as data.
  *
  * Distances are in tiles (1 tile = TILE_SIZE px) and times in ms.
  */
@@ -29,6 +30,14 @@ export interface ActiveRank {
   durationMs?: number;
   /** Extra crit chance for this skill only (0.1 = +10 percentage points). */
   critBonus?: number;
+  /** Duration of the skill's on-hit status (Slow, Burn). */
+  statusMs?: number;
+  /** Strength of the skill's on-hit status (Burn: damage multiplier per tick). */
+  statusPower?: number;
+  /** Projectile splash radius (tiles) around the impact. */
+  splashRadiusTiles?: number;
+  /** Projectile splash damage as a fraction of the primary hit's power. */
+  splashPower?: number;
 }
 
 /** A proc: a passive that applies a status when its trigger fires. */
@@ -58,8 +67,8 @@ export interface SkillNodeDef {
   /** buff: the status it applies to the caster. */
   statusId?: StatusId;
 
-  /** passive: modifier parts gained per rank (multiplied by the rank). */
-  perRank?: Pick<StatModifier, 'flat' | 'percent'>;
+  /** passive: modifier parts gained per rank (multiplied by the rank); `effects` are combat effect keys (see effectKey). */
+  perRank?: Pick<StatModifier, 'flat' | 'percent' | 'effects'>;
   /** proc: trigger and effect. */
   proc?: ProcDef;
 
@@ -77,6 +86,8 @@ export interface SkillTreeDef {
   jobId: JobId;
   /** Feature that must be unlocked before any point can be spent. */
   requiredFeature: FeatureId;
+  /** The job's basic attack (always castable, never ranked, never on the hotbar). Missing = the melee `basic_attack`. */
+  basicAttack?: SkillId;
   branches: readonly SkillBranchDef[];
   /** In display order. */
   nodes: readonly SkillNodeDef[];
@@ -85,4 +96,5 @@ export interface SkillTreeDef {
 /** Every tree, by id (JobDef.skillTreeId points here). */
 export const SKILL_TREES: Readonly<Record<string, SkillTreeDef>> = {
   [WARRIOR_C1_TREE.id]: WARRIOR_C1_TREE,
+  [MAGE_C1_TREE.id]: MAGE_C1_TREE,
 };

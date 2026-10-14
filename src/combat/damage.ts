@@ -21,6 +21,19 @@ export function mitigatedDamage(attack: number, multiplier: number, defense: num
 }
 
 /**
+ * One damage-over-time tick: mitigation and the defender's damage reduction like a hit, with no hit roll and no
+ * crit (so it draws nothing from the rng). At least 1.
+ */
+export function resolvePeriodic(attacker: Readonly<CombatStats>, defender: Readonly<CombatStats>, multiplier: number, type: DamageType): number {
+  const base =
+    type === 'magic'
+      ? mitigatedDamage(attacker.magicAttack, multiplier, defender.magicDefense)
+      : mitigatedDamage(attacker.attack, multiplier, defender.defense);
+  const reduction = Math.min(MAX_DAMAGE_REDUCTION, Math.max(0, defender.damageReduction));
+  return Math.max(1, Math.round(base * (1 - reduction)));
+}
+
+/**
  * Resolve one damaging attack: hit roll, then mitigation, then crit (applied
  * after DEF/MDEF), then the defender's damage reduction. Physical uses ATK vs DEF, magic uses MATK vs MDEF. A miss
  * deals nothing; a hit deals at least 1.

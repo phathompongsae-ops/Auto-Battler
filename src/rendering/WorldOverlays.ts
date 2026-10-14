@@ -9,7 +9,8 @@ import type { Monster } from '../entities/Monster';
 import type { GameEvents } from '../game/GameEvents';
 import { LOOT_KEY } from '../graphics/placeholderTextures';
 import { auraEllipse, barOffsetY } from './characterLayout';
-import { VFX_ART } from '../data/vfxArt';
+import { VFX_ART, type VfxId } from '../data/vfxArt';
+import { SKILL_VFX } from '../data/skillVfx';
 import { hasVfxArt } from '../graphics/vfxArt';
 import { SOFT_SHADOW_KEY } from '../graphics/envFeatureArt';
 
@@ -37,9 +38,10 @@ export class WorldOverlays {
   private readonly aura: ReturnType<typeof auraEllipse>;
   private readonly projectileViews = new Map<number, Phaser.GameObjects.Arc>();
   private readonly projectilePool: Phaser.GameObjects.Arc[] = [];
-  /** Projectiles with a production strip (Fire Bolt): a looping sprite turned along its flight. */
-  private readonly projectileSprites = new Map<number, { sprite: Phaser.GameObjects.Sprite; x: number; y: number }>();
-  private readonly projectileSpritePool: Phaser.GameObjects.Sprite[] = [];
+  /** Projectiles with a production strip (data/skillVfx): a looping sprite turned along its flight. */
+  private readonly projectileSprites = new Map<number, { sprite: Phaser.GameObjects.Sprite; vfx: VfxId; x: number; y: number }>();
+  /** Pre-made projectile sprites per strip (combat never adds display objects; a burst beyond them reuses circles). */
+  private readonly projectileSpritePool = new Map<VfxId, Phaser.GameObjects.Sprite[]>();
   private readonly lootViews = new Map<number, Phaser.GameObjects.Image>();
 
   constructor(
@@ -62,8 +64,14 @@ export class WorldOverlays {
     scene.tweens.add({ targets: this.guardAura, alpha: 0.5, yoyo: true, repeat: -1, duration: 300 });
 
     const ev = world.events;
-    // Fire Bolt views are created once, up front: combat never adds display objects (a burst beyond them reuses circles).
-    if (hasVfxArt(scene, 'fire_bolt')) for (let i = 0; i < 6; i++) this.projectileSpritePool.push(scene.add.sprite(0, 0, VFX_ART.fire_bolt.key).setVisible(false));
+    // Projectile views are created once, up front, per strip: combat never adds display objects (a burst beyond them reuses circles).
+    const strips = new Set(Object.values(SKILL_VFX).flatMap((v) => (v.projectile ? [v.projectile.vfx] : [])));
+    for (const id of strips) {
+      if (!hasVfxArt(scene, id)) continue;
+      const def = VFX_ART[id];
+      const blend = def.blend === 'add' ? Phaser.BlendModes.ADD : Phaser.BlendModes.NORMAL;
+      this.projectileSpritePool.set(id, Array.from({ length: 6 }, () => scene.add.sprite(0, 0, def.key).setBlendMode(blend).setVisible(false)));
+    }
     ev.on('projectileSpawned', (e) => this.addProjectile(e));
     ev.on('projectileRemoved', ({ projectileId }) => this.removeProjectile(projectileId));
     // Ground views come from world.loot.drops (see update): auto-looted items never touch the ground.
@@ -151,11 +159,14 @@ export class WorldOverlays {
   }
 
   private addProjectile(p: GameEvents['projectileSpawned']): void {
-    if (p.skillId === 'fire_bolt' && this.projectileSpritePool.length) {
-      const def = VFX_ART.fire_bolt;
-      const sprite = this.projectileSpritePool.pop()!;
-      sprite.setPosition(p.x, p.y).setRotation(0).setScale(def.scale).setDepth(BAR_DEPTH - 1).setVisible(true).play(def.key);
-      this.projectileSprites.set(p.projectileId, { sprite, x: p.x, y: p.y });
+    const art = SKILL_VFX[p.skillId]?.projectile;
+    const pool = art && this.projectileSpritePool.get(art.vfx);
+    if (art && pool?.length) {
+      const def = VFX_ART[art.vfx];
+      const sprite = pool.pop()!;
+      // Turned toward its first step on the next frame (a homing shot keeps turning with its flight).
+      sprite.setPosition(p.x, p.y).setRotation(0).setScale(def.scale * (art.scale ?? 1)).setDepth(BAR_DEPTH - 1).setVisible(true).play(def.key);
+      this.projectileSprites.set(p.projectileId, { sprite, vfx: art.vfx, x: p.x, y: p.y });
       return;
     }
     const view = this.projectilePool.pop() ?? this.scene.add.circle(0, 0, 1);
@@ -174,7 +185,7 @@ export class WorldOverlays {
     if (art) {
       this.projectileSprites.delete(id);
       art.sprite.stop();
-      this.projectileSpritePool.push(art.sprite.setVisible(false));
+      this.projectileSpritePool.get(art.vfx)?.push(art.sprite.setVisible(false));
       return;
     }
     const view = this.projectileViews.get(id);

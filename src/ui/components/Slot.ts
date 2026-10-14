@@ -43,8 +43,10 @@ abstract class SlotBase {
       return;
     }
     setText(this.icon, content.iconUrl ? '' : content.abbr);
-    // An illustrated icon replaces the vector glyph; the art is the element's background.
+    // An illustrated icon replaces the vector glyph; the art is the element's background. A glyph shown before
+    // (e.g. the melee ATK swords before a Mage's Magic Bolt) is removed: it has no text for setText to clear.
     if (content.glyph && !content.iconUrl) this.icon.replaceChildren(icon(content.glyph));
+    else if (content.iconUrl) this.icon.replaceChildren();
     toggleClass(this.icon, 'has-art', !!content.iconUrl);
     setVar(this.icon, '--slot-color', content.color ?? '#5b6478');
     setVar(this.el, '--slot-color', content.color ?? '#5b6478');

@@ -45,6 +45,7 @@ import { npcFiguresSuite } from './npcFigures.test.mjs';
 import { combatPresentationSuite } from './combatPresentation.test.mjs';
 import { envPolishSuite } from './envPolish.test.mjs';
 import { releasePolishSuite } from './releasePolish.test.mjs';
+import { mageFirstUseSuite, mageSuite } from './mage.test.mjs';
 
 const ENVIRONMENT_REVIEW = process.argv.includes('--environment-review');
 const HUD_REVIEW = process.argv.includes('--hud-review');
@@ -67,6 +68,7 @@ const NPC_REVIEW = process.argv.includes('--npc-review');
 const PRESENTATION_REVIEW = process.argv.includes('--presentation-review');
 const VQ_REVIEW = process.argv.includes('--vq-review');
 const RELEASE_REVIEW = process.argv.includes('--release-review');
+const MAGE_REVIEW = process.argv.includes('--mage-review');
 const PORT = ENVIRONMENT_REVIEW ? 5201 : HUD_REVIEW ? 5202 : 5199;
 const URL = `http://127.0.0.1:${PORT}/`;
 const OUT = ensureDir(join(process.cwd(), 'test-results'));
@@ -102,7 +104,10 @@ try {
       demoQuests.find((q) => q.questId === 'mvp_01_welcome')?.status === 'available' && demoLevel === 11 &&
       (await b.eval(`debug.questProgress('job_c1_01_instructor').status`)) === 'available' &&
       !(await b.eval(`!!document.querySelector('[data-hud="quests"]')`)));
-  if (RELEASE_REVIEW) {
+  if (MAGE_REVIEW) {
+    await mageSuite(b, t, shot);
+    await mageFirstUseSuite(b, t, URL, boot);
+  } else if (RELEASE_REVIEW) {
     await releasePolishSuite(b, t, shot);
   } else if (VQ_REVIEW) {
     await envPolishSuite(b, t, shot);
@@ -229,6 +234,8 @@ try {
     await hudSuite(b, t, shot);
     await combatSuite(b, t, shot);
     await combatPerformance(b, t);
+    await b.goto(URL); await boot();
+    await mageSuite(b, t, shot);
 
     t.section('Touch device');
     await b.send('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 2 });

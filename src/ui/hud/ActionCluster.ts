@@ -13,9 +13,9 @@ import { ACTION_CLUSTER, ACTION_SLOTS, type ActionSlotDef } from '../data/action
 import type { IconName } from '../icons';
 import { onLocaleChange, t } from '../i18n';
 
-/** Which skill an input action fires for the player right now (skill tree or demo kit). */
+/** Which skill an input action fires for the player right now (the job's basic attack, skill tree or demo kit). */
 function skillForAction(world: CombatWorld, action: Action): SkillId | null {
-  if (action === 'attack') return PLAYER_BASIC_ATTACK;
+  if (action === 'attack') return world.skillTree.basicAttack();
   if ((SKILL_SLOTS as readonly string[]).includes(action)) return world.skillTree.loadout()[action as LoadoutSlot];
   return null;
 }
@@ -145,7 +145,7 @@ export class ActionCluster {
       // The caster's own version of the skill (its learned rank) decides MP and cooldown.
       const skill = this.world.skills.definition(player, skillId) ?? SKILLS[skillId];
       live.slot.setCooldown(this.world.skills.cooldownRemaining(player, skillId, now), this.world.skills.cooldownDuration(player, skillId));
-      live.slot.setDisabled(c.dead || c.mp < skill.mpCost);
+      live.slot.setDisabled(c.dead || c.mp < this.world.skills.mpCost(player, skill));
     }
   }
 

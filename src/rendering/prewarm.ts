@@ -63,3 +63,39 @@ export function prewarmShaders(scene: Phaser.Scene): void {
     for (const key of keys) scene.textures.remove(key);
   });
 }
+
+/** Frames between two texture warm-ups (one texture per step, never a burst). */
+const WARM_STEP_FRAMES = 2;
+/** Start after the first world frames have settled (boot and the HUD pre-paint come first). */
+const WARM_DELAY_MS = 1200;
+
+/**
+ * Uploads textures to the GPU ahead of their first real use, gradually: one
+ * texture every couple of frames, each drawn once as a 2 px image at 1%
+ * opacity (WebGL uploads a texture the first time it is drawn; that upload
+ * was the cold first-cast hitch of new strips). Missing keys are skipped.
+ * Returns the number of textures queued.
+ */
+export function warmTexturesGradually(scene: Phaser.Scene, keys: readonly string[]): number {
+  const renderer = scene.game.renderer;
+  if (!(renderer instanceof Phaser.Renderer.WebGL.WebGLRenderer)) return 0;
+  const queue = keys.filter((key) => scene.textures.exists(key));
+  if (!queue.length) return 0;
+  const probe = scene.add.image(0, 0, queue[0]).setScrollFactor(0).setDisplaySize(2, 2).setAlpha(ALPHA).setVisible(false);
+  let frame = 0;
+  const step = () => {
+    if (frame++ % WARM_STEP_FRAMES !== 0) return;
+    const key = queue.shift();
+    if (!key) {
+      scene.events.off(Phaser.Scenes.Events.POST_UPDATE, step);
+      probe.destroy();
+      return;
+    }
+    if (!scene.textures.exists(key)) return;
+    const { centerX: x, centerY: y } = scene.cameras.main;
+    probe.setTexture(key, 0).setPosition(x, y).setDisplaySize(2, 2).setVisible(true);
+  };
+  scene.time.delayedCall(WARM_DELAY_MS, () => scene.events.on(Phaser.Scenes.Events.POST_UPDATE, step));
+  scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => scene.events.off(Phaser.Scenes.Events.POST_UPDATE, step));
+  return queue.length;
+}

@@ -35,6 +35,10 @@ export interface CombatStats {
   damageReduction: number;
   /** Extra outgoing Physical damage fraction (e.g. Battle Instinct +0.1). Missing = 0. */
   physicalDamageBonus?: number;
+  /** Fraction taken off every skill's MP cost (Mana Flow; capped in combatRules). Missing = 0. */
+  mpCostReduction?: number;
+  /** Element → extra outgoing damage fraction for skills with that element tag (Elemental Mastery). */
+  elementDamageBonus?: Readonly<Record<string, number>>;
   /** Skill id → extra damage fraction for that skill (e.g. a set bonus). */
   skillDamageBonus: Readonly<Record<string, number>>;
   /** Skill id → cooldown reduction fraction for that skill. Never applies to ASPD-based attacks. */

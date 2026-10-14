@@ -11,7 +11,7 @@ import { WARRIOR_IDLE_MOTION, type IdlePose } from './idleMotion';
 export type CharacterAnimState = 'idle' | 'walk';
 
 /** One-shot animations that play over idle and return to it when done. */
-export type CharacterAction = 'attack' | 'powerSlash';
+export type CharacterAction = 'attack' | 'powerSlash' | 'cast';
 
 /** Directions that have their own art. `left` is drawn by mirroring `right`. */
 export type ArtDirection = Exclude<Direction, 'left'>;
@@ -218,6 +218,7 @@ export const WARRIOR_ART: CharacterArt = {
       // Frame 5 lands at 312.5 ms; power_strike's windup.ms matches it.
       down: { ...strip('power_slash_south', 10, 16, 122), hitFrame: 5, vfx: POWER_SLASH_VFX },
     },
+    cast: {},
   },
   skillActions: {
     basic_attack: 'attack',
@@ -250,6 +251,13 @@ interface Class1ArtSpec {
    * serves West). Presentation only: combat damage timing is the skill's own.
    */
   attackHitFrame: Record<ArtDirection, number>;
+  /**
+   * Optional spell-cast strips (8 frames per direction, `<id>_cast_<dir>.png`): played by the skills mapped to
+   * 'cast' in `skillActions`. hitFrame is the release (presentation only).
+   */
+  cast?: { fps: number; hitFrame: Record<ArtDirection, number> };
+  /** The class's own skill to action map (replaces the TEMPORARY demo-kit mapping). */
+  skillActions?: Partial<Record<SkillId, CharacterAction>>;
 }
 
 const ART_DIRS: Record<ArtDirection, string> = { down: 'south', up: 'north', right: 'east' };
@@ -267,6 +275,8 @@ function class1Art(spec: Class1ArtSpec): CharacterArt {
   const loop = (name: 'idle' | 'walk', frames: number, fps: number) =>
     ({ down: anim(name, 'down', frames, fps), up: anim(name, 'up', frames, fps), right: anim(name, 'right', frames, fps) });
   const attack = (art: ArtDirection): CharacterActionArt => ({ ...anim('attack', art, 8, spec.attackFps), hitFrame: spec.attackHitFrame[art] });
+  const castSpec = spec.cast;
+  const cast = (art: ArtDirection): CharacterActionArt => ({ ...anim('cast', art, 8, castSpec!.fps), hitFrame: castSpec!.hitFrame[art] });
   return {
     displayName: spec.displayName,
     portrait: { url: `${dir}/${spec.id}_south_master.png`, size: '230%', position: '50% 22%' },
@@ -279,8 +289,12 @@ function class1Art(spec: Class1ArtSpec): CharacterArt {
     effectPadding: { x: 7, y: 5 },
     smooth: true,
     anims: { idle: loop('idle', 4, IDLE_FPS), walk: loop('walk', 8, WALK_FPS) },
-    actions: { attack: { down: attack('down'), up: attack('up'), right: attack('right') }, powerSlash: {} },
-    skillActions: {
+    actions: {
+      attack: { down: attack('down'), up: attack('up'), right: attack('right') },
+      powerSlash: {},
+      cast: castSpec ? { down: cast('down'), up: cast('up'), right: cast('right') } : {},
+    },
+    skillActions: spec.skillActions ?? {
       basic_attack: 'attack',
       // TEMPORARY: these classes still play the Warrior demo kit (demoConfig);
       // its strikes reuse the class's own basic attack until real skills exist.
@@ -291,7 +305,28 @@ function class1Art(spec: Class1ArtSpec): CharacterArt {
 }
 
 export const ARCHER_ART = class1Art({ id: 'archer', displayName: 'Archer', attackFps: 16, attackHitFrame: { down: 5, up: 5, right: 4 } });
-export const MAGE_ART = class1Art({ id: 'mage', displayName: 'Mage', attackFps: 16, attackHitFrame: { down: 4, up: 3, right: 4 } });
+/*
+ * Mage: the attack strip is Magic Bolt (South is the corrected toward-camera cast, release frame 4 like East).
+ * The shared cast strip (8 frames, 16 fps = 500 ms, release frame 5 = 312 ms, North included) plays every
+ * area spell and Fireball; their wind-ups release on that frame. West mirrors East.
+ */
+export const MAGE_ART = class1Art({
+  id: 'mage',
+  displayName: 'Mage',
+  attackFps: 16,
+  attackHitFrame: { down: 4, up: 3, right: 4 },
+  cast: { fps: 16, hitFrame: { down: 5, up: 5, right: 5 } },
+  skillActions: {
+    magic_bolt: 'attack',
+    fireball: 'cast',
+    flame_burst: 'cast',
+    frost_nova: 'cast',
+    frost_storm: 'cast',
+    meteor_burst: 'cast',
+    // The Novice demo kit is never cast by a Mage (it has its own tree); kept for completeness.
+    fire_bolt: 'attack',
+  },
+});
 export const CLERIC_ART = class1Art({ id: 'cleric', displayName: 'Cleric', attackFps: 18, attackHitFrame: { down: 4, up: 4, right: 4 } });
 export const NINJA_ART = class1Art({ id: 'ninja', displayName: 'Ninja', attackFps: 20, attackHitFrame: { down: 3, up: 3, right: 2 } });
 

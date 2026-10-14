@@ -7,7 +7,7 @@ import type { StatusId } from '../data/statusData';
 import type { FeatureUnlocks } from '../features/FeatureUnlocks';
 import type { GameEvents } from '../game/GameEvents';
 import type { StatOwner } from '../progression/statActions';
-import { checkLearn, nodeForSkill, rankOf, skillAtRank, spentInBranch, treeForJob, type LearnError } from './skillTreeRules';
+import { basicAttackFor, checkLearn, nodeForSkill, rankOf, skillAtRank, spentInBranch, treeForJob, type LearnError } from './skillTreeRules';
 
 export interface SkillPoints {
   /** From job and level (Class 1: +1 per level Lv11–40). */
@@ -143,13 +143,21 @@ export class SkillTree {
     };
   }
 
+  /** The job's basic attack (Mage: Magic Bolt; everyone else: the melee Attack). */
+  basicAttack(): SkillId {
+    return basicAttackFor(this.owner.progress.classId);
+  }
+
   /**
-   * What the player can cast. Basic Attack always. A job with a tree: only
-   * its learned skills at their rank (rank 0 = unavailable). A job without a
-   * tree yet (Novice, Archer, Mage, Cleric, Ninja): the TEMPORARY DEMO KIT.
+   * What the player can cast. The job's basic attack always (a job with its
+   * own basic attack has no melee fallback). A job with a tree: only its
+   * learned skills at their rank (rank 0 = unavailable). A job without a tree
+   * yet (Novice, Archer, Cleric, Ninja): the TEMPORARY DEMO KIT.
    */
   resolve(skillId: SkillId): SkillDef | null {
-    if (skillId === PLAYER_BASIC_ATTACK) return SKILLS[skillId];
+    const basic = this.basicAttack();
+    if (skillId === basic) return SKILLS[skillId];
+    if (skillId === PLAYER_BASIC_ATTACK) return null;
     const tree = this.tree();
     if (!tree) return Object.values(DEMO_KIT_LOADOUT).includes(skillId) ? SKILLS[skillId] : null;
     const node = nodeForSkill(tree, skillId);

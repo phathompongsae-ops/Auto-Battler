@@ -3,6 +3,7 @@ import type { SkillFailReason } from '../combat/SkillSystem';
 import type { CombatEntity } from '../combat/types';
 import { ITEMS } from '../data/itemData';
 import { SKILLS } from '../data/skillData';
+import { SKILL_VFX } from '../data/skillVfx';
 import { STATUSES } from '../data/statusData';
 import type { CombatWorld } from '../game/CombatWorld';
 import { bodyCenterY, textAnchorY } from './characterLayout';
@@ -80,12 +81,15 @@ export class CombatEffects {
       this.text.show(target.x + at.dx, textY(target, lift) + at.dy - critLift, value, COMBAT_NUMBER_STYLES[kind]);
     };
 
-    ev.on('damage', ({ sourceId, targetId, skillId, amount, crit, heavy }) => {
+    ev.on('damage', ({ sourceId, targetId, skillId, amount, crit, heavy, delivery }) => {
       const target = world.getEntity(targetId);
       if (!target) return;
-      this.flash(target);
+      const dot = delivery === 'dot';
+      // A Burn tick is quiet: its small ember number and the body tint, no white flash or impact.
+      if (!dot) this.flash(target);
       // Crits keep a trailing "!" as a non-colour cue next to their size and colour.
-      number(target, damageKind({ targetIsPlayer: isPlayer(targetId), crit, heavy }), crit ? `${amount}!` : `${amount}`, 'damage');
+      number(target, damageKind({ targetIsPlayer: isPlayer(targetId), crit, heavy, dot }), crit ? `${amount}!` : `${amount}`, 'damage');
+      if (dot) return;
       const source = world.getEntity(sourceId);
       const skill = SKILLS[skillId];
       // Player skills with their own action VFX (e.g. Power Slash) draw their arc on the hit frame instead.
@@ -94,9 +98,10 @@ export class CombatEffects {
       if (source && skill.effect.kind === 'damage' && !ownArc) this.slash(source, target, skill.color ?? 0xffffff, heavy, source === world.player);
       // Production impact strips for the player's hits (skills with their own impact keep it; see ActionEffects).
       if (source === world.player && !ownVfx?.impact) {
-        const projectile = skill.effect.kind === 'projectile';
-        const id = skillId === 'fire_bolt' ? 'fire_bolt_impact' : heavy ? 'heavy_hit' : 'hit';
-        if (!projectile || skillId === 'fire_bolt') this.vfx.play(id, { x: target.x, y: target.y - 2 });
+        const art = SKILL_VFX[skillId];
+        if (art?.impact && delivery !== 'splash') this.vfx.play(art.impact.vfx, { x: target.x, y: target.y - 2, scale: art.impact.scale });
+        // Area spells show their own burst where they land (SpellEffects); untextured projectiles show only their ring.
+        else if (!art?.area && !art?.zone && !art?.impact && skill.effect.kind !== 'projectile') this.vfx.play(heavy ? 'heavy_hit' : 'hit', { x: target.x, y: target.y - 2 });
       }
       if (heavy) {
         this.scene.cameras.main.shake(SHAKE.duration, SHAKE.intensity);
@@ -154,12 +159,15 @@ export class CombatEffects {
       const caster = world.getEntity(casterId);
       const skill = caster && world.skills.definition(caster, skillId);
       const e = skill?.effect;
+      if (SKILL_VFX[skillId]?.area) return; // drawn where it lands (SpellEffects)
       if (caster && skill && e && (e.kind === 'aoe_damage' || e.kind === 'taunt')) this.ring(caster.x, centerY(caster), skill.color ?? 0xffffff, e.radius, 300);
     });
 
     ev.on('statusApplied', ({ targetId, statusId }) => {
       const target = world.getEntity(targetId);
-      if (target) this.ring(target.x, centerY(target), STATUSES[statusId].color, 30, 350);
+      const def = STATUSES[statusId];
+      // Slow / Burn show as a body tint instead (a zone re-applies them every tick: no ring spam).
+      if (target && !def.slow && !def.dot) this.ring(target.x, centerY(target), def.color, 30, 350);
     });
 
     ev.on('projectileRemoved', ({ x, y, color, reason }) => {
@@ -229,6 +237,11 @@ export class CombatEffects {
   /** Active danger zones (tests / debug). */
   telegraphStates() {
     return this.telegraphs.states();
+  }
+
+  /** The shared telegraph layer (the player's friendly ground warnings use it too). */
+  get telegraphLayer(): Telegraphs {
+    return this.telegraphs;
   }
 
   private flash(target: CombatEntity): void {

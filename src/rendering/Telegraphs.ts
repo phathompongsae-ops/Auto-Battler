@@ -16,11 +16,20 @@ import { telegraphIntensity, telegraphStyle } from './telegraphCurve';
  * frame the hit is due or the caster is no longer winding up (it landed or
  * was cancelled). Images are pooled and restyled in place: no per-frame
  * allocation.
+ *
+ * The player's own delayed ground strikes (Meteor Burst) use the same zone
+ * anchored on their target point, in the friendly palette: arcane blue with a
+ * gold rim, on the ground under every actor, so it never reads as danger.
  */
 
-const FILL = 0xc8261f;
-const RIM = 0xff5a4a;
-const SHADE = 0x1a0505;
+export type TelegraphPalette = 'danger' | 'friendly';
+
+const PALETTES: Record<TelegraphPalette, { fill: number; rim: number; shade: number }> = {
+  danger: { fill: 0xc8261f, rim: 0xff5a4a, shade: 0x1a0505 },
+  friendly: { fill: 0x4f7dff, rim: 0xffd27a, shade: 0x0b1440 },
+};
+/** Friendly zones lie on the ground: above tiles and shadows, under props and every actor. */
+const FRIENDLY_DEPTH = -0.55;
 /** Impact flash length (after the damage tick; never delays it). */
 const FLASH_MS = 140;
 /** Restrained pulse over the final part of the wind-up. */
@@ -40,6 +49,9 @@ interface Shapes {
 
 interface Zone {
   caster: CombatEntity;
+  palette: TelegraphPalette;
+  x: number;
+  y: number;
   radius: number;
   start: number;
   ms: number;
@@ -63,21 +75,35 @@ export class Telegraphs {
     scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => scene.events.off(Phaser.Scenes.Events.UPDATE, this.onUpdate));
   }
 
-  /** A wind-up began now (game clock): its zone runs for `ms` of game time. */
-  start(caster: CombatEntity, radius: number, ms: number): void {
+  /**
+   * A wind-up began now (game clock): its zone runs for `ms` of game time, around the caster or at `point`
+   * (a ground-targeted strike), in the danger palette (monsters) or the friendly one (the player's own).
+   */
+  start(caster: CombatEntity, radius: number, ms: number, options: { point?: { x: number; y: number }; palette?: TelegraphPalette } = {}): void {
     const shapes = this.pool.pop() ?? this.createShapes();
-    const depth = caster.y - 1;
+    const palette = options.palette ?? 'danger';
+    const at = options.point ?? caster;
+    const depth = palette === 'friendly' ? FRIENDLY_DEPTH : caster.y - 1;
     const size = radius * 2;
-    for (const s of [shapes.shade, shapes.fill, shapes.core, shapes.rim]) s.setPosition(caster.x, caster.y).setDisplaySize(size, size).setDepth(depth).setVisible(true);
-    const zone: Zone = { caster, radius, start: this.world.now, ms: Math.max(1, ms), shapes, progress: 0, intensity: telegraphIntensity(0) };
+    const colors = PALETTES[palette];
+    shapes.shade.setTint(colors.shade);
+    shapes.fill.setTint(colors.fill);
+    shapes.core.setTint(colors.fill);
+    shapes.rim.setTint(colors.rim);
+    for (const s of [shapes.shade, shapes.fill, shapes.core, shapes.rim]) s.setPosition(at.x, at.y).setDisplaySize(size, size).setDepth(depth).setVisible(true);
+    const zone: Zone = { caster, palette, x: at.x, y: at.y, radius, start: this.world.now, ms: Math.max(1, ms), shapes, progress: 0, intensity: telegraphIntensity(0) };
     this.zones.push(zone);
     this.apply(zone, 0);
   }
 
   /** Active zones (tests: progress is game-clock based; intensity rises with it). */
-  states(): { casterId: string; radius: number; ms: number; progress: number; intensity: number; fillAlpha: number; shadeAlpha: number; coreAlpha: number; rimAlpha: number }[] {
+  states(): { casterId: string; palette: TelegraphPalette; x: number; y: number; fillTint: number; radius: number; ms: number; progress: number; intensity: number; fillAlpha: number; shadeAlpha: number; coreAlpha: number; rimAlpha: number }[] {
     return this.zones.map((z) => ({
       casterId: z.caster.id,
+      palette: z.palette,
+      x: z.x,
+      y: z.y,
+      fillTint: PALETTES[z.palette].fill,
       radius: z.radius,
       ms: z.ms,
       progress: z.progress,
@@ -90,8 +116,9 @@ export class Telegraphs {
   }
 
   private createShapes(): Shapes {
-    const add = (key: string, tint: number) => this.scene.add.image(0, 0, key).setTint(tint).setAlpha(0).setData('telegraph', key === TELEGRAPH_RIM_KEY ? 'rim' : 'field');
-    return { shade: add(TELEGRAPH_FIELD_KEY, SHADE), fill: add(TELEGRAPH_FIELD_KEY, FILL), core: add(TELEGRAPH_FIELD_KEY, FILL), rim: add(TELEGRAPH_RIM_KEY, RIM) };
+    const add = (key: string) => this.scene.add.image(0, 0, key).setAlpha(0).setData('telegraph', key === TELEGRAPH_RIM_KEY ? 'rim' : 'field');
+    // Tinted per zone in start() (danger or friendly palette).
+    return { shade: add(TELEGRAPH_FIELD_KEY), fill: add(TELEGRAPH_FIELD_KEY), core: add(TELEGRAPH_FIELD_KEY), rim: add(TELEGRAPH_RIM_KEY) };
   }
 
   private update(): void {

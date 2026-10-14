@@ -23,5 +23,8 @@ export const MAX_DAMAGE_REDUCTION = 0.5;
 /** Skill cooldown reduction from gear/effects never exceeds this fraction (safety cap). */
 export const MAX_SKILL_COOLDOWN_REDUCTION = 0.5;
 
+/** Skill MP cost reduction from passives/effects never exceeds this fraction (safety cap). */
+export const MAX_MP_COST_REDUCTION = 0.5;
+
 /** Casts never get shorter than this, however much cast-time reduction stacks. */
 export const MIN_CAST_TIME_MS = 0;

@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { expToNext } from '../progression/expCurve';
-import { PLAYER_BASIC_ATTACK, SKILL_SLOTS } from '../data/playerData';
+import { SKILL_SLOTS } from '../data/playerData';
 import { ITEMS } from '../data/itemData';
 import { SKILLS, type SkillId } from '../data/skillData';
 import type { CombatWorld } from '../game/CombatWorld';
@@ -82,7 +82,7 @@ export class DebugPanel {
           (guardLeft > 0 ? `  GUARD ${(guardLeft / 1000).toFixed(1)}s` : ''),
         `Target: ${targetLine}`,
         [
-          cd(PLAYER_BASIC_ATTACK, 'Atk'),
+          cd(w.skillTree.basicAttack(), 'Atk'),
           ...SKILL_SLOTS.map((slot, i) => {
             const id = loadout[slot];
             return id ? cd(id, `${'QERFG'[i]} ${SKILLS[id].name}`) : null;

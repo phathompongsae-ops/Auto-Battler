@@ -5,10 +5,11 @@
  *
  * Hierarchy: critical hits read first (bigger, orange-gold, harder pop),
  * normal hits are warm cream and moderate, damage taken by the player stays
- * red, heals are a calmer green, misses are pale grey.
+ * red, heals are a calmer green, misses are pale grey. Damage-over-time ticks
+ * (Burn) are small, quiet and ember-orange, below every direct hit.
  */
 
-export type CombatNumberKind = 'normal' | 'heavy' | 'crit' | 'player_hit' | 'player_crit' | 'heal' | 'miss';
+export type CombatNumberKind = 'normal' | 'heavy' | 'crit' | 'player_hit' | 'player_crit' | 'heal' | 'miss' | 'burn';
 
 export interface CombatNumberStyle {
   color: string;
@@ -39,11 +40,13 @@ export const COMBAT_NUMBER_STYLES: Readonly<Record<CombatNumberKind, CombatNumbe
   player_crit: { color: '#ff3b30', stroke: '#2a0303', strokeThickness: 4, size: 20, pop: 1.5, popMs: 130, duration: 680, rise: 26, spark: false },
   heal: { color: '#86ef8f', stroke: '#0c2410', strokeThickness: 3, size: 14, pop: 1.1, popMs: 90, duration: 700, rise: 24, spark: false },
   miss: { color: '#c9cfd6', stroke: '#1a1d22', strokeThickness: 3, size: 13, pop: 1, popMs: 0, duration: 520, rise: 18, spark: false },
+  burn: { color: '#ffa65a', stroke: '#331103', strokeThickness: 3, size: 12, pop: 1, popMs: 0, duration: 520, rise: 16, spark: false },
 };
 
 /** Which style a damage event gets. */
-export function damageKind(e: { targetIsPlayer: boolean; crit: boolean; heavy: boolean }): CombatNumberKind {
+export function damageKind(e: { targetIsPlayer: boolean; crit: boolean; heavy: boolean; dot?: boolean }): CombatNumberKind {
   if (e.targetIsPlayer) return e.crit ? 'player_crit' : 'player_hit';
+  if (e.dot) return 'burn';
   if (e.crit) return 'crit';
   return e.heavy ? 'heavy' : 'normal';
 }

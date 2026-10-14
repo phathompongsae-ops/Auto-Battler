@@ -4,7 +4,6 @@ import type { EquipmentSlot } from '../../data/equipmentData';
 import { EQUIPMENT_DEFS } from '../../data/equipmentItems';
 import { ITEMS, type ItemDef } from '../../data/itemData';
 import { JOBS } from '../../data/jobData';
-import { PLAYER_BASIC_ATTACK } from '../../data/playerData';
 import type { EquipmentInstance } from '../../equipment/equipment';
 import type { CombatWorld } from '../../game/CombatWorld';
 import type { BagEntry } from '../../inventory/Bag';
@@ -157,7 +156,7 @@ function statBlock(world: CombatWorld): HTMLElement {
   const all = p.statModifiers.list();
   const s = p.combat.stats;
   const bare: CombatStats = playerCombatStats(p.progress, p.combat.level, all.filter((m) => m.source !== 'equipment'), p.combat.statuses);
-  const basic = world.skills.definition(p, PLAYER_BASIC_ATTACK);
+  const basic = world.skills.definition(p, world.skillTree.basicAttack());
   const aps = (stats: CombatStats) => (basic ? 1000 / attackInterval(basic.cooldown, stats.attackSpeed) : 0);
   const rows: { key: string; label: StringKey; value: string; gear: number; format: (n: number) => string }[] = [
     { key: 'attack', label: 'stat.atk', value: String(s.attack), gear: s.attack - bare.attack, format: (n) => String(Math.round(n)) },

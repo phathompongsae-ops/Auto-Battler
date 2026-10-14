@@ -50,6 +50,10 @@ export const effectKey = {
   damageReduction: 'damageReduction',
   /** Outgoing Physical damage fraction. */
   physicalDamage: 'physicalDamage',
+  /** Fraction taken off skill MP costs. */
+  mpCost: 'mpCost',
+  /** Outgoing damage fraction for skills tagged with an element. */
+  elementDamage: (element: string) => `elementDamage:${element}`,
   skillDamage: (skillId: string) => `skillDamage:${skillId}`,
   skillCooldown: (skillId: string) => `skillCooldown:${skillId}`,
 } as const;

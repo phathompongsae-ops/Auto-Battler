@@ -44,5 +44,13 @@ export function applyStatusModifiers(base: CombatStats, statuses: readonly { def
     }
   }
   for (const [key, v] of Object.entries(percent) as [NumericCombatKey, number][]) out[key] *= 1 + v;
+  out.moveSpeed *= 1 - strongestSlow(statuses);
   return out;
+}
+
+/** The strongest active Slow (0..0.9): Slows never stack with each other. */
+export function strongestSlow(statuses: readonly { def: StatusDef }[]): number {
+  let slow = 0;
+  for (const { def } of statuses) slow = Math.max(slow, def.slow ?? 0);
+  return Math.min(0.9, slow);
 }

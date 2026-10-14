@@ -1,4 +1,5 @@
 import type { StatModifier } from '../stats/modifiers';
+import { MAGE_STATUS_DEFS } from './skillTrees/mageTree';
 import { WARRIOR_STATUS_DEFS } from './skillTrees/warriorTree';
 
 /**
@@ -17,6 +18,17 @@ export interface StatusDef {
   stun?: boolean;
   /** Taunted: the holder keeps attacking whoever taunted it and won't give up the chase. */
   taunt?: boolean;
+  /**
+   * Movement Slow: monster move speed x (1 - slow) while it lasts. Several Slows never stack: the strongest
+   * applies. Attack timing and skill wind-ups are untouched.
+   */
+  slow?: number;
+  /**
+   * Damage over time: every `intervalMs` after it is applied (a refresh keeps the rhythm), the holder takes a hit
+   * from the applier's skill at the application's magnitude. Ticks never miss or crit and are credited to the
+   * applier, so kill, loot and quest credit go through the normal damage path.
+   */
+  dot?: { intervalMs: number };
   /** Tint used by the status indicator. */
   color: number;
 }
@@ -35,6 +47,7 @@ const STATUS_DEFS = {
   /** Elite / boss low-HP enrage (MonsterDef.enrageBelow): hits harder until it dies or resets. */
   enraged: { id: 'enraged', name: 'Enraged', kind: 'buff', modifier: { percent: { physicalAtk: 0.4 } }, color: 0xff4d4d },
   ...WARRIOR_STATUS_DEFS,
+  ...MAGE_STATUS_DEFS,
 } satisfies Record<string, StatusDef>;
 
 export type StatusId = keyof typeof STATUS_DEFS;
